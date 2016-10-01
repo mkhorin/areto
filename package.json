@@ -1,0 +1,38 @@
+{
+  "name": "areto",
+  "version": "0.5.4",
+  "description": "Rational MVC Framework",
+  "author": {
+    "name": "Maxim Khorin",
+    "email": "maksimovichu@gmail.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.2.2"
+  },
+  "homepage": "https://github.com/mkhorin/areto",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mkhorin/areto.git"
+  },
+  "dependencies": {
+    "async": "^1.5.2",
+    "body-parser": "^1.15.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.14.0",
+    "express-session": "^1.14.0",
+    "gm": "^1.23.0",
+    "mkdirp": "^0.5.1",
+    "moment": "^2.15.0",
+    "mongodb": "^2.2.10",
+    "mysql": "^2.11.1",
+    "path-to-regexp": "^1.5.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
+  },
+  "scripts": {
+    "test": "echo: \"Error: no test specified\" && exit 1"
+  }
+}

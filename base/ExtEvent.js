@@ -1,0 +1,141 @@
+'use strict';
+
+let Base = require('./Base');
+let async = require('async');
+
+module.exports = class ExtEvent extends Base {
+
+    static getConstants () {
+        return {
+            EVENTS: {}
+        };
+    }
+
+    constructor (config) {
+        super(Object.assign({
+            name: null,
+            sender: null,
+            handled: false
+        }, config));
+    }
+
+    // CLASS-LEVEL EVENTS
+   
+    static hasHandlers (sender, name) {
+        if (!(name in this.EVENTS)) {
+            return false;
+        }
+        if (typeof sender !== 'function') {
+            sender = sender.constructor;
+        }
+        // check listeners of the sender class and parents 
+        let id = sender.CLASS_FILE;
+        while (id) {
+            if (this.EVENTS[name][id] && this.EVENTS[name][id].length) {
+                return true;
+            }
+            sender = Object.getPrototypeOf(sender);
+            id = sender ? sender.CLASS_FILE : null;
+        };
+        return false;
+    }
+   
+    static on (target, name, handler, data, prepend) {
+        let id = target.CLASS_FILE;
+        if (!id) {
+            throw new Error('ExtEvent: Invalid event target');
+        }
+        if (typeof name !== 'string') {
+            throw new Error('ExtEvent: Invalid event name');
+        }
+        if (typeof handler !== 'function') {
+            throw new Error('ExtEvent: Invalid event handler');
+        }
+        let event = this.EVENTS[name];
+        if (!event) {
+            this.EVENTS[name] = event = {};
+        }
+        event[id] = event[id] || [];
+        // обратный порядок добавления, см trigger()
+        prepend ? event[id].push([handler, data]) 
+                : event[id].unshift([handler, data]);
+    }
+
+    static off (target, name, handler) {
+        let id = target.CLASS_FILE;
+        let event = this.EVENTS[name];
+        if (!id || !event || !event[id]) {
+            return false;
+        }
+        if (handler) {
+            let removed = false;
+            for (let i = event[id].length - 1; i >= 0; --i) {
+                if (event[id][i][0] === handler) {
+                    event[id].splice(i, 1);
+                    removed = true;
+                }
+            }
+            return removed;
+        }
+        delete event[id];
+        return true;
+    }
+
+    static initEvent (event, sender, name) {
+        event = event || new this;
+        event.sender = event.sender || sender;
+        event.handled = false;
+        event.name = name;
+        return event;
+    }
+
+    static trigger (sender, name, event) {
+        if (!this.EVENTS[name]) {
+            return;
+        }
+        event = this.initEvent(event, sender, name);
+        if (typeof sender !== 'function') {
+            sender = sender.constructor;
+        }
+        let id = sender.CLASS_FILE;
+        while (id) {
+            let handlers = this.EVENTS[name][id];
+            if (handlers) {
+                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив this.EVENTS[name]
+                for (let i = handlers.length - 1; i >= 0; --i) {
+                    handlers[i][0](event, handlers[i][1]);
+                    if (event.handled) return;
+                }
+            }
+            sender = Object.getPrototypeOf(sender); // get parent class
+            id = sender ? sender.CLASS_FILE : null;
+        }
+    }
+
+    static triggerCallback (sender, name, cb, event, tasks) {
+        if (this.EVENTS[name]) {
+            event = this.initEvent(event, sender, name);
+            if (typeof sender !== 'function') {
+                sender = sender.constructor;
+            }
+            let id = sender.CLASS_FILE;
+            if (!id) {
+                return cb('ExtEvent: Invalid event sender');
+            }
+            tasks = tasks || [];
+            while (id) {
+                if (this.EVENTS[name][id]) {
+                    this.EVENTS[name][id].forEach(function (handler) {
+                        tasks.push(function (cb) {
+                            handler[0](event, cb, handler[1]);
+                        });
+                    });
+                }
+                sender = Object.getPrototypeOf(sender); // get parent class
+                id = sender ? sender.CLASS_FILE : null;
+            };
+        }
+        (tasks && tasks.length) ? async.parallel(tasks, cb) : cb();
+    }
+};
+module.exports.init();
