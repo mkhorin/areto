@@ -1,8 +1,8 @@
 'use strict';
 
 let Base = require('./Component');
-let helper = require('../helpers/main');
-let inflector = require('../helpers/inflector');
+let helper = require('../helpers/MainHelper');
+let inflector = require('../helpers/InflectorHelper');
 let async = require('async');
 let fs = require('fs');
 let path = require('path');

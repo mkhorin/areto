@@ -1,8 +1,8 @@
 'use strict';
 
 let Base = require('./Component');
-let inflector = require('../helpers/inflector');
-let helper = require('../helpers/main');
+let inflector = require('../helpers/InflectorHelper');
+let helper = require('../helpers/MainHelper');
 let async = require('async');
 
 module.exports = class Controller extends Base {

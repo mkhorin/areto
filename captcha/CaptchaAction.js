@@ -3,7 +3,7 @@
 let Base = require('../base/Action');
 let gm = require('gm');
 let path = require('path');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 
 module.exports = class Captcha extends Base {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Behavior');
-let arrayHelper = require('../helpers/array');
+let arrayHelper = require('../helpers/ArrayHelper');
 let async = require('async');
 
 module.exports = class History extends Base {

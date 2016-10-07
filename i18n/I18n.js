@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Base');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 let path = require('path');
 
 module.exports = class I18n extends Base {

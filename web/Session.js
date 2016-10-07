@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Base');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 let session = require('express-session');
 let flash = require('connect-flash');
 

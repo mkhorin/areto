@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Base');
-let inflector = require('../helpers/inflector');
+let inflector = require('../helpers/InflectorHelper');
 
 module.exports = class Sort extends Base {
 

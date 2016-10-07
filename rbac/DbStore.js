@@ -2,7 +2,7 @@
 
 let Base = require('./Store');
 let async = require('async');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 
 module.exports = class DbStore extends Base {
 

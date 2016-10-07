@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Base');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 
 module.exports = class DataProvider extends Base {
 

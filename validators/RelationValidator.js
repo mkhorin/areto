@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('./Validator');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 
 module.exports = class RelationValidator extends Base {
 

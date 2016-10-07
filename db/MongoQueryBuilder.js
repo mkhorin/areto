@@ -2,7 +2,7 @@
 
 let Base = require('./QueryBuilder');
 let mongodb = require('mongodb');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 
 const CONDITION_BUILDERS = {
     'AND': 'buildAndCondition',

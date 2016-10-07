@@ -1,8 +1,8 @@
 'use strict';
 
 let Base = require('./Component');
-let inflector = require('../helpers/inflector');
-let arrayHelper = require('../helpers/array');
+let inflector = require('../helpers/InflectorHelper');
+let arrayHelper = require('../helpers/ArrayHelper');
 let async = require('async');
 
 module.exports = class Model extends Base {

@@ -1,8 +1,8 @@
 'use strict';
 
 let Base = require('../base/Base');
-let helper = require('../helpers/main');
-let arrayHelper = require('../helpers/array');
+let helper = require('../helpers/MainHelper');
+let arrayHelper = require('../helpers/ArrayHelper');
 let pathToRegexp = require('path-to-regexp');
 
 module.exports = class Url extends Base {

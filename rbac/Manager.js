@@ -1,7 +1,7 @@
 'use strict';
 
 let Base = require('../base/Component');
-let helper = require('../helpers/main');
+let helper = require('../helpers/MainHelper');
 let async = require('async');
 
 module.exports = class Manager extends Base {
