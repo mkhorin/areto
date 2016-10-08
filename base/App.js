@@ -1,5 +1,7 @@
 'use strict';
 
+require('../helpers/init');
+
 let Base = require('./Module');
 
 module.exports = class App extends Base {
