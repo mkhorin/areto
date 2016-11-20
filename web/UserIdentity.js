@@ -10,7 +10,8 @@ module.exports = class UserIdentity extends Base {
     }
 
     getAssignments (cb) {
-        cb(null, [this.get('role')]); // get user assigned roles []
+        // get user's assigned roles - []
+        cb(null, this.module.components.rbac.getUserAssignments(this.getId()));
     }
 
     getAuthKey () {

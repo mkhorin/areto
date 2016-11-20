@@ -89,7 +89,7 @@ module.exports = class Manager extends Base {
     }
 
     getUserAssignments (userId) {
-        return this.assignmentIndex[userId];
+        return userId in this.assignmentIndex ? this.assignmentIndex[userId].items : null;
     }
 
     can (user, assignments, id, cb, params) {
