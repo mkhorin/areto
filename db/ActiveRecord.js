@@ -108,7 +108,9 @@ module.exports = class ActiveRecord extends Base {
     filterAttributes () {
         let attributes = {};
         for (let key of this.STORED_ATTRIBUTES) {
-            attributes[key] = key in this._attributes ? this._attributes[key] : null;
+            if (key in this._attributes) {
+                attributes[key] = this._attributes[key];    
+            }
         }
         return attributes;
     }

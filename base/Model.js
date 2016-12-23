@@ -136,10 +136,8 @@ module.exports = class Model extends Base {
     
     setAttributes (values) {
         if (values && typeof values === 'object') {
-            for (let name of this.getAttributeNames()) {
-                if (name in values) {
-                    this.set(name, values[name]);
-                }
+            for (let name of Object.keys(values)) {
+                this.set(name, values[name]);
             }
         }
     }
