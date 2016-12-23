@@ -10,6 +10,7 @@ module.exports = class Message extends Base {
 
     addParams (addon) {
         this.params = Object.assign(this.params || {}, addon);
+        return this;
     }
 };
 
