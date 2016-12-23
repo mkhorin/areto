@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./Base');
-let fs = require('fs');
-let path = require('path');
+const Base = require('./Base');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = class Theme extends Base {
 

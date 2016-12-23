@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./Base');
-let helper = require('../helpers/MainHelper');
-let async = require('async');
+const Base = require('./Base');
+const helper = require('../helpers/MainHelper');
+const async = require('async');
 
 module.exports = class View extends Base {
 

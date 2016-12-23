@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Manager');
-let async = require('async');
+const Base = require('./Manager');
+const async = require('async');
 
 module.exports = class RouteManager extends Base {
 
@@ -63,5 +63,5 @@ module.exports = class RouteManager extends Base {
     }
 };
 
-let ServerErrorException = require('../errors/ServerErrorHttpException');
-let ForbiddenException = require('../errors/ForbiddenHttpException');
+const ServerErrorException = require('../errors/ServerErrorHttpException');
+const ForbiddenException = require('../errors/ForbiddenHttpException');

@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./FileValidator');
+const Base = require('./FileValidator');
 let gm = require('gm');
 
 module.exports = class ImageValidator extends Base {
@@ -26,7 +26,9 @@ module.exports = class ImageValidator extends Base {
 
     validateValue (file, cb) {
        super.validateValue(file, (err, message, params)=> {
-           err ? cb(err) : message ? cb(err, message, params) : this.validateImage(file, cb);
+           err ? cb(err) 
+               : message ? cb(err, message, params) 
+                         : this.validateImage(file, cb);
        });
     }
 
@@ -34,18 +36,21 @@ module.exports = class ImageValidator extends Base {
         let image = gm(file.path);
         image.size((err, size)=> {
             if (err) {
-                cb(null, this.onlyImage ? this.notImage : null);
-            } else if (this.minHeight && size.height < this.minHeight) {
-                cb(null, this.underHeight, { limit: this.minHeight });
-            } else if (this.minWidth && size.width < this.minWidth) {
-                cb(null, this.underWidth, { limit: this.minWidth });
-            } else if (this.maxHeight && size.height > this.maxHeight) {
-                cb(null, this.overHeight, { limit: this.maxHeight });
-            } else if (this.maxWidth && size.width > this.maxWidth) {
-                cb(null, this.overWidth, { limit: this.maxWidth });
-            } else {
-                cb();
+                return cb(null, this.onlyImage ? this.notImage : null);
+            } 
+            if (this.minHeight && size.height < this.minHeight) {
+                return cb(null, this.underHeight, { limit: this.minHeight });
             }
+            if (this.minWidth && size.width < this.minWidth) {
+                return cb(null, this.underWidth, { limit: this.minWidth });
+            }
+            if (this.maxHeight && size.height > this.maxHeight) {
+                return cb(null, this.overHeight, { limit: this.maxHeight });
+            }
+            if (this.maxWidth && size.width > this.maxWidth) {
+                return cb(null, this.overWidth, { limit: this.maxWidth });
+            }
+            cb();
         });
     }
 

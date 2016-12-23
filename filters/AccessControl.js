@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./ActionFilter');
-let helper = require('../helpers/MainHelper');
-let async = require('async');
+const Base = require('./ActionFilter');
+const helper = require('../helpers/MainHelper');
+const async = require('async');
 
 module.exports = class AccessControl extends Base {
 
@@ -49,4 +49,4 @@ module.exports = class AccessControl extends Base {
     }
 };
 
-let AccessRule = require('./AccessRule');
+const AccessRule = require('./AccessRule');

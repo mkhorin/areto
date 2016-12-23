@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('../base/Behavior');
-let moment = require('moment');
+const Base = require('../base/Behavior');
+const moment = require('moment');
 
 module.exports = class Timestamp extends Base {
 
@@ -38,4 +38,4 @@ module.exports = class Timestamp extends Base {
     }
 };
 
-let ActiveRecord = require('../db/ActiveRecord');
+const ActiveRecord = require('../db/ActiveRecord');

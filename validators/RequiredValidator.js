@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class RequiredValidator extends Base {
 
@@ -22,16 +22,13 @@ module.exports = class RequiredValidator extends Base {
         if (this.requiredValue === null) {
             if (this.strict && value !== null || !this.strict 
                 && !this.isEmpty(typeof value === 'string' ? value.trim() : value)) {
-                cb();
-            } else {
-                cb(null, this.message);
+               return cb();
             }
-        } else if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
-            cb();
-        } else {
-            cb(null, this.message, {
-                requiredValue: this.requiredValue
-            });
+            return cb(null, this.message);
+        } 
+        if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
+            return cb();
         }
+        cb(null, this.message, { requiredValue: this.requiredValue });
     }
 };

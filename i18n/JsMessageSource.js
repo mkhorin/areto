@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./MessageSource');
-let path = require('path');
+const Base = require('./MessageSource');
+const path = require('path');
 
 module.exports = class JsMessageSource extends Base {
 

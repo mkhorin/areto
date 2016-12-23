@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('./Driver');
-let mysql = require('mysql');
-let helper = require('../helpers/MainHelper');
-let moment = require('moment');
+const Base = require('./Driver');
+const mysql = require('mysql');
+const helper = require('../helpers/MainHelper');
+const moment = require('moment');
 
 module.exports = class MysqlDriver extends Base {
 
@@ -283,5 +283,5 @@ module.exports = class MysqlDriver extends Base {
 };
 module.exports.init();
 
-let MysqlQueryBuilder = require('./MysqlQueryBuilder');
-let Expression = require('./Expression');
+const MysqlQueryBuilder = require('./MysqlQueryBuilder');
+const Expression = require('./Expression');

@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 /**
  * a1 needs to exist
  * ['a1', 'exist']

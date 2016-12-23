@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('../base/Base');
-let Url = require('./Url');
+const Base = require('../base/Base');
+const Url = require('./Url');
 
 module.exports = class Forwarder extends Base {
 

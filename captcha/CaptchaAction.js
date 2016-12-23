@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('../base/Action');
-let gm = require('gm');
-let path = require('path');
-let helper = require('../helpers/MainHelper');
+const Base = require('../base/Action');
+const gm = require('gm');
+const path = require('path');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class Captcha extends Base {
 

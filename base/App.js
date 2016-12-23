@@ -2,7 +2,7 @@
 
 require('../helpers/init');
 
-let Base = require('./Module');
+const Base = require('./Module');
 
 module.exports = class App extends Base {
 
@@ -52,7 +52,7 @@ module.exports = class App extends Base {
     migrate (params, cb) {               
         let action = params.splice(0, 1).join('');        
         if (action === 'apply' || action === 'revert') {
-            let async = require('async');
+            const async = require('async');
             async.eachSeries(params, (filename, cb)=> {
                 this.log('info', `Start to ${action} ${filename}`);
                 this.migrateFile(filename, action, err => {

@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('../base/Component');
-let async = require('async');
+const Base = require('../base/Component');
+const async = require('async');
 
 module.exports = class Migration extends Base {
 

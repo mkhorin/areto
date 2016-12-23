@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./DbSessionStore');
+const Base = require('./DbSessionStore');
 
 module.exports = class MongoSessionStore extends Base {
 

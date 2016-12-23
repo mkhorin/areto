@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('../base/Base');
-let helper = require('../helpers/MainHelper');
-let arrayHelper = require('../helpers/ArrayHelper');
-let pathToRegexp = require('path-to-regexp');
+const Base = require('../base/Base');
+const helper = require('../helpers/MainHelper');
+const arrayHelper = require('../helpers/ArrayHelper');
+const pathToRegexp = require('path-to-regexp');
 
 module.exports = class Url extends Base {
     /**
@@ -141,4 +141,4 @@ module.exports = class Url extends Base {
     }
 };
 
-let ActiveRecord = require('../db/ActiveRecord');
+const ActiveRecord = require('../db/ActiveRecord');

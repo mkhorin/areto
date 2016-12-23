@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Component');
+const Base = require('../base/Component');
 
 module.exports = class User extends Base {
 
@@ -286,7 +286,7 @@ module.exports = class User extends Base {
 };
 module.exports.init();
 
-let Session = require('./Session');
-let UserEvent = require('./UserEvent');
-let ForbiddenHttpException = require('../errors/ForbiddenHttpException');
-let ServerErrorHttpException = require('../errors/ServerErrorHttpException');
+const Session = require('./Session');
+const UserEvent = require('./UserEvent');
+const ForbiddenHttpException = require('../errors/ForbiddenHttpException');
+const ServerErrorHttpException = require('../errors/ServerErrorHttpException');

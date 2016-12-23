@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./SessionStore');
+const Base = require('./SessionStore');
 
 module.exports = class DbSessionStore extends Base {
 
@@ -21,4 +21,4 @@ module.exports = class DbSessionStore extends Base {
     }
 };
 
-let Query = require('../db/Query');
+const Query = require('../db/Query');

@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Component');
+const Base = require('../base/Component');
 
 module.exports = class Cache extends Base {
 

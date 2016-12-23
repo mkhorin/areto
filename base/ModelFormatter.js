@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Base');
-let path = require('path');
+const Base = require('./Base');
+const path = require('path');
 
 module.exports = class ModelFormatter extends Base {
 

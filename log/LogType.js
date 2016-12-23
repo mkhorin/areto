@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('../base/Base');
-let helper = require('../helpers/MainHelper');
+const Base = require('../base/Base');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class LogType extends Base {
 
@@ -37,5 +37,5 @@ module.exports = class LogType extends Base {
     }
 };
 
-let Exception = require('../errors/Exception');
-let LogStore = require('./LogStore');
+const Exception = require('../errors/Exception');
+const LogStore = require('./LogStore');

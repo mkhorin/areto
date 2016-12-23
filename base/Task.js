@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Component');
+const Base = require('./Component');
 
 module.exports = class Task extends Base {
 
@@ -114,4 +114,4 @@ module.exports = class Task extends Base {
     }
 };
 
-let ExtEvent = require('./ExtEvent');
+const ExtEvent = require('./ExtEvent');

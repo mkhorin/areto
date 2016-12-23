@@ -1,12 +1,12 @@
 'use strict';
 
-let Base = require('./Component');
-let helper = require('../helpers/MainHelper');
-let inflector = require('../helpers/InflectorHelper');
-let async = require('async');
-let fs = require('fs');
-let path = require('path');
-let express = require('express');
+const Base = require('./Component');
+const helper = require('../helpers/MainHelper');
+const inflector = require('../helpers/InflectorHelper');
+const async = require('async');
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
 
 module.exports = class Module extends Base {
     
@@ -396,5 +396,5 @@ module.exports = class Module extends Base {
 
 module.exports.init();
 
-let ActionEvent = require('./ActionEvent');
-let Url = require('../web/Url');
+const ActionEvent = require('./ActionEvent');
+const Url = require('../web/Url');

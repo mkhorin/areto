@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./DataProvider');
+const Base = require('./DataProvider');
 
 module.exports = class ArrayDataProvider extends Base {
 

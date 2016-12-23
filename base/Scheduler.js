@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Component');
-let helper = require('../helpers/MainHelper');
+const Base = require('./Component');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class Scheduler extends Base {
 

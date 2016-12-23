@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Store');
-let path = require('path');
+const Base = require('./Store');
+const path = require('path');
 
 module.exports = class FileStore extends Base {
 

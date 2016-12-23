@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class UrlValidator extends Base {
 
@@ -34,16 +34,15 @@ module.exports = class UrlValidator extends Base {
     validateValue (value, cb) {
         // make sure the length is limited to avoid DOS attacks
         if (typeof value !== 'string' || value.length > 2000) {
-            cb(null, this.message);
-        } else {
-            if (this.defaultScheme !== null && value.indexOf('://') < 0) {
-                value = `${this.defaultScheme}://${value}`;
-            }
-            let pattern = this.pattern;
-            if (pattern.indexOf('{schemes}') > -1) {
-                pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
-            }
-            cb(null, (new RegExp(pattern, 'i')).test(value) ? null : this.message);
+            return cb(null, this.message);
         }
+        if (this.defaultScheme !== null && value.indexOf('://') < 0) {
+            value = `${this.defaultScheme}://${value}`;
+        }
+        let pattern = this.pattern;
+        if (pattern.indexOf('{schemes}') > -1) {
+            pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
+        }
+        cb(null, (new RegExp(pattern, 'i')).test(value) ? null : this.message);
     }
 };

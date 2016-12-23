@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Action');
+const Base = require('./Action');
 
 /**
  * action is defined as controller's method

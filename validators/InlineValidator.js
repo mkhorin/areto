@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class InlineValidator extends Base {
 

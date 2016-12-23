@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class RangeValidator extends Base {
 
@@ -22,17 +22,16 @@ module.exports = class RangeValidator extends Base {
 
     validateValue (value, cb) {
         if (!this.allowArray && value instanceof Array) {
-            cb(null, this.message);
-        } else {
-            let inRange = true;
-            let values = value instanceof Array ? value : [value];
-            for (let item of values) {
-                if (!this.range.includes(item)) {
-                    inRange = false;
-                    break;    
-                }
-            }
-            cb(null, this.not !== inRange ? null : this.message);
+            return cb(null, this.message);
         }
+        let inRange = true;
+        let values = value instanceof Array ? value : [value];
+        for (let item of values) {
+            if (!this.range.includes(item)) {
+                inRange = false;
+                break;
+            }
+        }
+        cb(null, this.not !== inRange ? null : this.message);
     }
 };

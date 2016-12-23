@@ -1,7 +1,7 @@
 'use strict';
 
 let expect = require('chai').expect;
-let helper = require('../../../helpers/InflectorHelper');
+const helper = require('../../../helpers/InflectorHelper');
 
 describe('helpers.inflector', ()=> {
 

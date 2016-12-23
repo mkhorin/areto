@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('../base/Base');
-let session = require('express-session');
-let Store = session.Store;
+const Base = require('../base/Base');
+const session = require('express-session');
+const Store = session.Store;
 
 module.exports = class SessionStore extends Base {
 

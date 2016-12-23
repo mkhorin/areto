@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class DateValidator extends Base {
 
@@ -51,16 +51,15 @@ module.exports = class DateValidator extends Base {
 
     validateValue (value, cb) {
         value = value instanceof Date ? value : new Date(value);
-        if (!this.isValidDateObject(value)) {
-            cb(null, this.message);
-        } else {
-            if (this.min !== null && value < this.min) {
-                cb(null, this.tooSmall, {min: this.min});
-            } else if (this.max !== null && value > this.max) {
-                cb(null, this.tooBig, {max: this.max});
-            } else {
-                cb();
-            }
+        if (!this.isValidDateObject(value)) {            
+            return cb(null, this.message);
         }
+        if (this.min !== null && value < this.min) {
+            return cb(null, this.tooSmall, {min: this.min});
+        } 
+        if (this.max !== null && value > this.max) {
+            return cb(null, this.tooBig, {max: this.max});
+        }
+        cb();
     }
 };

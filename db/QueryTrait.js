@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Base');
+const Base = require('../base/Base');
 
 module.exports = class QueryTrait extends Base {
 

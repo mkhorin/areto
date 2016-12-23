@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class StringValidator extends Base {
 
@@ -47,16 +47,18 @@ module.exports = class StringValidator extends Base {
 
     validateValue (value, cb) {
         if (typeof value !== 'string') {
-            cb(null, this.message);
-        } else {
-            let length = value.length;
-            if (this.min !== null && length < this.min) {
-                cb(null, this.tooShort, {min: this.min});
-            } else if (this.max !== null && length > this.max) {
-                cb(null, this.tooLong, {max: this.max});
-            } else if (this.length !== null && length !== this.length) {
-                cb(null, this.notEqual, {length: this.length});
-            } else cb();
+            return cb(null, this.message);
         }
+        let length = value.length;
+        if (this.min !== null && length < this.min) {
+            return cb(null, this.tooShort, {min: this.min});
+        }
+        if (this.max !== null && length > this.max) {
+            return cb(null, this.tooLong, {max: this.max});
+        }
+        if (this.length !== null && length !== this.length) {
+            return cb(null, this.notEqual, {length: this.length});
+        } 
+        cb();
     }
 };

@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Query');
-let async = require('async');
+const Base = require('./Query');
+const async = require('async');
 
 module.exports = class ActiveQuery extends Base {
 
@@ -451,4 +451,4 @@ module.exports = class ActiveQuery extends Base {
     }
 };
 
-let ActiveRecord = require('./ActiveRecord');
+const ActiveRecord = require('./ActiveRecord');

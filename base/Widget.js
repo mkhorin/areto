@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Base');
+const Base = require('./Base');
 
 // this.cacheDuration
 // this.cacheComponentId

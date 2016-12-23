@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./QueryBuilder');
-let helper = require('../helpers/MainHelper');
+const Base = require('./QueryBuilder');
+const helper = require('../helpers/MainHelper');
 
 const CONDITION_BUILDERS = {
     'AND': 'buildAndCondition',

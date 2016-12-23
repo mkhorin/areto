@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('../base/Model');
-let helper = require('../helpers/MainHelper');
-let async = require('async');
+const Base = require('../base/Model');
+const helper = require('../helpers/MainHelper');
+const async = require('async');
 
 module.exports = class ActiveRecord extends Base {
 

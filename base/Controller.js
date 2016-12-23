@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('./Component');
-let inflector = require('../helpers/InflectorHelper');
-let helper = require('../helpers/MainHelper');
-let async = require('async');
+const Base = require('./Component');
+const inflector = require('../helpers/InflectorHelper');
+const helper = require('../helpers/MainHelper');
+const async = require('async');
 
 module.exports = class Controller extends Base {
 
@@ -321,8 +321,8 @@ module.exports = class Controller extends Base {
 
 module.exports.init();
 
-let ActionEvent = require('./ActionEvent');
-let InlineAction = require('./InlineAction');
-let Response = require('../web/Response');
-let Message = require('../i18n/Message');
-let Url = require('../web/Url');
+const ActionEvent = require('./ActionEvent');
+const InlineAction = require('./InlineAction');
+const Response = require('../web/Response');
+const Message = require('../i18n/Message');
+const Url = require('../web/Url');

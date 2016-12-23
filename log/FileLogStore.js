@@ -1,11 +1,11 @@
 'use strict';
 
-let Base = require('./LogStore');
-let async = require('async');
-let fs = require('fs');
-let mkdirp = require('mkdirp');
-let os = require('os');
-let path = require('path');
+const Base = require('./LogStore');
+const async = require('async');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const os = require('os');
+const path = require('path');
 
 module.exports = class FileLogStore extends Base {
 
@@ -97,4 +97,4 @@ module.exports = class FileLogStore extends Base {
     }
 };
 
-let Exception = require('../errors/Exception');
+const Exception = require('../errors/Exception');

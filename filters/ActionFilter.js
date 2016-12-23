@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Behavior');
+const Base = require('../base/Behavior');
 
 module.exports = class ActionFilter extends Base {
 
@@ -58,5 +58,5 @@ module.exports = class ActionFilter extends Base {
     }
 };
 
-let Module = require('../base/Module');
-let Controller = require('../base/Controller');
+const Module = require('../base/Module');
+const Controller = require('../base/Controller');

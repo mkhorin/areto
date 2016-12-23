@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Validator');
-let helper = require('../helpers/MainHelper');
+const Base = require('./Validator');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class RelationValidator extends Base {
 
@@ -38,19 +38,22 @@ module.exports = class RelationValidator extends Base {
 
     validateValue (value, cb) {
         let error = false;
-        value = helper.parseJson(value);
-        if (value) {
-            for (let item of this.CHANGES) {
-                if(!(value[item] instanceof Array)) {
-                    error = true;
-                }
-            }    
+        if (!value) {
+            cb(null, null, value);
         }
-        if (!value || error) {
-            cb(null, this.message);
-        } else {
+        try {            
+            value = JSON.parse(value);
+            for (let item of this.CHANGES) {
+                for (let id of value[item]) {
+                    if (!id || typeof id === 'object') {
+                        return cb(null, this.message);
+                    }
+                }
+            }
             this.filterValue(value);
             cb(null, null, null, value);
+        } catch (err) {
+            cb(null, this.message);
         }
     }
 

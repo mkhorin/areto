@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('../base/Base');
-let arrayHelper = require('../helpers/ArrayHelper');
-let async = require('async');
+const Base = require('../base/Base');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const async = require('async');
 
 module.exports = class Validator extends Base {
 
@@ -71,7 +71,7 @@ module.exports = class Validator extends Base {
     }
 
     validateAttrs (model, attrs, cb) {
-        attrs = attrs instanceof Array ? arrayHelper.intersect(attrs, this.attributes) : this.attributes;
+        attrs = attrs instanceof Array ? ArrayHelper.intersect(attrs, this.attributes) : this.attributes;
         attrs = attrs.filter(attr => {
             return (!this.skipOnAnyError || !model.hasError())
                 && (!this.skipOnError || !model.hasError(attr))
@@ -120,4 +120,4 @@ module.exports = class Validator extends Base {
 };
 module.exports.init();
 
-let Message = require('../i18n/Message');
+const Message = require('../i18n/Message');

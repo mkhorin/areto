@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Cache');
+const Base = require('./Cache');
 
 module.exports = class DbCache extends Base {
 
@@ -54,4 +54,4 @@ module.exports = class DbCache extends Base {
     }
 };
 
-let Query = require('../db/Query');
+const Query = require('../db/Query');

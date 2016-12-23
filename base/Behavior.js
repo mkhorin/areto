@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Base');
+const Base = require('./Base');
 
 module.exports = class Behavior extends Base {
 

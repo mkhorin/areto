@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./QueryTrait');
+const Base = require('./QueryTrait');
 
 module.exports = class Query extends Base {
 
@@ -108,7 +108,7 @@ module.exports = class Query extends Base {
     }
 
     clone () {
-        let Base = require('../base/Base');
+        const Base = require('../base/Base');
         let target = Object.assign(new this.constructor, this);
         for (let key of Object.keys(target)) {
             let prop = target[key];

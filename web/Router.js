@@ -1,10 +1,10 @@
 'use strict';
 
-let Base = require('../base/Component');
-let helper = require('../helpers/MainHelper');
-let inflector = require('../helpers/InflectorHelper');
-let fs = require('fs');
-let path = require('path');
+const Base = require('../base/Component');
+const helper = require('../helpers/MainHelper');
+const inflector = require('../helpers/InflectorHelper');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = class Router extends Base {
 
@@ -83,6 +83,6 @@ module.exports = class Router extends Base {
     }
 };
 
-let HttpException = require('../errors/HttpException');
-let ServerErrorHttpException = require('../errors/ServerErrorHttpException');
-let NotFoundHttpException = require('../errors/NotFoundHttpException');
+const HttpException = require('../errors/HttpException');
+const ServerErrorHttpException = require('../errors/ServerErrorHttpException');
+const NotFoundHttpException = require('../errors/NotFoundHttpException');

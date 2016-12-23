@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./ExtEvent');
+const Base = require('./ExtEvent');
 
 module.exports = class ActionEvent extends Base {
 

@@ -1,7 +1,7 @@
 'use strict';
 
-let helper = require('../helpers/MainHelper');
-let path = require('path');
+const helper = require('../helpers/MainHelper');
+const path = require('path');
 
 module.exports = class Base {
 

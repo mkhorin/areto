@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('../base/Behavior');
-let arrayHelper = require('../helpers/ArrayHelper');
-let async = require('async');
+const Base = require('../base/Behavior');
+const arrayHelper = require('../helpers/ArrayHelper');
+const async = require('async');
 
 module.exports = class History extends Base {
 
@@ -50,4 +50,4 @@ module.exports = class History extends Base {
     }
 };
 
-let ActiveRecord = require('../db/ActiveRecord');
+const ActiveRecord = require('../db/ActiveRecord');

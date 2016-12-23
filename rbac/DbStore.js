@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./Store');
-let async = require('async');
-let helper = require('../helpers/MainHelper');
+const Base = require('./Store');
+const async = require('async');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class DbStore extends Base {
 
@@ -72,4 +72,4 @@ module.exports = class DbStore extends Base {
     }
 };
 
-let Query = require('../db/Query');
+const Query = require('../db/Query');

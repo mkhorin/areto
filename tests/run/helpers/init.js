@@ -1,7 +1,7 @@
 'use strict';
 
 let expect = require('chai').expect;
-let helper = require('../../../helpers/init');
+const helper = require('../../../helpers/init');
 
 describe('helpers.init', ()=> {
 

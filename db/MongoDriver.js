@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./Driver');
-let mongodb = require('mongodb');
-let MongoClient = mongodb.MongoClient;
+const Base = require('./Driver');
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
 
 module.exports = class MongoDriver extends Base {
 
@@ -271,4 +271,4 @@ module.exports = class MongoDriver extends Base {
 }
 module.exports.init();
 
-let MongoQueryBuilder = require('./MongoQueryBuilder');
+const MongoQueryBuilder = require('./MongoQueryBuilder');

@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Cache');
+const Base = require('./Cache');
 
 module.exports = class MemoryCache extends Base {
 

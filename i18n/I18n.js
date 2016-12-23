@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('../base/Base');
-let helper = require('../helpers/MainHelper');
-let path = require('path');
+const Base = require('../base/Base');
+const helper = require('../helpers/MainHelper');
+const path = require('path');
 
 module.exports = class I18n extends Base {
 
@@ -90,6 +90,6 @@ module.exports = class I18n extends Base {
 };
 module.exports.init();
 
-let MessageSource = require('./MessageSource');
-let JsMessageSource = require('./JsMessageSource');
-let MessageFormatter = require('./MessageFormatter');
+const MessageSource = require('./MessageSource');
+const JsMessageSource = require('./JsMessageSource');
+const MessageFormatter = require('./MessageFormatter');

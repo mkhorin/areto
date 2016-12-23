@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./HttpException');
+const Base = require('./HttpException');
 
 module.exports = class ForbiddenHttpException extends Base {
 

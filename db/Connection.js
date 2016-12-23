@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Component');
+const Base = require('../base/Component');
 
 module.exports = class Connection extends Base {
     
@@ -36,5 +36,5 @@ module.exports = class Connection extends Base {
     }
 };
 
-let MongoDriver = require('./MongoDriver');
-let MysqlDriver = require('./MysqlDriver');
+const MongoDriver = require('./MongoDriver');
+const MysqlDriver = require('./MysqlDriver');

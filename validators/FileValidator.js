@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Validator');
-let fs = require('fs');
+const Base = require('./Validator');
+const fs = require('fs');
 
 module.exports = class FileValidator extends Base {
 
@@ -33,21 +33,24 @@ module.exports = class FileValidator extends Base {
         }
         fs.stat(file.path, (err, stats)=> {
             if (err || !stats.isFile()) {
-                cb(null, this.message);
-            } else if (this.onlyImage && (!file.mime || file.mime.indexOf('image') !== 0)) {
-                cb(null, this.notImage);                
-            } else if (this.minSize && file.size < this.minSize) {
-                cb(null, this.tooSmall, { limit: this.minSize });
-            } else if (this.maxSize && file.size > this.maxSize) {
-                cb(null, this.tooBig, { limit: this.maxSize });
-            } else if (this.extensions 
-                && (!file.extension || this.extensions.indexOf(file.extension.toLowerCase()) < 0)) {                
-                cb(null, this.wrongExtension, { extensions: this.extensions });
-            } else if (this.mimeTypes && (!file.mime || this.mimeTypes.indexOf(file.mime) < 0)) {
-                cb(null, this.wrongMimeType, { mimeTypes: this.mimeTypes });
-            } else {
-                cb();    
+                return cb(null, this.message);
             }
+            if (this.onlyImage && (!file.mime || file.mime.indexOf('image') !== 0)) {
+                return cb(null, this.notImage);                
+            }
+            if (this.minSize && file.size < this.minSize) {
+                return cb(null, this.tooSmall, { limit: this.minSize });
+            }
+            if (this.maxSize && file.size > this.maxSize) {
+                return cb(null, this.tooBig, { limit: this.maxSize });
+            }
+            if (this.extensions && (!file.extension || this.extensions.indexOf(file.extension.toLowerCase()) < 0)) {
+                return cb(null, this.wrongExtension, { extensions: this.extensions });
+            }
+            if (this.mimeTypes && (!file.mime || this.mimeTypes.indexOf(file.mime) < 0)) {
+                return cb(null, this.wrongMimeType, { mimeTypes: this.mimeTypes });
+            }
+            cb();
         });
     }
 

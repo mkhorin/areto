@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Rule');
-let helper = require('../helpers/MainHelper');
+const Base = require('./Rule');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class AuthorRule extends Base {
 

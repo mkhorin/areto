@@ -1,8 +1,8 @@
 'use strict';
 
-let Base = require('./Base');
-let ExtEvent = require('./ExtEvent');
-let async = require('async');
+const Base = require('./Base');
+const ExtEvent = require('./ExtEvent');
+const async = require('async');
 
 module.exports = class Component extends Base {
 

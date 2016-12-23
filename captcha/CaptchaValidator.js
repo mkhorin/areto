@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../validators/Validator');
+const Base = require('../validators/Validator');
 
 module.exports = class CaptchaValidator extends Base {
 
@@ -35,4 +35,4 @@ module.exports = class CaptchaValidator extends Base {
     }
 };
 
-let Controller = require('../base/Controller');
+const Controller = require('../base/Controller');

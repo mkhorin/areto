@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('../db/ActiveRecord');
-let security = require('../helpers/SecurityHelper');
+const Base = require('../db/ActiveRecord');
+const security = require('../helpers/SecurityHelper');
 
 module.exports = class UserIdentity extends Base {
 

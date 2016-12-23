@@ -1,6 +1,6 @@
 'use strict';
 
-let crypto = require('crypto');
+const crypto = require('crypto');
 
 const HMAC_ALGO = 'sha1';
 const HASH_LENGTH = 40;

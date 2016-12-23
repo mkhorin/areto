@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../base/Base');
+const Base = require('../base/Base');
 
 module.exports = class Message extends Base {
 
@@ -14,4 +14,4 @@ module.exports = class Message extends Base {
     }
 };
 
-let I18n = require('./I18n');
+const I18n = require('./I18n');

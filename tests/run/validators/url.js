@@ -2,7 +2,7 @@
 
 let expect = require('chai').expect;
 let Model = require('../../../models/Model');
-let Validator = require('../../../validators/UrlValidator');
+const Validator = require('../../../validators/UrlValidator');
 let validator = new Validator;
 
 describe('validators.url', ()=> {

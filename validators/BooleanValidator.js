@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class BooleanValidator extends Base {
 
@@ -38,12 +38,11 @@ module.exports = class BooleanValidator extends Base {
     validateValue (value, cb) {
         if ((!this.strict && (value == this.trueValue || value == this.falseValue)) 
             || (this.strict && (value === this.trueValue || value === this.falseValue))) {
-            cb();
-        } else {
-            cb(null, this.message, {
-                'true': this.trueValue,
-                'false': this.falseValue
-            });
+            return cb();
         }
+        cb(null, this.message, {
+            'true': this.trueValue,
+            'false': this.falseValue
+        });
     }
 };

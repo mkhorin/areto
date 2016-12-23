@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('../../../base/App');
+const Base = require('../../../base/App');
 
 class Main extends Base {
     

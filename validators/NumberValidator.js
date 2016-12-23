@@ -1,6 +1,6 @@
 'use strict';
 
-let Base = require('./Validator');
+const Base = require('./Validator');
 
 module.exports = class NumberValidator extends Base {
 
@@ -38,18 +38,18 @@ module.exports = class NumberValidator extends Base {
 
     validateValue (value, cb) {
         if (typeof value === 'object' || (value - parseFloat(value) + 1) < 0) {
-            cb(null, this.message);
-        } else {
-            let regex = new RegExp(this.integerOnly ? this.integerPattern : this.numberPattern);
-            if (!regex.test(value)) {
-                cb(null, this.message);
-            } else if (this.min !== null && value < this.min) {
-                cb(null, this.tooSmall, {min: this.min});
-            } else if (this.max !== null && value > this.max) {
-                cb(null, this.tooBig, {max: this.max});
-            } else {
-                cb();
-            }
+            return cb(null, this.message);
         }
+        let regex = new RegExp(this.integerOnly ? this.integerPattern : this.numberPattern);
+        if (!regex.test(value)) {
+            return cb(null, this.message);        
+        }
+        if (this.min !== null && value < this.min) {
+            return cb(null, this.tooSmall, {min: this.min});
+        } 
+        if (this.max !== null && value > this.max) {
+            return cb(null, this.tooBig, {max: this.max});
+        }
+        cb();
     }
 };

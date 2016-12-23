@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('../base/Base');
-let helper = require('../helpers/MainHelper');
-let session = require('express-session');
-let flash = require('connect-flash');
+const Base = require('../base/Base');
+const helper = require('../helpers/MainHelper');
+const session = require('express-session');
+const flash = require('connect-flash');
 
 module.exports = class Session extends Base {
 

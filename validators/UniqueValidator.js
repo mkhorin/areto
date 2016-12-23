@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Validator');
-let helper = require('../helpers/MainHelper');
+const Base = require('./Validator');
+const helper = require('../helpers/MainHelper');
 
 module.exports = class UniqueValidator extends Base {
 

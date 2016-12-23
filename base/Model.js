@@ -1,9 +1,9 @@
 'use strict';
 
-let Base = require('./Component');
-let inflector = require('../helpers/InflectorHelper');
-let arrayHelper = require('../helpers/ArrayHelper');
-let async = require('async');
+const Base = require('./Component');
+const inflector = require('../helpers/InflectorHelper');
+const arrayHelper = require('../helpers/ArrayHelper');
+const async = require('async');
 
 module.exports = class Model extends Base {
 
@@ -317,8 +317,8 @@ module.exports = class Model extends Base {
     }
 };
 
-let Message = require('../i18n/Message');
-let Validator = require('../validators/Validator');
-let DefaultValueValidator = require('../validators/DefaultValueValidator');
-let RequiredValidator = require('../validators/RequiredValidator');
-let RelationValidator = require('../validators/RelationValidator');
+const Message = require('../i18n/Message');
+const Validator = require('../validators/Validator');
+const DefaultValueValidator = require('../validators/DefaultValueValidator');
+const RequiredValidator = require('../validators/RequiredValidator');
+const RelationValidator = require('../validators/RelationValidator');

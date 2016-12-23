@@ -1,7 +1,7 @@
 'use strict';
 
-let Base = require('./Validator');
-let async = require('async');
+const Base = require('./Validator');
+const async = require('async');
 
 module.exports = class EachValidator extends Base {
 
