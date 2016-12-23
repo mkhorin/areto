@@ -181,14 +181,12 @@ module.exports = class Model extends Base {
         return '';
     }
 
-    getFirstErrors (wrapAttrToFormName) {
-        if (!Object.keys(this._errors).length) {
-            return {};
-        }
+    getFirstErrors () {
         let errors = {};
-        for (let attr in this._errors) {
-            if (this._errors[attr] && this._errors[attr].length) {
-                errors[wrapAttrToFormName ? this.getFormAttributeId(attr) : attr] = this._errors[attr][0];
+        for (let attr of Object.keys(this._errors)) {
+            let err = this._errors[attr]; 
+            if (err instanceof Array && err.length) {
+                errors[attr] = err[0];
             }
         }
         return errors;
