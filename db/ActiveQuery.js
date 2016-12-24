@@ -38,9 +38,8 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    execAfterPrepare (cb) {
-        this._afterPrepareHandler && this._afterPrepareHandler(this);
-        cb();
+    execAfterPrepare (cb) {        
+        this._afterPrepareHandler ? this._afterPrepareHandler(cb, this) : cb();
     }
 
     prepare (cb) {

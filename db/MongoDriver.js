@@ -228,13 +228,15 @@ module.exports = class MongoDriver extends Base {
         return -1;
     }
 
-    wrapId (id) {
+    normalizeId (id) {
         if (!(id instanceof Array)) {
-            return id instanceof this.ObjectId ? id : this.ObjectId(id);
+            return id instanceof this.ObjectId ? id
+                : this.ObjectId.isValid(id) ? this.ObjectId(id) : null;
         }    
         let result = [];
         for (let item of id) {
-            result.push(item instanceof this.ObjectId ? item : this.ObjectId(item));
+            result.push(item instanceof this.ObjectId ? item
+                : this.ObjectId.isValid(id) ? this.ObjectId(item) : null);
         }    
         return result;
     }

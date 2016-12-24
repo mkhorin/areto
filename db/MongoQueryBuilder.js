@@ -180,7 +180,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error('MongoQueryBuilder: ID requires 2 operands.');
         }
-        let value = this.db.wrapId(operands[1]);
+        let value = this.db.normalizeId(operands[1]);
         if (value instanceof Array) {
             value = {$in: value};
         }    

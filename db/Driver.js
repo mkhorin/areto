@@ -86,7 +86,7 @@ module.exports = class Driver extends Base {
         return ids.indexOf(id);
     }
 
-    wrapId (id) {
+    normalizeId (id) {
         return id;
     }
 

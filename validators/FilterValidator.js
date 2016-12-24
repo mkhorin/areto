@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Validator');
+const ObjectID = require('mongodb').ObjectID;
 
 module.exports = class FilterValidator extends Base {
 
@@ -19,8 +20,7 @@ module.exports = class FilterValidator extends Base {
                 upperCase: function (value, cb) {
                     cb(null, typeof value === 'string' ? value.toUpperCase() : value);
                 },
-                ObjectId: function (value, cb) {
-                    let ObjectID = require('mongodb').ObjectID;
+                ObjectId: function (value, cb) {                    
                     ObjectID.isValid(value) ? cb(null, ObjectID(value))
                         : cb(null, value, this.createMessage('message', 'Invalid ObjectID'));
                 }
