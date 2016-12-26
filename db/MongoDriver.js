@@ -95,9 +95,9 @@ module.exports = class MongoDriver extends Base {
         });
     }
     // https://docs.mongodb.org/manual/reference/operator/update/pull/
-    updateAllPull (table, condition, cb) {
-        this.getCollection(table).update({}, {$pull: condition}, {multi: true}, (err, result)=> {
-            this.afterCommand({err, command: 'updateAllPull', table, query: condition});
+    updateAllPull (table, condition, doc, cb) {
+        this.getCollection(table).update(condition, {$pull: doc}, {multi: true}, (err, result)=> {
+            this.afterCommand({err, command: 'updateAllPull', table, query: condition, data: doc});
             cb(err, result);
         });
     }
@@ -236,7 +236,7 @@ module.exports = class MongoDriver extends Base {
         let result = [];
         for (let item of id) {
             result.push(item instanceof this.ObjectId ? item
-                : this.ObjectId.isValid(id) ? this.ObjectId(item) : null);
+                : this.ObjectId.isValid(item) ? this.ObjectId(item) : null);
         }    
         return result;
     }

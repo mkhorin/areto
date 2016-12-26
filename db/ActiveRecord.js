@@ -495,7 +495,7 @@ module.exports = class ActiveRecord extends Base {
                    err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
                 });
             } else if (relation._viaArray) {
-                model.getDb().updateAllPull(model.TABLE, condition, cb);
+                model.getDb().updateAllPull(model.TABLE, {}, condition, cb);
             } else {
                 model.constructor.updateAll(nulls, condition, cb);
             }

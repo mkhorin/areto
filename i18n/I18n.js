@@ -49,6 +49,9 @@ module.exports = class I18n extends Base {
 
     translate (category, message, params, language) {
         let source = this.getMessageSource(category);
+        if (!source) {
+            return message;
+        }
         let result = source.translate(category, message, language);
         return result === null
             ? this.format(message, params, source.sourceLanguage)
