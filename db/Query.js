@@ -1,6 +1,6 @@
 'use strict';
 
-const Base = require('./QueryTrait');
+const Base = require('../base/Base');
 
 module.exports = class Query extends Base {
 
@@ -9,14 +9,30 @@ module.exports = class Query extends Base {
         this._db = db;
     }
 
+    init () {
+        this._indexBy = null;
+        this._limit = null;
+        this._offset = null;
+        this._orderBy = null;
+        this._where = null;
+    }
+
     db (db) {
         this._db = db;
         return this;
     }
 
-    prepare (cb) {
-        cb();
+    from (table) {
+        this._from = table;
+        return this;
     }
+
+    indexBy (column) {
+        this._indexBy = column;
+        return this;
+    }
+    
+    // SELECT
 
     select (attrs) {
         this._select = attrs; // { attr1: 1, attr2: 0, ... }
@@ -28,6 +44,78 @@ module.exports = class Query extends Base {
         return this;
     }
 
+    // WHERE
+
+    where (condition) {
+        this._where = condition ? condition : null;
+        return this;
+    }
+
+    andWhere (condition) {
+        if (condition) {
+            this._where = this._where ? ['AND', this._where, condition] : condition;
+        }
+        return this;
+    }
+
+    orWhere (condition) {
+        if (condition) {
+            this._where = this._where ? ['OR', this._where, condition] : condition;
+        }
+        return this;
+    }
+
+    filterWhere (condition) {
+        condition = this.filterCondition(condition);
+        condition.length && this.where(condition);
+        return this;
+    }
+
+    andFilterWhere (condition) {
+        condition = this.filterCondition(condition);
+        condition.length && this.andWhere(condition);
+        return this;
+    }
+
+    orFilterWhere (condition) {
+        condition = this.filterCondition(condition);
+        condition.length && this.orWhere(condition);
+        return this;
+    }
+
+    // ORDER BY
+    /**
+     * @param columns - { attr1: 'ASC', attr2: 'DESC' }
+     */
+    orderBy (columns) {
+        this._orderBy = columns;
+        return this;
+    }
+
+    addOrderBy (columns) {
+        this._orderBy = Object.assign(this._orderBy || {}, columns);
+        return this;
+    }
+
+    orderByIn (state) {
+        this._orderByIn = state;
+        return this;
+    }
+
+    // OFFSET
+
+    limit (limit) {
+        this._limit = limit === null ? null : parseInt(limit);
+        return this;
+    }
+
+    offset (offset) {
+        this._offset = offset === null ? null : parseInt(offset);
+        return this;
+    }
+
+    // COMMAND
+
     all (cb) {
         this._db.queryAll(this, cb);
     }
@@ -38,6 +126,38 @@ module.exports = class Query extends Base {
 
     column (key, cb) {
         this._db.queryColumn(this, key, cb);
+    }
+
+    insert (doc, cb) {
+        this._db.queryInsert(this, doc, cb);
+    }
+
+    update (doc, cb) {
+        this._db.queryUpdate(this, doc, cb);
+    }
+
+    upsert (doc, cb) {
+        this._db.queryUpsert(this, doc, cb);
+    }
+
+    remove (cb) {
+        this._db.queryRemove(this, cb);
+    }
+
+    count (cb) {
+        this._db.queryCount(this, cb);
+    }
+
+    //
+
+    isEmpty (value) {
+        return value === undefined || value === null || value === ''
+            || (typeof value === 'string' && value.trim() === '')
+            || (typeof value === 'object' && Object.keys(value).length === 0);
+    }
+    
+    prepare (cb) {
+        cb();
     }
 
     afterBuild () {
@@ -62,24 +182,48 @@ module.exports = class Query extends Base {
         }
     }
 
-    insert (doc, cb) {
-        this._db.queryInsert(this, doc, cb);
-    }
+    filterCondition (condition) {
+        // operator format: operator, operand 1, operand 2, ...
+        if (condition instanceof Array) {
+            let operator = condition[0];
+            switch (operator.toLowerCase()) {
+                case 'NOT':
+                case 'AND':
+                case 'OR':
+                    for (let i = condition.length - 1; i > 0; --i) {
+                        let sub = this.filterCondition(condition[i]);
+                        if (this.isEmpty(sub)) {
+                            condition.splice(i, 1);
+                        } else {
+                            condition[i] = sub;
+                        }
+                    }
+                    if (!condition.length) {
+                        return [];
+                    }
+                    break;
 
-    update (doc, cb) {
-        this._db.queryUpdate(this, doc, cb);
-    }
+                case 'BETWEEN':
+                case 'NOT BETWEEN':
+                    if (condition.length === 3 && (this.isEmpty(condition[1]) || this.isEmpty(condition[2]))) {
+                        return [];
+                    }
+                    break;
 
-    upsert (doc, cb) {
-        this._db.queryUpsert(this, doc, cb);
-    }
-
-    remove (cb) {
-        this._db.queryRemove(this, cb);
-    }
-
-    count (cb) {
-        this._db.queryCount(this, cb);
+                default:
+                    if (condition.length > 1 && this.isEmpty(condition[1])) {
+                        return [];
+                    }
+            }
+        } else {
+            // hash format: { 'column1': 'value1', 'column2': 'value2', ... }
+            for (let name in condition) {
+                if (this.isEmpty(condition[name])) {
+                    delete condition[name];
+                }
+            }
+        }
+        return condition;
     }
 
     // по данному массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
@@ -107,8 +251,7 @@ module.exports = class Query extends Base {
         return values.length !== docs.length ? null : values;
     }
 
-    clone () {
-        const Base = require('../base/Base');
+    clone () {        
         let target = Object.assign(new this.constructor, this);
         for (let key of Object.keys(target)) {
             let prop = target[key];
