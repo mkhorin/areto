@@ -96,7 +96,7 @@ module.exports = class Component extends Base {
 
     getBehavior (name) {
         this.ensureBehaviors();
-        return this._behaviors.hasOwnProperty(name) ? this._behaviors[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._behaviors, name) ? this._behaviors[name] : null;
     }
 
     getBehaviors () {

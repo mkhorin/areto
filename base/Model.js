@@ -44,7 +44,7 @@ module.exports = class Model extends Base {
     }
 
     hasAttribute (name) {
-        return name in this._attributes;
+        return Object.prototype.hasOwnProperty.call(this._attributes, name);
     }
     
     isAttributeRequired (name) {
@@ -65,11 +65,11 @@ module.exports = class Model extends Base {
     }
 
     getLabel (name) {
-        return name in this.LABELS ? this.LABELS[name] : this.generateLabel(name);
+        return Object.prototype.hasOwnProperty.call(this.LABELS, name) ? this.LABELS[name] : this.generateLabel(name);
     }
 
     getHint (name) {
-        return name in this.HINTS ? this.HINTS[name] : '';
+        return Object.prototype.hasOwnProperty.call(this.HINTS, name) ? this.HINTS[name] : '';
     }
 
     getFormAttributeId (name, prefix) {
@@ -123,7 +123,7 @@ module.exports = class Model extends Base {
     setSafeAttributes (values) {
         if (values && typeof values === 'object') {
             for (let name of this.getSafeAttributeNames()) {
-                if (name in values) {
+                if (Object.prototype.hasOwnProperty.call(values, name)) {
                     this.set(name, values[name]);
                 }
             }    
@@ -162,16 +162,16 @@ module.exports = class Model extends Base {
     // ERRORS
 
     hasError (attr) {
-        return attr ? attr in this._errors : Object.keys(this._errors).length > 0;
+        return attr ? Object.prototype.hasOwnProperty.call(this._errors, attr) : Object.keys(this._errors).length > 0;
     }
 
     getErrors (attr) {
-        return attr ? (attr in this._errors ? this._errors[attr] : []) : this._errors;
+        return attr ? (Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr] : []) : this._errors;
     }
 
     getFirstError (attr) {
         if (attr) {
-            return attr in this._errors ? this._errors[attr][0] : '';
+            return Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr][0] : '';
         }
         for (attr in this._errors) {
             if (this._errors[attr] && this._errors[attr].length) {
@@ -193,7 +193,7 @@ module.exports = class Model extends Base {
     }
 
     addError (attr, error) {
-        if (!(attr in this._errors)) {
+        if (!Object.prototype.hasOwnProperty.call(this._errors, attr)) {
             this._errors[attr] = [];
         }
         this._errors[attr].push(error instanceof Message ? error : new Message(null, error));

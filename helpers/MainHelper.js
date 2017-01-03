@@ -108,7 +108,7 @@ module.exports = class MainHelper {
         for (let from of args) 
             if (from && typeof from === 'object') 
                 for (let prop in from) 
-                    if (from.hasOwnProperty(prop) && !(prop in target)) 
+                    if (Object.prototype.hasOwnProperty.call(from, prop) && !(prop in target)) 
                         target[prop] = from[prop];
         return target;
     }
@@ -168,7 +168,7 @@ module.exports = class MainHelper {
 function assignObject (to, from) {
     if (from && typeof from === 'object') {
         for (let prop in from) {
-            if (from.hasOwnProperty(prop)) {
+            if (Object.prototype.hasOwnProperty.call(from, prop)) {
                 assignObjectProperty(to, from, prop);
             }
         }
@@ -193,7 +193,7 @@ function assignObjectProperty (to, from, prop) {
 function assignObjectUndefined (to, from) {
     if (from && typeof from === 'object') {
         for (let prop in from) {
-            if (from.hasOwnProperty(prop)) {
+            if (Object.prototype.hasOwnProperty.call(from, prop)) {
                 assignObjectUndefinedProperty(to, from, prop);
             }
         }

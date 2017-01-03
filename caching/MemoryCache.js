@@ -24,7 +24,7 @@ module.exports = class MemoryCache extends Base {
     }
 
     removeValue (key, cb) {
-        if (key in this._cache) {
+        if (Object.prototype.hasOwnProperty.call(this._cache, key)) {
             delete this._cache[key];
         }
         cb();

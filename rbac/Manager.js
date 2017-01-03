@@ -62,7 +62,7 @@ module.exports = class Manager extends Base {
         for (let id of Object.keys(data.items)) {
             let rule = data.items[id].rule;
             if (rule) {
-                data.items[id].rule = rule in this.ruleIndex
+                data.items[id].rule = Object.prototype.hasOwnProperty.call(this.ruleIndex, rule)
                     ? this.ruleIndex[rule] : helper.createInstance(rule, {id});
             }
             this.itemIndex[id] = new Item(data.items[id]);
@@ -89,7 +89,7 @@ module.exports = class Manager extends Base {
     }
 
     getUserAssignments (userId) {
-        return userId in this.assignmentIndex ? this.assignmentIndex[userId].items : null;
+        return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId) ? this.assignmentIndex[userId].items : null;
     }
 
     can (user, assignments, id, cb, params) {
@@ -102,7 +102,7 @@ module.exports = class Manager extends Base {
                 params
             };
             async.eachSeries(assignments, (assignment, cb2)=> {
-                if (assignment in this.itemIndex) {
+                if (Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
                     data.assignment = this.itemIndex[assignment];
                     this.canItem(item, data, (err, access)=> {
                         err ? cb(err) : access ? cb(null, true) : cb2();
@@ -137,7 +137,7 @@ module.exports = class Manager extends Base {
 
     canRule (item, data, cb) {
         if (item.rule) {
-            if (item.rule.id in data.ruleCache) {
+            if (Object.prototype.hasOwnProperty.call(data.ruleCache, item.rule.id)) {
                 cb(null, data.ruleCache[item.rule.id]);
             } else {
                 item.rule.execute(data.user, (err, access)=> {

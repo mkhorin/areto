@@ -40,7 +40,7 @@ module.exports = class Validator extends Base {
                 config.method = type;
                 type = this.BUILT_IN.inline;
             }
-        } else if (type in this.BUILT_IN) {
+        } else if (Object.prototype.hasOwnProperty.call(this.BUILT_IN, type)) {
             type = this.BUILT_IN[type];
         } else {
             throw new Error(`Validator: Invalid type: ${type}`);

@@ -21,7 +21,7 @@ module.exports = class Connection extends Base {
             mysql: [ MysqlDriver, params ]
         }, this.drivers);
 
-        if (this.schema in drivers) {
+        if (Object.prototype.hasOwnProperty.call(drivers, this.schema)) {
             let driver = drivers[this.schema];
             if (driver instanceof Array) {
                 this.driver = new driver[0](driver[1]);

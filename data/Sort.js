@@ -45,7 +45,7 @@ module.exports = class Sort extends Base {
     }
 
     hasAttribute (name) {
-        return name in this.attributes;
+        return Object.prototype.hasOwnProperty.call(this.attributes, name);
     }
 
     getOrders (recalc) {
@@ -60,7 +60,7 @@ module.exports = class Sort extends Base {
                         desc = true;
                         attr = attr.substring(1);
                     }
-                    if (attr in this.attributes) {
+                    if (Object.prototype.hasOwnProperty.call(this.attributes, attr)) {
                         this._attrOrders[attr] = desc ? this.DESC : this.ASC;
                         if (!this.enableMultiSort) {
                             return this._attrOrders;
@@ -77,7 +77,7 @@ module.exports = class Sort extends Base {
 
     getOrder (attr) {
         let orders = this.getOrders();
-        return attr in orders ? orders[attr] : null;
+        return Object.prototype.hasOwnProperty.call(orders, attr) ? orders[attr] : null;
     }
 
     getLink (attr, options = {}) {
@@ -109,7 +109,7 @@ module.exports = class Sort extends Base {
     createSortParam (attr) {
         let def = this.attributes[attr];
         let directions = Object.assign({}, this.getOrders()), direction;
-        if (attr in directions) {
+        if (Object.prototype.hasOwnProperty.call(directions, attr)) {
             direction = directions[attr] === this.DESC ? this.ASC : this.DESC;
             delete directions[attr];
         } else {
@@ -119,7 +119,7 @@ module.exports = class Sort extends Base {
             ? Object.assign({[attr]: direction}, directions)
             : {[attr]: direction};
         let sorts = [];
-        for (let attr of Object.keys(directions)) {
+        for (let attr in directions) {
             sorts.push(directions[attr] === this.DESC ? `-${attr}` : attr);
         }
         return sorts.join(this.separator);

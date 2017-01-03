@@ -232,9 +232,11 @@ module.exports = class Module extends Base {
     }
 
     extendComponentsByDefaults (components) {
-        for (let name of Object.keys(this.DEFAULT_COMPONENTS)) 
-            if (!(name in components)) 
+        for (let name of Object.keys(this.DEFAULT_COMPONENTS)) {
+            if (!Object.prototype.hasOwnProperty.call(components, name)) {
                 components[name] = this.DEFAULT_COMPONENTS[name];
+            }
+        }
     }
 
     createComponent (name, config) {   

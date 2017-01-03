@@ -51,7 +51,7 @@ module.exports = class Template extends Base {
             let pos = name.lastIndexOf('.');
             if (pos > 0) {
                 let parentName = name.substring(0, pos);
-                if (parentName in this.themes) {
+                if (Object.prototype.hasOwnProperty.call(this.themes, parentName)) {
                     parent = this.themes[parentName];
                 }
             }
@@ -61,6 +61,6 @@ module.exports = class Template extends Base {
 
     getTheme (name) {        
         name = name || this.theme;
-        return name in this.themes ? this.themes[name] : this.defaultTheme;
+        return Object.prototype.hasOwnProperty.call(this.themes, name) ? this.themes[name] : this.defaultTheme;
     }
 };

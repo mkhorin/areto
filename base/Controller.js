@@ -164,7 +164,7 @@ module.exports = class Controller extends Base {
     }
 
     getQueryParam (key, defaultValue) {
-        return key in this.req.query ? this.req.query[key] : defaultValue;
+        return Object.prototype.hasOwnProperty.call(this.req.query, key) ? this.req.query[key] : defaultValue;
     }
 
     getQueryParams () {
@@ -172,7 +172,7 @@ module.exports = class Controller extends Base {
     }
 
     getBodyParam (key, defaultValue) {
-        return key in this.req.body ? this.req.body[key] : defaultValue;
+        return Object.prototype.hasOwnProperty.call(this.req.body, key) ? this.req.body[key] : defaultValue;
     }
 
     getBodyParams () {

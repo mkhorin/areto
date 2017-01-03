@@ -32,7 +32,7 @@ module.exports = class View extends Base {
     }
 
     getData (key, defaults) {
-        return key in this._buffer ? this._buffer[key] : defaults;
+        return Object.prototype.hasOwnProperty.call(this._buffer, key) ? this._buffer[key] : defaults;
     }
 
     setData (key, data) {

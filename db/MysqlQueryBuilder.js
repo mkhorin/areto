@@ -92,7 +92,7 @@ module.exports = class MysqlQueryBuilder extends Base {
     buildCondition (condition) {
         if (condition instanceof Array) {
             let operator = condition[0];
-            return operator in CONDITION_BUILDERS
+            return Object.prototype.hasOwnProperty.call(CONDITION_BUILDERS, operator)
                 ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
                 : this.buildSimpleCondition(operator, condition.slice(1));
         }
@@ -119,7 +119,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error('MysqlQueryBuilder: Simple requires 2 operands.');
         }
-        if (!(operator in SIMPLE_OPERATORS)) {
+        if (!Object.prototype.hasOwnProperty.call(SIMPLE_OPERATORS, operator)) {
             throw new Error('MysqlQueryBuilder: Simple operator not found.');
         }
         let field = this.getFieldName(operands[0]);

@@ -55,7 +55,7 @@ module.exports = class ActiveRecord extends Base {
     // ATTRIBUTES
 
     get (name) {
-        return name in this._attributes ? this._attributes[name] : this._related[name]; 
+        return Object.prototype.hasOwnProperty.call(this._attributes, name) ? this._attributes[name] : this._related[name]; 
     }        
     
     isAttributeChanged (name) {
@@ -112,7 +112,7 @@ module.exports = class ActiveRecord extends Base {
     filterAttributes () {
         let attributes = {};
         for (let key of this.STORED_ATTRIBUTES) {
-            if (key in this._attributes) {
+            if (Object.prototype.hasOwnProperty.call(this._attributes, key)) {
                 attributes[key] = this._attributes[key];    
             }
         }
@@ -233,7 +233,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     isRelationPopulated (name) {
-        return name in this._related;
+        return Object.prototype.hasOwnProperty.call(this._related, name);
     }
     
     getPopulatedRelation (name) {
@@ -258,7 +258,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     unsetRelation (name) {
-        if (name in this._related) {
+        if (Object.prototype.hasOwnProperty.call(this._related, name)) {
             delete this._related[name];
         }
     }
@@ -296,7 +296,7 @@ module.exports = class ActiveRecord extends Base {
             // update lazily loaded related objects
             if (!relation._multiple) {
                 this._related[name] = model;
-            } else if (name in this._related) {
+            } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
                 if (relation._indexBy) {
                     let indexBy = relation._indexBy;
                     this._related[name][model._indexBy] = model;
@@ -367,7 +367,7 @@ module.exports = class ActiveRecord extends Base {
         unlink.call(this, relation, model, remove, ()=> {
             if (!relation._multiple) {
                 this.unsetRelation(name);
-            } else if (name in this._related) {
+            } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
                 for (let i = this._related[name].length - 1; i >= 0; --i) {
                     if (helper.isEqualIds(model.getId(), this._related[name][i].getId())) {
                         this._related[name].splice(i, 1);

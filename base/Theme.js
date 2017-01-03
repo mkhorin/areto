@@ -35,7 +35,7 @@ module.exports = class Theme extends Base {
     }
 
     get (name) {
-        if (name in this.files) {
+        if (Object.prototype.hasOwnProperty.call(this.files, name)) {
             return this.files[name];
         }    
         if (this.parent) {
