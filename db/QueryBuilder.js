@@ -1,6 +1,6 @@
 'use strict';
 
-const Base = require('../base/Component');
+const Base = require('../base/Base');
 
 module.exports = class QueryBuilder extends Base {
 

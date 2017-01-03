@@ -28,10 +28,12 @@ module.exports = class BooleanValidator extends Base {
             if (this.castValue) {
                 model.set(attr, this.falseValue);
             }
-        } else this.addError(model, attr, this.message, {
-            'true': this.trueValue,
-            'false': this.falseValue
-        });
+        } else {
+            this.addError(model, attr, this.message, {
+                'true': this.trueValue,
+                'false': this.falseValue
+            });
+        }
         cb();
     }
 

@@ -13,7 +13,7 @@ module.exports = class DbSessionStore extends Base {
     }
 
     find () {
-        return new Query(this.db).from(this.table);
+        return (new Query).db(this.db).from(this.table);
     }
 
     findBySid (sid) {

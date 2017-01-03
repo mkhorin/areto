@@ -171,6 +171,12 @@ module.exports = class MysqlDriver extends Base {
         });
     }
 
+    queryScalar (query, key, cb) {
+        this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
+            err ? cb(err) : cb(docs.length ? docs[0] : null);
+        });
+    }
+
     queryInsert (query, doc, cb) {
         this.queryBuild(query, (err, cmd)=> {
             err ? cb(err) : this.insert(cmd.from, doc, cb);

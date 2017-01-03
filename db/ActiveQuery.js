@@ -6,14 +6,17 @@ const async = require('async');
 module.exports = class ActiveQuery extends Base {
 
     constructor (model) {
-        super(model && model.getDb(), {model});
+        super({model});
     }
 
     init () {
         super.init();
         this._asArray = null;
         this._with = {};
-        this.model && this.from(this.model.TABLE);
+        if (this.model) { // for clone
+            this._db = this.model.getDb();
+            this._from = this.model.TABLE;
+        }
     }
 
     asArray (value) {

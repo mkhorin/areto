@@ -55,7 +55,9 @@ module.exports = class Base {
     }
     
     constructor (config) {
-        config && Object.assign(this, config);
+        if (config) {
+            Object.assign(this, config);
+        }
         this.init();
     }
     

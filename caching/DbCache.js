@@ -16,7 +16,7 @@ module.exports = class DbCache extends Base {
     }
 
     getQuery () {
-        return (new Query(this.module.getDb())).from(this.table);
+        return (new Query).db(this.module.getDb()).from(this.table);
     }
 
     getValue (key, cb) {        

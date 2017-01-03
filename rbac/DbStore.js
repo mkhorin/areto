@@ -68,7 +68,7 @@ module.exports = class DbStore extends Base {
     }
 
     find (table) {
-        return (new Query(this.db)).from(`${this.tablePrefix}${table}`);
+        return (new Query).db(this.db).from(`${this.tablePrefix}${table}`);
     }
 };
 

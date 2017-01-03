@@ -5,8 +5,7 @@ const Base = require('./DataProvider');
 module.exports = class ActiveDataProvider extends Base {
 
     prepareTotalCount (cb) {
-        let query = this.query.clone();
-        query.limit(null).offset(null).orderBy(null).count(cb);
+        this.query.count(cb);
     }
     
     prepareModels (cb) {

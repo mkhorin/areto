@@ -4,11 +4,6 @@ const Base = require('../base/Base');
 
 module.exports = class Query extends Base {
 
-    constructor (db, config) {
-        super(config);
-        this._db = db;
-    }
-
     init () {
         this._indexBy = null;
         this._limit = null;
@@ -126,6 +121,10 @@ module.exports = class Query extends Base {
 
     column (key, cb) {
         this._db.queryColumn(this, key, cb);
+    }
+
+    scalar (key, cb) {
+        this._db.queryScalar(this, key, cb);
     }
 
     insert (doc, cb) {

@@ -94,10 +94,17 @@ module.exports = class MongoDriver extends Base {
             cb(err, result);
         });
     }
-    // https://docs.mongodb.org/manual/reference/operator/update/pull/
+
     updateAllPull (table, condition, doc, cb) {
         this.getCollection(table).update(condition, {$pull: doc}, {multi: true}, (err, result)=> {
             this.afterCommand({err, command: 'updateAllPull', table, query: condition, data: doc});
+            cb(err, result);
+        });
+    }
+
+    updateAllPush (table, condition, doc, cb) {
+        this.getCollection(table).update(condition, {$push: doc}, {multi: true}, (err, result)=> {
+            this.afterCommand({err, command: 'updateAllPush', table, query: condition, data: doc});
             cb(err, result);
         });
     }
@@ -181,6 +188,12 @@ module.exports = class MongoDriver extends Base {
     queryColumn (query, key, cb) {
         this.queryAll(query.asArray().select({[key]: 1}), (err, docs)=> {
             err ? cb(err) : cb(null, docs.map(doc => doc[key]));
+        });
+    }
+
+    queryScalar (query, key, cb) {
+        this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
+            err ? cb(err) : cb(null, docs.length ? docs[0] : null);
         });
     }
 

@@ -27,17 +27,17 @@ module.exports = class ActiveRecord extends Base {
 
     init () {
         super.init();
-        this.isNewRecord = true;
+        this._isNewRecord = true;
         this._oldAttributes = {};
         this._related = {};
     }
 
+    getDb () {
+        return this.module.getDb();
+    }
+    
     isPk (key) {
         return this.PK === key;
-    }
-
-    getDb() {
-        return this.module.getDb();
     }
 
     getId () {
@@ -46,6 +46,10 @@ module.exports = class ActiveRecord extends Base {
 
     getTitle (attr) {
         return this.get(attr ? attr : this.PK);
+    }
+    
+    isNewRecord () {
+        return this._isNewRecord;
     }
 
     // ATTRIBUTES
@@ -100,7 +104,7 @@ module.exports = class ActiveRecord extends Base {
     // POPULATE
 
     populateRecord (doc) {
-        this.isNewRecord = false;
+        this._isNewRecord = false;
         Object.assign(this._attributes, doc);
         this.setOldAttributes();
     }
@@ -142,7 +146,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     forceSave (cb) {
-        this.isNewRecord ? this.insert(cb) : this.update(cb);
+        this._isNewRecord ? this.insert(cb) : this.update(cb);
     }
 
     insert (cb) {
@@ -152,7 +156,7 @@ module.exports = class ActiveRecord extends Base {
                 this.constructor.find().insert(this.filterAttributes(), (err, id)=> {
                     if (!err) {
                         this.set(this.PK, id);
-                        this.isNewRecord = false;    
+                        this._isNewRecord = false;    
                     }
                     cb(err);
                 });
@@ -163,9 +167,9 @@ module.exports = class ActiveRecord extends Base {
 
     update (cb) {
         async.series([
-            cb => this.beforeSave(cb),
+            this.beforeSave.bind(this),
             cb => this.findById().update(this.filterAttributes(), cb),
-            cb => this.afterSave(cb)
+            this.afterSave.bind(this)
         ], cb);
     }
 
@@ -305,7 +309,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     linkVia (relation, model, extraColumns, cb) {
-        if (this.isNewRecord || model.isNewRecord) {
+        if (this._isNewRecord || model._isNewRecord) {
             return cb(`${this.constructor.name}: Unable to link models: the models being linked cant be newly created`);
         }
         let viaName, viaRelation, viaModel, viaTable;
@@ -338,9 +342,9 @@ module.exports = class ActiveRecord extends Base {
         let p1 = model.isPk(relation._link[0]);
         let p2 = this.isPk(relation._link[1]);
         if (p1 && p2) {
-            if (this.isNewRecord && model.isNewRecord) {
+            if (this._isNewRecord && model._isNewRecord) {
                 cb(`${this.constructor.name}: Unable to link models: at most one model can be newly created`);
-            } else if (this.isNewRecord) {
+            } else if (this._isNewRecord) {
                 this.bindModels([relation._link[1], relation._link[0]], this, model, cb, relation);
             } else {
                 this.bindModels(relation._link, model, this, cb, relation);
