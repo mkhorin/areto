@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class LogType extends Base {
 
@@ -14,7 +14,7 @@ module.exports = class LogType extends Base {
 
     init () {        
         this.store = this.store 
-            ? helper.createInstance(this.store, {logger: this.logger})
+            ? MainHelper.createInstance(this.store, {logger: this.logger})
             : this.commonStore;
         if (this.exclusive || this.store === this.commonStore) {
             this.commonStore = null;

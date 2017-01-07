@@ -1,23 +1,23 @@
 'use strict';
 
-let expect = require('chai').expect;
-const helper = require('../../../helpers/SecurityHelper');
+const expect = require('chai').expect;
+const SecurityHelper = require('../../../helpers/SecurityHelper');
 
 describe('helpers.security', ()=> {
 
     it('validatePassword', ()=> {
         let password = 'password';
-        let hash = helper.encryptPassword(password);
-        let fakeHash = helper.encryptPassword('fake');
-        expect(helper.validatePassword(password, hash)).to.true;
-        expect(helper.validatePassword(password, fakeHash)).to.false;
-        expect(helper.validatePassword(password)).to.false;
-        expect(helper.validatePassword()).to.false;
+        let hash = SecurityHelper.encryptPassword(password);
+        let fakeHash = SecurityHelper.encryptPassword('fake');
+        expect(SecurityHelper.validatePassword(password, hash)).to.true;
+        expect(SecurityHelper.validatePassword(password, fakeHash)).to.false;
+        expect(SecurityHelper.validatePassword(password)).to.false;
+        expect(SecurityHelper.validatePassword()).to.false;
     });
 
     it('generateRandomString', ()=> {
-        helper.generateRandomString(8, (err1, res1)=> {
-            helper.generateRandomString(8, (err2, res2)=> {
+        SecurityHelper.generateRandomString(8, (err1, res1)=> {
+            SecurityHelper.generateRandomString(8, (err2, res2)=> {
                 expect(err1).to.null;
                 expect(err2).to.null;
                 expect(res1).to.lengthOf(8);

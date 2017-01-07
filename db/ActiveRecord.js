@@ -1,7 +1,8 @@
 'use strict';
 
 const Base = require('../base/Model');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const async = require('async');
 
 module.exports = class ActiveRecord extends Base {
@@ -212,7 +213,7 @@ module.exports = class ActiveRecord extends Base {
     
     getAllRelationNames () {
         let names = [];
-        for (let id of helper.getAllFunctionNames(this)) {
+        for (let id of ObjectHelper.getAllFunctionNames(this)) {
             if (/^rel[A-Z]{1}/.test(id)) {
                 names.push(id.substring(3));
             }
@@ -369,7 +370,7 @@ module.exports = class ActiveRecord extends Base {
                 this.unsetRelation(name);
             } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
                 for (let i = this._related[name].length - 1; i >= 0; --i) {
-                    if (helper.isEqualIds(model.getId(), this._related[name][i].getId())) {
+                    if (MainHelper.isEqualIds(model.getId(), this._related[name][i].getId())) {
                         this._related[name].splice(i, 1);
                     }
                 }

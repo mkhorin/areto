@@ -1,10 +1,18 @@
 'use strict';
 
 const fs = require('fs');
-let path = require('path');
-let ObjectID = require('mongodb').ObjectID;
+const path = require('path');
+const ObjectID = require('mongodb').ObjectID;
 
 module.exports = class MainHelper {
+
+    static isEmpty (value) {
+        return value === null || value === undefined || value.length === 0;
+    }
+
+    static isEqualIds (id1, id2) {
+        return id1 instanceof ObjectID ? id1.equals(id2) : id1 === id2;
+    }
 
     static getRandom (min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -20,10 +28,6 @@ module.exports = class MainHelper {
 
     static getScriptArgs () {
         return process.argv.slice(process.execArgv.length + 2);
-    }
-
-    static isEqualIds (id1, id2) {        
-        return id1 instanceof ObjectID ? id1.equals(id2) : id1 === id2;
     }
     
     // DATE
@@ -93,121 +97,5 @@ module.exports = class MainHelper {
         } catch (err) {
             return false;
         }
-    }
-
-    // OBJECT
-
-    static deepAssign (target, ...args) {
-        for (let arg of args) {
-            assignObject(target, arg);
-        }
-        return target;
-    }
- 
-    static assignUndefined (target, ...args) {
-        for (let from of args) 
-            if (from && typeof from === 'object') 
-                for (let prop in from) 
-                    if (Object.prototype.hasOwnProperty.call(from, prop) && !(prop in target)) 
-                        target[prop] = from[prop];
-        return target;
-    }
-
-    static deepAssignUndefined (target, ...args) {
-        for (let arg of args) {
-            assignObjectUndefined(target, arg);
-        }
-        return target;
-    }
-
-    static mapObject (object, handler, depth) {
-        for (let prop in object) {
-            if (depth && object[prop] instanceof Object) {
-                this.mapObject(object[prop], handler, depth);
-            } else {
-                handler(prop, object);
-            }
-        }
-    }
-
-    static objectToValueArray (object) {
-        let result = [];
-        for (let prop in object) {
-            result.push(object[prop]);
-        }
-        return result;
-    }
-
-    static getAllPropertyNames (object) {
-        if (!object) {
-            return [];
-        }
-        let props = Object.getOwnPropertyNames(object);
-        let proto = Object.getPrototypeOf(object);
-        for (let target of this.getAllPropertyNames(proto)) {
-            if (props.includes(target) === false) {
-                props.push(target);
-            }
-        }
-        return props;
-    }
-
-    static getAllFunctionNames (object) {
-        return this.getAllPropertyNames(object).filter(item => typeof object[item] === 'function');
-    }
-
-    static deleteObjectProperties (object, names) {
-        for (let name of names) {
-            if (name in object) {
-                delete object[name];      
-            }
-        }                     
-    }
+    }    
 };
-
-function assignObject (to, from) {
-    if (from && typeof from === 'object') {
-        for (let prop in from) {
-            if (Object.prototype.hasOwnProperty.call(from, prop)) {
-                assignObjectProperty(to, from, prop);
-            }
-        }
-    }
-    return to;
-}
-
-function assignObjectProperty (to, from, prop) {
-    if (prop in from) {
-        if (from[prop] !== null && typeof from[prop] === 'object') {
-            if (prop in to && to[prop] !== null && typeof to[prop] === 'object') {
-                to[prop] = assignObject(to[prop], from[prop]);
-            } else {
-                to[prop] = from[prop];
-            }
-        } else {
-            to[prop] = from[prop];
-        }
-    }
-}
-
-function assignObjectUndefined (to, from) {
-    if (from && typeof from === 'object') {
-        for (let prop in from) {
-            if (Object.prototype.hasOwnProperty.call(from, prop)) {
-                assignObjectUndefinedProperty(to, from, prop);
-            }
-        }
-    }
-    return to;
-}
-
-function assignObjectUndefinedProperty (to, from, prop) {
-    if (prop in from) {
-        if (prop in to) {
-            if (from[prop] !== null && typeof from[prop] === 'object'
-                && to[prop] !== null && typeof to[prop] === 'object') {
-                assignObjectUndefined(to[prop], from[prop])
-            }
-        } else to[prop] = from[prop];
-    }
-}

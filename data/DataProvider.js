@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class DataProvider extends Base {
 
@@ -30,7 +30,7 @@ module.exports = class DataProvider extends Base {
                 }
             }
             config.controller = this.controller;
-            config = helper.createInstance(config);
+            config = MainHelper.createInstance(config);
         }
         this.pagination = config;
     }
@@ -44,7 +44,7 @@ module.exports = class DataProvider extends Base {
                 config.sortParam = `${this.id}-sort`;
             }
             config.controller = this.controller;            
-            config = helper.createInstance(config);
+            config = MainHelper.createInstance(config);
         }
         this.sort = config;
     }

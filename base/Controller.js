@@ -1,8 +1,9 @@
 'use strict';
 
 const Base = require('./Component');
-const inflector = require('../helpers/InflectorHelper');
-const helper = require('../helpers/MainHelper');
+const InflectorHelper = require('../helpers/InflectorHelper');
+const MainHelper = require('../helpers/MainHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const async = require('async');
 
 module.exports = class Controller extends Base {
@@ -31,7 +32,7 @@ module.exports = class Controller extends Base {
         if (index < 0) {
             throw new Error(`Controller: Invalid class name: ${this.name}`);
         }
-        return inflector.camelToId(this.name.substring(0, index));
+        return InflectorHelper.camelToId(this.name.substring(0, index));
     }
 
     static getFullName (separator = '.') {
@@ -66,9 +67,9 @@ module.exports = class Controller extends Base {
 
     getActionIds () {
         let ids = Object.keys(this.ACTIONS);
-        for (let id of helper.getAllFunctionNames(this)) {
+        for (let id of ObjectHelper.getAllFunctionNames(this)) {
             if (id.indexOf('action') === 0) {
-                ids.push(inflector.camelToId(id.substring(6)));
+                ids.push(InflectorHelper.camelToId(id.substring(6)));
             }
         }
         return ids;
@@ -113,9 +114,9 @@ module.exports = class Controller extends Base {
         id = id || this.DEFAULT_ACTION;
         let action = this.ACTIONS[id];
         if (action) {
-            return helper.createInstance(action, {id, controller: this});
+            return MainHelper.createInstance(action, {id, controller: this});
         }
-        let name = `action${inflector.idToCamel(id)}`;
+        let name = `action${InflectorHelper.idToCamel(id)}`;
         return typeof this[name] === 'function'
             ? new InlineAction({id, controller: this, method: name}) : null;
     }
@@ -317,8 +318,7 @@ module.exports = class Controller extends Base {
         }
         return messages;
     }
-};
-
+};                            
 module.exports.init();
 
 const ActionEvent = require('./ActionEvent');

@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Serializer extends Base {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./Component');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Scheduler extends Base {
 
@@ -22,7 +22,7 @@ module.exports = class Scheduler extends Base {
     init () {
         super.init();
         for (let id in this.tasks) {
-            let task = helper.createInstance(this.tasks[id], {id, scheduler: this});
+            let task = MainHelper.createInstance(this.tasks[id], {id, scheduler: this});
             task.on(task.EVENT_BEFORE_RUN, this.taskBeforeRun.bind(this));
             task.on(task.EVENT_DONE, this.taskDone.bind(this));
             task.on(task.EVENT_FAIL, this.taskFail.bind(this));

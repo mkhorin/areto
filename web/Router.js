@@ -1,8 +1,7 @@
 'use strict';
 
 const Base = require('../base/Component');
-const helper = require('../helpers/MainHelper');
-const inflector = require('../helpers/InflectorHelper');
+const MainHelper = require('../helpers/MainHelper');
 const fs = require('fs');
 const path = require('path');
 

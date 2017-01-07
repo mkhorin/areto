@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Component');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Logger extends Base {
 
@@ -25,7 +25,7 @@ module.exports = class Logger extends Base {
 
     init () {
         super.init();
-        this.store = helper.createInstance(this.store, {
+        this.store = MainHelper.createInstance(this.store, {
             logger: this
         });
         let errorOutputIndex = this.typeNames.indexOf('info');
@@ -58,7 +58,7 @@ module.exports = class Logger extends Base {
             Object.assign(config, type);
             Object.assign(type, config);
         } else if (type) {
-            type = helper.createInstance(type, Object.assign(config, type[1]));
+            type = MainHelper.createInstance(type, Object.assign(config, type[1]));
         } else {
             type = new LogType(config);
         }

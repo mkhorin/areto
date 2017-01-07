@@ -10,31 +10,7 @@ module.exports = class SessionStore extends Base {
         super(config);
         Store.call(this);
     }
-
-    destroy (sid, cb) {
-        cb('SessionStore: destroy: need to override');
-    }
-
-    clear (cb) {
-        cb('SessionStore: clear: need to override');
-    }
-
-    get (sid, cb) {
-        cb('SessionStore: get: need to override');
-    }
-
-    set (sid, session, cb) {
-        cb('SessionStore: set: need to override');
-    }
-
-    touch (sid, session, cb) {
-        cb('SessionStore: touch: need to override');
-    }
-
-    removeExpired (period, cb) {
-        cb('SessionStore: removeExpired: need to override');
-    }
-
+   
     createSession (...args) {
         return Store.prototype.createSession.apply(this, args);
     }

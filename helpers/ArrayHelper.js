@@ -49,4 +49,19 @@ module.exports = class ArrayHelper {
         }
         return null;
     }
+
+    static createBuckets (key, docs) {
+        let buckets = {};
+        for (let doc of docs) {
+            let value = doc[key];
+            if (value !== null && value !== undefined && value.length !== 0) {
+                if (buckets[value] instanceof Array) {
+                    buckets[value].push(doc);
+                } else {
+                    buckets[value] = [doc];
+                }
+            }
+        }
+        return buckets;
+    }
 };

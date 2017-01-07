@@ -1,9 +1,9 @@
 'use strict';
 
 const Base = require('../base/Action');
+const MainHelper = require('../helpers/MainHelper');
 const gm = require('gm');
-const path = require('path');
-const helper = require('../helpers/MainHelper');
+const path = require('path');                       
 
 module.exports = class Captcha extends Base {
 
@@ -44,10 +44,10 @@ module.exports = class Captcha extends Base {
     }
 
     generateVerifyCode () {
-        let length = helper.getRandom(this.minLength, this.maxLength);
+        let length = MainHelper.getRandom(this.minLength, this.maxLength);
         let buffer = [];
         for (let i = 0; i < length; ++i) {
-            buffer.push(this.symbolPool.charAt(helper.getRandom(0, this.symbolPool.length - 1)));
+            buffer.push(this.symbolPool.charAt(MainHelper.getRandom(0, this.symbolPool.length - 1)));
         }
         return buffer.join('');
     }
@@ -65,18 +65,18 @@ module.exports = class Captcha extends Base {
         //image.affine(5,5);
         let step = (w - 0) / code.length + this.offset;
         for (let i = 0; i < code.length; ++i) {
-            image.fontSize(`${helper.getRandom(25, 65)}px`);
-            let angle = helper.getRandom(-16, 16);
-            this.drawText(image, i * step + 10, helper.getRandom(35, 60), code[i], angle);
+            image.fontSize(`${MainHelper.getRandom(25, 65)}px`);
+            let angle = MainHelper.getRandom(-16, 16);
+            this.drawText(image, i * step + 10, MainHelper.getRandom(35, 60), code[i], angle);
         }
         let downB = 20, topB = 20; //частота сетки
         for (let x = 4; x < w; x += step) {
-            image.drawLine(helper.getRandom(0, w), 0, helper.getRandom(0, w), h);
-            step = helper.getRandom(downB, topB);
+            image.drawLine(MainHelper.getRandom(0, w), 0, MainHelper.getRandom(0, w), h);
+            step = MainHelper.getRandom(downB, topB);
         }
         for (let y = 3; y < h; y += step) {
-            image.drawLine(0, helper.getRandom(0, w), w, helper.getRandom(0, w));
-            step = helper.getRandom(downB, topB);
+            image.drawLine(0, MainHelper.getRandom(0, w), w, MainHelper.getRandom(0, w));
+            step = MainHelper.getRandom(downB, topB);
         }
         //image.noise(1);
         image.setFormat('jpg').quality(this.quality).toBuffer((err, buffer)=> {

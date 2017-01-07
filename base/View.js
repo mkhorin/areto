@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const async = require('async');
 
 module.exports = class View extends Base {
@@ -58,7 +58,7 @@ module.exports = class View extends Base {
                 let params = this.widgets[name];
                 let widget = this.controller.module.widgets[params.id];
                 if (widget) {
-                    widget = helper.createInstance(Object.assign({view: this}, widget, params));
+                    widget = MainHelper.createInstance(Object.assign({view: this}, widget, params));
                     this.widgets[name] = widget;
                     widget.execute(cb, renderParams);
                 } else {

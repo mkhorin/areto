@@ -2,7 +2,7 @@
 
 const Base = require('./QueryBuilder');
 const mongodb = require('mongodb');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 const CONDITION_BUILDERS = {
     'AND': 'buildAndCondition',
@@ -146,7 +146,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (value instanceof RegExp) {
             return value;
         }
-        value = helper.escapeRegExp(value);
+        value = MainHelper.escapeRegExp(value);
         value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
         value = value.charAt(value.length - 1) === '%' ?  value.substring(0, value.length - 1) : `${value}$`;
         return new RegExp(value, 'i');

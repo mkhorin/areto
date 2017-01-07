@@ -1,8 +1,9 @@
 'use strict';
 
 const Base = require('./Component');
-const helper = require('../helpers/MainHelper');
-const inflector = require('../helpers/InflectorHelper');
+const MainHelper = require('../helpers/MainHelper');
+const InflectorHelper = require('../helpers/InflectorHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const async = require('async');
 const fs = require('fs');
 const path = require('path');
@@ -22,7 +23,7 @@ module.exports = class Module extends Base {
     }
 
     static getId () {
-        return inflector.camelToId(this.name);
+        return InflectorHelper.camelToId(this.name);
     }
     
     constructor (config) {
@@ -95,7 +96,7 @@ module.exports = class Module extends Base {
 
     getController (id) {
         try {
-            return require(path.join(this.getControllerDir(), `${inflector.idToCamel(id)}Controller`));
+            return require(path.join(this.getControllerDir(), `${InflectorHelper.idToCamel(id)}Controller`));
         } catch (err) {
             return null;
         }
@@ -156,7 +157,7 @@ module.exports = class Module extends Base {
 
     setConfig (name) {
         this.configName = name;
-        this.config = helper.deepAssign(
+        this.config = ObjectHelper.deepAssign(
             this.getConfigFile('default'),
             this.getConfigFile('default-local'),
             this.getConfigFile(name),
@@ -184,8 +185,8 @@ module.exports = class Module extends Base {
         Object.assign(this.widgets, this.config.widgets);
         if (parent) {
             Object.assign(this.components, parent.components);
-            helper.deepAssignUndefined(this.params, parent.params);
-            helper.deepAssignUndefined(this.widgets, parent.widgets);
+            ObjectHelper.deepAssignUndefined(this.params, parent.params);
+            ObjectHelper.deepAssignUndefined(this.widgets, parent.widgets);
         }
         this.url = this.config.url || (parent ? `/${this.ID}` : '');
         this.setForwarder(this.config.forwarder);
@@ -202,7 +203,7 @@ module.exports = class Module extends Base {
 
     setForwarder (config) {
         if (config) {
-            this.forwarder = helper.createInstance({
+            this.forwarder = MainHelper.createInstance({
                 Class: require('../web/Forwarder'),
                 module: this
             }, config);
@@ -215,7 +216,7 @@ module.exports = class Module extends Base {
         async.forEachOfSeries(components, (config, id, cb)=> {
             if (config) {
                 let type = config.componentType || id;
-                let handler = `component${inflector.idToCamel(type)}`;
+                let handler = `component${InflectorHelper.idToCamel(type)}`;
                 if (typeof this[handler] === 'function') {
                     this[handler](config, err => {
                         err || this.log('trace', `${this.getFullName()}: ${id} ready`);
@@ -240,7 +241,7 @@ module.exports = class Module extends Base {
     }
 
     createComponent (name, config) {   
-        return this.components[name] = helper.createInstance(config);
+        return this.components[name] = MainHelper.createInstance(config);
     }
 
     setModules (config, cb) {
@@ -262,7 +263,7 @@ module.exports = class Module extends Base {
     }
 
     setRouter (config) {        
-        this.router = helper.createInstance(Object.assign({
+        this.router = MainHelper.createInstance(Object.assign({
             Class: require('../web/Router'),
             module: this
         }, config));

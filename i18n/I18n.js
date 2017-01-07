@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const path = require('path');
 
 module.exports = class I18n extends Base {
@@ -29,7 +29,7 @@ module.exports = class I18n extends Base {
             this.sources = Object.assign({}, this.parent.sources, this.sources);
         }
         for (let key of Object.keys(this.sources)) {
-            this.sources[key] = helper.createInstance(Object.assign({
+            this.sources[key] = MainHelper.createInstance(Object.assign({
                 i18n: this,
             }, this.sources[key]));
         }
@@ -66,7 +66,7 @@ module.exports = class I18n extends Base {
         let sources = this.sources;
         if (category in sources) {
             if (!(sources[category] instanceof MessageSource)) {
-                sources[category] = helper.createInstance(sources[category]);
+                sources[category] = MainHelper.createInstance(sources[category]);
             }
             return sources[category];
         } else {
@@ -74,7 +74,7 @@ module.exports = class I18n extends Base {
                 let pos = key.indexOf(this.ASTERISK);
                 if (pos > 0 && key.substring(0, pos).indexOf(category) === 0) {
                     if (!(sources[key] instanceof MessageSource)) {
-                        sources[key] = helper.createInstance(sources[key]);
+                        sources[key] = MainHelper.createInstance(sources[key]);
                         sources[category] = sources[key];
                     }
                     return sources[key];
@@ -82,7 +82,7 @@ module.exports = class I18n extends Base {
             }
             if (this.ASTERISK in sources) {
                 if (!(sources[this.ASTERISK] instanceof MessageSource)) {
-                    sources[this.ASTERISK] = helper.createInstance(sources[this.ASTERISK]);
+                    sources[this.ASTERISK] = MainHelper.createInstance(sources[this.ASTERISK]);
                 }
                 return sources[this.ASTERISK];
             }

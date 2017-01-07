@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('./Driver');
-const mysql = require('mysql');
-const helper = require('../helpers/MainHelper');
-const moment = require('moment');
 
 module.exports = class MysqlDriver extends Base {
 
@@ -64,7 +61,7 @@ module.exports = class MysqlDriver extends Base {
 
     insert (table, doc, cb) {
         let columns = this.escapeId(Object.keys(doc)).join(',');
-        let values = this.escape(helper.objectToValueArray(doc));
+        let values = this.escape(ObjectHelper.objectToValueArray(doc));
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
         this.execute(sql, (err, result)=> {
             err ? cb(err) : cb(null, result.insertId);
@@ -73,7 +70,7 @@ module.exports = class MysqlDriver extends Base {
     
     upsert (table, condition, doc, cb) {
         let columns = this.escapeId(Object.keys(doc));
-        let values = this.escape(helper.objectToValueArray(doc));
+        let values = this.escape(ObjectHelper.objectToValueArray(doc));
         let updates = columns.map(column => `${column}=VALUES(${column})`).join(',');
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join(',')}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
         this.execute(sql, cb);
@@ -289,5 +286,8 @@ module.exports = class MysqlDriver extends Base {
 };
 module.exports.init();
 
+const ObjectHelper = require('../helpers/ObjectHelper');
 const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');
+const mysql = require('mysql');
+const moment = require('moment');

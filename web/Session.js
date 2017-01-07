@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const session = require('express-session');
 const flash = require('connect-flash');
 
@@ -18,7 +18,7 @@ module.exports = class Session extends Base {
 
     init () {
         if (this.store) {
-            this.store = helper.createInstance(this.store, {
+            this.store = MainHelper.createInstance(this.store, {
                 db: this.module.getDb()  
             });
         } 

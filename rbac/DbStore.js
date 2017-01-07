@@ -2,7 +2,7 @@
 
 const Base = require('./Store');
 const async = require('async');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class DbStore extends Base {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./ActionFilter');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const async = require('async');
 
 module.exports = class AccessControl extends Base {

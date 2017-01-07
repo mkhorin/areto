@@ -1,8 +1,8 @@
 'use strict';
 
 const Base = require('../base/Base');
-const helper = require('../helpers/MainHelper');
-const arrayHelper = require('../helpers/ArrayHelper');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const pathToRegexp = require('path-to-regexp');
 
 module.exports = class Url extends Base {
@@ -81,7 +81,7 @@ module.exports = class Url extends Base {
         this.createTarget = pathToRegexp.tokensToFunction(targetTokens);
             
         // target params must be a subset of the source's params
-        if (arrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
+        if (ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
             throw `Url: Invalid target params: source: ${this.source}: target: ${this.target}`;
         }
         if (this.methods && !(this.methods instanceof Array)) {
@@ -110,7 +110,7 @@ module.exports = class Url extends Base {
                 data.params = { id: 234, fera: '456'};
                 data.anchor = 'mita';
                 let url = this.createSource(Object.assign(params, data.params));
-                helper.deleteObjectProperties(params, this.sourceParamNames);
+                ObjectHelper.deleteObjectProperties(params, this.sourceParamNames);
                 params = this.constructor.serializeParams(params);
                 if (params) {
                     url = `${url}?${params}`;

@@ -229,26 +229,25 @@ module.exports = class ActiveQuery extends Base {
 
     populate (rows, cb) {
         if (this._asArray) {
-            super.populate(rows, cb);
-        } else {
-            let models = [];
-            async.each(rows, (row, cb)=> {
-                let model = new this.model.constructor;
-                model.populateRecord(row);
-                models.push(model);
-                model.afterFind(cb);
-            }, err => {
-                if (err) {
-                    cb(err);
-                } else if (models.length && Object.keys(this._with).length) {
-                    this.findWith(this._with, models, err => {
-                        cb(err, this._indexBy ? this.indexModels(models) : models);
-                    });
-                } else {
-                    cb(null, this._indexBy ? this.indexModels(models) : models);
-                }
-            });
+            return super.populate(rows, cb);
         }
+        let models = [];
+        async.each(rows, (row, cb)=> {
+            let model = new this.model.constructor;
+            model.populateRecord(row);
+            models.push(model);
+            model.afterFind(cb);
+        }, err => {
+            if (err) {
+                cb(err);
+            } else if (models.length && Object.keys(this._with).length) {
+                this.findWith(this._with, models, err => {
+                    cb(err, this._indexBy ? this.indexModels(models) : models);
+                });
+            } else {
+                cb(null, this._indexBy ? this.indexModels(models) : models);
+            }
+        });
     }
 
     populateRelation (name, primaryModels, cb) {
@@ -296,7 +295,7 @@ module.exports = class ActiveQuery extends Base {
     populateMultipleRelation (name, primaryModels, buckets, link) {
         for (let pm of primaryModels) {
             let key = this.getModelKey(pm, link);
-            let value = key in buckets ? buckets[key] : (this._multiple ? [] : null);
+            let value = Object.prototype.hasOwnProperty.call(buckets, key) ? buckets[key] : (this._multiple ? [] : null);
             if (pm instanceof ActiveRecord) {
                 pm.populateRelation(name, value);
             } else {
@@ -339,7 +338,7 @@ module.exports = class ActiveQuery extends Base {
             ? this.buildViaBuckets(models, this._link, viaModels, viaQuery._link)
             : this.buildBuckets(models, this._link);
         if (!this._multiple) {
-            for (let name in buckets) {
+            for (let name of Object.keys(buckets)) {
                 buckets[name] = buckets[name][0];
             }
         }
@@ -355,19 +354,20 @@ module.exports = class ActiveQuery extends Base {
         for (let vm of viaModels) {
             let key1 = this.getModelKey(vm, viaLinkKey);
             let key2 = this.getModelKey(vm, linkValue);
-            if (!map[key2]) {
+            if (!Object.prototype.hasOwnProperty.call(map, key2)) {
                 map[key2] = {};
             }
             map[key2][key1] = true;
         }
         for (let m of models) {
             let key = this.getModelKey(m, linkKey);
-            if (key in map) {
+            if (Object.prototype.hasOwnProperty.call(map, key)) {
                 for (let k in map[key]) {
-                    if (!buckets[k]) {
-                        buckets[k] = [];
+                    if (buckets[k] instanceof Array) {
+                        buckets[k].push(m);
+                    } else {
+                        buckets[k] = [m];
                     }
-                    buckets[k].push(m);
                 }
             }
         }
@@ -379,10 +379,11 @@ module.exports = class ActiveQuery extends Base {
         let linkKey = link[0];
         for (let m of models) {
             let key = this.getModelKey(m, linkKey);
-            if (!buckets[key]) {
-                buckets[key] = [];
+            if (buckets[key] instanceof Array) {
+                buckets[key].push(m);
+            } else {
+                buckets[key] = [m];
             }
-            buckets[key].push(m);
         }
         return buckets;
     }

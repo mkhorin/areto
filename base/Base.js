@@ -1,25 +1,25 @@
 'use strict';
 
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const path = require('path');
 
 module.exports = class Base {
 
     static init (nodeModule) {
         if (nodeModule) {
-            helper.defineClassProperty(this, 'CLASS_FILE', nodeModule.filename);
+            MainHelper.defineClassProperty(this, 'CLASS_FILE', nodeModule.filename);
             if (path.basename(nodeModule.filename) !== 'module.js') {
-                let dir = helper.getClosestModuleDir(nodeModule.filename);
-                helper.defineClassProperty(this, 'module', require(path.join(dir, 'module')));
+                let dir = MainHelper.getClosestModuleDir(nodeModule.filename);
+                MainHelper.defineClassProperty(this, 'module', require(path.join(dir, 'module')));
             }
         }
         let constants = this.getClassProperties('getConstants', this);
         for (let name in constants) {
-            helper.defineClassProperty(this, name, constants[name]);
+            MainHelper.defineClassProperty(this, name, constants[name]);
         }
         let statics = this.getClassProperties('getStatics', this);
         for (let name in statics) {
-            helper.defineClassProperty(this, name, statics[name], true);
+            MainHelper.defineClassProperty(this, name, statics[name], true);
         }        
         return this;
     }

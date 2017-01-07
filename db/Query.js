@@ -236,13 +236,14 @@ module.exports = class Query extends Base {
         let map = {};
         for (let doc of docs) {
             let id = doc[link];
-            if (!map[id]) {
-                map[id] = [];
+            if (map[id] instanceof Array) {
+                map[id].push(doc);                
+            } else {
+                map[id] = [doc];
             }
-            map[id].push(doc);
         }
         let args = [];
-        for (let i =  keys.length - 1; i >= 0; --i) {
+        for (let i = keys.length - 1; i >= 0; --i) {
             args.push(map[keys[i]]);
         }
         let values = [];

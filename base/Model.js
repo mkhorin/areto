@@ -1,8 +1,8 @@
 'use strict';
 
 const Base = require('./Component');
-const inflector = require('../helpers/InflectorHelper');
-const arrayHelper = require('../helpers/ArrayHelper');
+const InflectorHelper = require('../helpers/InflectorHelper');
+const ArrayHelper = require('../helpers/ArrayHelper');
 const async = require('async');
 
 module.exports = class Model extends Base {
@@ -155,7 +155,7 @@ module.exports = class Model extends Base {
     }
 
     generateLabel (name) {
-        this.LABELS[name] = inflector.camelToWords(inflector.camelize(name));
+        this.LABELS[name] = InflectorHelper.camelToWords(InflectorHelper.camelize(name));
         return this.LABELS[name];
     }
 
@@ -297,7 +297,7 @@ module.exports = class Model extends Base {
                 names = names.concat(validator.attributes);
             }
         }
-        return arrayHelper.unique(names);
+        return ArrayHelper.unique(names);
     }
 
     setDefaultValues (cb) {

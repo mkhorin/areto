@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Component');
-const helper = require('../helpers/MainHelper');
+const MainHelper = require('../helpers/MainHelper');
 const async = require('async');
 
 module.exports = class Manager extends Base {
@@ -20,7 +20,7 @@ module.exports = class Manager extends Base {
     
     init () {
         super.init();
-        this.store = helper.createInstance(this.store, {
+        this.store = MainHelper.createInstance(this.store, {
             manager: this
         });
     }
@@ -56,14 +56,14 @@ module.exports = class Manager extends Base {
     build (data) {
         this.ruleIndex = {};
         for (let id of Object.keys(data.rules)) {
-            this.ruleIndex[id] = helper.createInstance(data.rules[id], {id});
+            this.ruleIndex[id] = MainHelper.createInstance(data.rules[id], {id});
         }
         this.itemIndex = {};
         for (let id of Object.keys(data.items)) {
             let rule = data.items[id].rule;
             if (rule) {
                 data.items[id].rule = Object.prototype.hasOwnProperty.call(this.ruleIndex, rule)
-                    ? this.ruleIndex[rule] : helper.createInstance(rule, {id});
+                    ? this.ruleIndex[rule] : MainHelper.createInstance(rule, {id});
             }
             this.itemIndex[id] = new Item(data.items[id]);
         }
