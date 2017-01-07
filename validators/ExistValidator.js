@@ -5,18 +5,18 @@ const Base = require('./Validator');
  * a1 needs to exist
  * ['a1', 'exist']
  * a1 needs to exist, but its value will use a2 to check for the existence
- * ['a1', 'exist', {targetAttribute: 'a2'}]
+ * ['a1', 'exist', {targetAttr: 'a2'}]
  * a1 and a2 need to exist together, and they both will receive error message
- * [['a1', 'a2'], 'exist', {targetAttribute: ['a1', 'a2']}]
+ * [['a1', 'a2'], 'exist', {targetAttr: ['a1', 'a2']}]
  * a1 and a2 need to exist together, only a1 will receive error message
- * ['a1', 'exist', {targetAttribute: ['a1', 'a2']}]
+ * ['a1', 'exist', {targetAttr: ['a1', 'a2']}]
  */
 module.exports = class ExistValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
             targetClass: null,
-            targetAttribute: null,
+            targetAttr: null,
             filter: null,
             ignoreCase: false
         }, config));
@@ -29,18 +29,18 @@ module.exports = class ExistValidator extends Base {
 
     validateAttr (model, attr, cb) {
         let targetClass = this.targetClass ? this.targetClass : model.constructor;
-        let attributes = this.targetAttribute ? this.targetAttribute : attr;
+        let attrs = this.targetAttr ? this.targetAttr : attr;
         let query = targetClass.find();
-        if (!(attributes instanceof Array)){
-            attributes = [attributes];
+        if (!(attrs instanceof Array)){
+            attrs = [attrs];
         }
         if (this.ignoreCase) {
-            for (let name of attributes) {
+            for (let name of attrs) {
                 query.andWhere(['LIKE', name, model.get(attr)]);
             }
         } else {
             let params = {};
-            for (let name of attributes) {
+            for (let name of attrs) {
                 params[name] = model.get(attr);
             }
             query.andWhere(params);

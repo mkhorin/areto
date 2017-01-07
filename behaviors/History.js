@@ -21,8 +21,8 @@ module.exports = class History extends Base {
     }
 
     beforeUpdate (event, cb) {
-        async.each(this.getAttributeNames(), (attr, cb)=> {
-            if (this.owner.isAttributeChanged(attr)) {
+        async.each(this.getAttrNames(), (attr, cb)=> {
+            if (this.owner.isAttrChanged(attr)) {
                 let model = new this.ModelClass;
                 model.setTargetData(this.owner, attr);
                 model.save(err => {
@@ -38,15 +38,15 @@ module.exports = class History extends Base {
         this.ModelClass.removeTargetAll(this.owner, cb);
     }
 
-    getAttributeNames () {
+    getAttrNames () {
         return this.includes instanceof Array
             ? this.includes
             : this.excludes instanceof Array 
                 ? arrayHelper.diff(this.owner.STORED_ATTRIBUTES, this.excludes) : [];
     }
 
-    hasAttribute (name) {
-        return this.getAttributeNames().includes(name);
+    hasAttr (name) {
+        return this.getAttrNames().includes(name);
     }
 };
 

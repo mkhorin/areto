@@ -28,7 +28,7 @@ module.exports = class Model extends Base {
 
     init () {
         super.init();
-        this._attributes = {};
+        this._attrs = {};
         this._errors = {};
         this._validators = null;
     }
@@ -36,18 +36,18 @@ module.exports = class Model extends Base {
     // ATTRIBUTES
 
     get (name) {
-        return this._attributes[name];
+        return this._attrs[name];
     }
 
     set (name, value) {
-        this._attributes[name] = value;
+        this._attrs[name] = value;
     }
 
-    hasAttribute (name) {
-        return Object.prototype.hasOwnProperty.call(this._attributes, name);
+    hasAttr (name) {
+        return Object.prototype.hasOwnProperty.call(this._attrs, name);
     }
     
-    isAttributeRequired (name) {
+    isAttrRequired (name) {
         for (let validator of this.getActiveValidators(name)) {
             if (validator instanceof RequiredValidator && validator.when === null) {
                 return true;
@@ -56,12 +56,12 @@ module.exports = class Model extends Base {
         return false;
     }
 
-    isAttributeSafe (name) {
-        return this.getSafeAttributeNames().includes(name);
+    isAttrSafe (name) {
+        return this.getSafeAttrNames().includes(name);
     }
 
-    isAttributeActive (name) {
-        return this.getActiveAttributeNames().includes(name);
+    isAttrActive (name) {
+        return this.getActiveAttrNames().includes(name);
     }
 
     getLabel (name) {
@@ -72,21 +72,21 @@ module.exports = class Model extends Base {
         return Object.prototype.hasOwnProperty.call(this.HINTS, name) ? this.HINTS[name] : '';
     }
 
-    getFormAttributeId (name, prefix) {
+    getFormAttrId (name, prefix) {
         return prefix ? `${prefix}-${this.ID}-${name}` : `${this.ID}-${name}`;
     }
 
-    getFormAttributeName (name) {
+    getFormAttrName (name) {
         return `${this.ID}[${name}]`;
     }
 
-    getAttributeNames () {
-        return Object.keys(this._attributes);
+    getAttrNames () {
+        return Object.keys(this._attrs);
     }
 
-    getSafeAttributeNames () {
+    getSafeAttrNames () {
         let names = [];
-        for (let name of this.getScenarioAttributes(this.scenario)) {
+        for (let name of this.getScenarioAttrs(this.scenario)) {
             if (name.charAt(0) !== '!') {
                 names.push(name);
             }
@@ -94,8 +94,8 @@ module.exports = class Model extends Base {
         return names;
     }
 
-    getActiveAttributeNames () {
-        let names = this.getScenarioAttributes(this.scenario);
+    getActiveAttrNames () {
+        let names = this.getScenarioAttrs(this.scenario);
         for (let i = 0; i < names.length; ++i) {
             if (names[i].charAt(0) === '!') {
                 names[i] = names[i].substring(1);
@@ -104,13 +104,13 @@ module.exports = class Model extends Base {
         return names;
     }
 
-    getAttributes (names, except) {
+    getAttrs (names, except) {
         let values = {};
         if (!names) {
-            names = this.getAttributeNames();
+            names = this.getAttrNames();
         }
         for (let name of names) {
-            values[name] = this._attributes[name];
+            values[name] = this._attrs[name];
         }
         if (except instanceof Array) {
             for (let name of except) {
@@ -120,9 +120,9 @@ module.exports = class Model extends Base {
         return values;
     }
 
-    setSafeAttributes (values) {
+    setSafeAttrs (values) {
         if (values && typeof values === 'object') {
-            for (let name of this.getSafeAttributeNames()) {
+            for (let name of this.getSafeAttrNames()) {
                 if (Object.prototype.hasOwnProperty.call(values, name)) {
                     this.set(name, values[name]);
                 }
@@ -130,11 +130,11 @@ module.exports = class Model extends Base {
         }
     }
 
-    assignAttributes (model) {        
-        Object.assign(this._attributes, model._attributes);
+    assignAttrs (model) {        
+        Object.assign(this._attrs, model._attrs);
     }
     
-    setAttributes (values) {
+    setAttrs (values) {
         if (values && typeof values === 'object') {
             for (let name of Object.keys(values)) {
                 this.set(name, values[name]);
@@ -142,11 +142,11 @@ module.exports = class Model extends Base {
         }
     }
 
-    getScenarioAttributes (scenario) {
+    getScenarioAttrs (scenario) {
         let attrs = {};
         for (let validator of this.getValidators()) {
             if (validator.isActive(scenario)) {
-                for (let attr of validator.attributes) {
+                for (let attr of validator.attrs) {
                     attrs[attr] = true;
                 }
             }
@@ -219,7 +219,7 @@ module.exports = class Model extends Base {
     // LOAD
 
     load (data) {        
-        data && this.setSafeAttributes(data[this.ID]);
+        data && this.setSafeAttrs(data[this.ID]);
         return this;
     }
 
@@ -247,7 +247,7 @@ module.exports = class Model extends Base {
                 return cb(err);
             }
             if (!attrNames) {
-                attrNames = this.getActiveAttributeNames();
+                attrNames = this.getActiveAttrNames();
             }
             async.eachSeries(this.getActiveValidators(), (validator, cb)=> {
                 validator.validateAttrs(this, attrNames, cb);
@@ -280,13 +280,13 @@ module.exports = class Model extends Base {
 
     getValidatorsByClass (Class, attr) {
         return this.getValidators().filter(validator => {
-            return validator instanceof Class && (!attr || validator.attributes.includes(attr));
+            return validator instanceof Class && (!attr || validator.attrs.includes(attr));
         });
     }
 
     getActiveValidators (attr) {
         return this.getValidators().filter(validator => {
-            return validator.isActive(this.scenario) && (!attr || validator.attributes.includes(attr));
+            return validator.isActive(this.scenario) && (!attr || validator.attrs.includes(attr));
         });
     }
 
@@ -294,7 +294,7 @@ module.exports = class Model extends Base {
         let names = [];
         for (let validator of this.getValidators()) {
             if (validator instanceof RelationValidator && validator.isActive(this.scenario)) {
-                names = names.concat(validator.attributes);
+                names = names.concat(validator.attrs);
             }
         }
         return ArrayHelper.unique(names);

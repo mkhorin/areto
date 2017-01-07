@@ -8,7 +8,7 @@ module.exports = class UniqueValidator extends Base {
     constructor (config) {
         super(Object.assign({
             targetClass: null,
-            targetAttribute: null, // can be array
+            targetAttr: null, // can be array
             filter: null,
             ignoreCase: false
         }, config));
@@ -21,18 +21,18 @@ module.exports = class UniqueValidator extends Base {
 
     validateAttr (model, attr, cb) {
         let targetClass = this.targetClass ? this.targetClass : model.constructor;
-        let attributes = this.targetAttribute ? this.targetAttribute : attr;
+        let attrs = this.targetAttr ? this.targetAttr : attr;
         let query = targetClass.find();
-        if (!(attributes instanceof Array)) {
-            attributes = [attributes];
+        if (!(attrs instanceof Array)) {
+            attrs = [attrs];
         }
         if (this.ignoreCase) {
-            for (let name of attributes) {
+            for (let name of attrs) {
                 query.andWhere(['LIKE', name, model.get(name)]);
             }
         } else {
             let params = {};
-            for (let name of attributes) {
+            for (let name of attrs) {
                 params[name] = model.get(name);
             }
             query.andWhere(params);

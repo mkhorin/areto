@@ -25,10 +25,10 @@ module.exports = class ActiveDataProvider extends Base {
         super.setSort(data);
         if (this.sort) {
             let model = this.query.model;
-            let names = Object.keys(this.sort.attributes);
+            let names = Object.keys(this.sort.attrs);
             if (names.length === 0) {
-                for (let name of model.getAttributeNames()) {
-                    this.sort.attributes[name] = {
+                for (let name of model.getAttrNames()) {
+                    this.sort.attrs[name] = {
                         asc: {[name]: this.sort.ASC},
                         desc: {[name]: this.sort.DESC},
                         label: model.getLabel(name) 
@@ -36,8 +36,8 @@ module.exports = class ActiveDataProvider extends Base {
                 }
             } else {
                 for (let name of names) 
-                    if (!this.sort.attributes[name].label)
-                        this.sort.attributes[name].label = model.getLabel(name);
+                    if (!this.sort.attrs[name].label)
+                        this.sort.attrs[name].label = model.getLabel(name);
             }                         
         }
     }

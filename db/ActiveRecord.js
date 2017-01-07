@@ -29,7 +29,7 @@ module.exports = class ActiveRecord extends Base {
     init () {
         super.init();
         this._isNewRecord = true;
-        this._oldAttributes = {};
+        this._oldAttrs = {};
         this._related = {};
     }
 
@@ -56,19 +56,19 @@ module.exports = class ActiveRecord extends Base {
     // ATTRIBUTES
 
     get (name) {
-        return Object.prototype.hasOwnProperty.call(this._attributes, name) ? this._attributes[name] : this._related[name]; 
+        return Object.prototype.hasOwnProperty.call(this._attrs, name) ? this._attrs[name] : this._related[name]; 
     }        
     
-    isAttributeChanged (name) {
-        return this.getOldAttribute(name) !== this.get(name);
+    isAttrChanged (name) {
+        return this.getOldAttr(name) !== this.get(name);
     }
     
-    getOldAttribute (name) {
-        return this._oldAttributes[name];
+    getOldAttr (name) {
+        return this._oldAttrs[name];
     }       
     
-    setOldAttributes () {
-        this._oldAttributes = Object.assign({}, this._attributes);            
+    setOldAttrs () {
+        this._oldAttrs = Object.assign({}, this._attrs);            
     }
 
     // EVENTS
@@ -86,7 +86,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     afterSave (cb, insert) {
-        this.setOldAttributes();
+        this.setOldAttrs();
         this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
     }
 
@@ -106,18 +106,18 @@ module.exports = class ActiveRecord extends Base {
 
     populateRecord (doc) {
         this._isNewRecord = false;
-        Object.assign(this._attributes, doc);
-        this.setOldAttributes();
+        Object.assign(this._attrs, doc);
+        this.setOldAttrs();
     }
 
-    filterAttributes () {
-        let attributes = {};
+    filterAttrs () {
+        let attrs = {};
         for (let key of this.STORED_ATTRIBUTES) {
-            if (Object.prototype.hasOwnProperty.call(this._attributes, key)) {
-                attributes[key] = this._attributes[key];    
+            if (Object.prototype.hasOwnProperty.call(this._attrs, key)) {
+                attrs[key] = this._attrs[key];    
             }
         }
-        return attributes;
+        return attrs;
     }
 
     // FIND
@@ -154,7 +154,7 @@ module.exports = class ActiveRecord extends Base {
         async.series([
             cb => this.beforeSave(cb, true),
             cb => {
-                this.constructor.find().insert(this.filterAttributes(), (err, id)=> {
+                this.constructor.find().insert(this.filterAttrs(), (err, id)=> {
                     if (!err) {
                         this.set(this.PK, id);
                         this._isNewRecord = false;    
@@ -169,7 +169,7 @@ module.exports = class ActiveRecord extends Base {
     update (cb) {
         async.series([
             this.beforeSave.bind(this),
-            cb => this.findById().update(this.filterAttributes(), cb),
+            cb => this.findById().update(this.filterAttrs(), cb),
             this.afterSave.bind(this)
         ], cb);
     }
@@ -177,9 +177,9 @@ module.exports = class ActiveRecord extends Base {
     /**
      * will not perform data validation and will not trigger events
      */
-    updateAttributes (cb, attrs) {
-        Object.assign(this._attributes, attrs);
-        this.findById().update(this.filterAttributes(), cb);
+    updateAttrs (cb, attrs) {
+        Object.assign(this._attrs, attrs);
+        this.findById().update(this.filterAttrs(), cb);
     }
 
     // REMOVE
@@ -332,7 +332,7 @@ module.exports = class ActiveRecord extends Base {
         }
         if (relation._via instanceof Array) {
             let record = new viaModel.constructor;
-            record._attributes = columns;
+            record._attrs = columns;
             record.insert(cb);
         } else {
             this.getDb().insert(viaTable, columns, cb);
@@ -485,7 +485,7 @@ module.exports = class ActiveRecord extends Base {
         let a = relation._link[0];
         let b = relation._link[1];
         if (!remove && this.get(b) instanceof Array) {
-            // relation via array valued attribute
+            // relation via array valued attr
             this.set(b, []);
             this.forceSave(cb);
         } else {

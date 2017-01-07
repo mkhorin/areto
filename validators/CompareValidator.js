@@ -6,7 +6,7 @@ module.exports = class CompareValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            compareAttribute: null,
+            compareAttr: null,
             compareValue: null,
             type: 'string',
             operator: '=='
@@ -38,12 +38,12 @@ module.exports = class CompareValidator extends Base {
         } else if (this.compareValue !== null) {
             compareLabel = compareValue = this.compareValue;
         } else {
-            compareValue = model.get(this.compareAttribute);
-            compareLabel = model.getLabel(this.compareAttribute);
+            compareValue = model.get(this.compareAttr);
+            compareLabel = model.getLabel(this.compareAttr);
         }
         if (!this.compareValues(this.operator, this.type, value, compareValue)) {
             this.addError(model, attr, this.message, {
-                compareAttribute: compareLabel,
+                compareAttr: compareLabel,
                 compareValue: compareValue
             });
         }
@@ -55,7 +55,7 @@ module.exports = class CompareValidator extends Base {
             cb('CompareValidator: Value must be set');
         } else if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
             cb(null, this.message, {
-                compareAttribute: this.compareAttribute,
+                compareAttr: this.compareAttr,
                 compareValue: this.compareValue
             });
         } else cb();

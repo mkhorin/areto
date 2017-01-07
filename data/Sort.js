@@ -14,7 +14,7 @@ module.exports = class Sort extends Base {
 
     constructor (config) {
         super(Object.assign({
-            attributes: {},
+            attrs: {},
             enableMultiSort: false,
             sortParam: 'sort',
             separator: ',',
@@ -25,8 +25,8 @@ module.exports = class Sort extends Base {
     }
 
     init () {        
-        for (let name of Object.keys(this.attributes)) {
-            let attr = this.attributes[name];
+        for (let name of Object.keys(this.attrs)) {
+            let attr = this.attrs[name];
             if (typeof attr !== 'object') {
                 attr = {
                     asc: {[name]: this.ASC},
@@ -40,12 +40,12 @@ module.exports = class Sort extends Base {
                     attr.desc = {[name]: this.DESC};
                 }
             }
-            this.attributes[name] = attr;
+            this.attrs[name] = attr;
         }
     }
 
-    hasAttribute (name) {
-        return Object.prototype.hasOwnProperty.call(this.attributes, name);
+    hasAttr (name) {
+        return Object.prototype.hasOwnProperty.call(this.attrs, name);
     }
 
     getOrders (recalc) {
@@ -60,7 +60,7 @@ module.exports = class Sort extends Base {
                         desc = true;
                         attr = attr.substring(1);
                     }
-                    if (Object.prototype.hasOwnProperty.call(this.attributes, attr)) {
+                    if (Object.prototype.hasOwnProperty.call(this.attrs, attr)) {
                         this._attrOrders[attr] = desc ? this.DESC : this.ASC;
                         if (!this.enableMultiSort) {
                             return this._attrOrders;
@@ -91,8 +91,8 @@ module.exports = class Sort extends Base {
         let label = options.label;
         if (label) {
             delete options.label;
-        } else if (this.attributes[attr].label) {
-            label = this.attributes[attr].label;
+        } else if (this.attrs[attr].label) {
+            label = this.attrs[attr].label;
         } else {
             label = InflectorHelper.camelToWords(attr);
         }
@@ -107,7 +107,7 @@ module.exports = class Sort extends Base {
     }
 
     createSortParam (attr) {
-        let def = this.attributes[attr];
+        let def = this.attrs[attr];
         let directions = Object.assign({}, this.getOrders()), direction;
         if (Object.prototype.hasOwnProperty.call(directions, attr)) {
             direction = directions[attr] === this.DESC ? this.ASC : this.DESC;

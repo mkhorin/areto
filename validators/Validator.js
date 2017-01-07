@@ -34,7 +34,7 @@ module.exports = class Validator extends Base {
     }
 
     static createValidator (type, model, attrs, config = {}) {
-        config.attributes = attrs instanceof Array ? attrs : [attrs];
+        config.attrs = attrs instanceof Array ? attrs : [attrs];
         if (typeof type === 'function' || typeof model[type] === 'function') {
             if (Object.getPrototypeOf(type) !== Validator) {
                 config.method = type;
@@ -50,7 +50,7 @@ module.exports = class Validator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            attributes: [],
+            attrs: [],
             // on: [] // only scenarious
             // except: [] // excepted scenarious
             skipOnError: true,
@@ -71,7 +71,7 @@ module.exports = class Validator extends Base {
     }
 
     validateAttrs (model, attrs, cb) {
-        attrs = attrs instanceof Array ? ArrayHelper.intersect(attrs, this.attributes) : this.attributes;
+        attrs = attrs instanceof Array ? ArrayHelper.intersect(attrs, this.attrs) : this.attrs;
         attrs = attrs.filter(attr => {
             return (!this.skipOnAnyError || !model.hasError())
                 && (!this.skipOnError || !model.hasError(attr))
