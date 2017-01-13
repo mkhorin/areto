@@ -41,41 +41,49 @@ module.exports = class View extends Base {
 
     // WIDGETS
 
-    anchorWidget (name) {
-        return `{${name}-${this.controller.timestamp}}`;
+    getWidgetAnchor (id) {
+        return `{${id}-${this.controller.timestamp}}`;
     }
 
-    createWidget (name, params) {
-        name = `${name}-${this.controller.timestamp}`;
-        this.widgets[name] = params;
-        return `{${name}}`;
+    createWidget (params) {
+        let anchor = `${params.id}-${this.controller.timestamp}`;
+        if (this.widgets[anchor]) {
+            this.controller.module.log('error', `View: "${params.id}" widget already exists`);
+            return '';
+        }
+        if (!params.configId) {
+            params.configId = params.id;
+        }
+        this.widgets[anchor] = params;
+        return `{${anchor}}`;
     }
 
     renderWidgets (content, renderParams, cb) {
-        let names = Object.keys(this.widgets);
-        if (names.length > 0) {
-            async.each(names, (name, cb)=> {
-                let params = this.widgets[name];
-                let widget = this.controller.module.widgets[params.id];
-                if (widget) {
-                    widget = MainHelper.createInstance(Object.assign({view: this}, widget, params));
-                    this.widgets[name] = widget;
-                    widget.execute(cb, renderParams);
-                } else {
-                    this.controller.module.log('error', `View: "${params.id}" widget not found`);
-                    delete this.widgets[name];
-                    cb();
-                }
-            }, err => {
-                err ? cb(err) : cb(null, this.prepareWidgetContent(content));
-            });
-        } else cb(null, content);
+        let anchors = Object.keys(this.widgets);
+        if (anchors.length === 0) {
+            return cb(null, content);
+        }
+        async.each(anchors, (anchor, cb)=> {
+            let params = this.widgets[anchor];
+            let widget = this.controller.module.widgets[params.configId];
+            if (widget) {
+                widget = MainHelper.createInstance(Object.assign({view: this}, widget, params));
+                this.widgets[anchor] = widget;
+                widget.execute(cb, renderParams);
+            } else {
+                this.controller.module.log('error', `View: "${params.configId}" widget config not found`);
+                delete this.widgets[anchor];
+                cb();
+            }
+        }, err => {
+            err ? cb(err) : cb(null, this.prepareWidgetContent(content));
+        });
     }
 
     prepareWidgetContent (content) {
-        let names = Object.keys(this.widgets).join('|');
-        if (names.length) {
-            return content.replace(new RegExp(`{(${names})}`, 'g'), (match, name)=> this.widgets[name].content);
+        let anchors = Object.keys(this.widgets).join('|');
+        if (anchors.length) {
+            return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> this.widgets[anchor].content);
         }
         return content;
     }

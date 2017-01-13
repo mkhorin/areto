@@ -2,31 +2,20 @@
 
 const Base = require('./Base');
 
-// this.cacheDuration
-// this.cacheComponentId
-
 module.exports = class Widget extends Base {
-
-    static getConstants () {
-        return {
-            ID: this.getId()
-        };
-    }
-
-    static getId () {        
-        return this.name.toLowerCaseFirstLetter();
-    }
 
     constructor (config) {
         super(Object.assign({
-            // caching: true
+            module: config.view.controller.module,
             // disabled: true
+            // caching: true                        
             cacheComponentId: 'cache'
+            //cacheDuration: 
         }, config));
     }
 
     run (cb) {
-        cb(null, 'Run here');
+        cb(null, 'Widget content here');
     }
 
     execute (cb, renderParams) {
@@ -35,22 +24,16 @@ module.exports = class Widget extends Base {
         if (this.disabled) {
             return cb();
         }
-        this.module.log('trace', `Widget: execute: ${this.ID}`);        
+        this.module.log('trace', `Widget: execute: ${this.id}`);
         if (this.caching) {
-            this.module.components[this.cacheComponentId].use(this.ID, this.run.bind(this), (err, content) => {
-                if (err) {
-                    return cb(err);
-                }
+            this.module.components[this.cacheComponentId].use(`widget-${this.id}`, this.run.bind(this), (err, content) => {
                 this.content = content;
-                cb();
+                cb(err);
             }, this.cacheDuration);
         } else {
             this.run((err, content)=> {
-                if (err) {
-                    return cb(err);
-                }
                 this.content = content;
-                cb();
+                cb(err);
             });
         }
     }
