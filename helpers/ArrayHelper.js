@@ -41,13 +41,23 @@ module.exports = class ArrayHelper {
         return values.filter((value, index)=> values.indexOf(value) === index);
     }
 
-    static getObjectKeyValue (values, searchKey, value, targetKey) {
-        for (let item of values) {
-            if (item[searchKey] === value) {
-                return item[targetKey];
+    static searchObject (items, searchProp, searchValue, returnProp) {
+        for (let item of items) {
+            if (item && item[searchProp] === value) {
+                return returnProp !== undefined ? item[returnProp] : item;
             }
         }
         return null;
+    }
+
+    static getObjectPropValues (items, prop) {
+        let values = [];
+        for (let item of items) {
+            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
+                values.push(item[prop]);
+            }
+        }
+        return values;
     }
 
     static createBuckets (key, docs) {

@@ -56,7 +56,9 @@ module.exports = class UniqueValidator extends Base {
             } else if (models.length === 0) {
                 exists = false;
             }
-            exists && this.addError(model, attr, this.message);
+            if (exists) {
+                this.addError(model, attr, this.message);
+            }
             cb();
         });
     }
