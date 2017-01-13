@@ -46,6 +46,20 @@ module.exports = class MongoDriver extends Base {
 
     // OPERATIONS
 
+    isCollectionExists (table, cb) {
+        this.connection.listCollections().get((err, items)=> {
+            if (err) {
+                return cb(err);
+            }
+            for (let item of items) {
+                if (item.name === table) {
+                    return cb(null, true);
+                }
+            }
+            return cb(null, false);
+        });
+    }
+
     getCollection (table) {
         if (!this._collections[table]) {
             this._collections[table] = this.connection.collection(table);
@@ -118,9 +132,14 @@ module.exports = class MongoDriver extends Base {
     }
 
     drop (table, cb) {
-        this.getCollection(table).drop(err => {
-            this.afterCommand({err, command: 'truncate', table});
-            cb && cb(err);
+        this.isCollectionExists(table, (err, exists)=> {
+            if (err || !exists) {
+                return cb && cb(err);
+            }
+            this.getCollection(table).drop(err => {
+                this.afterCommand({err, command: 'truncate', table});
+                cb && cb(err);
+            });
         });
     }
 
