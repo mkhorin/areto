@@ -19,8 +19,8 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    asArray (value) {
-        this._asArray = value === undefined ? true : value;
+    asArray (value = true) {
+        this._asArray = value;
         return this;
     }
 
@@ -46,7 +46,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepare (cb) {
-        if (this.primaryModel) {
+        if (this._primaryModel) {
             // lazy loading of a relation
             if (this._viaArray) {
                 this.prepareViaArray(cb);
@@ -55,7 +55,7 @@ module.exports = class ActiveQuery extends Base {
             } else if (this._via instanceof Array) {
                 this.prepareViaRelation(cb);
             } else {
-                this.prepareFilter([this.primaryModel]);
+                this.prepareFilter([this._primaryModel]);
                 this.execAfterPrepare(cb);
             }
         } else {
@@ -64,7 +64,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaArray (cb) {
-        let val = this.primaryModel.get(this._link[1]);
+        let val = this._primaryModel.get(this._link[1]);
         this._whereBeforeFilter = this._where;
         if (val === undefined || val === null || val instanceof Array) {
             if (this._orderByIn) {
@@ -78,7 +78,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaTable (cb) {
-        this._via.findJunctionRows([this.primaryModel], (err, viaModels)=> {
+        this._via.findJunctionRows([this._primaryModel], (err, viaModels)=> {
             if (err) {
                 return cb(err);
             }
@@ -95,7 +95,7 @@ module.exports = class ActiveQuery extends Base {
                 if (err) {
                     return cb(err);
                 }
-                this.primaryModel.populateRelation(viaName, viaModels);
+                this._primaryModel.populateRelation(viaName, viaModels);
                 this.prepareFilter(viaModels);
                 this.execAfterPrepare(cb);
             });
@@ -104,7 +104,7 @@ module.exports = class ActiveQuery extends Base {
                 if (err) {
                     return cb(err);
                 }
-                this.primaryModel.populateRelation(viaName, model);
+                this._primaryModel.populateRelation(viaName, model);
                 this.prepareFilter(model ? [model] : []);
                 this.execAfterPrepare(cb);
             });
@@ -118,19 +118,28 @@ module.exports = class ActiveQuery extends Base {
 
     // RELATIONS
 
-    hasOne (primaryModel, link, remove) {
+    hasOne (primaryModel, link) {
         this._multiple = false;
-        this.primaryModel = primaryModel;
+        this._primaryModel = primaryModel;
         this._link = link;
-        this._removeUnlink = remove;
         return this;
     }
 
-    hasMany (primaryModel, link, remove) {
+    hasMany (primaryModel, link) {
         this._multiple = true;
-        this.primaryModel = primaryModel;
+        this._primaryModel = primaryModel;
         this._link = link;
-        this._removeUnlink = remove;
+        this._asBackRef = true;
+        return this;
+    }
+
+    asBackRef (value = true) {
+        this._asBackRef = value;
+        return this;
+    }
+
+    removeOnUnlink (value = true) {
+        this._removeOnUnlink = value;
         return this;
     }
 
@@ -150,18 +159,18 @@ module.exports = class ActiveQuery extends Base {
     }
 
     via (name, callable) {
-        let relation = this.primaryModel.getRelation(name);
+        let relation = this._primaryModel.getRelation(name);
         if (relation) {
             this._via = [name, relation];
             callable && callable(relation);
         } else {
-            this.primaryModel.module.log('error', `ActiveQuery: via: no set relation name: ${name}`);
+            this._primaryModel.module.log('error', `ActiveQuery: via: no set relation name: ${name}`);
         }
         return this;
     }
 
     viaTable (tableName, link, callable) {
-        let relation = new ActiveQuery(this.primaryModel);
+        let relation = new ActiveQuery(this._primaryModel);
         relation._from = tableName;
         relation._link = link;
         relation._multiple = true;
@@ -171,8 +180,7 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    viaArray (validate) {
-        this.validateRelation = validate;
+    viaArray () {        
         this._viaArray = true;
         if (this._orderByIn === undefined) {
             this._orderByIn = true;
@@ -212,7 +220,7 @@ module.exports = class ActiveQuery extends Base {
             }
             let relation = model.getRelation(name);
             if (relation) {
-                relation.primaryModel = null;
+                relation._primaryModel = null;
                 result[name] = relation;
                 // sub-relations -> orders.customer.address...
                 if (childName) {
@@ -257,10 +265,13 @@ module.exports = class ActiveQuery extends Base {
             } else if (!this._multiple && primaryModels.length === 1) {
                 this.one((err, model)=> {
                     if (err) {
-                        return cb(err);
+                        cb(err);
+                    } else if (model) {
+                        this.populateOneRelation(name, model, primaryModels);
+                        cb(null, [model]);
+                    } else {
+                        cb(null, []);
                     }
-                    this.populateOneRelation(name, model, primaryModels);
-                    cb(null, model);
                 });
             } else {
                 let indexBy = this._indexBy;
@@ -295,7 +306,8 @@ module.exports = class ActiveQuery extends Base {
     populateMultipleRelation (name, primaryModels, buckets, link) {
         for (let pm of primaryModels) {
             let key = this.getModelKey(pm, link);
-            let value = Object.prototype.hasOwnProperty.call(buckets, key) ? buckets[key] : (this._multiple ? [] : null);
+            let value = Object.prototype.hasOwnProperty.call(buckets, key)
+                ? buckets[key] : (this._multiple ? [] : null);
             if (pm instanceof ActiveRecord) {
                 pm.populateRelation(name, value);
             } else {
@@ -320,7 +332,7 @@ module.exports = class ActiveQuery extends Base {
                 // inherit asArray from primary query
                 viaQuery.asArray(this._asArray);
             }
-            viaQuery.primaryModel = null;
+            viaQuery._primaryModel = null;
             viaQuery.populateRelation(viaName, primaryModels, (err, viaModels)=> {
                 this.prepareFilter(viaModels);
                 cb(err, viaModels, viaQuery);
@@ -409,7 +421,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     filterByModels (models) {
-        if (!models) {
+        if (!(models instanceof Array)) {
             return;
         }    
         let attr = this._link[1];

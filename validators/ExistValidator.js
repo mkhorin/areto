@@ -46,7 +46,7 @@ module.exports = class ExistValidator extends Base {
             query.andWhere(params);
         }
         if (typeof this.filter === 'function') {
-            this.filter(query);
+            this.filter(query, model, attr);
         } else if (this.filter) {
             query.andWhere(this.filter);
         }

@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Validator');
-const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class RelationValidator extends Base {
 
@@ -13,7 +12,7 @@ module.exports = class RelationValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            allow: null,
+            allow: null, // allow changes ['unlinks', ...]
             deny: null
         }, config));
     }
@@ -27,12 +26,15 @@ module.exports = class RelationValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, msg, params, value)=> {
-            if (!err) {
-                msg ? this.addError(model, attr, msg, params) 
-                    : model.set(attr, value);
+        this.validateValue(model.get(attr), (err, message, params, value)=> {
+            if (err) {
+                return cb(err);
+            } else if (message) {
+                this.addError(model, attr, message, params);
+            } else {
+                model.set(attr, value);
             }
-            cb(err);
+            cb();
         });
     }
 
@@ -51,10 +53,27 @@ module.exports = class RelationValidator extends Base {
                 }
             }
             this.filterValue(value);
+            if (this.isIntersection(value)) {
+                return cb(null, this.message);
+            }
             cb(null, null, null, value);
         } catch (err) {
             cb(null, this.message);
         }
+    }
+
+    isIntersection (changes) {
+        for (let link of changes.links) {
+            if (changes.unlinks.includes(link) || changes.removes.includes(link)) {
+                return true;
+            }
+        }
+        for (let unlink of changes.unlinks) {
+            if (changes.removes.includes(unlink)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     filterValue (value) {

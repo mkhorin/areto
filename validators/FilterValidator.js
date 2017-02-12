@@ -21,7 +21,8 @@ module.exports = class FilterValidator extends Base {
                     cb(null, typeof value === 'string' ? value.toUpperCase() : value);
                 },
                 ObjectId: function (value, cb) {                    
-                    ObjectID.isValid(value) ? cb(null, ObjectID(value))
+                    ObjectID.isValid(value) 
+                        ? cb(null, ObjectID(value))
                         : cb(null, value, this.createMessage('message', 'Invalid ObjectID'));
                 }
             }

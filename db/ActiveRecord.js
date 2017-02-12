@@ -45,8 +45,8 @@ module.exports = class ActiveRecord extends Base {
         return this.get(this.PK);
     }
 
-    getTitle (attr) {
-        return this.get(attr ? attr : this.PK);
+    getTitle () {
+        return this.get(this.PK);
     }
     
     isNewRecord () {
@@ -112,7 +112,7 @@ module.exports = class ActiveRecord extends Base {
 
     filterAttrs () {
         let attrs = {};
-        for (let key of this.STORED_ATTRIBUTES) {
+        for (let key of this.STORED_ATTRS) {
             if (Object.prototype.hasOwnProperty.call(this._attrs, key)) {
                 attrs[key] = this._attrs[key];    
             }
@@ -268,12 +268,12 @@ module.exports = class ActiveRecord extends Base {
         this._related[name] = records;
     }
 
-    hasOne (Model, link, remove) {
-        return Model.find().hasOne(this, link, remove);
+    hasOne (Model, link) {
+        return Model.find().hasOne(this, link);
     }
 
-    hasMany (Model, link, remove) {
-        return Model.find().hasMany(this, link, remove);
+    hasMany (Model, link) {
+        return Model.find().hasMany(this, link);
     }
 
     // LINK
@@ -293,9 +293,11 @@ module.exports = class ActiveRecord extends Base {
     link (name, model, cb, extraColumns) {
         let relation = this.getRelation(name);
         let link = relation._via ? this.linkVia : this.linkInline;
-        link.call(this, relation, model, extraColumns, ()=> {
-            // update lazily loaded related objects
-            if (!relation._multiple) {
+        link.call(this, relation, model, extraColumns, err => {
+            if (err) {
+                return cb(err);
+            } else if (!relation._multiple) {
+                // update lazily loaded related objects
                 this._related[name] = model;
             } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
                 if (relation._indexBy) {
@@ -310,9 +312,6 @@ module.exports = class ActiveRecord extends Base {
     }
 
     linkVia (relation, model, extraColumns, cb) {
-        if (this._isNewRecord || model._isNewRecord) {
-            return cb(`${this.constructor.name}: Unable to link models: the models being linked cant be newly created`);
-        }
         let viaName, viaRelation, viaModel, viaTable;
         if (relation._via instanceof Array) {
             viaName = relation._via[0];
@@ -340,29 +339,18 @@ module.exports = class ActiveRecord extends Base {
     }
 
     linkInline (relation, model, extraColumns, cb) {
-        let p1 = model.isPk(relation._link[0]);
-        let p2 = this.isPk(relation._link[1]);
-        if (p1 && p2) {
-            if (this._isNewRecord && model._isNewRecord) {
-                cb(`${this.constructor.name}: Unable to link models: at most one model can be newly created`);
-            } else if (this._isNewRecord) {
-                this.bindModels([relation._link[1], relation._link[0]], this, model, cb, relation);
-            } else {
-                this.bindModels(relation._link, model, this, cb, relation);
-            }
-        } else if (p1) {
-            this.bindModels([relation._link[1], relation._link[0]], this, model, cb, relation);
-        } else if (p2) {
-            this.bindModels(relation._link, model, this, cb, relation);
-        } else {
-            cb(`${this.constructor.name}: The link defining the relation does not have any PK`);
-        }
+        let a = relation._link[0];
+        let b = relation._link[1];
+        let asBackRef = relation._asBackRef;
+        (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef)
+            ? this.bindModels(relation._link, model, this, cb, relation)
+            : this.bindModels([b, a], this, model, cb, relation);
     }
 
     unlink (name, model, cb, remove) {
         let relation = this.getRelation(name);
         if (remove === undefined) {
-            remove = relation._removeUnlink;
+            remove = relation._removeOnUnlink;
         }
         let unlink = relation._via ? this.unlinkVia : this.unlinkInline;
         unlink.call(this, relation, model, remove, ()=> {
@@ -410,7 +398,8 @@ module.exports = class ActiveRecord extends Base {
     unlinkInline (relation, model, remove, cb) {
         let a = relation._link[0];
         let b = relation._link[1];
-        if (this.isPk(b)) {
+        let asBackRef= relation._asBackRef;
+        if (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
             if (model.get(a) instanceof Array) {
                 let index = this.getDb().indexOfId(this.get(b), model.get(a));
                 if (index > -1) {
@@ -420,7 +409,7 @@ module.exports = class ActiveRecord extends Base {
                 model.set(a, null);
             }
             remove ? model.remove(cb) : model.forceSave(cb);
-        } else if (model.isPk(a)) {
+        } else {
             if (this.get(b) instanceof Array) {
                 let index = this.getDb().indexOfId(model.get(a), this.get(b));
                 if (index > -1) {
@@ -430,15 +419,13 @@ module.exports = class ActiveRecord extends Base {
                 this.set(b, null);
             }
             remove ? this.remove(cb) : this.forceSave(cb);
-        } else {
-            cb(`${this.constructor.name}: Unable to unlink models: The link does not have any PK`);
         }
     }
 
     unlinkAll (name, cb, remove) {
         let relation = this.getRelation(name);
         if (remove === undefined) {
-            remove = relation._removeUnlink;
+            remove = relation._removeOnUnlink;
         }
         let unlink = relation._via ? this.unlinkViaAll : this.unlinkInlineAll;
         unlink.call(this, relation, remove, err => {
@@ -532,9 +519,9 @@ module.exports = class ActiveRecord extends Base {
 
     // HANDLER
 
-    getHandler (options) {
-        if (options && typeof options.name === 'string') {
-            let name = `handler${options.name.toUpperCaseFirstLetter()}`;
+    getHandler (name) {
+        if (typeof name === 'string') {
+            name = `handler${name.toUpperCaseFirstLetter()}`;
             if (typeof this[name] === 'function') {
                 return this[name];
             }

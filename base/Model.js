@@ -284,6 +284,13 @@ module.exports = class Model extends Base {
         });
     }
 
+    getActiveValidatorsByClass (Class, attr) {
+        return this.getValidators().filter(validator => {
+            return validator instanceof Class && validator.isActive(this.scenario)
+                && (!attr || validator.attrs.includes(attr));
+        });
+    }
+
     getActiveValidators (attr) {
         return this.getValidators().filter(validator => {
             return validator.isActive(this.scenario) && (!attr || validator.attrs.includes(attr));
@@ -301,8 +308,8 @@ module.exports = class Model extends Base {
     }
 
     setDefaultValues (cb) {
-        async.each(this.getActiveValidators().filter(item => item instanceof DefaultValueValidator), (item, cb)=> {
-            item.validateAttrs(this, null, cb);
+        async.each(this.getActiveValidatorsByClass(DefaultValueValidator), (validator, cb)=> {
+            validator.validateAttrs(this, null, cb);
         }, cb);
     }
 

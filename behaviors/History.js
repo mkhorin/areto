@@ -42,7 +42,7 @@ module.exports = class History extends Base {
         return this.includes instanceof Array
             ? this.includes
             : this.excludes instanceof Array 
-                ? arrayHelper.diff(this.owner.STORED_ATTRIBUTES, this.excludes) : [];
+                ? arrayHelper.diff(this.owner.STORED_ATTRS, this.excludes) : [];
     }
 
     hasAttr (name) {
