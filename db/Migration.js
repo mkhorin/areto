@@ -7,7 +7,7 @@ module.exports = class Migration extends Base {
 
     init () {
         super.init();
-        this.db = this.db || this.module.components.db;
+        this.db = this.db || this.module.getDb();
     }
 
     apply (cb) {
