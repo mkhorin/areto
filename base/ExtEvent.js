@@ -5,12 +5,6 @@ const async = require('async');
 
 module.exports = class ExtEvent extends Base {
 
-    static getConstants () {
-        return {
-            EVENTS: {}
-        };
-    }
-
     constructor (config) {
         super(Object.assign({
             name: null,
@@ -22,7 +16,7 @@ module.exports = class ExtEvent extends Base {
     // CLASS-LEVEL EVENTS
    
     static hasHandlers (sender, name) {
-        if (!(name in this.EVENTS)) {
+        if (!(name in this._events)) {
             return false;
         }
         if (typeof sender !== 'function') {
@@ -31,7 +25,7 @@ module.exports = class ExtEvent extends Base {
         // check listeners of the sender class and parents 
         let id = sender.CLASS_FILE;
         while (id) {
-            if (this.EVENTS[name][id] && this.EVENTS[name][id].length) {
+            if (this._events[name][id] && this._events[name][id].length) {
                 return true;
             }
             sender = Object.getPrototypeOf(sender);
@@ -51,19 +45,19 @@ module.exports = class ExtEvent extends Base {
         if (typeof handler !== 'function') {
             throw new Error('ExtEvent: Invalid event handler');
         }
-        let event = this.EVENTS[name];
+        let event = this._events[name];
         if (!event) {
-            this.EVENTS[name] = event = {};
+            this._events[name] = event = {};
         }
         event[id] = event[id] || [];
-        // обратный порядок добавления, см trigger()
+        // the reverse order, see trigger()
         prepend ? event[id].push([handler, data]) 
                 : event[id].unshift([handler, data]);
     }
 
     static off (target, name, handler) {
         let id = target.CLASS_FILE;
-        let event = this.EVENTS[name];
+        let event = this._events[name];
         if (!id || !event || !event[id]) {
             return false;
         }
@@ -90,7 +84,7 @@ module.exports = class ExtEvent extends Base {
     }
 
     static trigger (sender, name, event) {
-        if (!this.EVENTS[name]) {
+        if (!this._events[name]) {
             return;
         }
         event = this.initEvent(event, sender, name);
@@ -99,9 +93,9 @@ module.exports = class ExtEvent extends Base {
         }
         let id = sender.CLASS_FILE;
         while (id) {
-            let handlers = this.EVENTS[name][id];
+            let handlers = this._events[name][id];
             if (handlers) {
-                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив this.EVENTS[name]
+                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив this._events[name]
                 for (let i = handlers.length - 1; i >= 0; --i) {
                     handlers[i][0](event, handlers[i][1]);
                     if (event.handled) return;
@@ -113,7 +107,7 @@ module.exports = class ExtEvent extends Base {
     }
 
     static triggerCallback (sender, name, cb, event, tasks) {
-        if (this.EVENTS[name]) {
+        if (this._events[name]) {
             event = this.initEvent(event, sender, name);
             if (typeof sender !== 'function') {
                 sender = sender.constructor;
@@ -124,8 +118,8 @@ module.exports = class ExtEvent extends Base {
             }
             tasks = tasks || [];
             while (id) {
-                if (this.EVENTS[name][id]) {
-                    this.EVENTS[name][id].forEach(function (handler) {
+                if (this._events[name][id]) {
+                    this._events[name][id].forEach(function (handler) {
                         tasks.push(function (cb) {
                             handler[0](event, cb, handler[1]);
                         });
@@ -137,5 +131,5 @@ module.exports = class ExtEvent extends Base {
         }
         (tasks && tasks.length) ? async.parallel(tasks, cb) : cb();
     }
-};
-module.exports.init();
+};                       
+module.exports._events = {};
