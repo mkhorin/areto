@@ -9,7 +9,7 @@ module.exports = class FilterValidator extends Base {
         return {
             INLINE_FILTERS: {
                 boolean: function (value, cb) {
-                    cb(null, parseInt(value) ? true : false);
+                    cb(null, value == 'on' ? true : false);
                 },
                 trim: function (value, cb) {
                     cb(null, typeof value === 'string' ? value.trim() : value);

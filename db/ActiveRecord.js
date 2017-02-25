@@ -500,8 +500,7 @@ module.exports = class ActiveRecord extends Base {
         let value = primaryModel.get(pk);
         if (!value) {
             cb(`${this.constructor.name}: bindModels: PK is null`);
-        }
-        if (relation._viaArray) {
+        } else if (relation._viaArray) {
             if (!(foreignModel.get(fk) instanceof Array)) {
                 foreignModel.set(fk, []);
             }
