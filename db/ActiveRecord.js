@@ -56,7 +56,22 @@ module.exports = class ActiveRecord extends Base {
     // ATTRIBUTES
 
     get (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrs, name) ? this._attrs[name] : this._related[name]; 
+        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
+            return this._attrs[name];
+        }
+        let index = name.indexOf('.');
+        if (index < 0) {
+            return this._related[name];
+        }
+        let rel = this._related[name.substring(0, index)];
+        let subName = name.substring(index + 1);
+        if (rel instanceof ActiveRecord) {
+            return rel.get(subName);
+        }
+        if (rel instanceof Array) {
+            return rel.map(item => item instanceof ActiveRecord ? item.get(subName) : item ? item[subName] : item);
+        }
+        return rel ? rel[subName] : rel;
     }        
     
     isAttrChanged (name) {

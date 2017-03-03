@@ -46,7 +46,10 @@ module.exports = class Router extends Base {
         let action = function (req, res, next) {
             (new controller.constructor).assign(req, res, next).execute(id);
         };        
-        let methods = controller.METHODS[id] || ['ALL'];
+        let methods = controller.METHODS[id] || ['all'];
+        if (!(methods instanceof Array)) {
+            methods = [methods];
+        }
         for (let method of methods) {
             this.module.appendToExpress(method.toLowerCase(), route, action);
         }
