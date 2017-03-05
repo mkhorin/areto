@@ -59,6 +59,9 @@ module.exports = class ActiveRecord extends Base {
         if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
             return this._attrs[name];
         }
+        if (typeof name !== 'string') {
+            return null;
+        }
         let index = name.indexOf('.');
         if (index < 0) {
             return this._related[name];

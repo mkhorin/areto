@@ -10,7 +10,8 @@ module.exports = class View extends Base {
         super(Object.assign({
             controller,
             theme: controller.module.components.template.getTheme(),
-            widgets: {}
+            widgets: {},
+            data: {}
         }, config));
         this._buffer = {};
     }

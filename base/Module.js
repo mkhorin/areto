@@ -214,21 +214,21 @@ module.exports = class Module extends Base {
         components = components || {}; 
         this.extendComponentsByDefaults(components);
         async.forEachOfSeries(components, (config, id, cb)=> {
-            if (config) {
-                let type = config.componentType || id;
-                let handler = `component${InflectorHelper.idToCamel(type)}`;
-                if (typeof this[handler] === 'function') {
-                    this[handler](config, err => {
-                        err || this.log('trace', `${this.getFullName()}: ${id} ready`);
-                        cb(err);
-                    });
-                } else {
-                    cb(`${this.getFullName()}: ${handler} is not found`);
-                }
-            } else {
+            if (!config) {
                 this.log('info', `${this.getFullName()}: Component ${id} skipped`);
-                cb();
+                return cb();
             }
+            config.module = config.module || this;
+            let type = config.componentType || id;
+            let handler = `component${InflectorHelper.idToCamel(type)}`;
+            if (typeof this[handler] !== 'function') {
+                this.createComponent(type, config);
+                return cb();
+            }
+            this[handler](config, err => {
+                err || this.log('trace', `${this.getFullName()}: ${id} ready`);
+                cb(err);
+            });
         }, cb);
     }
 
@@ -295,16 +295,14 @@ module.exports = class Module extends Base {
 
     componentCache (config, cb) {
         this.createComponent('cache', Object.assign({
-            Class: require('../caching/Cache'),
-            module: this
+            Class: require('../caching/Cache')
         }, config));
         cb();
     }
 
     componentConnection (config, cb) {        
         this.createComponent('connection', Object.assign({
-            Class: require('../db/Connection'),  
-            module: this
+            Class: require('../db/Connection')
         }, config));
         this.getDb().open(cb);
     }
@@ -319,39 +317,34 @@ module.exports = class Module extends Base {
     componentI18n (config, cb) {        
         this.createComponent('i18n', Object.assign({
             Class: require('../i18n/I18n'),
-            parent: this.parent ? this.parent.components.i18n : null,
-            module: this
+            parent: this.parent ? this.parent.components.i18n : null
         }, config));
         cb();
     }
 
     componentLogger (config, cb) {        
         this.createComponent('logger', Object.assign({
-            Class: require('../log/Logger'),
-            module: this
+            Class: require('../log/Logger')
         }, config)).configure();
         cb();
     }
 
     componentRbac (config, cb) {         
         this.createComponent('rbac', Object.assign({
-            Class: require('../rbac/Manager'),
-            module: this
+            Class: require('../rbac/Manager')
         }, config)).configure(cb);
     }
 
     componentScheduler (config, cb) {        
         this.createComponent('scheduler', Object.assign({
-            Class: require('./Scheduler'),
-            module: this
+            Class: require('./Scheduler')
         }, config));
         cb();
     }
 
     componentSession (config, cb) {        
         this.createComponent('session', Object.assign({
-            Class: require('../web/Session'),
-            module: this
+            Class: require('../web/Session')
         }, config));
         cb();
     }
@@ -366,8 +359,7 @@ module.exports = class Module extends Base {
         this.appendToExpress('set', 'views', '/');
         this.createComponent('template', Object.assign({
             Class: require('./Template'),
-            parent: this.parent ? this.parent.components.template : null,
-            module: this
+            parent: this.parent ? this.parent.components.template : null
         }, config));
         cb();
     }
