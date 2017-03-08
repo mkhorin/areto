@@ -41,6 +41,14 @@ module.exports = class ArrayHelper {
         return values.filter((value, index)=> values.indexOf(value) === index);
     }
 
+    static indexModels (models, attr) {
+        let map = {};
+        for (let model of models) {
+            map[model.get(attr)] = model;
+        }
+        return map;
+    }
+
     static searchObject (items, searchProp, searchValue, returnProp) {
         for (let item of items) {
             if (item && item[searchProp] === value) {

@@ -261,10 +261,15 @@ module.exports = class ActiveRecord extends Base {
 
     findRelation (name, cb, renew) {
         if (!(name in this._related) || renew) {
-            this.getRelation(name).findFor((err, result)=> {
-                this._related[name] = result;
-                cb(err, result);
-            });
+            let relation = this.getRelation(name);
+            if (relation) {
+                relation.findFor((err, result)=> {
+                    this._related[name] = result;
+                    cb(err, result);
+                });
+            } else {
+                cb(`${this.constructor.name}: '${name}' relation not found`);
+            }
         } else {
             cb(null, this._related[name]);
         }

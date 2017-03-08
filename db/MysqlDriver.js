@@ -61,7 +61,7 @@ module.exports = class MysqlDriver extends Base {
 
     insert (table, doc, cb) {
         let columns = this.escapeId(Object.keys(doc)).join(',');
-        let values = this.escape(ObjectHelper.objectToValueArray(doc));
+        let values = this.escape(ObjectHelper.toValueArray(doc));
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
         this.execute(sql, (err, result)=> {
             err ? cb(err) : cb(null, result.insertId);
@@ -70,7 +70,7 @@ module.exports = class MysqlDriver extends Base {
     
     upsert (table, condition, doc, cb) {
         let columns = this.escapeId(Object.keys(doc));
-        let values = this.escape(ObjectHelper.objectToValueArray(doc));
+        let values = this.escape(ObjectHelper.toValueArray(doc));
         let updates = columns.map(column => `${column}=VALUES(${column})`).join(',');
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join(',')}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
         this.execute(sql, cb);

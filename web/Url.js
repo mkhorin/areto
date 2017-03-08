@@ -110,7 +110,7 @@ module.exports = class Url extends Base {
                 data.params = { id: 234, fera: '456'};
                 data.anchor = 'mita';
                 let url = this.createSource(Object.assign(params, data.params));
-                ObjectHelper.deleteObjectProperties(params, this.sourceParamNames);
+                ObjectHelper.deleteProperties(params, this.sourceParamNames);
                 params = this.constructor.serializeParams(params);
                 if (params) {
                     url = `${url}?${params}`;

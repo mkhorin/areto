@@ -77,17 +77,17 @@ describe('helpers.main', ()=> {
         expect(result).to.equal('&lt;div&gt;test&lt;/div&gt;');
     });
 
-    it('mapObject: handle each object property', ()=> {
+    it('map: handle each object property', ()=> {
         let data = {a: 1, c: {d: 4}};
-        ObjectHelper.mapObject(data, (prop, object)=> {
+        ObjectHelper.map(data, (prop, object)=> {
             object[prop] *= 2;
         }, true);
         expect(data.a).to.equal(2);
         expect(data.c.d).to.equal(8);
     });
 
-    it('objectToValueArray', ()=> {
-        let list = MainHelper.objectToValueArray({a: 1, b: 2, c: 3});
+    it('toValueArray', ()=> {
+        let list = MainHelper.toValueArray({a: 1, b: 2, c: 3});
         expect(list).to.eql([1, 2, 3]);
     });
 
