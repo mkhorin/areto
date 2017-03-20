@@ -226,7 +226,10 @@ module.exports = class Controller extends Base {
 
     render (template, params, cb) {
         let view = new this.VIEW_CLASS(this);
-        view.render(`${this.ID}/${template}`, params, (err, content)=> {
+        if (template.indexOf('/') < 0) {
+            template = `${this.ID}/${template}`;
+        }
+        view.render(template, params, (err, content)=> {
             cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
         });
     }

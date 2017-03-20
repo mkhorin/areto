@@ -20,7 +20,7 @@ module.exports = class RelationValidator extends Base {
     init () {
         super.init();
         if (this.allow && this.deny) {
-            throw new Error('RelationValidator: Allowed only one permission');
+            throw new Error(`${this.constructor.name}: Allowed only one permission`);
         }
         this.createMessage('message', 'Invalid relation request');
     }

@@ -44,7 +44,16 @@ module.exports = class ArrayHelper {
     static indexModels (models, attr) {
         let map = {};
         for (let model of models) {
-            map[model.get(attr)] = model;
+            let key = model.get(attr);
+            if (map.hasOwnProperty(key)) {
+                if (map[key] instanceof Array) {
+                    map[key].push(model);
+                } else {
+                    map[key] = [map[key], model];
+                }
+            } else {
+                map[key] = model;
+            }
         }
         return map;
     }
