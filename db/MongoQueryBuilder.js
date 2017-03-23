@@ -53,7 +53,7 @@ module.exports = class MongoQueryBuilder extends Base {
         }
         let result = {};
         for (let key in order) {
-            result[key] = order[key].toUpperCase() === 'DESC' ? -1 : 1;
+            result[key] = order[key] == 1 ? 1 : -1;
         }
         return result;
     }

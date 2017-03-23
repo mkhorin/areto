@@ -7,8 +7,8 @@ module.exports = class Sort extends Base {
 
     static getConstants () {
         return {
-            ASC: 'ASC',
-            DESC: 'DESC'
+            ASC: 1,
+            DESC: -1
         };
     }
 

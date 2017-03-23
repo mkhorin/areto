@@ -80,7 +80,7 @@ module.exports = class Query extends Base {
 
     // ORDER BY
     /**
-     * @param columns - { attr1: 'ASC', attr2: 'DESC' }
+     * @param columns - { attr1: 1, attr2: -1 }
      */
     orderBy (columns) {
         this._orderBy = columns;

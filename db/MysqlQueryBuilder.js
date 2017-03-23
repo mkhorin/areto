@@ -55,7 +55,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         }
         let result = [];
         for (let key in order) {
-            result.push(`${this.db.escapeId(key)} ${order[key]}`);
+            result.push(`${this.db.escapeId(key)} ${order[key] == 1 ? 'ASC' : 'DESC'}`);
         }
         return result.length ? result.join(',') : null;
     }
