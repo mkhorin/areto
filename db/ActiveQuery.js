@@ -118,6 +118,10 @@ module.exports = class ActiveQuery extends Base {
 
     // RELATIONS
 
+    getPrimaryModel () {
+        return this._primaryModel;
+    }
+
     hasOne (primaryModel, link) {
         this._multiple = false;
         this._primaryModel = primaryModel;

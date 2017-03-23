@@ -226,7 +226,7 @@ module.exports = class Controller extends Base {
 
     render (template, params, cb) {
         let view = new this.VIEW_CLASS(this);
-        if (template.indexOf('/') < 0) {
+        if (template.toString().indexOf('/') < 0) {
             template = `${this.ID}/${template}`;
         }
         view.render(template, params, (err, content)=> {
