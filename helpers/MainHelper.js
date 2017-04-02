@@ -77,16 +77,14 @@ module.exports = class MainHelper {
         Object.defineProperty(Class.prototype, name, {value, writable});
     }
 
-    // MODULE
-
-    static getClosestModuleDir (file) {
+    static getClosestDirByTarget (file, target) {
         let dir = path.dirname(file);
         if (dir === file) {
             return null;
-        } else if (this.isFileInDir('module.js', dir)) {
+        } else if (this.isFileInDir(target, dir)) {
             return dir;
         } else {
-            return this.getClosestModuleDir(dir);
+            return this.getClosestDirByTarget(dir, target);
         }
     }
 

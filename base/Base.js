@@ -2,15 +2,15 @@
 
 const MainHelper = require('../helpers/MainHelper');
 const path = require('path');
+const MODULE_FILENAME = 'module.js';
 
 module.exports = class Base {
 
     static init (nodeModule) {
         if (nodeModule) {
             MainHelper.defineClassProperty(this, 'CLASS_FILE', nodeModule.filename);
-            if (path.basename(nodeModule.filename) !== 'module.js') {
-                let dir = MainHelper.getClosestModuleDir(nodeModule.filename);
-                MainHelper.defineClassProperty(this, 'module', require(path.join(dir, 'module')));
+            if (path.basename(nodeModule.filename) !== MODULE_FILENAME) {
+                MainHelper.defineClassProperty(this, 'module', this.getClosestModule(nodeModule.filename));
             }
         }
         let constants = this.getClassProperties('getConstants', this);
@@ -22,6 +22,13 @@ module.exports = class Base {
             MainHelper.defineClassProperty(this, name, statics[name], true);
         }        
         return this;
+    }
+
+    static getClosestModule (file) {
+        let dir = MainHelper.getClosestDirByTarget(file, MODULE_FILENAME);
+        let module = require(path.join(dir, MODULE_FILENAME));
+        let Module = require('./Module');
+        return module instanceof Module ? module : this.getClosestModule(dir);
     }
 
     static getExtendedProperties () {
