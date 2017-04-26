@@ -46,6 +46,10 @@ module.exports = class Model extends Base {
     hasAttr (name) {
         return Object.prototype.hasOwnProperty.call(this._attrs, name);
     }
+
+    deleteAttr (name) {
+        delete this._attrs[name];
+    }
     
     isAttrRequired (name) {
         for (let validator of this.getActiveValidators(name)) {
@@ -130,8 +134,10 @@ module.exports = class Model extends Base {
         }
     }
 
-    assignAttrs (model) {        
-        Object.assign(this._attrs, model._attrs);
+    assignAttrs (model) {
+        if (model instanceof Model) {
+            this.setAttrs(model._attrs);
+        }
     }
     
     setAttrs (values) {
@@ -219,7 +225,9 @@ module.exports = class Model extends Base {
     // LOAD
 
     load (data) {        
-        data && this.setSafeAttrs(data[this.ID]);
+        if (data) {
+            this.setSafeAttrs(data[this.ID]);
+        }
         return this;
     }
 
@@ -286,7 +294,8 @@ module.exports = class Model extends Base {
 
     getActiveValidatorsByClass (Class, attr) {
         return this.getValidators().filter(validator => {
-            return validator instanceof Class && validator.isActive(this.scenario)
+            return validator instanceof Class
+                && validator.isActive(this.scenario)
                 && (!attr || validator.attrs.includes(attr));
         });
     }

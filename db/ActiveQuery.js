@@ -36,13 +36,18 @@ module.exports = class ActiveQuery extends Base {
     // PREPARE
 
     // add condition after creating relation conditions
-    afterPrepare (handler) {
-        this._afterPrepareHandler = handler;
+    addAfterPrepare (handler) {
+        if (!this._afterPrepareHandlers) {
+            this._afterPrepareHandlers = [];
+        }
+        this._afterPrepareHandlers.push(handler);
         return this;
     }
 
     execAfterPrepare (cb) {        
-        this._afterPrepareHandler ? this._afterPrepareHandler(cb, this) : cb();
+        this._afterPrepareHandlers instanceof Array
+            ? async.eachSeries(this._afterPrepareHandlers, (handler, cb)=> handler(cb, this), cb)
+            : cb();
     }
 
     prepare (cb) {
@@ -74,7 +79,7 @@ module.exports = class ActiveQuery extends Base {
         } else { // back ref to array
             this.andWhere(['=', this._link[0], val]);
         }
-        cb();
+        this.execAfterPrepare(cb);
     }
 
     prepareViaTable (cb) {
@@ -122,6 +127,10 @@ module.exports = class ActiveQuery extends Base {
         return this._primaryModel;
     }
 
+    isMultiple () {
+        return this._multiple;
+    }
+
     hasOne (primaryModel, link) {
         this._multiple = false;
         this._primaryModel = primaryModel;
@@ -135,6 +144,10 @@ module.exports = class ActiveQuery extends Base {
         this._link = link;
         this._asBackRef = true;
         return this;
+    }
+
+    isAsBackRef () {
+        return this._asBackRef;
     }
 
     asBackRef (value = true) {
@@ -168,7 +181,7 @@ module.exports = class ActiveQuery extends Base {
             this._via = [name, relation];
             callable && callable(relation);
         } else {
-            this._primaryModel.module.log('error', `ActiveQuery: via: no set relation name: ${name}`);
+            this._primaryModel.module.log('error', `ActiveQuery: via: not found relation: ${name}`);
         }
         return this;
     }
@@ -186,6 +199,7 @@ module.exports = class ActiveQuery extends Base {
 
     viaArray () {        
         this._viaArray = true;
+        this._asBackRef = false;
         if (this._orderByIn === undefined) {
             this._orderByIn = true;
         }
