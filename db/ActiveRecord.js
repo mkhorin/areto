@@ -72,7 +72,10 @@ module.exports = class ActiveRecord extends Base {
             return rel.get(subName);
         }
         if (rel instanceof Array) {
-            return rel.map(item => item instanceof ActiveRecord ? item.get(subName) : item ? item[subName] : item);
+            return rel.map(item => {
+                return item instanceof ActiveRecord
+                    ? item.get(subName) : item ? item[subName] : item;
+            });
         }
         return rel ? rel[subName] : rel;
     }        
@@ -264,7 +267,7 @@ module.exports = class ActiveRecord extends Base {
             let relation = this.getRelation(name);
             if (relation) {
                 relation.findFor((err, result)=> {
-                    this._related[name] = result;
+                    this.populateRelation(name, result);
                     cb(err, result);
                 });
             } else {
@@ -319,12 +322,11 @@ module.exports = class ActiveRecord extends Base {
         link.call(this, relation, model, extraColumns, err => {
             if (err) {
                 return cb(err);
-            } else if (!relation._multiple) {
-                // update lazily loaded related objects
-                this._related[name] = model;
+            }
+            if (!relation._multiple) {
+                this._related[name] = model; // update lazily loaded related objects
             } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
                 if (relation._indexBy) {
-                    let indexBy = relation._indexBy;
                     this._related[name][model._indexBy] = model;
                 } else {
                     this._related[name].push(model);

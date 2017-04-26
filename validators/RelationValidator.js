@@ -26,13 +26,14 @@ module.exports = class RelationValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, message, params, value)=> {
+        this.validateValue(model.get(attr), (err, message, params, changes)=> {
             if (err) {
                 return cb(err);
-            } else if (message) {
+            }
+            if (message) {
                 this.addError(model, attr, message, params);
             } else {
-                model.set(attr, value);
+                model.set(attr, changes);
             }
             cb();
         });
@@ -41,9 +42,9 @@ module.exports = class RelationValidator extends Base {
     validateValue (value, cb) {
         let error = false;
         if (!value) {
-            cb(null, null, value);
+            return cb(null, null, value);
         }
-        try {            
+        try {
             value = JSON.parse(value);
             for (let item of this.CHANGES) {
                 for (let id of value[item]) {
@@ -52,7 +53,7 @@ module.exports = class RelationValidator extends Base {
                     }
                 }
             }
-            this.filterValue(value);
+            this.filterChanges(value);
             if (this.isIntersection(value)) {
                 return cb(null, this.message);
             }
@@ -76,18 +77,18 @@ module.exports = class RelationValidator extends Base {
         return false;
     }
 
-    filterValue (value) {
+    filterChanges (changes) {
         if (this.allow) {
             for (let item of this.CHANGES) {
                 if (!this.allow.includes(item)) {
-                    value[item] = [];
+                    changes[item] = [];
                 }
             }
         }
         if (this.deny) {
             for (let item of this.CHANGES) {
                 if (this.deny.includes(item)) {
-                    value[item] = [];
+                    changes[item] = [];
                 }
             }
         }

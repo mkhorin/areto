@@ -39,16 +39,24 @@ module.exports = class FileValidator extends Base {
                 return cb(null, this.notImage);                
             }
             if (this.minSize && file.size < this.minSize) {
-                return cb(null, this.tooSmall, { limit: this.minSize });
+                return cb(null, this.tooSmall, {
+                    limit: this.minSize
+                });
             }
             if (this.maxSize && file.size > this.maxSize) {
-                return cb(null, this.tooBig, { limit: this.maxSize });
+                return cb(null, this.tooBig, {
+                    limit: this.maxSize
+                });
             }
             if (this.extensions && (!file.extension || this.extensions.indexOf(file.extension.toLowerCase()) < 0)) {
-                return cb(null, this.wrongExtension, { extensions: this.extensions });
+                return cb(null, this.wrongExtension, {
+                    extensions: this.extensions
+                });
             }
             if (this.mimeTypes && (!file.mime || this.mimeTypes.indexOf(file.mime) < 0)) {
-                return cb(null, this.wrongMimeType, { mimeTypes: this.mimeTypes });
+                return cb(null, this.wrongMimeType, {
+                    mimeTypes: this.mimeTypes
+                });
             }
             cb();
         });
