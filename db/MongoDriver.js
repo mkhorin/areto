@@ -212,7 +212,7 @@ module.exports = class MongoDriver extends Base {
 
     queryScalar (query, key, cb) {
         this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.length ? docs[0] : null);
+            err ? cb(err) : cb(null, docs.length ? docs[0][key] : null);
         });
     }
 

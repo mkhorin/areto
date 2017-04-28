@@ -103,7 +103,7 @@ module.exports = class Validator extends Base {
     isEmpty (value) {
         return typeof this.checkEmpty === 'function' 
             ? this.checkEmpty(value)
-            : typeof value === 'undefined' || value === null || value === '' || value.length === 0;
+            : value === undefined || value === null || value === '' || value.length === 0;
     }
 
     addError (model, attr, message, params) {

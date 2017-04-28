@@ -142,7 +142,6 @@ module.exports = class ActiveQuery extends Base {
         this._multiple = true;
         this._primaryModel = primaryModel;
         this._link = link;
-        this._asBackRef = true;
         return this;
     }
 
@@ -199,7 +198,6 @@ module.exports = class ActiveQuery extends Base {
 
     viaArray () {        
         this._viaArray = true;
-        this._asBackRef = false;
         if (this._orderByIn === undefined) {
             this._orderByIn = true;
         }
@@ -324,8 +322,16 @@ module.exports = class ActiveQuery extends Base {
     populateMultipleRelation (name, primaryModels, buckets, link) {
         for (let pm of primaryModels) {
             let key = this.getModelKey(pm, link);
-            let value = Object.prototype.hasOwnProperty.call(buckets, key)
-                ? buckets[key] : (this._multiple ? [] : null);
+            let value = this._multiple ? [] : null;
+            if (key instanceof Array) {
+                for (let k of key) {
+                    if (Object.prototype.hasOwnProperty.call(buckets, k)) {
+                        value = value.concat(buckets[k]);
+                    }
+                }
+            } else if (Object.prototype.hasOwnProperty.call(buckets, key)) {
+                value = buckets[key];
+            }
             if (pm instanceof ActiveRecord) {
                 pm.populateRelation(name, value);
             } else {
