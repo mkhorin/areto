@@ -147,9 +147,6 @@ module.exports = class MysqlDriver extends Base {
                 }                
                 if (!cmd.order) {
                     docs = query.sortOrderByIn(docs);
-                    if (!docs) {
-                        return cb('MysqlDriver: queryAll: sortOrderByIn');
-                    }
                 }    
                 query.populate(docs, cb);                    
             });

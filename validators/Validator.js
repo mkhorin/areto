@@ -8,7 +8,7 @@ module.exports = class Validator extends Base {
 
     static getConstants () {
         return {
-            BUILT_IN: {
+            BUILTIN: {
                 boolean: require('./BooleanValidator'),
                 compare: require('./CompareValidator'),
                 date: require('./DateValidator'),
@@ -38,10 +38,10 @@ module.exports = class Validator extends Base {
         if (typeof type === 'function' || typeof model[type] === 'function') {
             if (Object.getPrototypeOf(type) !== Validator) {
                 config.method = type;
-                type = this.BUILT_IN.inline;
+                type = this.BUILTIN.inline;
             }
-        } else if (Object.prototype.hasOwnProperty.call(this.BUILT_IN, type)) {
-            type = this.BUILT_IN[type];
+        } else if (Object.prototype.hasOwnProperty.call(this.BUILTIN, type)) {
+            type = this.BUILTIN[type];
         } else {
             throw new Error(`Validator: Invalid type: ${type}`);
         }

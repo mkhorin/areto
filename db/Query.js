@@ -225,30 +225,22 @@ module.exports = class Query extends Base {
         return condition;
     }
 
-    // по данному массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
+    // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
     sortOrderByIn (docs) {
-        if (!(this._orderByIn instanceof Array) || this._orderByIn.length < 2) {
+        let keys = this._orderByIn;
+        if (!(keys instanceof Array) || keys.length < 2) {
             return docs;
         }
         // docs can be with equals key
-        let link = this._link[0];
-        let keys = this._orderByIn;
-        let map = {};
-        for (let doc of docs) {
-            let id = doc[link];
-            if (map[id] instanceof Array) {
-                map[id].push(doc);                
-            } else {
-                map[id] = [doc];
+        let map = ArrayHelper.indexObjects(docs, this._link[0]);
+        let result = [];
+        for (let key of keys) {
+            if (Object.prototype.hasOwnProperty.call(map, key)) {
+                result = result.concat(map[key]);
+                delete map[key];
             }
         }
-        let args = [];
-        for (let i = keys.length - 1; i >= 0; --i) {
-            args.push(map[keys[i]]);
-        }
-        let values = [];
-        values = values.concat.apply(values, args);
-        return values.length !== docs.length ? null : values;
+        return result;
     }
 
     clone () {        
@@ -268,6 +260,9 @@ module.exports = class Query extends Base {
         return target;
     }
 };
+
+const ArrayHelper = require('../helpers/ArrayHelper');
+
 /*
 sum (q) {
     return this.queryScalar('SUM('+ q +')');

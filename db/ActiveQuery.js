@@ -77,7 +77,7 @@ module.exports = class ActiveQuery extends Base {
             }
             this.andWhere(['IN', this._link[0], val]);
         } else { // back ref to array
-            this.andWhere(['=', this._link[0], val]);
+            this.andWhere({[this._link[0]]: val});
         }
         this.execAfterPrepare(cb);
     }
@@ -251,14 +251,14 @@ module.exports = class ActiveQuery extends Base {
     
     // POPULATE
 
-    populate (rows, cb) {
+    populate (docs, cb) {
         if (this._asArray) {
-            return super.populate(rows, cb);
+            return super.populate(docs, cb);
         }
         let models = [];
-        async.each(rows, (row, cb)=> {
+        async.each(docs, (doc, cb)=> {
             let model = new this.model.constructor;
-            model.populateRecord(row);
+            model.populateRecord(doc);
             models.push(model);
             model.afterFind(cb);
         }, err => {
@@ -395,14 +395,14 @@ module.exports = class ActiveQuery extends Base {
             }
             map[key2][key1] = true;
         }
-        for (let m of models) {
-            let key = this.getModelKey(m, linkKey);
+        for (let model of models) {
+            let key = this.getModelKey(model, linkKey);
             if (Object.prototype.hasOwnProperty.call(map, key)) {
                 for (let k in map[key]) {
                     if (buckets[k] instanceof Array) {
-                        buckets[k].push(m);
+                        buckets[k].push(model);
                     } else {
-                        buckets[k] = [m];
+                        buckets[k] = [model];
                     }
                 }
             }
@@ -413,12 +413,12 @@ module.exports = class ActiveQuery extends Base {
     buildBuckets (models, link) {
         let buckets = {};
         let linkKey = link[0];
-        for (let m of models) {
-            let key = this.getModelKey(m, linkKey);
+        for (let model of models) {
+            let key = this.getModelKey(model, linkKey);
             if (buckets[key] instanceof Array) {
-                buckets[key].push(m);
+                buckets[key].push(model);
             } else {
-                buckets[key] = [m];
+                buckets[key] = [model];
             }
         }
         return buckets;

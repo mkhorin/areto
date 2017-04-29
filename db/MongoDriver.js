@@ -189,9 +189,6 @@ module.exports = class MongoDriver extends Base {
                 }
                 if (!cmd.order) {
                     docs = query.sortOrderByIn(docs);
-                    if (!docs) {
-                        return cb('MongoDriver: queryAll: sortOrderByIn');
-                    }
                 }
                 query.populate(docs, cb);
             });

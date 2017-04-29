@@ -6,6 +6,18 @@ module.exports = class ArrayHelper {
         return target.filter(item => excluded.indexOf(item) < 0);
     }
 
+    static intersect (source, target) {
+        let result = [];
+        for (let item of source) {
+            target.includes(item) && result.push(item);
+        }
+        return result;
+    }
+
+    static unique (values) {
+        return values.filter((value, index)=> values.indexOf(value) === index);
+    }
+
     static flip (values) {
         let object = {};
         for (let value of values) {
@@ -13,6 +25,8 @@ module.exports = class ArrayHelper {
         }
         return object;
     }
+
+    // RANDOM
 
     static getRandom (values) {
         return values.length ? values[Math.floor(Math.random() * values.length)] : null;
@@ -29,33 +43,14 @@ module.exports = class ArrayHelper {
         return values;
     }
 
-    static intersect (source, target) {
-        let result = [];
-        for (let item of source) {
-            target.includes(item) && result.push(item);
-        }
-        return result;
-    }
-
-    static unique (values) {
-        return values.filter((value, index)=> values.indexOf(value) === index);
-    }
-
-    static indexModels (models, attr) {
-        let map = {};
-        for (let model of models) {
-            let key = model.get(attr);
-            if (map.hasOwnProperty(key)) {
-                if (map[key] instanceof Array) {
-                    map[key].push(model);
-                } else {
-                    map[key] = [map[key], model];
-                }
-            } else {
-                map[key] = model;
+    static getObjectPropValues (items, prop) {
+        let values = [];
+        for (let item of items) {
+            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
+                values.push(item[prop]);
             }
         }
-        return map;
+        return values;
     }
 
     static searchObject (items, searchProp, searchValue, returnProp) {
@@ -67,28 +62,39 @@ module.exports = class ArrayHelper {
         return null;
     }
 
-    static getObjectPropValues (items, prop) {
-        let values = [];
-        for (let item of items) {
-            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
-                values.push(item[prop]);
-            }
-        }
-        return values;
-    }
+    // INDEX
 
-    static createBuckets (key, docs) {
-        let buckets = {};
+    static indexObjects (docs, key) {
+        let map = {};
         for (let doc of docs) {
             let value = doc[key];
-            if (value !== null && value !== undefined && value.length !== 0) {
-                if (buckets[value] instanceof Array) {
-                    buckets[value].push(doc);
+            if (map.hasOwnProperty(value)) {
+                if (map[value] instanceof Array) {
+                    map[value].push(doc);
                 } else {
-                    buckets[value] = [doc];
+                    map[value] = [map[value], doc];
                 }
+            } else {
+                map[value] = doc;
             }
         }
-        return buckets;
+        return map;
+    }
+
+    static indexModels (models, key) {
+        let map = {};
+        for (let model of models) {
+            let value = model.get(key);
+            if (map.hasOwnProperty(value)) {
+                if (map[value] instanceof Array) {
+                    map[value].push(model);
+                } else {
+                    map[value] = [map[value], model];
+                }
+            } else {
+                map[value] = model;
+            }
+        }
+        return map;
     }
 };
