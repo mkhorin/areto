@@ -135,6 +135,10 @@ module.exports = class Query extends Base {
         this._db.queryUpdate(this, doc, cb);
     }
 
+    updateAll (doc, cb) {
+        this._db.queryUpdateAll(this, doc, cb);
+    }
+
     upsert (doc, cb) {
         this._db.queryUpsert(this, doc, cb);
     }

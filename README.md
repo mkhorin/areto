@@ -1,6 +1,6 @@
 # Areto
 
-## Rational Node.js MVC Framework
+## Node.js MVC Framework
 
 ### Basic Demo App
 

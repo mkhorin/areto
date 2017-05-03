@@ -268,10 +268,12 @@ module.exports = class ActiveRecord extends Base {
             if (relation) {
                 relation.findFor((err, result)=> {
                     this.populateRelation(name, result);
-                    cb(err, result);
+                    cb(err, this._related[name]);
                 });
-            } else {
+            } else if (relation === null) {
                 cb(`${this.constructor.name}: '${name}' relation not found`);
+            } else {
+                cb();
             }
         } else {
             cb(null, this._related[name]);

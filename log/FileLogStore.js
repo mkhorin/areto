@@ -34,7 +34,7 @@ module.exports = class FileLogStore extends Base {
     }
 
     save (type, message, data) {
-        fs.write(this.fd, this.format(type, message, data));
+        fs.write(this.fd, this.format(type, message, data), ()=>{});
     }
 
     format (type, msg, data) {

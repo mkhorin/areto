@@ -183,6 +183,12 @@ module.exports = class MysqlDriver extends Base {
         });
     }
 
+    queryUpdateAll (query, doc, cb) {
+        this.queryBuild(query, (err, cmd)=> {
+            err ? cb(err) : this.updateAll(cmd.from, cmd.where, doc, cb);
+        });
+    }
+
     queryUpsert (query, doc, cb) {
         this.queryBuild(query, (err, cmd)=> {
             err ? cb(err) : this.upsert(cmd.from, cmd.where, doc, cb);
