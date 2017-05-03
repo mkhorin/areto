@@ -91,26 +91,27 @@ module.exports = class Task extends Base {
             let err = 'In progress now';
             this.fail(err);
             this.next();
-            cb(err);
-        } else {
-            this.beforeRun(err => {
-                try {
-                    if (err) throw err;
-                    this.scheduler.module.log('debug', `Task start: ${this.id}`);
-                    this._runned = true;
-                    this.run((err, result)=> {
-                        ++this.counter;
-                        this._runned = false;
-                        err ? this.fail(err) : this.done(result);
-                        this.next();
-                        cb(err, result);
-                    });
-                } catch (err) {
-                    this.fail(err);
-                    cb(err);
-                }
-            });
+            return cb(err);
         }
+        this.beforeRun(err => {
+            try {
+                if (err) {
+                    throw err;
+                }
+                this.scheduler.module.log('debug', `Task start: ${this.id}`);
+                this._runned = true;
+                this.run((err, result)=> {
+                    ++this.counter;
+                    this._runned = false;
+                    err ? this.fail(err) : this.done(result);
+                    this.next();
+                    cb(err, result);
+                });
+            } catch (err) {
+                this.fail(err);
+                cb(err);
+            }
+        });
     }
 };
 

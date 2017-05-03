@@ -176,11 +176,12 @@ module.exports = class ActiveRecord extends Base {
             cb => this.beforeSave(cb, true),
             cb => {
                 this.constructor.find().insert(this.filterAttrs(), (err, id)=> {
-                    if (!err) {
-                        this.set(this.PK, id);
-                        this._isNewRecord = false;    
+                    if (err) {
+                        return cb(err);
                     }
-                    cb(err);
+                    this.set(this.PK, id);
+                    this._isNewRecord = false;
+                    cb();
                 });
             },
             cb => this.afterSave(cb, true)

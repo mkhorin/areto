@@ -250,19 +250,14 @@ module.exports = class Model extends Base {
     // VALIDATE
 
     validate (cb, attrNames) {
-        this.beforeValidate(err => {
-            if (err) {
-                return cb(err);
-            }
-            if (!attrNames) {
-                attrNames = this.getActiveAttrNames();
-            }
-            async.eachSeries(this.getActiveValidators(), (validator, cb)=> {
+        attrNames = attrNames || this.getActiveAttrNames();
+        async.series([
+            this.beforeValidate.bind(this),
+            cb => async.eachSeries(this.getActiveValidators(), (validator, cb)=> {
                 validator.validateAttrs(this, attrNames, cb);
-            }, err => {
-                err ? cb(err) : this.afterValidate(cb);
-            });
-        });
+            }, cb),
+            this.afterValidate.bind(this)
+        ], cb);
     }
 
     createValidators () {

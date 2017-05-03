@@ -40,11 +40,11 @@ module.exports = class App extends Base {
         let http = require('http');
         this.server = http.createServer(this.express).on('error', err => {
             this.log('error', 'Server error', err);
-            cb && cb(err);
+            cb(err);
         }).listen(this.config.port, ()=> {
             this.log('info', `${this.ID} started in ${this.configName}`, this.server.address());
             this.trigger(this.EVENT_START_APP);
-            cb && cb();
+            cb();
         });
     }
 

@@ -190,15 +190,15 @@ module.exports = class Module extends Base {
         }
         this.url = this.config.url || (parent ? `/${this.ID}` : '');
         this.setForwarder(this.config.forwarder);
-        this.setComponents(this.config.components, err => {
-            err ? cb(err) : this.setModules(this.config.modules, err => {
-                if (!err) {
-                    this.setRouter(this.config.router);
-                    this.setExpress();
-                }
-                cb(err);
-            });
-        });
+        async.series([
+            cb => this.setComponents(this.config.components, cb),
+            cb => this.setModules(this.config.modules, cb),
+            cb => {
+                this.setRouter(this.config.router);
+                this.setExpress();
+                cb();
+            }
+        ], cb);
     }
 
     setForwarder (config) {
