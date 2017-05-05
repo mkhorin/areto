@@ -38,27 +38,31 @@ module.exports = class Driver extends Base {
 
     open (cb) {
         if (this.connection) {
-            cb(`Connection is already opened: ${this.getUri()}`);
-        } else this.openClient((err, connection)=> {
-            if (!err) {
-                this.connection = connection;
-                this.module.log('info', `Connection is opened: ${this.getUri()}`);
-                this.trigger(this.EVENT_OPEN);
+            return cb(`Connection is already opened: ${this.getUri()}`);
+        }
+        this.openClient((err, connection)=> {
+            if (err) {
+                return cb(err);
             }
-            cb(err);
+            this.connection = connection;
+            this.module.log('info', `Connection is opened: ${this.getUri()}`);
+            this.trigger(this.EVENT_OPEN);
+            cb();
         });
     }
 
     close (cb) {
         if (!this.connection) {
-            cb(`Connection is already closed: ${this.getUri()}`);
-        } else this.closeClient(err => {
-            if (!err) {
-                this.connection = null;
-                this.module.log('info', `Connection is closed: ${this.getUri()}`);
-                this.trigger(this.EVENT_CLOSE);
+            return cb(`Connection is already closed: ${this.getUri()}`);
+        }
+        this.closeClient(err => {
+            if (err) {
+                return cb(err);
             }
-            cb(err);
+            this.connection = null;
+            this.module.log('info', `Connection is closed: ${this.getUri()}`);
+            this.trigger(this.EVENT_CLOSE);
+            cb();
         });
     }
 

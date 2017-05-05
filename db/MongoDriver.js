@@ -36,12 +36,16 @@ module.exports = class MongoDriver extends Base {
     formatCommandData (d) {
         let msg = `${d.table} ${d.command} `;
         if (d.query) {
-            msg += `${JSON.stringify(d.query)}`;
+            msg += `${JSON.stringify(d.query, this.replaceCommandData)}`;
         }
         if (d.data) {
             msg += `${JSON.stringify(d.data)}`;
         }
         return msg;
+    }
+
+    replaceCommandData (key, value) {
+        return value === null ? undefined : value;
     }
 
     // OPERATIONS
