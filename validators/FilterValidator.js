@@ -8,22 +8,29 @@ module.exports = class FilterValidator extends Base {
     static getConstants () {
         return {
             INLINE_FILTERS: {
-                boolean: function (value, cb) {
+                'boolean': function (value, cb) {
                     cb(null, value == 'on' ? true : false);
                 },
-                trim: function (value, cb) {
-                    cb(null, typeof value === 'string' ? value.trim() : value);
+                'json': function (value, cb) {
+                    try {
+                        cb(null, typeof value === 'object' ? value : JSON.parse(value));
+                    } catch (err) {
+                        cb(null, value, this.createMessage('message', 'Invalid JSON'));
+                    }
                 },
-                lowerCase: function (value, cb) {
+                'lowerCase': function (value, cb) {
                     cb(null, typeof value === 'string' ? value.toLowerCase() : value);
                 },
-                upperCase: function (value, cb) {
-                    cb(null, typeof value === 'string' ? value.toUpperCase() : value);
-                },
-                ObjectId: function (value, cb) {                    
-                    ObjectID.isValid(value) 
+                'ObjectId': function (value, cb) {
+                    ObjectID.isValid(value)
                         ? cb(null, ObjectID(value))
                         : cb(null, value, this.createMessage('message', 'Invalid ObjectID'));
+                },
+                'trim': function (value, cb) {
+                    cb(null, typeof value === 'string' ? value.trim() : value);
+                },
+                'upperCase': function (value, cb) {
+                    cb(null, typeof value === 'string' ? value.toUpperCase() : value);
                 }
             }
         };
@@ -53,17 +60,16 @@ module.exports = class FilterValidator extends Base {
 
     validateAttr (model, attr, cb) {
         let value = model.get(attr);
-        if (!this.skipOnArray || !(value instanceof Array)) {
-            this.filter(value, (err, result, msg)=> {
-                if (err) {
-                    return cb(err);
-                }
-                msg ? this.addError(model, attr, msg) : model.set(attr, result);
-                cb();
-            }, model, attr);
-        } else {
-            cb();
+        if (this.skipOnArray && value instanceof Array) {
+            return cb();
         }
+        this.filter(value, (err, result, msg)=> {
+            if (err) {
+                return cb(err);
+            }
+            msg ? this.addError(model, attr, msg) : model.set(attr, result);
+            cb();
+        }, model, attr);
     }
 };
 module.exports.init();
