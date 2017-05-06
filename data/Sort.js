@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('../base/Base');
-const InflectorHelper = require('../helpers/InflectorHelper');
+const StringHelper = require('../helpers/StringHelper');
 
 module.exports = class Sort extends Base {
 
@@ -94,7 +94,7 @@ module.exports = class Sort extends Base {
         } else if (this.attrs[attr].label) {
             label = this.attrs[attr].label;
         } else {
-            label = InflectorHelper.camelToWords(attr);
+            label = StringHelper.camelToWords(attr);
         }
         return {label, url, options}; // Html:a()
     }

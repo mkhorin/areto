@@ -2,7 +2,7 @@
 
 const Base = require('./Component');
 const MainHelper = require('../helpers/MainHelper');
-const InflectorHelper = require('../helpers/InflectorHelper');
+const StringHelper = require('../helpers/StringHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const async = require('async');
 const fs = require('fs');
@@ -23,7 +23,7 @@ module.exports = class Module extends Base {
     }
 
     static getId () {
-        return InflectorHelper.camelToId(this.name);
+        return StringHelper.camelToId(this.name);
     }
     
     constructor (config) {
@@ -96,7 +96,7 @@ module.exports = class Module extends Base {
 
     getController (id) {
         try {
-            return require(path.join(this.getControllerDir(), `${InflectorHelper.idToCamel(id)}Controller`));
+            return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
         } catch (err) {
             return null;
         }
@@ -220,7 +220,7 @@ module.exports = class Module extends Base {
             }
             config.module = config.module || this;
             let type = config.componentType || id;
-            let handler = `component${InflectorHelper.idToCamel(type)}`;
+            let handler = `component${StringHelper.idToCamel(type)}`;
             if (typeof this[handler] !== 'function') {
                 this.createComponent(type, config);
                 return cb();

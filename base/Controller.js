@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./Component');
-const InflectorHelper = require('../helpers/InflectorHelper');
+const StringHelper = require('../helpers/StringHelper');
 const MainHelper = require('../helpers/MainHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const async = require('async');
@@ -32,7 +32,7 @@ module.exports = class Controller extends Base {
         if (index < 0) {
             throw new Error(`Controller: Invalid class name: ${this.name}`);
         }
-        return InflectorHelper.camelToId(this.name.substring(0, index));
+        return StringHelper.camelToId(this.name.substring(0, index));
     }
 
     static getFullName (separator = '.') {
@@ -69,7 +69,7 @@ module.exports = class Controller extends Base {
         let ids = Object.keys(this.ACTIONS);
         for (let id of ObjectHelper.getAllFunctionNames(this)) {
             if (id.indexOf('action') === 0) {
-                ids.push(InflectorHelper.camelToId(id.substring(6)));
+                ids.push(StringHelper.camelToId(id.substring(6)));
             }
         }
         return ids;
@@ -116,7 +116,7 @@ module.exports = class Controller extends Base {
         if (action) {
             return MainHelper.createInstance(action, {id, controller: this});
         }
-        let name = `action${InflectorHelper.idToCamel(id)}`;
+        let name = `action${StringHelper.idToCamel(id)}`;
         return typeof this[name] === 'function'
             ? new InlineAction({id, controller: this, method: name}) : null;
     }
