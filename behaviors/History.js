@@ -17,23 +17,24 @@ module.exports = class History extends Base {
     init () {
         super.init();
         this._events[ActiveRecord.EVENT_BEFORE_UPDATE] = 'beforeUpdate';
-        this._events[ActiveRecord.EVENT_AFTER_DELETE] = 'afterDelete';
+        this._events[ActiveRecord.EVENT_AFTER_REMOVE] = 'afterRemove';
     }
 
     beforeUpdate (event, cb) {
         async.each(this.getAttrNames(), (attr, cb)=> {
-            if (this.owner.isAttrChanged(attr)) {
-                let model = new this.ModelClass;
-                model.setTargetData(this.owner, attr);
-                model.save(err => {
-                    err && model.module.log('error', 'History behavior:', model.getErrors());
-                    cb();
-                });
-            } else cb();
+            if (!this.owner.isAttrChanged(attr)) {
+                 return cb();
+            }
+            let model = new this.ModelClass;
+            model.setTargetData(this.owner, attr);
+            model.save(err => {
+                err && model.module.log('error', 'History behavior:', model.getErrors());
+                cb();
+            });
         }, cb)
     }
 
-    afterDelete (event, cb) {
+    afterRemove (event, cb) {
         // remove all target object history
         this.ModelClass.removeTargetAll(this.owner, cb);
     }

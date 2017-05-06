@@ -12,11 +12,11 @@ module.exports = class ActiveRecord extends Base {
             PK: '_id', // primary key name
             QUERY_CLASS: require('./ActiveQuery'),            
             //UNLINK_ON_REMOVE: [], // unlink relations after model remove
-            EVENT_AFTER_DELETE: 'afterDelete',
+            EVENT_AFTER_REMOVE: 'afterRemove',
             EVENT_AFTER_FIND: 'afterFind',
             EVENT_AFTER_INSERT: 'afterInsert',
             EVENT_AFTER_UPDATE: 'afterUpdate',
-            EVENT_BEFORE_DELETE: 'beforeDelete',
+            EVENT_BEFORE_REMOVE: 'beforeRemove',
             EVENT_BEFORE_INSERT: 'beforeInsert',
             EVENT_BEFORE_UPDATE: 'beforeUpdate'
         };
@@ -94,8 +94,8 @@ module.exports = class ActiveRecord extends Base {
 
     // EVENTS
 
-    beforeDelete (cb) {
-        this.triggerCallback(this.EVENT_BEFORE_DELETE, cb);
+    beforeRemove (cb) {
+        this.triggerCallback(this.EVENT_BEFORE_REMOVE, cb);
     }
 
     beforeSave (cb, insert) {
@@ -111,15 +111,15 @@ module.exports = class ActiveRecord extends Base {
         this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
     }
 
-    afterDelete (cb) {
+    afterRemove (cb) {
         if (this.UNLINK_ON_REMOVE instanceof Array) {
             async.eachSeries(this.UNLINK_ON_REMOVE, (name, cb)=> {
                 this.unlinkAll(name, cb);
-            }, err => {
-                this.triggerCallback(this.EVENT_AFTER_DELETE, cb);
+            }, ()=> {
+                this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
             });
         } else {
-            this.triggerCallback(this.EVENT_AFTER_DELETE, cb);
+            this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
         }
     }
 
@@ -224,11 +224,11 @@ module.exports = class ActiveRecord extends Base {
     }
 
     remove (cb) {
-        this.beforeDelete(err => {
-            err ? cb(err) : this.findById().remove(err => {
-                err ? cb(err) : this.afterDelete(cb);
-            });
-        });
+        async.series([
+            this.beforeRemove.bind(this),
+            cb => this.findById().remove(cb),
+            this.afterRemove.bind(this)
+        ], cb);
     }
 
     // RELATIONS
@@ -452,6 +452,9 @@ module.exports = class ActiveRecord extends Base {
 
     unlinkAll (name, cb, remove) {
         let relation = this.getRelation(name);
+        if (!relation) {
+            return cb();
+        }
         if (remove === undefined) {
             remove = relation._removeOnUnlink;
         }
@@ -527,8 +530,9 @@ module.exports = class ActiveRecord extends Base {
         let pk = link[1];
         let value = primaryModel.get(pk);
         if (!value) {
-            cb(`${this.constructor.name}: bindModels: PK is null`);
-        } else if (relation._viaArray) {
+            return cb(`${this.constructor.name}: bindModels: PK is null`);
+        }
+        if (relation._viaArray) {
             if (!(foreignModel.get(fk) instanceof Array)) {
                 foreignModel.set(fk, []);
             }
