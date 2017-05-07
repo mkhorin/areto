@@ -12,8 +12,8 @@ module.exports = class Expression extends Base {
         if (this._value === undefined) {
             this._value = this.value;
             if (this.params) {
-                for (let key in this.params) {
-                    this._value = this._value.replace(new RegExp(':'+ key, 'g'), db.escape(this.params[key]));
+                for (let key of Object.keys(this.params)) {
+                    this._value = this._value.replace(new RegExp(`:${key}`, 'g'), db.escape(this.params[key]));
                 }
             }
         }

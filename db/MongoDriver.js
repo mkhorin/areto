@@ -85,6 +85,13 @@ module.exports = class MongoDriver extends Base {
         });
     }
 
+    distinct (table, key, query, options, cb) {
+        this.getCollection(table).distinct(key, query, options, (err, values)=> {
+            this.afterCommand({err, command: 'distinct', table, query});
+            cb(err, values);
+        });
+    }
+
     insert (table, doc, cb) {
         this.getCollection(table).insert(doc, {}, (err, result)=> {
             this.afterCommand({err, command: 'insert', table, data: doc});
@@ -208,6 +215,12 @@ module.exports = class MongoDriver extends Base {
     queryColumn (query, key, cb) {
         this.queryAll(query.asArray().select({[key]: 1}), (err, docs)=> {
             err ? cb(err) : cb(null, docs.map(doc => doc[key]));
+        });
+    }
+
+    queryDistinct (query, key, cb) {
+        this.queryBuild(query, (err, cmd)=> {
+            err ? cb(err) : this.distinct(cmd.from, key, cmd.where, {}, cb);
         });
     }
 

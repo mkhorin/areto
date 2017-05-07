@@ -54,7 +54,7 @@ module.exports = class MysqlQueryBuilder extends Base {
             return null;
         }
         let result = [];
-        for (let key in order) {
+        for (let key of Object.keys(order)) {
             result.push(`${this.db.escapeId(key)} ${order[key] == 1 ? 'ASC' : 'DESC'}`);
         }
         return result.length ? result.join(',') : null;
@@ -102,14 +102,16 @@ module.exports = class MysqlQueryBuilder extends Base {
     // hash format: 'column1': 'value1', 'column2': 'value2'
     buildHashCondition (condition) {
         let result = [];
-        for (let key in condition) {
-            let field = this.getFieldName(key);
-            if (condition[key] instanceof Array) {
-                result.push(`field IN (${this.db.escape(condition[key])})`);
-            } else if (condition[key] === null) {
-                result.push(`${field} IS NULL`);
-            } else {
-                result.push(`${field}=${this.db.escape(condition[key])}`);
+        if (condition) {
+            for (let key of Object.keys(condition)) {
+                let field = this.getFieldName(key);
+                if (condition[key] instanceof Array) {
+                    result.push(`field IN (${this.db.escape(condition[key])})`);
+                } else if (condition[key] === null) {
+                    result.push(`${field} IS NULL`);
+                } else {
+                    result.push(`${field}=${this.db.escape(condition[key])}`);
+                }
             }
         }
         return result.join(' AND ');
@@ -129,11 +131,13 @@ module.exports = class MysqlQueryBuilder extends Base {
     }
 
     buildAndCondition (operator, operands) {
-        let result = [];
-        for (let operand in operands) {
-            result.push(this.buildCondition(operand));
+        let parts = [];
+        if (operands instanceof Array) {
+            for (let operand of operands) {
+                parts.push(this.buildCondition(operand));
+            }
         }
-        return '('+ result.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
+        return '('+ parts.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
     }
 
     buildNotEqualCondition (operator, operands) {

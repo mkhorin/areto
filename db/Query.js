@@ -123,6 +123,10 @@ module.exports = class Query extends Base {
         this._db.queryColumn(this, key, cb);
     }
 
+    distinct (key, cb) {
+        this._db.queryDistinct(this, key, cb);
+    }
+
     scalar (key, cb) {
         this._db.queryScalar(this, key, cb);
     }
@@ -172,61 +176,64 @@ module.exports = class Query extends Base {
     }
 
     populate (rows, cb) {
-        if (this._indexBy) {
-            let result = {};
-            let indexBy = this._indexBy;
-            for (let row of rows) {
-                let key = typeof indexBy === 'function' ? indexBy(row) : row[indexBy];
-                result[key] = row;
-            }
-            cb(null, result);
-        } else {
-            cb(null, rows);
+        if (!this._indexBy) {
+            return cb(null, rows);
+        }
+        let result = {};
+        let indexBy = this._indexBy;
+        for (let row of rows) {
+            let key = typeof indexBy === 'function' ? indexBy(row) : row[indexBy];
+            result[key] = row;
+        }
+        cb(null, result);
+    }
+
+    filterCondition (cond) {
+        return cond instanceof Array ? this.filterSimpleCondition(cond) : this.filterHashCondition(cond);
+    }
+
+    // operator format: operator, operand 1, operand 2, ...
+    filterSimpleCondition (cond) {
+        let operator = cond[0];
+        switch (operator.toLowerCase()) {
+            case 'NOT':
+            case 'AND':
+            case 'OR':
+                for (let i = cond.length - 1; i > 0; --i) {
+                    let child = this.filterCondition(cond[i]);
+                    if (this.isEmpty(child)) {
+                        cond.splice(i, 1);
+                    } else {
+                        cond[i] = child;
+                    }
+                }
+                if (!cond.length) {
+                    return [];
+                }
+                break;
+
+            case 'BETWEEN':
+            case 'NOT BETWEEN':
+                if (cond.length === 3 && (this.isEmpty(cond[1]) || this.isEmpty(cond[2]))) {
+                    return [];
+                }
+                break;
+
+            default:
+                if (cond.length > 1 && this.isEmpty(cond[1])) {
+                    return [];
+                }
         }
     }
 
-    filterCondition (condition) {
-        // operator format: operator, operand 1, operand 2, ...
-        if (condition instanceof Array) {
-            let operator = condition[0];
-            switch (operator.toLowerCase()) {
-                case 'NOT':
-                case 'AND':
-                case 'OR':
-                    for (let i = condition.length - 1; i > 0; --i) {
-                        let sub = this.filterCondition(condition[i]);
-                        if (this.isEmpty(sub)) {
-                            condition.splice(i, 1);
-                        } else {
-                            condition[i] = sub;
-                        }
-                    }
-                    if (!condition.length) {
-                        return [];
-                    }
-                    break;
-
-                case 'BETWEEN':
-                case 'NOT BETWEEN':
-                    if (condition.length === 3 && (this.isEmpty(condition[1]) || this.isEmpty(condition[2]))) {
-                        return [];
-                    }
-                    break;
-
-                default:
-                    if (condition.length > 1 && this.isEmpty(condition[1])) {
-                        return [];
-                    }
-            }
-        } else {
-            // hash format: { 'column1': 'value1', 'column2': 'value2', ... }
-            for (let name in condition) {
-                if (this.isEmpty(condition[name])) {
-                    delete condition[name];
-                }
+    // hash format: { 'column1': 'value1', 'column2': 'value2', ... }
+    filterHashCondition (cond) {
+        for (let name in cond) {
+            if (Object.prototype.hasOwnProperty.call(cond, name) && this.isEmpty(cond[name])) {
+                delete cond[name];
             }
         }
-        return condition;
+        return cond;
     }
 
     // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)

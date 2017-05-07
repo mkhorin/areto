@@ -52,7 +52,7 @@ module.exports = class MongoQueryBuilder extends Base {
             return order;
         }
         let result = {};
-        for (let key in order) {
+        for (let key of Object.keys(order)) {
             result[key] = order[key] == 1 ? 1 : -1;
         }
         return result;
@@ -75,7 +75,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (condition instanceof Array) {
             // operator format: operator, operand 1, operand 2
             let operator = condition[0];
-            return operator in CONDITION_BUILDERS
+            return CONDITION_BUILDERS.hasOwnProperty(operator)
                 ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
                 : this.buildSimpleCondition(operator, condition.slice(1));
         }
@@ -84,9 +84,11 @@ module.exports = class MongoQueryBuilder extends Base {
     }
 
     buildHashCondition (condition) {
-        for (let key in condition) {
-            if (condition[key] instanceof Array) {
-                condition[key] = {$in: condition[key]};
+        if (condition) {
+            for (let key of Object.keys(condition)) {
+                if (condition[key] instanceof Array) {
+                    condition[key] = {$in: condition[key]};
+                }
             }
         }
         return condition;
@@ -96,7 +98,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error('MongoQueryBuilder: Simple requires 2 operands.');
         }
-        if (!(operator in SIMPLE_OPERATORS)) {
+        if (!(SIMPLE_OPERATORS.hasOwnProperty(operator))) {
             throw new Error('MongoQueryBuilder: Simple operator not found.');
         }        
         return {[this.getFieldName(operands[0])]: {[SIMPLE_OPERATORS[operator]]: operands[1]}};
@@ -104,8 +106,10 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildAndCondition (operator, operands) {
         let parts = [];
-        for (let operand of operands) {
-            parts.push(this.buildCondition(operand));
+        if (operands instanceof Array) {
+            for (let operand of operands) {
+                parts.push(this.buildCondition(operand));
+            }
         }
         return {[operator === 'AND' ? '$and' : '$or']: parts};
     }
