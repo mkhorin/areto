@@ -232,7 +232,15 @@ module.exports = class ActiveRecord extends Base {
     }
 
     // RELATIONS
-    
+
+    static findRelation (models, name, cb, renew) {
+        async.eachSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
+    }
+
+    static findRelations (models, names, cb, renew) {
+        async.eachSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
+    }
+
     getAllRelationNames () {
         let names = [];
         for (let id of ObjectHelper.getAllFunctionNames(this)) {
@@ -282,9 +290,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelations (names, cb, renew) {
-        async.each(names, (name, cb)=> {
-            this.findRelation(name, cb, renew);
-        }, cb);
+        async.each(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
     }
 
     unsetRelation (name) {

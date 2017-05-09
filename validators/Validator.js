@@ -9,26 +9,26 @@ module.exports = class Validator extends Base {
     static getConstants () {
         return {
             BUILTIN: {
-                boolean: require('./BooleanValidator'),
-                compare: require('./CompareValidator'),
-                date: require('./DateValidator'),
-                default: require('./DefaultValueValidator'),
-                each: require('./EachValidator'),
-                email: require('./EmailValidator'),
-                exist: require('./ExistValidator'),
-                file: require('./FileValidator'),
-                filter: require('./FilterValidator'),
-                image: require('./ImageValidator'),
-                inline: require('./InlineValidator'),
-                number: require('./NumberValidator'),
-                range: require('./RangeValidator'),
-                regexp: require('./RegexpValidator'),
-                required: require('./RequiredValidator'),
-                relation: require('./RelationValidator'),
-                safe: require('./SafeValidator'),
-                string: require('./StringValidator'),
-                unique: require('./UniqueValidator'),
-                url: require('./UrlValidator')
+                'boolean': require('./BooleanValidator'),
+                'compare': require('./CompareValidator'),
+                'date': require('./DateValidator'),
+                'default': require('./DefaultValueValidator'),
+                'each': require('./EachValidator'),
+                'email': require('./EmailValidator'),
+                'exist': require('./ExistValidator'),
+                'file': require('./FileValidator'),
+                'filter': require('./FilterValidator'),
+                'image': require('./ImageValidator'),
+                'inline': require('./InlineValidator'),
+                'number': require('./NumberValidator'),
+                'range': require('./RangeValidator'),
+                'regexp': require('./RegexpValidator'),
+                'required': require('./RequiredValidator'),
+                'relation': require('./RelationValidator'),
+                'safe': require('./SafeValidator'),
+                'string': require('./StringValidator'),
+                'unique': require('./UniqueValidator'),
+                'url': require('./UrlValidator')
             }
         };
     }
