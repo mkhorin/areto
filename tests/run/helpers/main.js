@@ -81,7 +81,7 @@ describe('helpers.main', ()=> {
         let data = {a: 1, c: {d: 4}};
         ObjectHelper.map(data, (prop, object)=> {
             object[prop] *= 2;
-        }, true);
+        });
         expect(data.a).to.equal(2);
         expect(data.c.d).to.equal(8);
     });

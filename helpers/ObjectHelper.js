@@ -4,7 +4,7 @@ module.exports = class ObjectHelper {
 
     static deepAssign (target, ...args) {
         for (let arg of args) {
-            this.assignInternal(target, arg);
+            this._assign(target, arg);
         }
         return target;
     }
@@ -20,15 +20,15 @@ module.exports = class ObjectHelper {
 
     static deepAssignUndefined (target, ...args) {
         for (let arg of args) {
-            this.assignUndefinedInternal(target, arg);
+            this._assignUndefined(target, arg);
         }
         return target;
     }
 
-    static map (object, handler, depth) {
-        for (let prop in object) {
-            if (depth && object[prop] instanceof Object) {
-                this.map(object[prop], handler, depth);
+    static map (object, handler, depth = 10) {
+        for (let prop of Object.keys(object)) {
+            if (depth > 0 && object[prop] instanceof Object) {
+                this.map(object[prop], handler, depth - 1);
             } else {
                 handler(prop, object);
             }
@@ -79,22 +79,38 @@ module.exports = class ObjectHelper {
         }
     }
 
+    static filterPropertiesByIn (object, keys) {
+        for (let name of Object.keys(object)) {
+            if (!keys.includes[name]) {
+                delete object[name];
+            }
+        }
+    }
+
+    static filterPropertiesByNotIn (object, keys) {
+        for (let name of Object.keys(object)) {
+            if (keys.includes[name]) {
+                delete object[name];
+            }
+        }
+    }
+
     // INTERNAL
 
-    static assignInternal (to, from) {
+    static _assign (to, from) {
         if (from && typeof from === 'object') {
             for (let prop of Object.keys(from)) {
-                this.assignPropertyInternal(to, from, prop);
+                this._assignProperty(to, from, prop);
             }
         }
         return to;
     }
 
-    static assignPropertyInternal (to, from, prop) {
+    static _assignProperty (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
             if (from[prop] !== null && typeof from[prop] === 'object') {
                 if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] !== null && typeof to[prop] === 'object') {
-                    to[prop] = this.assignInternal(to[prop], from[prop]);
+                    to[prop] = this._assign(to[prop], from[prop]);
                 } else {
                     to[prop] = from[prop];
                 }
@@ -104,21 +120,21 @@ module.exports = class ObjectHelper {
         }
     }
 
-    static assignUndefinedInternal (to, from) {
+    static _assignUndefined (to, from) {
         if (from && typeof from === 'object') {
             for (let prop of Object.keys(from)) {
-                this.assignUndefinedPropertyInternal(to, from, prop);
+                this._assignUndefinedProperty(to, from, prop);
             }
         }
         return to;
     }
 
-    static assignUndefinedPropertyInternal (to, from, prop) {
+    static _assignUndefinedProperty (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
             if (Object.prototype.hasOwnProperty.call(to, prop)) {
                 if (from[prop] !== null && typeof from[prop] === 'object'
                     && to[prop] !== null && typeof to[prop] === 'object') {
-                    this.assignUndefinedInternal(to[prop], from[prop])
+                    this._assignUndefined(to[prop], from[prop])
                 }
             } else {
                 to[prop] = from[prop];

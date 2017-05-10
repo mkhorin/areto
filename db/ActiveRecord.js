@@ -67,19 +67,18 @@ module.exports = class ActiveRecord extends Base {
             return this._related[name];
         }
         let rel = this._related[name.substring(0, index)];
-        let subName = name.substring(index + 1);
+        let nestedName = name.substring(index + 1);
         if (rel instanceof ActiveRecord) {
-            return rel.get(subName);
+            return rel.get(nestedName);
         }
         if (rel instanceof Array) {
             return rel.map(item => {
-                return item instanceof ActiveRecord
-                    ? item.get(subName) : item ? item[subName] : item;
+                return item instanceof ActiveRecord? item.get(nestedName) : item ? item[nestedName] : item;
             });
         }
-        return rel ? rel[subName] : rel;
-    }        
-    
+        return rel ? rel[nestedName] : rel;
+    }
+
     isAttrChanged (name) {
         return this.getOldAttr(name) !== this.get(name);
     }
@@ -174,16 +173,14 @@ module.exports = class ActiveRecord extends Base {
     insert (cb) {
         async.series([
             cb => this.beforeSave(cb, true),
-            cb => {
-                this.constructor.find().insert(this.filterAttrs(), (err, id)=> {
-                    if (err) {
-                        return cb(err);
-                    }
+            cb => async.waterfall([
+                cb => this.constructor.find().insert(this.filterAttrs(), cb),
+                (id, cb)=> {
                     this.set(this.PK, id);
                     this._isNewRecord = false;
                     cb();
-                });
-            },
+                }
+            ], cb),
             cb => this.afterSave(cb, true)
         ], cb);
     }
@@ -207,9 +204,8 @@ module.exports = class ActiveRecord extends Base {
     // REMOVE
 
     static removeBatch (models, cb) {
-        // to process all removal requests, ignoring errors
         async.eachSeries(models, (model, cb)=> {
-            model.remove(()=> cb());
+            model.remove(()=> cb()); // to process all removal requests, ignoring errors
         }, cb);
     }
 
@@ -256,7 +252,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getRelation (name) {
-        if (typeof name !== 'string') {
+        if (!name || typeof name !== 'string') {
             return null;
         }
         name = `rel${name.toUpperCaseFirstLetter()}`;
@@ -269,6 +265,28 @@ module.exports = class ActiveRecord extends Base {
     
     getPopulatedRelation (name) {
         return this._related[name];
+    }
+
+    rel (name) {
+        if (Object.prototype.hasOwnProperty.call(this._related, name)) {
+            return this._related[name];
+        }
+        if (typeof name !== 'string') {
+            return null;
+        }
+        let index = name.indexOf('.');
+        if (index < 0) {
+            return null;
+        }
+        let rel = this._related[name.substring(0, index)];
+        let nestedName = name.substring(index + 1);
+        if (rel instanceof ActiveRecord) {
+            return rel.rel(nestedName);
+        }
+        if (rel instanceof Array) {
+            return rel.map(item => item instanceof ActiveRecord ? item.rel(nestedName) : null);
+        }
+        return null;
     }
 
     findRelation (name, cb, renew) {
@@ -490,9 +508,7 @@ module.exports = class ActiveRecord extends Base {
         if (relation._via instanceof Array) {
             if (remove) {
                 viaModel.constructor.find(condition).all((err, models)=> {
-                    err ? cb(err) : async.eachSeries(models, (model, cb)=> {
-                        model.remove(cb);
-                    }, cb);
+                    err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
                 });
             } else {
                 viaModel.constructor.updateAll(nulls, condition, cb);
