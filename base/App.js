@@ -25,9 +25,10 @@ module.exports = class App extends Base {
     configure (configName, cb) {
         super.configure(null, configName, err => {
             if (err) {
-                console.error(`App: ${this.ID}`, err);
+                console.error(`App: ${this.ID}:`, err);
+                return cb(err);
             }
-            cb(err);
+            cb();
         });
     }
 
@@ -49,22 +50,22 @@ module.exports = class App extends Base {
     }
 
     // MIGRATION
+    // node bin/migrate.js apply migrations/MigrationClass
 
     migrate (params, cb) {               
         let action = params.splice(0, 1).join('');        
-        if (action === 'apply' || action === 'revert') {            
-            async.eachSeries(params, (filename, cb)=> {
-                this.log('info', `Start to ${action} ${filename}`);
-                this.migrateFile(filename, action, err => {
-                    err ? this.log('error', `${filename} is failed`, err)
-                        : this.log('info', `${filename} is done`);
-                    cb(err);
-                });
-            }, cb);
-        } else {
-            this.log('error', `Migration action (apply or revert) is not set`);
-            cb(true);
+        if (action !== 'apply' && action !== 'revert') {
+            this.log('error', `Migration action (apply or revert) is not set: ${action}`);
+            return cb(true);
         }
+        async.eachSeries(params, (filename, cb)=> {
+            this.log('info', `Start to ${action} ${filename}`);
+            this.migrateFile(filename, action, err => {
+                err ? this.log('error', `${filename} is failed`, err)
+                    : this.log('info', `${filename} is done`);
+                cb(err);
+            });
+        }, cb);
     }
 
     migrateFile (filename, action, cb) {

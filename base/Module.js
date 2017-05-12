@@ -1,13 +1,7 @@
 'use strict';
 
 const Base = require('./Component');
-const MainHelper = require('../helpers/MainHelper');
 const StringHelper = require('../helpers/StringHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
-const async = require('async');
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
 
 module.exports = class Module extends Base {
     
@@ -79,7 +73,7 @@ module.exports = class Module extends Base {
     }
 
     getPath (...args) {
-        return path.join.apply(path, [path.dirname(this.constructor.CLASS_FILE)].concat(args));
+        return path.join.apply(path, [path.dirname(this.CLASS_FILE)].concat(args));
     }
 
     getRelativePath (file) {
@@ -155,6 +149,10 @@ module.exports = class Module extends Base {
 
     // CONFIG
 
+    getConfigValue (key, defaults) {
+        return ObjectHelper.getNestedValue(this.config, key, defaults);
+    }
+
     setConfig (name) {
         this.configName = name;
         this.config = ObjectHelper.deepAssign(
@@ -215,7 +213,7 @@ module.exports = class Module extends Base {
         this.extendComponentsByDefaults(components);
         async.forEachOfSeries(components, (config, id, cb)=> {
             if (!config) {
-                this.log('info', `${this.getFullName()}: Component ${id} skipped`);
+                this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
                 return cb();
             }
             config.module = config.module || this;
@@ -246,19 +244,18 @@ module.exports = class Module extends Base {
 
     setModules (config, cb) {
         async.forEachOfSeries(config || {}, (config, id, cb)=> {
-            if (config) {
-                let configName = config.configName || this.configName;
-                let module = require(this.getPath('modules', id, 'module'));
-                this.modules[id] = module;
-                module.configure(this, configName, err => {
-                    err ? this.log('error', `Module: ${module.getFullName()}:`, err)
-                        : this.log('info', `Module: attached ${module.getFullName()}`);
-                    cb(err);
-                });
-            } else {
-                this.log('info', `Module: skipped ${this.getFullName()}.${id}`)
-                cb();
+            if (!config) {
+                this.log('info', `Module '${this.getFullName()}.${id}' skipped`)
+                return cb();
             }
+            let configName = config.configName || this.configName;
+            let module = require(this.getPath('modules', id, 'module'));
+            this.modules[id] = module;
+            module.configure(this, configName, err => {
+                err ? this.log('error', `Module: ${module.getFullName()}:`, err)
+                    : this.log('info', `Module: attached ${module.getFullName()}`);
+                cb(err);
+            });
         }, cb);
     }
 
@@ -388,8 +385,13 @@ module.exports = class Module extends Base {
         res.locals.user.checkIdentity(next);
     }
 };
-
 module.exports.init();
 
+const async = require('async');
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const MainHelper = require('../helpers/MainHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');
 const Url = require('../web/Url');

@@ -81,7 +81,7 @@ module.exports = class ObjectHelper {
 
     static filterPropertiesByIn (object, keys) {
         for (let name of Object.keys(object)) {
-            if (!keys.includes[name]) {
+            if (!keys.includes(name)) {
                 delete object[name];
             }
         }
@@ -89,10 +89,34 @@ module.exports = class ObjectHelper {
 
     static filterPropertiesByNotIn (object, keys) {
         for (let name of Object.keys(object)) {
-            if (keys.includes[name]) {
+            if (keys.includes(name)) {
                 delete object[name];
             }
         }
+    }
+
+    static getNestedValue(object, key, defaults) {
+        if (!(object instanceof Object) || typeof key !== 'string') {
+            return defaults;
+        }
+        if (Object.prototype.hasOwnProperty.call(object, key)) {
+            return object[key];
+        }
+        let index = key.indexOf('.');
+        if (index > 0) {
+            let targetKey = key.substring(0, index);
+            if (Object.prototype.hasOwnProperty.call(object, targetKey)) {
+                key = key.substring(index + 1);
+                object = object[targetKey];
+                if (object instanceof Array) {
+                    return object.map(item => this.getNestedValue(item, key, defaults));
+                }
+                if (object) {
+                    return this.getNestedValue(object, key, defaults);
+                }
+            }
+        }
+        return defaults;
     }
 
     // INTERNAL

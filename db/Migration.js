@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Component');
-const async = require('async');
 
 module.exports = class Migration extends Base {
 
@@ -11,14 +10,10 @@ module.exports = class Migration extends Base {
     }
 
     apply (cb) {
-        this.execute(cb, []); // execute this migration
+        cb(); // apply this migration
     }
 
     revert (cb) {
         cb(null, false); // false - migration cant be reverted
-    }
-    
-    execute (cb, tasks) {
-        async.series(tasks || [], cb);
     }
 };

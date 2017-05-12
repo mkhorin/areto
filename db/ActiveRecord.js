@@ -60,7 +60,7 @@ module.exports = class ActiveRecord extends Base {
             return this._attrs[name];
         }
         if (typeof name !== 'string') {
-            return null;
+            return undefined;
         }
         let index = name.indexOf('.');
         if (index < 0) {
@@ -230,11 +230,11 @@ module.exports = class ActiveRecord extends Base {
     // RELATIONS
 
     static findRelation (models, name, cb, renew) {
-        async.eachSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
+        async.mapSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
     }
 
     static findRelations (models, names, cb, renew) {
-        async.eachSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
+        async.mapSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
     }
 
     getAllRelationNames () {
@@ -272,11 +272,11 @@ module.exports = class ActiveRecord extends Base {
             return this._related[name];
         }
         if (typeof name !== 'string') {
-            return null;
+            return undefined;
         }
         let index = name.indexOf('.');
-        if (index < 0) {
-            return null;
+        if (index < 1) {
+            return undefined;
         }
         let rel = this._related[name.substring(0, index)];
         let nestedName = name.substring(index + 1);
@@ -286,7 +286,7 @@ module.exports = class ActiveRecord extends Base {
         if (rel instanceof Array) {
             return rel.map(item => item instanceof ActiveRecord ? item.rel(nestedName) : null);
         }
-        return null;
+        return undefined;
     }
 
     findRelation (name, cb, renew) {
@@ -308,7 +308,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelations (names, cb, renew) {
-        async.each(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
+        async.mapSeries(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
     }
 
     unsetRelation (name) {

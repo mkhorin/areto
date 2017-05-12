@@ -126,16 +126,6 @@ module.exports = class MysqlDriver extends Base {
 
     // QUERY
 
-    queryBuild (query, cb) {
-        query.prepare(err => {
-            try {
-                err ? cb(err) : cb(null, this.builder.build(query));    
-            } catch (err) {
-                cb(err);
-            }
-        });
-    }
-
     queryAll (query, cb) {
         this.queryBuild(query, (err, cmd)=> {
             if (err) {
@@ -153,21 +143,15 @@ module.exports = class MysqlDriver extends Base {
         });
     }
 
-    queryOne (query, cb) {
-        this.queryAll(query.limit(1), (err, docs)=> {
-            err ? cb(err) : cb(docs.length ? docs[0] : null);
-        });
-    }
-
     queryColumn (query, key, cb) {        
         this.queryAll(query.asArray().select({[key]: 1}), (err, docs)=> {
-            err ? cb(err) : cb(docs.map(doc => doc[key]));
+            err ? cb(err) : cb(null, docs.map(doc => doc[key]));
         });
     }
 
     queryScalar (query, key, cb) {
         this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
-            err ? cb(err) : cb(docs.length ? docs[0] : null);
+            err ? cb(err) : cb(null, docs.length ? docs[0] : null);
         });
     }
 

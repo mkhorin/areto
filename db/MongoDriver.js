@@ -169,20 +169,6 @@ module.exports = class MongoDriver extends Base {
 
     // QUERY
 
-    queryBuild (query, cb) {
-        query.prepare(err => {
-            if (err) {
-                return cb(err);
-            }
-            try {
-                query = this.builder.build(query);
-            } catch (err) {
-                return cb(err);
-            }
-            cb(null, query);
-        });
-    }
-
     queryAll (query, cb) {
         this.queryBuild(query, (err, cmd)=> {
             if (err) {

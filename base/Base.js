@@ -14,11 +14,11 @@ module.exports = class Base {
             }
         }
         let constants = this.getClassProperties('getConstants', this);
-        for (let name in constants) {
+        for (let name of Object.keys(constants)) {
             MainHelper.defineClassProperty(this, name, constants[name]);
         }
         let statics = this.getClassProperties('getStatics', this);
-        for (let name in statics) {
+        for (let name of Object.keys(statics)) {
             MainHelper.defineClassProperty(this, name, statics[name], true);
         }        
         return this;

@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Query');
-const async = require('async');
 
 module.exports = class ActiveQuery extends Base {
 
@@ -256,15 +255,16 @@ module.exports = class ActiveQuery extends Base {
             return super.populate(docs, cb);
         }
         let models = [];
-        async.each(docs, (doc, cb)=> {
+        async.eachSeries(docs, (doc, cb)=> {
             let model = new this.model.constructor;
             model.populateRecord(doc);
             models.push(model);
             model.afterFind(cb);
         }, err => {
             if (err) {
-                cb(err);
-            } else if (models.length && Object.keys(this._with).length) {
+                return cb(err);
+            } 
+            if (models.length && Object.keys(this._with).length) {
                 this.findWith(this._with, models, err => {
                     cb(err, this._indexBy ? this.indexModels(models) : models);
                 });
@@ -277,8 +277,9 @@ module.exports = class ActiveQuery extends Base {
     populateRelation (name, primaryModels, cb) {
         this.populateViaRelation(primaryModels, (err, viaModels, viaQuery)=> {
             if (err) {
-                cb(err);
-            } else if (!this._multiple && primaryModels.length === 1) {
+                return cb(err);
+            } 
+            if (!this._multiple && primaryModels.length === 1) {
                 this.one((err, model)=> {
                     if (err) {
                         cb(err);
@@ -490,4 +491,5 @@ module.exports = class ActiveQuery extends Base {
     }
 };
 
+const async = require('async');
 const ActiveRecord = require('./ActiveRecord');

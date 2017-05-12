@@ -141,11 +141,7 @@ module.exports = class Model extends Base {
     }
     
     setAttrs (values) {
-        if (values && typeof values === 'object') {
-            for (let name of Object.keys(values)) {
-                this.set(name, values[name]);
-            }
-        }
+        Object.assign(this._attrs, values);
     }
 
     getScenarioAttrs (scenario) {

@@ -40,30 +40,30 @@ module.exports = class Driver extends Base {
         if (this.connection) {
             return cb(`Connection is already opened: ${this.getUri()}`);
         }
-        this.openClient((err, connection)=> {
-            if (err) {
-                return cb(err);
-            }
-            this.connection = connection;
-            this.module.log('info', `Connection is opened: ${this.getUri()}`);
-            this.trigger(this.EVENT_OPEN);
-            cb();
-        });
+        async.waterfall([
+            this.openClient.bind(this),
+            (connection, cb)=> {
+                this.connection = connection;
+                this.module.log('info', `Connection is opened: ${this.getUri()}`);
+                this.trigger(this.EVENT_OPEN);
+                cb();
+            }    
+        ], cb);
     }
 
     close (cb) {
         if (!this.connection) {
             return cb(`Connection is already closed: ${this.getUri()}`);
         }
-        this.closeClient(err => {
-            if (err) {
-                return cb(err);
+        async.series([
+            this.closeClient.bind(this),
+            cb => {
+                this.connection = null;
+                this.module.log('info', `Connection is closed: ${this.getUri()}`);
+                this.trigger(this.EVENT_CLOSE);
+                cb();
             }
-            this.connection = null;
-            this.module.log('info', `Connection is closed: ${this.getUri()}`);
-            this.trigger(this.EVENT_CLOSE);
-            cb();
-        });
+        ], cb);
     }
 
     afterError (message, data) {
@@ -97,4 +97,22 @@ module.exports = class Driver extends Base {
     buildCondition (condition) {
         return this.builder.buildWhere(condition);
     }
+
+    // QUERY
+
+    queryBuild (query, cb) {
+        query.prepare(err => {
+            if (err) {
+                return cb(err);
+            }
+            try {
+                query = this.builder.build(query);
+            } catch (err) {
+                return cb(err);
+            }
+            cb(null, query);
+        });
+    }
 };
+
+const async = require('async');
