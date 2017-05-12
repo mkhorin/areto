@@ -10,8 +10,7 @@ module.exports = class FileValidator extends Base {
             minSize: 1,
             maxSize: 10000000,
             extensions: null,
-            mimeTypes: null,
-            onlyImage: false
+            mimeTypes: null
         }, config));
     }
 
@@ -22,7 +21,6 @@ module.exports = class FileValidator extends Base {
         this.createMessage('tooBig', 'File size cannot exceed {limit} B');
         this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}');
         this.createMessage('wrongMimeType', 'Only these file MIME types are allowed: {mimeTypes}');
-        this.createMessage('notImage', 'File is not an image');
     }
 
     // file {  path, size, extension, mime }
@@ -34,9 +32,6 @@ module.exports = class FileValidator extends Base {
         fs.stat(file.path, (err, stats)=> {
             if (err || !stats.isFile()) {
                 return cb(null, this.message);
-            }
-            if (this.onlyImage && (!file.mime || file.mime.indexOf('image') !== 0)) {
-                return cb(null, this.notImage);                
             }
             if (this.minSize && file.size < this.minSize) {
                 return cb(null, this.tooSmall, {

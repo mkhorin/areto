@@ -4,6 +4,14 @@ const Base = require('./Validator');
 
 module.exports = class RegexpValidator extends Base {
 
+    static getConstants () {
+        return {
+            BUILTIN: {
+                'mongoId': /^[a-f0-9]{24}$/i
+            }
+        };
+    }
+
     constructor (config) {
         super(Object.assign({
             pattern: null,
@@ -14,29 +22,29 @@ module.exports = class RegexpValidator extends Base {
     init () {
         super.init();
         if (!this.pattern) {
-            throw new Error('RegexpValidator: Not set pattern');
+            throw new Error(`${this.constructor.name}: Not set pattern`);
         }
         if (typeof this.pattern === 'string') {
-            let fn = this[`getPattern${this.pattern}`];
-            if (typeof fn !== 'function') {
-                throw new Error(`RegexpValidator: Not found inline pattern: ${this.pattern}`);
+            if (!this.BUILTIN.hasOwnProperty(this.pattern)) {
+                throw new Error(`${this.constructor.name}: Not found builtin pattern: ${this.pattern}`);
             }
-            this.pattern = fn.call(this);
+            this.pattern = this.BUILTIN[this.pattern];
         } else if (!(this.pattern instanceof RegExp)) {
-            throw new Error(`RegexpValidator: Invalid pattern: ${this.pattern}`);
+            throw new Error(`${this.constructor.name}: Invalid pattern: ${this.pattern}`);
         }
         this.createMessage('message', 'Invalid value');
     }
 
     validateValue (value, cb) {
-        let valid = !(value instanceof Array) 
-            && (!this.not && this.pattern.test(value) || this.not && !this.pattern.test(value));
+        let valid = true;
+        if (typeof value !== 'string') {
+            valid = false;
+        } else if (this.pattern.test(value)) {
+            valid = this.not ? false : true;
+        } else {
+            valid = this.not ? true : false;
+        }
         cb(null, valid ? null : this.message);
     }
-
-    // PATTERNS
-
-    getPatternObjectId () {
-        return /^[a-f0-9]{24}$/i;
-    }
 };
+module.exports.init();

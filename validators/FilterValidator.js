@@ -7,7 +7,7 @@ module.exports = class FilterValidator extends Base {
 
     static getConstants () {
         return {
-            INLINE_FILTERS: {
+            BUILTIN: {
                 'boolean': function (value, cb) {
                     cb(null, value == 'on' ? true : false);
                 },
@@ -21,10 +21,10 @@ module.exports = class FilterValidator extends Base {
                 'lowerCase': function (value, cb) {
                     cb(null, typeof value === 'string' ? value.toLowerCase() : value);
                 },
-                'ObjectId': function (value, cb) {
+                'mongoId': function (value, cb) {
                     ObjectID.isValid(value)
                         ? cb(null, ObjectID(value))
-                        : cb(null, value, this.createMessage('message', 'Invalid ObjectID'));
+                        : cb(null, value, this.createMessage('message', 'Invalid MongoId'));
                 },
                 'trim': function (value, cb) {
                     cb(null, typeof value === 'string' ? value.trim() : value);
@@ -47,12 +47,12 @@ module.exports = class FilterValidator extends Base {
         super.init();
         if (this.filter === null) {
             throw new Error('FilterValidator: The filter property must be set');
-        } else if (typeof this.filter === 'string') {
-            let filter = this.INLINE_FILTERS[this.filter];
-            if (!filter) {
-                throw new Error(`FilterValidator: Not found inline filter: ${this.filter}`);
+        }
+        if (typeof this.filter === 'string') {
+            if (!this.BUILTIN.hasOwnProperty(this.filter)) {
+                throw new Error(`FilterValidator: Not found builtin filter: ${this.filter}`);
             }
-            this.filter = filter;
+            this.filter = this.BUILTIN[this.filter];
         } else if (typeof this.filter !== 'function') {
             throw new Error('FilterValidator: The filter must be function');
         }

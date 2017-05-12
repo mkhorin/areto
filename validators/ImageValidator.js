@@ -7,7 +7,6 @@ module.exports = class ImageValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            onlyImage: true,
             maxHeight: null,
             maxWidth: null,
             minHeight: null,
@@ -36,7 +35,7 @@ module.exports = class ImageValidator extends Base {
         let image = gm(file.path);
         image.size((err, size)=> {
             if (err) {
-                return cb(null, this.onlyImage ? this.notImage : null);
+                return cb(null, this.notImage);
             } 
             if (this.minHeight && size.height < this.minHeight) {
                 return cb(null, this.underHeight, { limit: this.minHeight });
@@ -56,7 +55,7 @@ module.exports = class ImageValidator extends Base {
 
     getParams () {
         return Object.assign(super.getParams(), {
-            onlyImage: this.onlyImage,
+            onlyImage: true,
             maxHeight: this.maxHeight,
             maxWidth: this.maxWidth,
             minHeight: this.minHeight,

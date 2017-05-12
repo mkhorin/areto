@@ -30,11 +30,7 @@ module.exports = class RelationValidator extends Base {
             if (err) {
                 return cb(err);
             }
-            if (message) {
-                this.addError(model, attr, message, params);
-            } else {
-                model.set(attr, changes);
-            }
+            message ? this.addError(model, attr, message, params) : model.set(attr, changes);
             cb();
         });
     }

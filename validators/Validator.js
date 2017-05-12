@@ -20,6 +20,8 @@ module.exports = class Validator extends Base {
                 'filter': require('./FilterValidator'),
                 'image': require('./ImageValidator'),
                 'inline': require('./InlineValidator'),
+                'ip': require('./IpValidator'),
+                'mongoId': require('./MongoIdValidator'),
                 'number': require('./NumberValidator'),
                 'range': require('./RangeValidator'),
                 'regexp': require('./RegexpValidator'),
