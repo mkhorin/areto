@@ -1,8 +1,9 @@
 'use strict';
 
 const crypto = require('crypto');
+const fs = require('fs');
 
-const HMAC_ALGO = 'sha1';
+const HASH_ALGO = 'sha1';
 const HASH_LENGTH = 40;
 const SALT_LENGTH = 8;
 const SALT_MIN = Math.pow(10, SALT_LENGTH - 1);
@@ -20,11 +21,11 @@ module.exports = class SecurityHelper {
 
     static validateHash (hash) {
         let s = `^[0-9a-f]{${HASH_LENGTH + SALT_LENGTH}`+'}$';
-        return typeof hash === 'string' && (new RegExp(s)).test(hash);
+        return typeof hash === 'string' ? (new RegExp(s)).test(hash) : false;
     }
 
     static hashValue (value, salt) {
-        return crypto.createHmac(HMAC_ALGO, salt).update(value).digest('hex') + salt;
+        return crypto.createHmac(HASH_ALGO, salt).update(value).digest('hex') + salt;
     }
 
     static encryptPassword (password) {
@@ -41,6 +42,19 @@ module.exports = class SecurityHelper {
     static generateRandomString (length, cb) {
         crypto.randomBytes(length, (err, buf)=> {
             err ? cb(err) : cb(null, buf.toString('hex'));
+        });
+    }
+
+    static hashFile (file, cb, algo = HASH_ALGO) {
+        fs.readFile(file, (err, data)=> {
+            if (err) {
+                return cb(err);
+            }
+            try {
+                cb(null, crypto.createHash(algo).update(data).digest('hex'));
+            } catch (err) {
+                cb(err);
+            }
         });
     }
 };

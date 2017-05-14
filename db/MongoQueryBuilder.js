@@ -15,7 +15,11 @@ const CONDITION_BUILDERS = {
     'LIKE': 'buildLikeCondition',
     'NOT LIKE': 'buildNotLikeCondition',
     'ID': 'buildIdCondition',
-    'FALSE': 'buildFalseCondition'
+    'FALSE': 'buildFalseCondition',
+    'NULL': 'buildNullCondition',
+    'NOT NULL': 'buildNotNullCondition',
+    'EXISTS': 'buildExistsCondition',
+    'NOT EXISTS': 'buildNotExistsCondition',
 };
 
 const SIMPLE_OPERATORS = {
@@ -34,10 +38,14 @@ module.exports = class MongoQueryBuilder extends Base {
             from: query._from,
             select: this.buildSelect(query._select),
             where: this.buildWhere(query._where),
-            order: this.buildOrder(query._orderBy),
-            offset: query._offset,
-            limit: query._limit,
+            order: this.buildOrder(query._orderBy)
         };
+        if (query._offset) {
+            query.cmd.offset = query._offset;
+        }
+        if (query._limit) {
+            query.cmd.limit = query._limit;
+        }
         query.afterBuild();
         //console.dir(query.cmd, { depth: 10 });
         return query.cmd;
@@ -49,7 +57,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildOrder (order) {
         if (!order) {
-            return order;
+            return undefined;
         }
         let result = {};
         for (let key of Object.keys(order)) {
@@ -191,7 +199,41 @@ module.exports = class MongoQueryBuilder extends Base {
         return {[operands[0]]: value};
     }
 
+    // FALSE
+
     buildFalseCondition (operator, operands) {
         return {_id: false};
+    }
+
+    // NULL
+
+    buildNullCondition (operator, operands) {
+        if (operands.length !== 1) {
+            throw new Error('MongoQueryBuilder: NULL requires 1 operand.');
+        }
+        return {[this.getFieldName(operands[0])]: {$type: 10}};
+    }
+
+    buildNotNullCondition (operator, operands) {
+        if (operands.length !== 1) {
+            throw new Error('MongoQueryBuilder: NOT NULL requires 1 operand.');
+        }
+        return {[this.getFieldName(operands[0])]: {$not: {$type: 10}}};
+    }
+
+    // EXISTS
+
+    buildExistsCondition (operator, operands) {
+        if (operands.length !== 1) {
+            throw new Error('MongoQueryBuilder: EXISTS requires 1 operand.');
+        }
+        return {[this.getFieldName(operands[0])]: {$exists: true}};
+    }
+
+    buildNotExistsCondition (operator, operands) {
+        if (operands.length !== 1) {
+            throw new Error('MongoQueryBuilder: NOT EXISTS requires 1 operand.');
+        }
+        return {[this.getFieldName(operands[0])]: {$exists: false}};
     }
 };

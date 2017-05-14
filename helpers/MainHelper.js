@@ -2,16 +2,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const ObjectID = require('mongodb').ObjectID;
+const MongoId = require('mongodb').ObjectID;
 
 module.exports = class MainHelper {
-
-    static isEmpty (value) {
-        return value === null || value === undefined || value.length === 0;
-    }
-
+    
     static isEqualIds (id1, id2) {
-        return id1 instanceof ObjectID ? id1.equals(id2) : id1 === id2;
+        return id1 instanceof MongoId ? id1.equals(id2) : id1 === id2;
     }
 
     static getRandom (min, max) {

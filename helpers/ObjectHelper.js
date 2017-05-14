@@ -25,16 +25,6 @@ module.exports = class ObjectHelper {
         return target;
     }
 
-    static map (object, handler, depth = 10) {
-        for (let prop of Object.keys(object)) {
-            if (depth > 0 && object[prop] instanceof Object) {
-                this.map(object[prop], handler, depth - 1);
-            } else {
-                handler(prop, object);
-            }
-        }
-    }
-
     static toValueArray (object) {
         let result = [];
         if (object) {
@@ -95,6 +85,7 @@ module.exports = class ObjectHelper {
         }
     }
 
+    // key - 'prop1.prop2.prop3'
     static getNestedValue(object, key, defaults) {
         if (!(object instanceof Object) || typeof key !== 'string') {
             return defaults;

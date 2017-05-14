@@ -8,7 +8,7 @@ module.exports = class FileValidator extends Base {
     constructor (config) {
         super(Object.assign({
             minSize: 1,
-            maxSize: 10000000,
+            maxSize: null,
             extensions: null,
             mimeTypes: null
         }, config));
@@ -43,12 +43,13 @@ module.exports = class FileValidator extends Base {
                     limit: this.maxSize
                 });
             }
-            if (this.extensions && (!file.extension || this.extensions.indexOf(file.extension.toLowerCase()) < 0)) {
+            if (this.extensions instanceof Array
+                && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
                 return cb(null, this.wrongExtension, {
                     extensions: this.extensions
                 });
             }
-            if (this.mimeTypes && (!file.mime || this.mimeTypes.indexOf(file.mime) < 0)) {
+            if (this.mimeTypes instanceof Array && (!file.mime || !this.mimeTypes.includes(file.mime))) {
                 return cb(null, this.wrongMimeType, {
                     mimeTypes: this.mimeTypes
                 });

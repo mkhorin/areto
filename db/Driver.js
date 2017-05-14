@@ -75,6 +75,7 @@ module.exports = class Driver extends Base {
         if (data.err) {
             this.afterError(`db: ${this.settings.database}`, data);
         } else {
+            data.err = undefined;
             this.trigger(this.EVENT_COMMAND, {
                 message: `db: ${this.settings.database}`,
                 data

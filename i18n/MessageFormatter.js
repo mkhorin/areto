@@ -8,10 +8,12 @@ module.exports = class MessageFormatter extends Base {
         if (!params) {
             return message;
         }        
-        for (let key in params) {
+        for (let key of Object.keys(params)) {
             let value = params[key];
             if (value instanceof Date) {
                 value = value.toLocaleDateString(language);
+            } else if (value instanceof Array) {
+                value = value.join(', ');
             }
             message = message.replace(new RegExp(`{${key}}`,'g'), value);
         }

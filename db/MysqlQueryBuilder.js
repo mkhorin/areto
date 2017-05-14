@@ -13,11 +13,10 @@ const CONDITION_BUILDERS = {
     'NOT IN': 'buildNotInCondition',
     'LIKE': 'buildLikeCondition',
     'NOT LIKE': 'buildNotLikeCondition',
-    //'EXISTS': 'buildExistsCondition',
-    //'NOT EXISTS': 'buildExistsCondition'
     'ID': 'buildIdCondition',
     'FALSE': 'buildFalseCondition',
-    'NULL': 'buildNullCondition'
+    'NULL': 'buildNullCondition',
+    'NOT NULL': 'buildNotNullCondition'
 };
 
 const SIMPLE_OPERATORS = {
@@ -213,11 +212,25 @@ module.exports = class MysqlQueryBuilder extends Base {
             : `${result}=${this.db.escape(operands[1])}`;
     }
 
+    // FALSE
+
     buildFalseCondition () {
         return ' FALSE ';
     }
 
+    // NULL
+
     buildNullCondition (operator, operands) {
-        return this.getFieldName(operands[0]) + (operator === 'NULL' ? ' IS NULL' : ' IS NOT NULL');
+        if (operands.length !== 1) {
+            throw new Error('MysqlQueryBuilder: NULL requires 1 operand.');
+        }
+        return `${this.getFieldName(operands[0])} IS NULL`;
+    }
+
+    buildNotNullCondition (operator, operands) {
+        if (operands.length !== 1) {
+            throw new Error('MysqlQueryBuilder: NOT NULL requires 1 operand.');
+        }
+        return `${this.getFieldName(operands[0])} IS NOT NULL`;
     }
 };

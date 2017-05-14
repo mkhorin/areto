@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Component');
-const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Logger extends Base {
 
@@ -134,6 +133,7 @@ module.exports = class Logger extends Base {
 };
 module.exports.init();
 
+const MainHelper = require('../helpers/MainHelper');
 const LogType = require('./LogType');
 const FileLogStore = require('./FileLogStore');
 const ExtEvent = require('../base/ExtEvent');
