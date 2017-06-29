@@ -21,7 +21,7 @@ module.exports = class DateValidator extends Base {
                 this.min = new Date(this.min);
             }
             if (!this.isValidDateObject(this.min)) {
-                throw new Error('DateValidator: Invalid min date');
+                throw new Error(`DateValidator: Invalid min date`);
             }
         }
         if (this.max !== null) {
@@ -30,7 +30,7 @@ module.exports = class DateValidator extends Base {
                 this.max = new Date(this.max);
             }
             if (!this.isValidDateObject(this.max)) {
-                throw new Error('DateValidator: Invalid max date');
+                throw new Error(`${this.constructor.name}: Invalid max date`);
             }
         }
     }

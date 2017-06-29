@@ -1,13 +1,13 @@
 'use strict';
 
-const Base = require('../base/Base');
-const session = require('express-session');
-const Store = session.Store;
+const Base = require('../../base/Base');
 
 module.exports = class SessionStore extends Base {
 
     constructor (config) {
-        super(config);
+        super(Object.assign({
+            userIdParam: '__id'
+        }, config));
         Store.call(this);
     }
    
@@ -23,5 +23,8 @@ module.exports = class SessionStore extends Base {
         return Store.prototype.regenerate.apply(this, args);
     }
 };
+
+const session = require('express-session');
+const Store = session.Store;
 
 Object.assign(module.exports.prototype, Object.getPrototypeOf(Store.prototype));

@@ -1,8 +1,6 @@
 'use strict';
 
 const Base = require('./QueryBuilder');
-const mongodb = require('mongodb');
-const MainHelper = require('../helpers/MainHelper');
 
 const CONDITION_BUILDERS = {
     'AND': 'buildAndCondition',
@@ -70,7 +68,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     getFieldName (field) {
         if (typeof field !== 'string') {
-            throw new Error(`MongoQueryBuilder: Invalid field name ${field}`);
+            throw new Error(`${this.constructor.name}: Invalid field name ${field}`);
         }
         return field;
     }
@@ -104,10 +102,10 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildSimpleCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: Simple requires 2 operands.');
+            throw new Error(`${this.constructor.name}: Simple requires 2 operands.`);
         }
         if (!(SIMPLE_OPERATORS.hasOwnProperty(operator))) {
-            throw new Error('MongoQueryBuilder: Simple operator not found.');
+            throw new Error(`${this.constructor.name}: Simple operator not found.`);
         }        
         return {[this.getFieldName(operands[0])]: {[SIMPLE_OPERATORS[operator]]: operands[1]}};
     }
@@ -124,7 +122,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildNotEqualCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: NOT EQUAL requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT EQUAL requires 2 operands.`);
         }
         return {[this.getFieldName(operands[0])]: { $ne: operands[1] }};
     }
@@ -133,14 +131,14 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildInCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: IN requires 2 operands.');
+            throw new Error(`${this.constructor.name}: IN requires 2 operands.`);
         }
         return {[this.getFieldName(operands[0])]: {$in: operands[1] instanceof Array ? operands[1] : [operands[1]]}};
     }
 
     buildNotInCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: NOT IN requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT IN requires 2 operands.`);
         };
         return {[this.getFieldName(operands[0])]: {$nin: operands[1] instanceof Array ? operands[1] : [operands[1]]}};
     }
@@ -149,7 +147,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildLikeCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: LIKE requires 2 operands.');
+            throw new Error(`${this.constructor.name}: LIKE requires 2 operands.`);
         }
         return {[this.getFieldName(operands[0])]: this.convertLikeToRegular(operands[1])};
     }
@@ -166,7 +164,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildNotLikeCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: NOT LIKE requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT LIKE requires 2 operands.`);
         }
         return {[this.getFieldName(operands[0])]: {$not: this.convertLikeToRegular(operands[1])}};
     }
@@ -175,7 +173,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildBetweenCondition (operator, operands) {
         if (operands.length !== 3) {
-            throw new Error('MongoQueryBuilder: BETWEEN requires 3 operands.');
+            throw new Error(`${this.constructor.name}: BETWEEN requires 3 operands.`);
         }
         let field = this.getFieldName(operands[0]);
         // { $and: [ { field: { $gte: v1 } }, { field: { $lte: v1 } } ]}        
@@ -190,7 +188,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildIdCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MongoQueryBuilder: ID requires 2 operands.');
+            throw new Error(`${this.constructor.name}: ID requires 2 operands.`);
         }
         let value = this.db.normalizeId(operands[1]);
         if (value instanceof Array) {
@@ -209,14 +207,14 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildNullCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MongoQueryBuilder: NULL requires 1 operand.');
+            throw new Error(`${this.constructor.name}: NULL requires 1 operand.`);
         }
         return {[this.getFieldName(operands[0])]: {$type: 10}};
     }
 
     buildNotNullCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MongoQueryBuilder: NOT NULL requires 1 operand.');
+            throw new Error(`${this.constructor.name}: NOT NULL requires 1 operand.`);
         }
         return {[this.getFieldName(operands[0])]: {$not: {$type: 10}}};
     }
@@ -225,15 +223,18 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildExistsCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MongoQueryBuilder: EXISTS requires 1 operand.');
+            throw new Error(`MongoQueryBuilder: EXISTS requires 1 operand.`);
         }
         return {[this.getFieldName(operands[0])]: {$exists: true}};
     }
 
     buildNotExistsCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MongoQueryBuilder: NOT EXISTS requires 1 operand.');
+            throw new Error(`${this.constructor.name}: NOT EXISTS requires 1 operand.`);
         }
         return {[this.getFieldName(operands[0])]: {$exists: false}};
     }
 };
+
+const mongodb = require('mongodb');
+const MainHelper = require('../helpers/MainHelper');

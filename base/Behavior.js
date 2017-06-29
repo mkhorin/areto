@@ -25,7 +25,7 @@ module.exports = class Behavior extends Base {
 
     attach (owner) {
         this.owner = owner;
-        for (let name in this._events) {
+        for (let name of Object.keys(this._events)) {
             this.resolveEventHandler(name);
             this.owner.on(name, this._events[name]);
         }
@@ -43,7 +43,7 @@ module.exports = class Behavior extends Base {
 
     detach () {
         if (this.owner) {
-            for (let name in this._events) {
+            for (let name of Object.keys(this._events)) {
                 this.owner.off(name, this._events[name]);
             }
             this.owner = null;

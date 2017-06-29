@@ -32,7 +32,9 @@ module.exports = class AccessRule extends Base {
                     cb(); // skip rule
                 }
             });
-        } else cb(); // skip rule
+        } else {
+            cb(); // skip rule
+        }
     }
 
     match (user, cb) {
@@ -40,16 +42,17 @@ module.exports = class AccessRule extends Base {
             let roles = [];
             for (let item of this.roles) {
                 if (item === '?') {
-                    return cb(null, !user.isGuest());
-                } else if (item === '@') {
                     return cb(null, user.isGuest());
+                } else if (item === '@') {
+                    return cb(null, !user.isGuest());
                 } else {
                     roles.push(item);
                 }
             }
-            async.eachSeries(roles, (item, cb2)=> {
+            async.eachSeries(roles, (item, roleCallback)=> {
                 user.can(item, (err, access)=> {
-                    err ? cb2(err) : access ? cb(null, true) : cb2();
+                    err ? roleCallback(err)
+                        : access ? cb(null, true) : roleCallback();
                 });
             }, err => cb(err, false));
         } else {

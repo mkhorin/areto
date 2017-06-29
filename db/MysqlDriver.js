@@ -20,7 +20,7 @@ module.exports = class MysqlDriver extends Base {
         // try to open the first connection in the pool
         this.client.getConnection((err, connection)=> {
             connection && connection.release();
-            cb(err);
+            cb(err, connection);
         });
     }
 
@@ -61,7 +61,7 @@ module.exports = class MysqlDriver extends Base {
 
     insert (table, doc, cb) {
         let columns = this.escapeId(Object.keys(doc)).join(',');
-        let values = this.escape(ObjectHelper.toValueArray(doc));
+        let values = this.escape(ObjectHelper.getValues(doc));
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
         this.execute(sql, (err, result)=> {
             err ? cb(err) : cb(null, result.insertId);
@@ -70,7 +70,7 @@ module.exports = class MysqlDriver extends Base {
     
     upsert (table, condition, doc, cb) {
         let columns = this.escapeId(Object.keys(doc));
-        let values = this.escape(ObjectHelper.toValueArray(doc));
+        let values = this.escape(ObjectHelper.getValues(doc));
         let updates = columns.map(column => `${column}=VALUES(${column})`).join(',');
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join(',')}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
         this.execute(sql, cb);
@@ -86,7 +86,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     updateAll (table, condition, doc, cb) {
-        cb('MysqlDriver: updateAll: TODO...');
+        cb(`${this.constructor.name}: updateAll: TODO...`);
     }
 
     remove (table, condition, cb) {

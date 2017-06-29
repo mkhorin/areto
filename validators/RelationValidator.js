@@ -42,31 +42,26 @@ module.exports = class RelationValidator extends Base {
         }
         try {
             value = JSON.parse(value);
-            for (let item of this.CHANGES) {
-                for (let id of value[item]) {
-                    if (!id || typeof id === 'object') {
-                        return cb(null, this.message);
-                    }
+        } catch (err) {
+            return cb(null, this.message);
+        }
+        for (let item of this.CHANGES) {
+            for (let id of value[item]) {
+                if (!id || typeof id === 'object') {
+                    return cb(null, this.message);
                 }
             }
-            this.filterChanges(value);
-            if (this.isIntersection(value)) {
-                return cb(null, this.message);
-            }
-            cb(null, null, null, value);
-        } catch (err) {
-            cb(null, this.message);
         }
+        this.filterChanges(value);
+        if (this.isIntersection(value)) {
+            return cb(null, this.message);
+        }
+        cb(null, null, null, value);
     }
 
     isIntersection (changes) {
         for (let link of changes.links) {
             if (changes.unlinks.includes(link) || changes.removes.includes(link)) {
-                return true;
-            }
-        }
-        for (let unlink of changes.unlinks) {
-            if (changes.removes.includes(unlink)) {
                 return true;
             }
         }

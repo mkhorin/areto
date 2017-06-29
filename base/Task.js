@@ -6,8 +6,6 @@ module.exports = class Task extends Base {
 
     static getConstants () {
         return {
-            MIN_PERIOD: 1, // minutes
-            MAX_PERIOD: 35790,
             EVENT_BEFORE_RUN: 'beforeRun',
             EVENT_DONE: 'done',
             EVENT_FAIL: 'fail'
@@ -17,7 +15,7 @@ module.exports = class Task extends Base {
     constructor (config) {
         super(Object.assign({
             active: true,
-            period: 3600, // seconds
+            interval: 0, // seconds
             repeats: 0
         }, config));
     }
@@ -25,10 +23,6 @@ module.exports = class Task extends Base {
     init () {
         super.init();
         this.start();
-    }
-    
-    isValidPeriod (period) {
-        return period >= this.MIN_PERIOD && period <= this.MAX_PERIOD;
     }
 
     canRepeat () {
@@ -49,14 +43,14 @@ module.exports = class Task extends Base {
         this.trigger(this.EVENT_DONE, new ExtEvent({result}));
     }
 
-    fail (err) {
-        this.trigger(this.EVENT_FAIL, new ExtEvent({err}));
+    fail (error) {
+        this.trigger(this.EVENT_FAIL, new ExtEvent({error}));
     }
     
     //
 
     run (cb) {
-        cb(`Task: ${this.id}: Run task here`);
+        cb(`${this.constructor.name}: ${this.id}: Run task here`);
     }
 
     restart () {
@@ -73,8 +67,8 @@ module.exports = class Task extends Base {
     }
 
     next () {
-        if (this.active && this.isValidPeriod(this.period) && this.canRepeat()) {
-            this._timer = setTimeout(this.execute.bind(this, ()=>{}), this.period * 1000);
+        if (this.active && this.interval > 0 && this.canRepeat()) {
+            this._timer = setTimeout(this.execute.bind(this, ()=>{}), this.interval * 1000);
             return true;
         }
         return false;

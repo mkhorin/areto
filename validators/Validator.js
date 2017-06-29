@@ -1,8 +1,6 @@
 'use strict';
 
 const Base = require('../base/Base');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const async = require('async');
 
 module.exports = class Validator extends Base {
 
@@ -24,7 +22,7 @@ module.exports = class Validator extends Base {
                 'mongoId': require('./MongoIdValidator'),
                 'number': require('./NumberValidator'),
                 'range': require('./RangeValidator'),
-                'regexp': require('./RegexpValidator'),
+                'regexp': require('./RegExpValidator'),
                 'required': require('./RequiredValidator'),
                 'relation': require('./RelationValidator'),
                 'safe': require('./SafeValidator'),
@@ -45,7 +43,7 @@ module.exports = class Validator extends Base {
         } else if (Object.prototype.hasOwnProperty.call(this.BUILTIN, type)) {
             type = this.BUILTIN[type];
         } else {
-            throw new Error(`Validator: Invalid type: ${type}`);
+            throw new Error(`${this.name}: Invalid type: ${type}`);
         }
         return new type(config);
     }
@@ -59,15 +57,15 @@ module.exports = class Validator extends Base {
             skipOnAnyError: false,
             skipOnEmpty: true,
             enableClientValidation: true,
-            checkEmpty: null,
-            when: null,
+            isEmpty: null, // value => false/true
+            when: null, // (model, attr)=> false/true
             whenClient: null
         }, config));
     }
 
     createMessage (msgAttr, message) {
         if (!(this[msgAttr] instanceof Message)) {
-            this[msgAttr] = this[msgAttr] ? new Message(null, this[msgAttr]) : new Message('core', message);
+            this[msgAttr] = this[msgAttr] ? new Message(null, this[msgAttr]) : new Message('areto', message);
         }
         return this[msgAttr];
     }
@@ -77,7 +75,7 @@ module.exports = class Validator extends Base {
         attrs = attrs.filter(attr => {
             return (!this.skipOnAnyError || !model.hasError())
                 && (!this.skipOnError || !model.hasError(attr))
-                && (!this.skipOnEmpty || !this.isEmpty(model.get(attr)))
+                && (!this.skipOnEmpty || !this.isEmptyValue(model.get(attr)))
                 && (typeof this.when !== 'function' || this.when(model, attr));
         });
         async.each(attrs, (attr, cb)=>{
@@ -93,7 +91,7 @@ module.exports = class Validator extends Base {
     }
 
     validateValue (value, cb) {
-        cb('Validator must override this method');
+        cb(`${this.constructor.name}: Need to override`);
     }
 
     isActive (scenario) {
@@ -102,10 +100,10 @@ module.exports = class Validator extends Base {
             : !this.on;
     }
 
-    isEmpty (value) {
-        return typeof this.checkEmpty === 'function' 
-            ? this.checkEmpty(value)
-            : value === undefined || value === null || value === '' || value.length === 0;
+    isEmptyValue (value) {
+        return typeof this.isEmpty === 'function'
+            ? this.isEmpty(value)
+            : value === undefined || value === null || value.length === 0;
     }
 
     addError (model, attr, message, params) {
@@ -122,4 +120,6 @@ module.exports = class Validator extends Base {
 };
 module.exports.init();
 
+const async = require('async');
+const ArrayHelper = require('../helpers/ArrayHelper');
 const Message = require('../i18n/Message');

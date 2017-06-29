@@ -26,6 +26,10 @@ module.exports = class Query extends Base {
         this._indexBy = column;
         return this;
     }
+
+    asArray () {
+        return this;
+    }
     
     // SELECT
 
@@ -227,13 +231,13 @@ module.exports = class Query extends Base {
     }
 
     // hash format: { 'column1': 'value1', 'column2': 'value2', ... }
-    filterHashCondition (cond) {
-        for (let name in cond) {
-            if (Object.prototype.hasOwnProperty.call(cond, name) && this.isEmpty(cond[name])) {
-                delete cond[name];
+    filterHashCondition (condition) {
+        for (let name in Object.keys(condition)) {
+            if (this.isEmpty(condition[name])) {
+                delete condition[name];
             }
         }
-        return cond;
+        return condition;
     }
 
     // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)

@@ -9,7 +9,8 @@ module.exports = class App extends Base {
 
     static getConstants () {
         return {
-            DEFAULT_COMPONENTS: {                
+            DEFAULT_COMPONENTS: {
+                'formatter': {},
                 'template': {},
                 'bodyParser': {}
             },
@@ -50,27 +51,29 @@ module.exports = class App extends Base {
     }
 
     // MIGRATION
-    // node bin/migrate.js apply migrations/MigrationClass
+    // node bin/migrate.js --action apply --classes migrations/MigrationClass
 
-    migrate (params, cb) {               
-        let action = params.splice(0, 1).join('');        
+    migrate (action, fileNames, cb) {
         if (action !== 'apply' && action !== 'revert') {
             this.log('error', `Migration action (apply or revert) is not set: ${action}`);
             return cb(true);
         }
-        async.eachSeries(params, (filename, cb)=> {
-            this.log('info', `Start to ${action} ${filename}`);
-            this.migrateFile(filename, action, err => {
-                err ? this.log('error', `${filename} is failed`, err)
-                    : this.log('info', `${filename} is done`);
+        if (!(fileNames instanceof Array)) {
+            fileNames = [fileNames];
+        }
+        async.eachSeries(fileNames, (fileName, cb)=> {
+            this.log('info', `Start to ${action} ${fileName}`);
+            this.migrateFile(fileName, action, err => {
+                err ? this.log('error', `${fileName} is failed`, err)
+                    : this.log('info', `${fileName} is done`);
                 cb(err);
             });
         }, cb);
     }
 
-    migrateFile (filename, action, cb) {
+    migrateFile (fileName, action, cb) {
         try {
-            let Migration = require(this.getPath(filename));
+            let Migration = require(this.getPath(fileName));
             let migration = new Migration;
             migration[action](cb);
         } catch (err) {
@@ -78,3 +81,4 @@ module.exports = class App extends Base {
         }
     }
 };
+module.exports.init();

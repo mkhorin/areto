@@ -5,8 +5,8 @@ const StringHelper = require('../../../helpers/StringHelper');
 
 describe('helpers.string', ()=> {
 
-    it('ucwords: capitalize first letters', ()=> {
-        expect(StringHelper.ucwords('up first letters')).to.equal('Up First Letters');
+    it('toWordFirstUpperCase: capitalize first letters', ()=> {
+        expect(StringHelper.toWordFirstUpperCase('up first letters')).to.equal('Up First Letters');
     });
 
     it('camelize', ()=> {

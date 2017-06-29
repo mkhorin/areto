@@ -1,16 +1,14 @@
 'use strict';
 
 const Base = require('./Base');
-const ExtEvent = require('./ExtEvent');
-const async = require('async');
 
 module.exports = class Component extends Base {
 
     static getConstants () {
         return {
             BEHAVIORS: {
-                // behavior1: require('./UserBehavior1'),
-                // behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... } 
+                //behavior1: require('./UserBehavior1'),
+                //behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
             }
         };
     }
@@ -32,16 +30,16 @@ module.exports = class Component extends Base {
      */
     on (name, handler, data, prepend) {
         if (!name) {
-            throw new Error('Component: Invalid event name');
+            throw new Error(`${this.constructor.name}: Invalid event name`);
         }   
         if (typeof handler !== 'function') {
-            throw new Error('Component: Invalid event handler');
+            throw new Error(`${this.constructor.name}: Invalid event handler`);
         }    
         this.ensureBehaviors();
         if (!this._events[name]) {
             this._events[name] = [];
         }
-        // обратный порядок добавления, см trigger()
+        // reverse order of addition, see trigger()
         prepend ? this._events[name].push([handler, data]) 
                 : this._events[name].unshift([handler, data]);
     }
@@ -72,7 +70,9 @@ module.exports = class Component extends Base {
             // триггер может быть удален внутри хэндлера, изменится массив this._events[name]
             for (let i = this._events[name].length - 1; i >= 0; --i) {
                 this._events[name][i][0](event, this._events[name][i][1]); // handler(event, data)
-                if (event.handled) return;
+                if (event.handled) {
+                    return;
+                }
             }
         }        
         ExtEvent.trigger(this, name, event); // invoke class-level attached handlers
@@ -96,7 +96,7 @@ module.exports = class Component extends Base {
 
     getBehavior (name) {
         this.ensureBehaviors();
-        return Object.prototype.hasOwnProperty.call(this._behaviors, name) ? this._behaviors[name] : null;
+        return this._behaviors.hasOwnProperty(name) ? this._behaviors[name] : null;
     }
 
     getBehaviors () {
@@ -111,14 +111,14 @@ module.exports = class Component extends Base {
 
     attachBehaviors (behaviors) {
         this.ensureBehaviors();
-        for (let name in behaviors) {
+        for (let name of Object.keys(behaviors)) {
             this.attachBehaviorInternal(name, behaviors[name]);
         }
     }
 
     detachBehavior (name) {
         this.ensureBehaviors();
-        if (!(name in this._behaviors)) {
+        if (!this._behaviors.hasOwnProperty(name)) {
             return null;
         }
         let behavior = this._behaviors[name];
@@ -129,7 +129,7 @@ module.exports = class Component extends Base {
 
     detachBehaviors () {
         this.ensureBehaviors();
-        for (let name in this._behaviors) {
+        for (let name of Object.keys(this._behaviors)) {
             this.detachBehavior(name);
         }
     }
@@ -137,7 +137,7 @@ module.exports = class Component extends Base {
     ensureBehaviors () {
         if (!this._behaviors) {
             this._behaviors = {};
-            for (let name in this.BEHAVIORS) {
+            for (let name of Object.keys(this.BEHAVIORS)) {
                 this.attachBehavior(name, this.BEHAVIORS[name]);
             }    
         }
@@ -149,7 +149,7 @@ module.exports = class Component extends Base {
         } else if (behavior) {
             behavior = new behavior.Class(behavior);
         }        
-        if (name in this._behaviors) {
+        if (this._behaviors.hasOwnProperty(name)) {
             this._behaviors[name].detach();
         }
         if (behavior) {
@@ -159,3 +159,6 @@ module.exports = class Component extends Base {
         return behavior;
     }
 };
+
+const async = require('async');
+const ExtEvent = require('./ExtEvent');

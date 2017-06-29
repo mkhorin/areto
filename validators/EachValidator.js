@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Validator');
-const async = require('async');
 
 module.exports = class EachValidator extends Base {
 
@@ -40,16 +39,16 @@ module.exports = class EachValidator extends Base {
         let validator = this.getValidator();
         if (validator instanceof FilterValidator && values instanceof Array) {
             let filteredValues = [];
-            async.each(values, (value, cb)=> {
-                value instanceof Array && validator.skipOnArray ? cb() 
-                    : validator.filter(value, (err, result)=> {
-                        filteredValues.push(result);
-                        cb(err)
-                    }, model, attr);
-            }, err => {
-                model.set(attr, filteredValues);
-                cb(err);
-            });
+            model.set(attr, filteredValues);
+            async.eachSeries(values, (value, cb)=> {
+                if (value instanceof Array && validator.skipOnArray) {
+                    return cb();
+                }
+                validator.filter(value, (err, result)=> {
+                    filteredValues.push(result);
+                    cb(err)
+                }, model, attr);
+            }, cb);
         } else {
             this.getValidator(model); // ensure model context while validator creation
             super.validateAttr(model, attr, cb);
@@ -57,18 +56,19 @@ module.exports = class EachValidator extends Base {
     }
 
     validateValue (values, cb) {
-        if (values instanceof Array) {            
-            let validator = this.getValidator();
-            async.each(values, (value, cb)=> {
-                validator.validateValue(value, (err, result)=> {
-                    err ? cb(err) : cb(null, result ? (this.allowMessageFromRule ? result : this.message) : null);
-                });
-            }, cb);
-        } else {
-            cb(null, this.message);
+        if (!(values instanceof Array)) {
+            return cb(null, this.message);
         }
+        let validator = this.getValidator();
+        async.eachSeries(values, (value, cb)=> {
+            validator.validateValue(value, (err, result)=> {
+                err ? cb(err)
+                    : cb(null, result ? (this.allowMessageFromRule ? result : this.message) : null);
+            });
+        }, cb);
     }
 };
 
-let Model = require('../base/Model');
-let FilterValidator = require('./FilterValidator');
+const async = require('async');
+const Model = require('../base/Model');
+const FilterValidator = require('./FilterValidator');

@@ -28,10 +28,10 @@ module.exports = class Connection extends Base {
             } else if (driver instanceof Function) {
                 this.driver = new driver;
             } else {
-                throw new Error('Connection: Invalid driver');
+                throw new Error(`${this.constructor.name}: Invalid driver`);
             }
         } else {
-            throw new Error('Connection: Driver not found');
+            throw new Error(`${this.constructor.name}: Driver '${this.schema}' not found`);
         }
     }
 };

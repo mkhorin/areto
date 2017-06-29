@@ -1,48 +1,48 @@
 'use strict';
 
 const Base = require('../base/Base');
-const MainHelper = require('../helpers/MainHelper');
-const path = require('path');
 
 module.exports = class I18n extends Base {
 
     static getConstants () {
         return {
-            ASTERISK: '*',
-            CORE_CATEGORY: 'core',
-            APP_CATEGORY: 'app'
+            CORE_CATEGORY: 'areto',
+            APP_CATEGORY: 'app',
+            ASTERISK: '*'
         };
     }
 
     constructor (config) {
         super(Object.assign({
-            language: 'en', // active laguage
-            sourceLanguage: 'en',
-            MessageFormatter: MessageFormatter,
+            language: config.parent ? config.parent.language : 'en',
+            sourceLanguage: config.parent ? config.parent.sourceLanguage : 'en',
+            MessageFormatter,
             sources: {},
             basePath: config.module.getPath('messages')
         }, config));
     }
 
     init () {        
+        super.init();
+        for (let category of Object.keys(this.sources)) {
+            this.sources[category] = this.createSource(category, this.sources[category]);
+        }
+        if (!this.sources[this.CORE_CATEGORY] && !this.sources[this.CORE_CATEGORY + this.ASTERISK]) {
+            if (this.parent instanceof I18n) {
+                this.sources[this.CORE_CATEGORY] = this.parent.sources[this.CORE_CATEGORY];
+            } else {
+                this.sources[this.CORE_CATEGORY] = this.createSource(this.CORE_CATEGORY, {
+                    basePath: path.join(__dirname, 'messages')
+                });
+            }
+        }
+        if (!this.sources[this.APP_CATEGORY] && !this.sources[this.APP_CATEGORY + this.ASTERISK]) {
+            this.sources[this.APP_CATEGORY] = this.createSource(this.APP_CATEGORY);
+        }
         if (this.parent instanceof I18n) {
-            this.sources = Object.assign({}, this.parent.sources, this.sources);
-        }
-        for (let key of Object.keys(this.sources)) {
-            this.sources[key] = MainHelper.createInstance(Object.assign({
-                i18n: this,
-            }, this.sources[key]));
-        }
-        if (!(this.CORE_CATEGORY in this.sources) && !((this.CORE_CATEGORY + this.ASTERISK) in this.sources)) {
-            this.sources[this.CORE_CATEGORY] = new JsMessageSource({
-                i18n: this,
-                basePath: path.join(__dirname, 'messages')
-            });
-        }
-        if (!(this.APP_CATEGORY in this.sources) && !((this.APP_CATEGORY + this.ASTERISK) in this.sources)) {
-            this.sources[this.APP_CATEGORY] = new JsMessageSource({
-                i18n: this
-            });
+            for (let category of Object.keys(this.parent.sources)) {
+                this.sources[category] = this.sources[category] || this.parent.sources[category];
+            }
         }
         this.messageFormatter = new this.MessageFormatter;
     }
@@ -52,6 +52,7 @@ module.exports = class I18n extends Base {
         if (!source) {
             return message;
         }
+        language = language || this.language;
         let result = source.translate(category, message, language);
         return result === null
             ? this.format(message, params, source.sourceLanguage)
@@ -64,35 +65,51 @@ module.exports = class I18n extends Base {
 
     getMessageSource (category) {
         let sources = this.sources;
-        if (category in sources) {
+        if (sources.hasOwnProperty(category)) {
             if (!(sources[category] instanceof MessageSource)) {
-                sources[category] = MainHelper.createInstance(sources[category]);
+                sources[category] = this.createSource(category, sources[category]);
             }
             return sources[category];
-        } else {
-            for (let key in sources) {
-                let pos = key.indexOf(this.ASTERISK);
-                if (pos > 0 && key.substring(0, pos).indexOf(category) === 0) {
-                    if (!(sources[key] instanceof MessageSource)) {
-                        sources[key] = MainHelper.createInstance(sources[key]);
-                        sources[category] = sources[key];
-                    }
-                    return sources[key];
+        }
+        for (let name of Object.keys(sources)) {
+            let pos = name.indexOf(this.ASTERISK);
+            if (pos > 0 && name.substring(0, pos).indexOf(category) === 0) {
+                if (!(sources[name] instanceof MessageSource)) {
+                    sources[name] = this.createSource(name, sources[name]);
+                    sources[category] = sources[name];
                 }
-            }
-            if (this.ASTERISK in sources) {
-                if (!(sources[this.ASTERISK] instanceof MessageSource)) {
-                    sources[this.ASTERISK] = MainHelper.createInstance(sources[this.ASTERISK]);
-                }
-                return sources[this.ASTERISK];
+                return sources[name];
             }
         }
-        this.module.log('error', `I18n: Unable to locate message source for ${category}`);
+        if (sources.hasOwnProperty(this.ASTERISK)) {
+            if (!(sources[this.ASTERISK] instanceof MessageSource)) {
+                sources[this.ASTERISK] = this.createSource(this.ASTERISK, sources[this.ASTERISK]);
+            }
+            return sources[this.ASTERISK];
+        }
+        this.module.log('error', `${this.constructor.name}: Unable to find message source for "${category}"`);
         return null;
+    }
+
+    createSource (category, data) {
+        if (data instanceof MessageSource) {
+            return data;
+        }
+        return MainHelper.createInstance(Object.assign({
+            Class: JsMessageSource,
+            i18n: this,
+            parent: this.getSourceParent(category)
+        }, data));
+    }
+
+    getSourceParent (category) {
+        return this.parent ? (this.parent.sources[category] || this.parent.getSourceParent(category)) : null;
     }
 };
 module.exports.init();
 
+const path = require('path');
+const MainHelper = require('../helpers/MainHelper');
 const MessageSource = require('./MessageSource');
 const JsMessageSource = require('./JsMessageSource');
 const MessageFormatter = require('./MessageFormatter');

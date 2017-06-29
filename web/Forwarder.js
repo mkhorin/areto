@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Base');
-const Url = require('./Url');
 
 module.exports = class Forwarder extends Base {
 
@@ -20,12 +19,12 @@ module.exports = class Forwarder extends Base {
                 this.module.log('trace', `${this.module.getFullName()}: forward ${item.source} to ${item.target}`);
             }    
         } catch (err) {
-            this.module.log('error', 'Forwarder: setItems', err);
+            this.module.log('error', `${this.constructor.name}: setItems`, err);
         }        
     }
 
     forward (req) {
-        var data = this.resolve(req.path, req.method);
+        let data = this.resolve(req.path, req.method);
         if (data) {
             this.module.log('trace', `${this.module.getFullName()}: forward ${req.path} to ${data.path}`, data.params);
             Object.assign(req.query, data.params);
@@ -55,3 +54,5 @@ module.exports = class Forwarder extends Base {
         return null;
     }
 };
+
+const Url = require('./Url');

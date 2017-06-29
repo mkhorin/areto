@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('./Component');
-const StringHelper = require('../helpers/StringHelper');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const async = require('async');
 
 module.exports = class Model extends Base {
 
@@ -47,7 +44,7 @@ module.exports = class Model extends Base {
         return Object.prototype.hasOwnProperty.call(this._attrs, name);
     }
 
-    deleteAttr (name) {
+    resetAttr (name) {
         delete this._attrs[name];
     }
     
@@ -134,14 +131,8 @@ module.exports = class Model extends Base {
         }
     }
 
-    assignAttrs (model) {
-        if (model instanceof Model) {
-            this.setAttrs(model._attrs);
-        }
-    }
-    
     setAttrs (values) {
-        Object.assign(this._attrs, values);
+        Object.assign(this._attrs, values instanceof Model ? values._attrs : values);
     }
 
     getScenarioAttrs (scenario) {
@@ -323,7 +314,11 @@ module.exports = class Model extends Base {
         return new (this.getDefaultController());
     }
 };
+module.exports.init();
 
+const async = require('async');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const StringHelper = require('../helpers/StringHelper');
 const Message = require('../i18n/Message');
 const Validator = require('../validators/Validator');
 const DefaultValueValidator = require('../validators/DefaultValueValidator');

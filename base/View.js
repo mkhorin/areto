@@ -1,43 +1,51 @@
 'use strict';
 
 const Base = require('./Base');
-const MainHelper = require('../helpers/MainHelper');
-const async = require('async');
 
 module.exports = class View extends Base {
 
-    constructor (controller, config) {
+    static getConstants () {
+        return {
+            'ArrayHelper': require('../helpers/ArrayHelper'),
+            'MainHelper': require('../helpers/MainHelper'),
+            'StringHelper': require('../helpers/StringHelper'),
+            'ObjectHelper': require('../helpers/ObjectHelper')
+        };
+    }
+
+    constructor (config) {
         super(Object.assign({
-            controller,
-            theme: controller.module.components.template.getTheme(),
+            theme: config.controller.module.components.template.getTheme(),
             widgets: {},
-            data: {}
+            data: {} 
         }, config));
-        this._buffer = {};
     }
 
     get (template) {
-        return this.theme.get(template);
+        return this.theme.get(template, this.language);
     }
 
     render (template, params, cb) {
         params = Object.assign({
-            controller: this.controller,
-            view: this,
-            t: this.controller.translate.bind(this.controller),
-            u: this.controller.createUrl.bind(this.controller)
+            _view: this,
+            _controller: this.controller,
+            _format: this.controller.format.bind(this.controller),
+            _t: this.controller.translate.bind(this.controller),
+            _url: this.controller.createUrl.bind(this.controller)
         }, params);
-        this.controller.res.app.render(this.theme.get(template), params, (err, content)=> {
+        this.controller.res.app.render(this.get(template), params, (err, content)=> {
             err ? cb(err) : this.renderWidgets(content, params, cb);
         });
     }
 
+    // CUSTOM DATA
+
     getData (key, defaults) {
-        return Object.prototype.hasOwnProperty.call(this._buffer, key) ? this._buffer[key] : defaults;
+        return Object.prototype.hasOwnProperty.call(this.data, key) ? this.data[key] : defaults;
     }
 
     setData (key, data) {
-        this._buffer[key] = data;
+        this.data[key] = data;
     }
 
     // WIDGETS
@@ -49,7 +57,7 @@ module.exports = class View extends Base {
     createWidget (params) {
         let anchor = `${params.id}-${this.controller.timestamp}`;
         if (this.widgets[anchor]) {
-            this.controller.module.log('error', `View: "${params.id}" widget already exists`);
+            this.controller.module.log('error', `${View.name}: "${params.id}" widget already exists`);
             return '';
         }
         if (!params.configId) {
@@ -68,11 +76,13 @@ module.exports = class View extends Base {
             let params = this.widgets[anchor];
             let widget = this.controller.module.widgets[params.configId];
             if (widget) {
-                widget = MainHelper.createInstance(Object.assign({view: this}, widget, params));
+                widget = MainHelper.createInstance(Object.assign({
+                    view: this
+                }, widget, params));
                 this.widgets[anchor] = widget;
                 widget.execute(cb, renderParams);
             } else {
-                this.controller.module.log('error', `View: "${params.configId}" widget config not found`);
+                this.controller.module.log('error', `${View.name}: "${params.configId}" widget config not found`);
                 delete this.widgets[anchor];
                 cb();
             }
@@ -89,3 +99,7 @@ module.exports = class View extends Base {
         return content;
     }
 };
+module.exports.init();
+
+const async = require('async');
+const MainHelper = require('../helpers/MainHelper');

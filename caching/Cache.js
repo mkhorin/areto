@@ -7,7 +7,7 @@ module.exports = class Cache extends Base {
     constructor (config) {
         super(Object.assign({
             keyPrefix: null,
-            duration: 100,
+            duration: 100, // seconds
             serializer: null
         }, config));
     }
@@ -22,19 +22,15 @@ module.exports = class Cache extends Base {
         });
     }
 
-    buildKey (key) {
-        return this.keyPrefix ? `${this.keyPrefix}${key}` : key;
-    }
-
     get (key, cb) {
         key = this.buildKey(key);
-        if (this.serializer) {
-            this.getValue(key, (err, value)=> {
-                err ? cb(err) : value ? this.serializer.parse(value) : value;
-            });
-        } else {
-            this.getValue(key, cb);
+        if (!this.serializer) {
+            return this.getValue(key, cb);
         }
+        this.getValue(key, (err, value)=> {
+            err ? cb(err)
+                : value ? this.serializer.parse(value) : value;
+        });
     }
 
     set (key, value, duration, cb) {
@@ -71,5 +67,9 @@ module.exports = class Cache extends Base {
 
     flushValues (cb) {
         cb();
+    }
+
+    buildKey (key) {
+        return this.keyPrefix ? `${this.keyPrefix}${key}` : key;
     }
 };

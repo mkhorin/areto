@@ -24,21 +24,21 @@ module.exports = class Driver extends Base {
 
     getUri (withPassword) {
         let opt = this.settings;
-        let auth = opt.user ? (opt.user +':'+ (withPassword ? opt.password : '****') +'@') : '';
+        let auth = opt.user ? (opt.user +':'+ (withPassword ? opt.password : '*') +'@') : '';
         return `${this.schema}://${auth}${opt.host}:${opt.port}/${opt.database}`;
     }
 
     openClient (cb) {
-        cb('Driver: open client');
+        cb(`${this.constructor.name}: open client`);
     }
 
     closeClient (cb) {
-        cb('Driver: close client');
+        cb(`${this.constructor.name}: close client`);
     }
 
     open (cb) {
         if (this.connection) {
-            return cb(`Connection is already opened: ${this.getUri()}`);
+            return cb(`${this.constructor.name}: Connection is already opened: ${this.getUri()}`);
         }
         async.waterfall([
             this.openClient.bind(this),
@@ -53,7 +53,7 @@ module.exports = class Driver extends Base {
 
     close (cb) {
         if (!this.connection) {
-            return cb(`Connection is already closed: ${this.getUri()}`);
+            return cb(`${this.constructor.name}: Connection is already closed: ${this.getUri()}`);
         }
         async.series([
             this.closeClient.bind(this),

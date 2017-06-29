@@ -28,11 +28,12 @@ module.exports = class NumberValidator extends Base {
     validateAttr (model, attr, cb) {
         let value = model.get(attr);
         this.validateValue(value, (err, msg, params)=> {
-            if (!err) {
-                msg ? this.addError(model, attr, msg, params)
-                    : model.set(attr, parseFloat(value));    
-            }            
-            cb(err);
+            if (err) {
+                return cb(err);
+            }
+            msg ? this.addError(model, attr, msg, params)
+                : model.set(attr, parseFloat(value));
+            cb();
         });
     }
 
@@ -53,3 +54,5 @@ module.exports = class NumberValidator extends Base {
         cb();
     }
 };
+
+const async = require('async');

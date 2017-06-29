@@ -4,18 +4,20 @@ const Base = require('./SessionStore');
 
 module.exports = class MemorySessionStore extends Base {
 
-    constructor (config) {
-        super(Object.assign({
-            userIdParam: '__id'
-        }, config));
-        
+    init () {
+        super.init();
         this._sessions = {};
         this._users = {};
     }
     
     get (sid, cb) {
-        cb(null, Object.prototype.hasOwnProperty.call(this._sessions, sid) 
-            ? this._sessions[sid].data : null);
+        if (!Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
+            return cb(null, null);
+        }
+        if (this.session.lifetime && (new Date) - this._sessions[sid].updatedAt > this.session.lifetime) {
+            return cb(null, null);
+        }
+        cb(null, this._sessions[sid].data);
     }
 
     set (sid, session, cb) {
@@ -36,11 +38,13 @@ module.exports = class MemorySessionStore extends Base {
         cb();
     }
 
-    removeExpired (elapsedSeconds, cb) {
-        let expired = new Date;
-        expired.setSeconds(expired.getSeconds() - elapsedSeconds);
+    removeExpired (cb) {
+        if (!this.session.lifetime) {
+            return cb();
+        }
+        let now = new Date;
         for (let sid of Object.keys(this._sessions)) {
-            if (this._sessions[sid].updatedAt < expired) {
+            if (now - this._sessions[sid].updatedAt > this.session.lifetime) {
                 if (this._sessions[sid][this.userIdParam]) {
                     delete this._users[this._sessions[sid][this.userIdParam]];
                 }
@@ -74,5 +78,3 @@ module.exports = class MemorySessionStore extends Base {
         cb();
     }
 };
-
-const Query = require('../db/Query');

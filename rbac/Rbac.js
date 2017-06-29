@@ -1,10 +1,8 @@
 'use strict';
 
 const Base = require('../base/Component');
-const MainHelper = require('../helpers/MainHelper');
-const async = require('async');
 
-module.exports = class Manager extends Base {
+module.exports = class Rbac extends Base {
 
     static getConstants () {
         return {
@@ -26,9 +24,7 @@ module.exports = class Manager extends Base {
     }
 
     configure (cb) {
-        setImmediate(()=>{
-            this.load(cb);
-        });
+        setImmediate(()=> this.load(cb));
     }
    
     afterLoad () {
@@ -37,20 +33,19 @@ module.exports = class Manager extends Base {
 
     load (cb) {
         if (this.loading) {
-            cb(null, 'RBAC: Loading in progress...');
-        } else {
-            this.loading = true;
-            this.store.load((err, data)=> {
-                this.loading = false;
-                if (err) {
-                    this.module.log('error', 'RBAC: load', err);
-                } else {
-                    this.build(data);                    
-                    this.afterLoad();                    
-                }
-                cb(err);
-            });
+            return cb(null, `${this.constructor.name}: Loading in progress`);
         }
+        this.loading = true;
+        this.store.load((err, data)=> {
+            this.loading = false;
+            if (err) {
+                this.module.log('error', `${this.constructor.name}: load`, err);
+                return cb(err);
+            }
+            this.build(data);
+            this.afterLoad();
+            cb();
+        });
     }
 
     build (data) {
@@ -81,7 +76,7 @@ module.exports = class Manager extends Base {
                     children.push(this.itemIndex[id]);
                     this.itemIndex[id].addParent(item);
                 } else {
-                    throw new Error(`RBAC: Unknown child "${id}"`);
+                    throw new Error(`${this.constructor.name}: Unknown child "${id}"`);
                 }
             }
             item.children = children;
@@ -89,29 +84,32 @@ module.exports = class Manager extends Base {
     }
 
     getUserAssignments (userId) {
-        return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId) ? this.assignmentIndex[userId].items : null;
+        return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId)
+            ? this.assignmentIndex[userId].items : null;
     }
 
     can (user, assignments, id, cb, params) {
         let item = this.itemIndex[id];
-        if (!this.loading && item && assignments && assignments.length) {
-            let result, data = {
-                assignment: null,
-                ruleCache: {},
-                user,
-                params
-            };
-            async.eachSeries(assignments, (assignment, cb2)=> {
-                if (Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
-                    data.assignment = this.itemIndex[assignment];
-                    this.canItem(item, data, (err, access)=> {
-                        err ? cb(err) : access ? cb(null, true) : cb2();
-                    });
-                } else cb2();
-            }, cb);
-        } else {
-            cb();
+        if (this.loading || !item || !assignments || assignments.length === 0) {
+            return cb();
         }
+        let result, data = {
+            assignment: null,
+            ruleCache: {},
+            user,
+            params
+        };
+        async.eachSeries(assignments, (assignment, assignCallback)=> {
+            if (Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
+                data.assignment = this.itemIndex[assignment];
+                this.canItem(item, data, (err, access)=> {
+                    err ? cb(err)
+                        : access ? cb(null, true) : assignCallback();
+                });
+            } else {
+                assignCallback();
+            }
+        }, cb);
     }
     
     canItem (item, data, cb) {
@@ -136,23 +134,24 @@ module.exports = class Manager extends Base {
     }
 
     canRule (item, data, cb) {
-        if (item.rule) {
-            if (Object.prototype.hasOwnProperty.call(data.ruleCache, item.rule.id)) {
-                cb(null, data.ruleCache[item.rule.id]);
-            } else {
-                item.rule.execute(data.user, (err, access)=> {
-                    if (err) {
-                        cb(err);
-                    } else {
-                        data.ruleCache[item.rule.id] = access ? true : false;
-                        cb(null, access);
-                    }
-                }, data.params);
+        if (!item.rule) {
+            return cb(null, true);
+        }
+        if (Object.prototype.hasOwnProperty.call(data.ruleCache, item.rule.id)) {
+            return cb(null, data.ruleCache[item.rule.id]);
+        }
+        item.rule.execute(data.user, (err, access)=> {
+            if (err) {
+                return cb(err);
             }
-        } else cb(null, true);
+            data.ruleCache[item.rule.id] = access ? true : false;
+            cb(null, access);
+        }, data.params);
     }
 };
 module.exports.init();
 
+const async = require('async');
+const MainHelper = require('../helpers/MainHelper');
 const Item = require('./Item');
 const Rule = require('./Rule');

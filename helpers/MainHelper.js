@@ -5,7 +5,11 @@ const path = require('path');
 const MongoId = require('mongodb').ObjectID;
 
 module.exports = class MainHelper {
-    
+
+    static isEmpty (value) {
+        return value === undefined || value === null || value === '';
+    }
+
     static isEqualIds (id1, id2) {
         return id1 instanceof MongoId ? id1.equals(id2) : id1 === id2;
     }
@@ -17,13 +21,27 @@ module.exports = class MainHelper {
     static parseJson (data) {
         try {
             return JSON.parse(data);
-        } catch (err) {
-            return null;
-        }
+        } catch (err) {}
     }
 
-    static getScriptArgs () {
-        return process.argv.slice(process.execArgv.length + 2);
+    static parseArguments (args, prefix = '--') {
+        let result = {}, key;
+        if (args instanceof Array) {
+            for (let item of args) {
+                if (typeof item === 'string' && item.indexOf(prefix) === 0) {
+                    key = item.substring(prefix.length);
+                } else if (key !== undefined) {
+                    if (result[key] instanceof Array) {
+                        result[key].push(item);
+                    } else if (result[key] !== undefined) {
+                        result[key] = [result[key], item];
+                    } else {
+                        result[key] = item;
+                    }
+                }
+            }
+        }
+        return result;
     }
     
     // DATE

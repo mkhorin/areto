@@ -15,13 +15,13 @@ module.exports = class IpValidator extends Base {
 
     init () {
         super.init();
-        this.createMessage('message', 'Invalid IP address.');
+        this.createMessage('message', 'Invalid IP address');
 
         if (!this.ip4) {
-            this.createMessage('ip4NotAllowed', 'Value must not be an IPv4 address.');
+            this.createMessage('ip4NotAllowed', 'Value must not be an IPv4 address');
         }
         if (!this.ip6) {
-            this.createMessage('ip6NotAllowed', 'Value must not be an IPv6 address.');
+            this.createMessage('ip6NotAllowed', 'Value must not be an IPv6 address');
         }
     }
 

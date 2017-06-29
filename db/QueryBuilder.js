@@ -9,6 +9,6 @@ module.exports = class QueryBuilder extends Base {
     }
 
     build (query) {
-        throw new Error('QueryBuilder: Need override');
+        throw new Error(`${this.constructor.name}: Need to override`);
     }
 };

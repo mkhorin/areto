@@ -3,7 +3,7 @@
 const Base = require('../base/Behavior');
 const moment = require('moment');
 
-module.exports = class Timestamp extends Base {
+module.exports = class TimestampBehavior extends Base {
 
     constructor (config) {
         super(Object.assign({

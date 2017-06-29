@@ -9,31 +9,33 @@ module.exports = class FileHelper {
     // DIR 
     
     static readDir (dir, handler, cb) {
-        fs.readdir(dir, (err, files)=> {
-            err ? cb(err) : async.eachSeries(files, handler, cb);
-        });
+        async.waterfall([
+            cb => fs.readdir(dir, cb),
+            (files, cb)=> async.eachSeries(files, handler, cb)
+        ], cb);
     }
 
     static emptyDir (dir, cb) {
         this.readDir(dir, (file, cb)=> {
             file = path.join(dir, file);
-            fs.stat(file, (err, stat)=> {
-                err ? cb(err)
-                    : stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb);
-            });
+            async.waterfall([
+                cb => fs.stat(file, cb),
+                (stat, cb)=> stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb)
+            ], cb);
         }, cb);
     }
 
     static removeDir (dir, cb) {
-        this.readDir(dir, (file, cb)=> {
-            file = path.join(dir, file);
-            fs.stat(file, (err, stat)=> {
-                err ? cb(err)
-                    : stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb);
-            });
-        }, err => {
-            err ? cb(err) : fs.rmdir(dir, cb);
-        });
+        async.series([
+            cb => this.readDir(dir, (file, cb)=> {
+                file = path.join(dir, file);
+                async.waterfall([
+                    cb => fs.stat(file, cb),
+                    (stat, cb)=> stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb)
+                ], cb);
+            }, cb),
+            cb => fs.rmdir(dir, cb)
+        ], cb);
     }
     
     // JSON
@@ -43,12 +45,16 @@ module.exports = class FileHelper {
     }
 
     static readJsonFile (file, cb) {
-        fs.readFile(file, (err, data)=> {
-            try {
-                err ? cb(err) : cb(null, JSON.parse(data));
-            } catch (err) {
-                cb(err);
+        async.waterfall([
+            cb => fs.readFile(file, cb),
+            (data, cb)=> {
+                try {
+                    data = JSON.parse(data);
+                } catch (err) {
+                    return cb(err);
+                }
+                cb(null, data);
             }
-        });
+        ], cb);
     }
 };

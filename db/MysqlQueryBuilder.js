@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./QueryBuilder');
-const MainHelper = require('../helpers/MainHelper');
 
 const CONDITION_BUILDERS = {
     'AND': 'buildAndCondition',
@@ -79,7 +78,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     getFieldName (field) {
         if (typeof field !== 'string') {
-            throw new Error('MysqlQueryBuilder: Invalid field name');
+            throw new Error(`${this.constructor.name}: Invalid field name`);
         }
         return this.db.escapeId(field);
     }
@@ -118,10 +117,10 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildSimpleCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: Simple requires 2 operands.');
+            throw new Error(`${this.constructor.name}: Simple requires 2 operands.`);
         }
         if (!Object.prototype.hasOwnProperty.call(SIMPLE_OPERATORS, operator)) {
-            throw new Error('MysqlQueryBuilder: Simple operator not found.');
+            throw new Error(`${this.constructor.name}: Simple operator not found.`);
         }
         let field = this.getFieldName(operands[0]);
         return operands[1] === null
@@ -141,7 +140,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildNotEqualCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: NOT EQUAL requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT EQUAL requires 2 operands.`);
         }
         return operands[1] instanceof Array 
             ? this.buildNotInCondition() 
@@ -152,7 +151,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildInCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: IN requires 2 operands.');
+            throw new Error(`${this.constructor.name}: IN requires 2 operands.`);
         }
         return (operands[1] instanceof Array && operands[1].length === 0) 
             ? 'FALSE'
@@ -161,7 +160,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildNotInCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: NOT IN requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT IN requires 2 operands.`);
         }
         return (operands[1] instanceof Array && operands[1].length === 0) 
             ? 'TRUE'
@@ -172,14 +171,14 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildLikeCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: LIKE requires 2 operands.');
+            throw new Error(`${this.constructor.name}: LIKE requires 2 operands.`);
         }
         return `${this.getFieldName(operands[0])} LIKE ${this.db.escape(operands[1])}`;
     }
 
     buildNotLikeCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: NOT LIKE requires 2 operands.');
+            throw new Error(`${this.constructor.name}: NOT LIKE requires 2 operands.`);
         }
         return `${this.getFieldName(operands[0])} NOT LIKE ${this.db.escape(operands[1])}`;
     }
@@ -188,14 +187,14 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildBetweenCondition (operator, operands) {
         if (operands.length !== 3) {
-            throw new Error('MysqlQueryBuilder: BETWEEN requires 3 operands.');
+            throw new Error(`${this.constructor.name}: BETWEEN requires 3 operands.`);
         }
         return `${this.getFieldName(operands[0])} BETWEEN ${this.db.escape(operands[1])} AND ${this.db.escape(operands[2])}`;
     }
 
     buildNotBetweenCondition (operator, operands) {
         if (operands.length !== 3) {
-            throw new Error('MysqlQueryBuilder: NOT BETWEEN requires 3 operands.');
+            throw new Error(`${this.constructor.name}: NOT BETWEEN requires 3 operands.`);
         }
         return `${this.getFieldName(operands[0])} NOT BETWEEN ${this.db.escape(operands[1])} AND ${this.db.escape(operands[2])}`;
     }
@@ -204,7 +203,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildIdCondition (operator, operands) {
         if (operands.length !== 2) {
-            throw new Error('MysqlQueryBuilder: ID requires 2 operands.');
+            throw new Error(`${this.constructor.name}: ID requires 2 operands.`);
         }
         let result = this.getFieldName(operands[0]);
         return  operands[1] instanceof Array 
@@ -222,15 +221,17 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildNullCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MysqlQueryBuilder: NULL requires 1 operand.');
+            throw new Error(`${this.constructor.name}: NULL requires 1 operand.`);
         }
         return `${this.getFieldName(operands[0])} IS NULL`;
     }
 
     buildNotNullCondition (operator, operands) {
         if (operands.length !== 1) {
-            throw new Error('MysqlQueryBuilder: NOT NULL requires 1 operand.');
+            throw new Error(`${this.constructor.name}: NOT NULL requires 1 operand.`);
         }
         return `${this.getFieldName(operands[0])} IS NOT NULL`;
     }
 };
+
+const MainHelper = require('../helpers/MainHelper');

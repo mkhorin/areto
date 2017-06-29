@@ -2,12 +2,11 @@
 
 const Base = require('./Validator');
 
-module.exports = class RegexpValidator extends Base {
+module.exports = class RegExpValidator extends Base {
 
     static getConstants () {
         return {
             BUILTIN: {
-                'mongoId': /^[a-f0-9]{24}$/i
             }
         };
     }
@@ -15,7 +14,7 @@ module.exports = class RegexpValidator extends Base {
     constructor (config) {
         super(Object.assign({
             pattern: null,
-            not: false
+            not: false // not match the pattern
         }, config));
     }
 

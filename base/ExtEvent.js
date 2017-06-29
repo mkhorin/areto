@@ -37,13 +37,13 @@ module.exports = class ExtEvent extends Base {
     static on (target, name, handler, data, prepend) {
         let id = target.CLASS_FILE;
         if (!id) {
-            throw new Error('ExtEvent: Invalid event target');
+            throw new Error(`${this.constructor.name}: Invalid event target`);
         }
         if (typeof name !== 'string') {
-            throw new Error('ExtEvent: Invalid event name');
+            throw new Error(`${this.constructor.name}: Invalid event name`);
         }
         if (typeof handler !== 'function') {
-            throw new Error('ExtEvent: Invalid event handler');
+            throw new Error(`${this.constructor.name}: Invalid event handler`);
         }
         let event = this._events[name];
         if (!event) {
@@ -114,7 +114,7 @@ module.exports = class ExtEvent extends Base {
             }
             let id = sender.CLASS_FILE;
             if (!id) {
-                return cb('ExtEvent: Invalid event sender');
+                return cb(`${this.constructor.name}: Invalid event sender`);
             }
             tasks = tasks || [];
             while (id) {

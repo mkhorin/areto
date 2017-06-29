@@ -1,8 +1,6 @@
 'use strict';
 
 const Base = require('./Base');
-const fs = require('fs');
-const path = require('path');
 
 module.exports = class Template extends Base {
 
@@ -14,6 +12,7 @@ module.exports = class Template extends Base {
     }
 
     init () {
+        super.init();
         this.baseDir = this.module.getPath();
         this.viewDir = path.join(this.baseDir, this.viewDir);
         this.themeDir = path.join(this.baseDir, this.themeDir);
@@ -23,22 +22,23 @@ module.exports = class Template extends Base {
     initThemes () {
         let Theme = require('./Theme');
         this.defaultTheme = new Theme({
+            manager: this,
             name: null,
-            baseDir: this.viewDir,
-            manager: this
+            baseDir: this.viewDir
         });
         this.themes = {};
         fs.readdir(this.themeDir, (err, files)=> {
-            if (!err) {
-                for (let themeName of files)  {
-                    let dir = path.join(this.themeDir, themeName);
-                    if (fs.lstatSync(dir).isDirectory()) {
-                        this.themes[themeName] = new Theme({
-                            name: themeName,
-                            baseDir: dir,
-                            manager: this
-                        });
-                    }
+            if (err) {
+                return this.setThemeParents();
+            }
+            for (let themeName of files)  {
+                let dir = path.join(this.themeDir, themeName);
+                if (fs.lstatSync(dir).isDirectory()) {
+                    this.themes[themeName] = new Theme({
+                        manager: this,
+                        name: themeName,
+                        baseDir: dir
+                    });
                 }
             }
             this.setThemeParents();
@@ -61,6 +61,10 @@ module.exports = class Template extends Base {
 
     getTheme (name) {        
         name = name || this.theme;
-        return Object.prototype.hasOwnProperty.call(this.themes, name) ? this.themes[name] : this.defaultTheme;
+        return Object.prototype.hasOwnProperty.call(this.themes, name)
+            ? this.themes[name] : this.defaultTheme;
     }
 };
+
+const fs = require('fs');
+const path = require('path');

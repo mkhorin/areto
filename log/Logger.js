@@ -29,19 +29,20 @@ module.exports = class Logger extends Base {
         });
         let errorOutputIndex = this.typeNames.indexOf('info');
         for (let i = 0; i < this.typeNames.length; ++i) {
-            this.initType(this.typeNames[i], {
+            this.createType(this.typeNames[i], {
                 consoleOutputMethod: i > errorOutputIndex ? 'error' : 'log'
             });
         }
     }
 
-    configure () {
+    configure (cb) {
         if (this.isTrace()) {
             this.traceProcessingTime();
         }
+        cb();
     }
 
-    initType (name, config) {
+    createType (name, config) {
         let type = this.types[name];
         config = Object.assign({
             name,
@@ -57,7 +58,7 @@ module.exports = class Logger extends Base {
             Object.assign(config, type);
             Object.assign(type, config);
         } else if (type) {
-            type = MainHelper.createInstance(type, Object.assign(config, type[1]));
+            type = MainHelper.createInstance(type, Object.assign(config, type.Class ? type : null));
         } else {
             type = new LogType(config);
         }
@@ -71,14 +72,14 @@ module.exports = class Logger extends Base {
 
     setTypeShortcut (name) {
         if (name in this) {
-            this.log('error', `Logger: setTypeShortcut: already taken: ${name}`);
+            this.log('error', `${this.constructor.name}: setTypeShortcut: already taken: ${name}`);
         } else {
             this[name] = (message, data)=> this.log(name, message, data);
         }
     }
 
     isActive (type) {
-        return type in this.types ? this.types[type].active : false;
+        return this.types.hasOwnProperty(type) ? this.types[type].active : false;
     }
 
     isTrace () {
@@ -90,12 +91,12 @@ module.exports = class Logger extends Base {
     }
 
     log (type, message, data) {
-        if (type in this.types) {
+        if (this.types.hasOwnProperty(type)) {
             this.types[type].log(message, data);            
         } else if (this.types.error) {
-            this.types.error.log(`Logger: Not found type: ${type}`, {message, data});
+            this.types.error.log(`${this.constructor.name}: Not found type: ${type}`, {message, data});
         } else {
-            console.error('Logger: Not found type:', type, message, data);
+            console.error(`${this.constructor.name}: Not found type:`, type, message, data);
         }
     }
 
@@ -133,7 +134,7 @@ module.exports = class Logger extends Base {
 };
 module.exports.init();
 
-const MainHelper = require('../helpers/MainHelper');
-const LogType = require('./LogType');
-const FileLogStore = require('./FileLogStore');
 const ExtEvent = require('../base/ExtEvent');
+const FileLogStore = require('./FileLogStore');
+const LogType = require('./LogType');
+const MainHelper = require('../helpers/MainHelper');

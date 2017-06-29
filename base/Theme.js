@@ -1,17 +1,17 @@
 'use strict';
 
 const Base = require('./Base');
-const fs = require('fs');
-const path = require('path');
 
 module.exports = class Theme extends Base {
 
-    init () {        
+    init () {
+        super.init();
         this.indexFiles();
     }
 
     indexFiles () {
-        this.files = {};
+        this._files = {};
+        this._languageFiles = {};
         this.indexDirFiles(this.baseDir);
     }
 
@@ -28,15 +28,25 @@ module.exports = class Theme extends Base {
                         index = index.substring(0, pos);
                     } 
                     index = index.split(path.sep).join('/');
-                    this.files[index] = file;
+                    this._files[index] = file;
                 }            
             }
         } catch (err) {}
     }
 
-    get (name) {
-        if (Object.prototype.hasOwnProperty.call(this.files, name)) {
-            return this.files[name];
+    get (name, language) {
+        if (Object.prototype.hasOwnProperty.call(this._files, name)) {
+            if (!language) {
+                return this._files[name];
+            }
+            if (!Object.prototype.hasOwnProperty.call(this._languageFiles, name)) {
+                this._languageFiles[name] = {};
+            }
+            if (!this._languageFiles[name].hasOwnProperty(language)) {
+                let file = `${path.dirname(name)}/${language}/${path.basename(name)}`;
+                this._languageFiles[name][language] = this._files[file] || this._files[name];
+            }
+            return this._languageFiles[name][language];
         }    
         if (this.parent) {
             return this.parent.get(name);
@@ -44,6 +54,9 @@ module.exports = class Theme extends Base {
         if (this.manager.parent) {
             return this.manager.parent.getTheme(this.name).get(name);
         }
-        return `Theme: Not found: ${name}`;
+        return `${Theme.name}: Not found template "${name}"`;
     }
 };
+
+const fs = require('fs');
+const path = require('path');

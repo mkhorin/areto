@@ -15,23 +15,22 @@ module.exports = class CaptchaValidator extends Base {
         super.init();
         this.skipOnEmpty = false;
         if (!this.CaptchaController) {
-            throw new Error('CaptchaValidator: Controller class must be set');
+            throw new Error(`${this.constructor.name}: Controller class must be set`);
         }
-        this.createMessage('message', 'The verification code is incorrect.');
+        this.createMessage('message', 'The verification code is incorrect');
     }
 
     validateAttr (model, attr, cb) {
-        if (model.controller instanceof Controller) {
-            let controller = new this.CaptchaController;
-            controller.assignFrom(model.controller);
-            let action = controller.createAction(this.captchaActionId);
-            if (!action.validate(model.get(attr))) {
-                this.addError(model, attr, this.message);
-            }
-            cb();
-        } else {
-            cb(`CaptchaValidator: The ${model.constructor.name} must have a controller property`);
+        if (!(model.controller instanceof Controller)) {
+            return cb(`${this.constructor.name}: Model must have a controller property`);
         }
+        let controller = new this.CaptchaController;
+        controller.assignFrom(model.controller);
+        let action = controller.createAction(this.captchaActionId);
+        if (!action.validate(model.get(attr))) {
+            this.addError(model, attr, this.message);
+        }
+        cb();
     }
 };
 

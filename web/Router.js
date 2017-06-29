@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('../base/Component');
-const MainHelper = require('../helpers/MainHelper');
-const fs = require('fs');
-const path = require('path');
 
 module.exports = class Router extends Base {
 
@@ -38,7 +35,7 @@ module.exports = class Router extends Base {
                 }
             }
         } catch (err) {
-            this.module.log('error', 'Router: attach', err);
+            this.module.log('error', `${this.constructor.name}: attach`, err);
         }
     }
 
@@ -64,7 +61,7 @@ module.exports = class Router extends Base {
                     try {
                         this.attach(require(file));
                     } catch (err) {
-                        this.module.log('error', `Router: ${file}`, err);
+                        this.module.log('error', `${this.constructor.name}: ${file}`, err);
                     }    
                 }
             });
@@ -85,6 +82,9 @@ module.exports = class Router extends Base {
     }
 };
 
+const fs = require('fs');
+const path = require('path');
+const MainHelper = require('../helpers/MainHelper');
 const HttpException = require('../errors/HttpException');
 const ServerErrorHttpException = require('../errors/ServerErrorHttpException');
 const NotFoundHttpException = require('../errors/NotFoundHttpException');

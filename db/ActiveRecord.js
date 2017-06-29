@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('../base/Model');
-const MainHelper = require('../helpers/MainHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
-const async = require('async');
 
 module.exports = class ActiveRecord extends Base {
 
@@ -97,7 +94,7 @@ module.exports = class ActiveRecord extends Base {
         this.triggerCallback(this.EVENT_BEFORE_REMOVE, cb);
     }
 
-    beforeSave (cb, insert) {
+    beforeSave (insert, cb) {
         this.triggerCallback(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE, cb);
     }
 
@@ -105,7 +102,7 @@ module.exports = class ActiveRecord extends Base {
         this.triggerCallback(this.EVENT_AFTER_FIND, cb);
     }
 
-    afterSave (cb, insert) {
+    afterSave (insert, cb) {
         this.setOldAttrs();
         this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
     }
@@ -172,7 +169,7 @@ module.exports = class ActiveRecord extends Base {
 
     insert (cb) {
         async.series([
-            cb => this.beforeSave(cb, true),
+            cb => this.beforeSave(true, cb),
             cb => async.waterfall([
                 cb => this.constructor.find().insert(this.filterAttrs(), cb),
                 (id, cb)=> {
@@ -181,16 +178,16 @@ module.exports = class ActiveRecord extends Base {
                     cb();
                 }
             ], cb),
-            cb => this.afterSave(cb, true)
-        ], cb);
+            cb => this.afterSave(true, cb)
+        ], err => cb(err)); // clear async results
     }
 
     update (cb) {
         async.series([
-            this.beforeSave.bind(this),
+            cb => this.beforeSave(false, cb),
             cb => this.findById().update(this.filterAttrs(), cb),
-            this.afterSave.bind(this)
-        ], cb);
+            cb => this.afterSave(false, cb)
+        ], err => cb(err)); // clear async results
     }
 
     /**
@@ -224,7 +221,7 @@ module.exports = class ActiveRecord extends Base {
             this.beforeRemove.bind(this),
             cb => this.findById().remove(cb),
             this.afterRemove.bind(this)
-        ], cb);
+        ], err => cb(err)); // clear async results
     }
 
     // RELATIONS
@@ -255,8 +252,8 @@ module.exports = class ActiveRecord extends Base {
         if (!name || typeof name !== 'string') {
             return null;
         }
-        name = `rel${name.toUpperCaseFirstLetter()}`;
-        return name in this ? this[name]() : null;
+        name = `rel${StringHelper.toFirstUpperCase(name)}`;
+        return this[name] ? this[name]() : null;
     }
 
     isRelationPopulated (name) {
@@ -290,7 +287,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelation (name, cb, renew) {
-        if (!(name in this._related) || renew) {
+        if (!Object.prototype.hasOwnProperty.call(this._related, name) || renew) {
             let relation = this.getRelation(name);
             if (relation) {
                 relation.findFor((err, result)=> {
@@ -298,9 +295,9 @@ module.exports = class ActiveRecord extends Base {
                     cb(err, this._related[name]);
                 });
             } else if (relation === null) {
-                cb(`${this.constructor.name}: '${name}' relation not found`);
+                cb(`${this.constructor.name}: Relation '${name}' not found`);
             } else {
-                cb();
+                cb(null, null);
             }
         } else {
             cb(null, this._related[name]);
@@ -574,7 +571,7 @@ module.exports = class ActiveRecord extends Base {
 
     getHandler (name) {
         if (typeof name === 'string') {
-            name = `handler${name.toUpperCaseFirstLetter()}`;
+            name = `handler${StringHelper.toFirstUpperCase(name)}`;
             if (typeof this[name] === 'function') {
                 return this[name];
             }
@@ -583,3 +580,8 @@ module.exports = class ActiveRecord extends Base {
     }
 };
 module.exports.init();
+
+const async = require('async');
+const MainHelper = require('../helpers/MainHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
+const StringHelper = require('../helpers/StringHelper');

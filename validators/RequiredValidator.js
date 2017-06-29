@@ -21,7 +21,7 @@ module.exports = class RequiredValidator extends Base {
     validateValue (value, cb) {
         if (this.requiredValue === null) {
             if (this.strict && value !== null || !this.strict 
-                && !this.isEmpty(typeof value === 'string' ? value.trim() : value)) {
+                && !this.isEmptyValue(typeof value === 'string' ? value.trim() : value)) {
                return cb();
             }
             return cb(null, this.message);
@@ -29,6 +29,8 @@ module.exports = class RequiredValidator extends Base {
         if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
             return cb();
         }
-        cb(null, this.message, { requiredValue: this.requiredValue });
+        cb(null, this.message, {
+            requiredValue: this.requiredValue
+        });
     }
 };

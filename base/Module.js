@@ -11,6 +11,8 @@ module.exports = class Module extends Base {
             DEFAULT_COMPONENTS: {
                 'template': {}
             },
+            EVENT_BEFORE_INIT: 'beforeInit',
+            EVENT_AFTER_INIT: 'afterInit',
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction'
         };
@@ -62,7 +64,7 @@ module.exports = class Module extends Base {
 
     getAncestry () {
         if (!this._ancestry) {
-            this._ancestry = [ this ];
+            this._ancestry = [this];
             let current = this;
             while (current.parent) {
                 current = current.parent;
@@ -121,6 +123,14 @@ module.exports = class Module extends Base {
 
     // EVENTS
 
+    beforeInit (cb) {
+        this.triggerCallback(this.EVENT_BEFORE_INIT, cb);
+    }
+
+    afterInit (cb) {
+        this.triggerCallback(this.EVENT_AFTER_INIT, cb);
+    }
+
     beforeAction (action, cb) {
         this.triggerCallback(this.EVENT_BEFORE_ACTION, cb, new ActionEvent(action));
     }
@@ -173,8 +183,6 @@ module.exports = class Module extends Base {
         return require(file);
     }
 
-    // CONFIGURE
-
     configure (parent, configName, cb) {
         this.parent = parent;
         this.app = parent ? parent.app : this;
@@ -189,12 +197,13 @@ module.exports = class Module extends Base {
         this.url = this.config.url || (parent ? `/${this.ID}` : '');
         this.setForwarder(this.config.forwarder);
         async.series([
+            cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
             cb => this.setModules(this.config.modules, cb),
             cb => {
                 this.setRouter(this.config.router);
                 this.setExpress();
-                cb();
+                this.afterInit(cb);
             }
         ], cb);
     }
@@ -208,8 +217,10 @@ module.exports = class Module extends Base {
         }
     }
 
+    // COMPONENTS
+
     setComponents (components, cb) {
-        components = components || {}; 
+        components = components || {};
         this.extendComponentsByDefaults(components);
         async.forEachOfSeries(components, (config, id, cb)=> {
             if (!config) {
@@ -240,6 +251,16 @@ module.exports = class Module extends Base {
 
     createComponent (name, config) {   
         return this.components[name] = MainHelper.createInstance(config);
+    }
+
+    deepAssignComponent (name, newComponent) {
+        let currentComponent = this.components[name];
+        for (let id of Object.keys(this.modules)) {
+            if (this.modules[id].components[name] === currentComponent) {
+                this.modules[id].deepAssignComponent(name, newComponent);
+            }
+        }
+        this.components[name] = newComponent;
     }
 
     setModules (config, cb) {
@@ -311,6 +332,14 @@ module.exports = class Module extends Base {
         cb();
     }
 
+    componentFormatter (config, cb) {
+        this.createComponent('formatter', Object.assign({
+            Class: require('../i18n/Formatter'),
+            i18n: this.components.i18n
+        }, config));
+        cb();
+    }
+
     componentI18n (config, cb) {        
         this.createComponent('i18n', Object.assign({
             Class: require('../i18n/I18n'),
@@ -322,13 +351,18 @@ module.exports = class Module extends Base {
     componentLogger (config, cb) {        
         this.createComponent('logger', Object.assign({
             Class: require('../log/Logger')
-        }, config)).configure();
-        cb();
+        }, config)).configure(cb);
+    }
+
+    componentRateLimit (config, cb) {
+        this.createComponent('rateLimit', Object.assign({
+            Class: require('../web/rate-limit/RateLimit')
+        }, config)).configure(cb);
     }
 
     componentRbac (config, cb) {         
         this.createComponent('rbac', Object.assign({
-            Class: require('../rbac/Manager')
+            Class: require('../rbac/Rbac')
         }, config)).configure(cb);
     }
 
@@ -341,7 +375,7 @@ module.exports = class Module extends Base {
 
     componentSession (config, cb) {        
         this.createComponent('session', Object.assign({
-            Class: require('../web/Session')
+            Class: require('../web/session/Session')
         }, config));
         cb();
     }
@@ -367,7 +401,7 @@ module.exports = class Module extends Base {
         cb();
     }    
 
-    componentUserConfig (config, cb) {
+    componentUser (config, cb) {
         let User = config.User || require('../web/User');
         this.components.userConfig = Object.assign({User}, User.DEFAULTS, config);
         this.appendToExpress('use', this.handleUser);
@@ -382,7 +416,7 @@ module.exports = class Module extends Base {
         res.locals.user = new config.User(req, res, next, config);
         module.attachUserEvents && module.attachUserEvents(res.locals.user);
         // try to identify the user immediately, otherwise have to do a callback for isGuest
-        res.locals.user.checkIdentity(next);
+        res.locals.user.ensureIdentity(next);
     }
 };
 module.exports.init();

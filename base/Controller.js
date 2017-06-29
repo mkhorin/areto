@@ -2,9 +2,6 @@
 
 const Base = require('./Component');
 const StringHelper = require('../helpers/StringHelper');
-const MainHelper = require('../helpers/MainHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
-const async = require('async');
 
 module.exports = class Controller extends Base {
 
@@ -30,7 +27,7 @@ module.exports = class Controller extends Base {
     static getId () {
         let index = this.name.indexOf('Controller');
         if (index < 0) {
-            throw new Error(`Controller: Invalid class name: ${this.name}`);
+            throw new Error(`${this.name}: Invalid class name: ${this.name}`);
         }
         return StringHelper.camelToId(this.name.substring(0, index));
     }
@@ -44,7 +41,9 @@ module.exports = class Controller extends Base {
             try {
                 let name = this.name.substring(0, this.name.lastIndexOf('Controller'));
                 this._modelClass = require(this.module.getPath('models', name));
-            } catch (err) {}    
+            } catch (err) {
+                this.module.log('error', err);
+            }
         } 
         return this._modelClass;
     }
@@ -97,28 +96,33 @@ module.exports = class Controller extends Base {
 
     execute (id) {
         this.action = this.createAction(id);
-        if (this.action) {
-            this.triggerBeforeAction(err => {
-                err ? this.throwError(err) : this.action.execute(err => {
-                    err ? this.throwError(err) : this.triggerAfterAction(err => {
-                        err ? this.throwError(err) : this.response.end(this);
-                    });
-                });
-            });
-        } else {
-            this.throwError(`Controller ${this.constructor.getFullName()}: unable to create action ${id}`);
+        if (!this.action) {
+            return this.throwError(`Controller ${this.constructor.getFullName()}: unable to create action ${id}`);
         }
+        async.series([
+            this.triggerBeforeAction.bind(this),
+            this.action.execute.bind(this.action),
+            this.triggerAfterAction.bind(this)
+        ], err => {
+            err ? this.throwError(err) : this.response.end(this);
+        });
     }
 
     createAction (id) {
         id = id || this.DEFAULT_ACTION;
         let action = this.ACTIONS[id];
         if (action) {
-            return MainHelper.createInstance(action, {id, controller: this});
+            return MainHelper.createInstance(action, {
+                id,
+                controller: this
+            });
         }
         let name = `action${StringHelper.idToCamel(id)}`;
-        return typeof this[name] === 'function'
-            ? new InlineAction({id, controller: this, method: name}) : null;
+        return typeof this[name] === 'function' ? new InlineAction({
+            id,
+            controller: this,
+            method: name
+        }) : null;
     }
 
     triggerBeforeAction (cb) {
@@ -193,7 +197,7 @@ module.exports = class Controller extends Base {
     setFlash (key, msg) {
         typeof this.req.flash === 'function'
             ? this.req.flash(key, msg)
-            : this.module.log('error', 'Controller: Session flash not found:', msg);
+            : this.module.log('error', `${this.constructor.name}: Session flash not found:`, msg);
     }
 
     getFlash (key) {
@@ -214,21 +218,30 @@ module.exports = class Controller extends Base {
         this.redirect(this.user.getReturnUrl(url));
     }
 
+    reload () {
+        this.response.code = 200;
+        this.response.redirect(this.req.originalUrl);
+        this.action.complete();
+    }
+
     redirect (url) {
         this.response.redirect(this.createUrl(url));
         this.action.complete();
     }
 
-    setStatus (code) {
+    setHttpStatus (code) {
         this.response.code = code;
         return this;
     }
 
     render (template, params, cb) {
-        let view = new this.VIEW_CLASS(this);
         if (template.toString().indexOf('/') < 0) {
             template = `${this.ID}/${template}`;
         }
+        let view = new this.VIEW_CLASS({
+            controller: this,
+            language: this.res.locals.language || (this.module.components.i18n && this.module.components.i18n.language)
+        });
         view.render(template, params, (err, content)=> {
             cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
         });
@@ -241,6 +254,11 @@ module.exports = class Controller extends Base {
 
     sendText (data, code) {
         this.send(data.toString(), code);
+    }
+
+    sendFile (data, code) {
+        this.response.send('download', data, code);
+        this.action.complete();
     }
 
     sendJson (data, code) {
@@ -298,18 +316,24 @@ module.exports = class Controller extends Base {
 
     // I18N
 
-    translate (category, message, params, language) {
+    format (value, type, params) {
+        if (this.res.locals.language) {
+            params = Object.assign({
+                language: this.res.locals.language
+            }, params);
+        }
+        return this.module.components.formatter.format(value, type, params);
+    }
+
+    translate (category, message, params) {
         if (category instanceof Message) {
             message = category.message;
             params = category.params;
-            language = category.language;
             category = category.category;
         }
-        let i18n = this.module.components.i18n;
-        language = language || this.res.locals.language || i18n.language;
         return category 
-            ? i18n.translate(category, message, params, language) 
-            : i18n.format(message, params, language);
+            ? this.module.components.i18n.translate(category, message, params, this.res.locals.language)
+            : this.module.components.i18n.format(message, params, this.res.locals.language);
     }
 
     translateMessages (messages) {
@@ -321,9 +345,12 @@ module.exports = class Controller extends Base {
         }
         return messages;
     }
-};                            
+};
 module.exports.init();
 
+const async = require('async');
+const MainHelper = require('../helpers/MainHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');
 const InlineAction = require('./InlineAction');
 const Response = require('../web/Response');

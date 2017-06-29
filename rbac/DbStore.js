@@ -1,8 +1,6 @@
 'use strict';
 
 const Base = require('./Store');
-const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class DbStore extends Base {
 
@@ -15,18 +13,22 @@ module.exports = class DbStore extends Base {
     }
     
     load (cb) {
-        async.series({
-            itemIndex: cb => this.find('item').indexBy(this.pk).all(cb),
-            ruleIndex: cb => this.find('rule').indexBy(this.pk).all(cb),
-            links: cb => this.find('item_child').all(cb),
-            assignments: cb => this.find('assignment').all(cb)
-        }, (err, data)=> {
-            try {
-                err ? cb(err) : cb(null, this.prepare(data));
-            } catch (err) {
-                cb(err);
+        async.waterfall([
+            cb => async.series({
+                itemIndex: cb => this.find('item').indexBy(this.pk).all(cb),
+                ruleIndex: cb => this.find('rule').indexBy(this.pk).all(cb),
+                links: cb => this.find('item_child').all(cb),
+                assignments: cb => this.find('assignment').all(cb)
+            }, cb),
+            (data, cb)=> {
+                try {
+                    data = this.prepare(data);
+                } catch (err) {
+                    return cb(err);
+                }
+                cb(null, data);
             }
-        });
+        ], cb);
     }
 
     prepare (data) {
@@ -72,4 +74,6 @@ module.exports = class DbStore extends Base {
     }
 };
 
+const async = require('async');
+const MainHelper = require('../helpers/MainHelper');
 const Query = require('../db/Query');

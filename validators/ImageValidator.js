@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./FileValidator');
-let gm = require('gm');
 
 module.exports = class ImageValidator extends Base {
 
@@ -55,7 +54,7 @@ module.exports = class ImageValidator extends Base {
 
     getParams () {
         return Object.assign(super.getParams(), {
-            onlyImage: true,
+            imageOnly: true,
             maxHeight: this.maxHeight,
             maxWidth: this.maxWidth,
             minHeight: this.minHeight,
@@ -68,3 +67,5 @@ module.exports = class ImageValidator extends Base {
         });
     }
 };
+
+const gm = require('gm');

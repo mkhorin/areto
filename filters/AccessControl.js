@@ -26,7 +26,7 @@ module.exports = class AccessControl extends Base {
     beforeAction (action, cb) {        
         let user = action.controller.user;
         // check rules before the first result - allow or deny
-        async.eachSeries(this.rules, (rule, cb2)=> {
+        async.eachSeries(this.rules, (rule, ruleCallback)=> {
             rule.can(action, user, (err, access)=> {                
                 if (err) {
                     cb(err);
@@ -37,7 +37,7 @@ module.exports = class AccessControl extends Base {
                         ? this.denyCallback(action, user, cb)
                         : this.denyAccess(action, user, cb);
                 } else {
-                    cb2();
+                    ruleCallback();
                 }
             });
         }, cb);

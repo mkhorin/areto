@@ -25,7 +25,8 @@ module.exports = class CompareValidator extends Base {
             case '>=': message = 'Value must be greater than or equal to "{compareValue}"'; break;
             case '<': message = 'Value must be less than "{compareValue}"'; break;
             case '<=': message = 'Value must be less than or equal to "{compareValue}"'; break;
-            default: throw new Error(`CompareValidator: Unknown operator: ${this.operator}`);
+            default:
+                throw new Error(`${this.constructor.name}: Unknown operator: ${this.operator}`);
         }
         this.createMessage('message', message);
         this.createMessage('invalidValue', 'Invalid value');
@@ -52,13 +53,15 @@ module.exports = class CompareValidator extends Base {
 
     validateValue (value, cb) {
         if (this.compareValue === null) {
-            cb('CompareValidator: Value must be set');
-        } else if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
-            cb(null, this.message, {
+            return cb(`${this.constructor.name}: Value must be set`);
+        }
+        if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
+            return cb(null, this.message, {
                 compareAttr: this.compareAttr,
                 compareValue: this.compareValue
             });
-        } else cb();
+        }
+        cb();
     }
 
     compareValues (operator, type, value, compareValue) {
@@ -78,7 +81,7 @@ module.exports = class CompareValidator extends Base {
             case '>=': return value >= compareValue;
             case '<': return value < compareValue;
             case '<=': return value <= compareValue;
-            default: return false;
         }
+        return false;
     }
 };

@@ -5,7 +5,7 @@ const Base = require('./Base');
 module.exports = class Action extends Base {
 
     run (cb) {
-        cb('Action: Need override');
+        cb(`${this.constructor.name}: Need to override`);
     }
 
     getRelativeModuleId () {
@@ -26,6 +26,8 @@ module.exports = class Action extends Base {
     }
 
     complete (err) {
-        this.callback && this.callback(err);
+        if (this.callback) {
+            this.callback(err);
+        }
     }
 };

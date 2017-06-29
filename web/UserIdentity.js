@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../db/ActiveRecord');
-const security = require('../helpers/SecurityHelper');
 
 module.exports = class UserIdentity extends Base {
 
@@ -23,9 +22,14 @@ module.exports = class UserIdentity extends Base {
     }
 
     setAuthKey (cb) {
-        security.generateRandomString(16, (err, result)=> {
+        SecurityHelper.generateRandomString(16, (err, result)=> {
+            if (err) {
+                return cb(err);
+            }
             this.set('authKey', result);
-            cb(err);
+            cb();
         });
     }
 };
+
+const SecurityHelper = require('../helpers/SecurityHelper');

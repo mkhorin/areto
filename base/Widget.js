@@ -10,12 +10,12 @@ module.exports = class Widget extends Base {
             // disabled: true
             // caching: true                        
             cacheComponentId: 'cache'
-            //cacheDuration: 
+            // cacheDuration: 60 // seconds
         }, config));
     }
 
     run (cb) {
-        cb(null, 'Widget content here');
+        cb(null, 'Place widget content here');
     }
 
     execute (cb, renderParams) {
@@ -40,7 +40,7 @@ module.exports = class Widget extends Base {
 
     render (template, cb, params) {
         this.view.controller.res.app.render(this.view.get(template), Object.assign({
-            widget: this
-        }, params), cb);
+            _widget: this
+        }, this.renderParams, params), cb);
     }
 };

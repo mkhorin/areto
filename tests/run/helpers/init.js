@@ -41,17 +41,6 @@ describe('helpers.init', ()=> {
         });
     });
 
-    describe('String', ()=> {
-
-        it('toUpperCaseFirstLetter', ()=> {
-            expect('test'.toUpperCaseFirstLetter()).to.equal('Test');
-        });
-
-        it('toLowerCaseFirstLetter', ()=> {
-            expect('Test'.toLowerCaseFirstLetter()).to.equal('test');
-        });
-    });
-
     describe('RegExp', ()=> {
 
         it('toJSON', ()=> {

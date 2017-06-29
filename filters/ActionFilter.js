@@ -18,18 +18,20 @@ module.exports = class ActionFilter extends Base {
     }
 
     beforeFilter (event, cb) {
-        if (this.isActive(event.action)) {
-            this.beforeAction(event.action, err => {
-                if (!err) {
-                    // call afterFilter only if beforeFilter succeeds
-                    let name = Controller.EVENT_AFTER_ACTION;
-                    this._events[name] = 'afterFilter';
-                    this.resolveEventHandler(name);
-                    this.owner.on(name, this._events[name]);
-                }
-                cb(err);
-            });
-        } else cb();
+        if (!this.isActive(event.action)) {
+            return cb();
+        }
+        this.beforeAction(event.action, err => {
+            if (err) {
+                return cb(err);
+            }
+            // call afterFilter only if beforeFilter succeeds
+            let name = Controller.EVENT_AFTER_ACTION;
+            this._events[name] = 'afterFilter';
+            this.resolveEventHandler(name);
+            this.owner.on(name, this._events[name]);
+            cb();
+        });
     }
 
     afterFilter (event, cb) {

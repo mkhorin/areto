@@ -54,9 +54,11 @@ module.exports = class ArrayHelper {
     }
 
     static searchObject (items, searchProp, searchValue, returnProp) {
-        for (let item of items) {
-            if (item && item[searchProp] === value) {
-                return returnProp !== undefined ? item[returnProp] : item;
+        if (items instanceof Array) {
+            for (let item of items) {
+                if (item && item[searchProp] === searchValue) {
+                    return returnProp === undefined ? item : item[returnProp];
+                }
             }
         }
         return null;
@@ -68,7 +70,7 @@ module.exports = class ArrayHelper {
         let map = {};
         for (let doc of docs) {
             let value = doc[key];
-            if (map.hasOwnProperty(value)) {
+            if (Object.prototype.hasOwnProperty.call(map, value)) {
                 if (map[value] instanceof Array) {
                     map[value].push(doc);
                 } else {
@@ -85,7 +87,7 @@ module.exports = class ArrayHelper {
         let map = {};
         for (let model of models) {
             let value = model.get(key);
-            if (map.hasOwnProperty(value)) {
+            if (Object.prototype.hasOwnProperty.call(map, value)) {
                 if (map[value] instanceof Array) {
                     map[value].push(model);
                 } else {

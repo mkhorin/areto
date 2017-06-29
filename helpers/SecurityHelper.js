@@ -51,10 +51,11 @@ module.exports = class SecurityHelper {
                 return cb(err);
             }
             try {
-                cb(null, crypto.createHash(algo).update(data).digest('hex'));
+                data = crypto.createHash(algo).update(data).digest('hex');
             } catch (err) {
-                cb(err);
+                return cb(err);
             }
+            cb(null, data);
         });
     }
 };

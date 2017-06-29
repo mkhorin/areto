@@ -25,14 +25,8 @@ module.exports = class ObjectHelper {
         return target;
     }
 
-    static toValueArray (object) {
-        let result = [];
-        if (object) {
-            for (let prop of Object.keys(object)) {
-                result.push(object[prop]);
-            }
-        }
-        return result;
+    static getValues (object) {
+        return object ? Object.keys(object).map(key => object[key]) : [];
     }
 
     static getAllPropertyNames (object) {

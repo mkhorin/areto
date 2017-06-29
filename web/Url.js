@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('../base/Base');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
-const pathToRegexp = require('path-to-regexp');
 
 module.exports = class Url extends Base {
     /**
@@ -75,6 +72,7 @@ module.exports = class Url extends Base {
         
         this.sourceParamNames = this.getParamNames(sourceTokens);
         this.targetParamNames = this.getParamNames(targetTokens);
+
         this.sourceRegexp = pathToRegexp.tokensToRegExp(sourceTokens);
         this.targetRegexp = pathToRegexp.tokensToRegExp(targetTokens);
         this.createSource = pathToRegexp.tokensToFunction(sourceTokens);
@@ -82,10 +80,10 @@ module.exports = class Url extends Base {
             
         // target params must be a subset of the source's params
         if (ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
-            throw `Url: Invalid target params: source: ${this.source}: target: ${this.target}`;
+            throw `${this.constructor.name}: Invalid target params: source: ${this.source}: target: ${this.target}`;
         }
         if (this.methods && !(this.methods instanceof Array)) {
-            throw `Url: Invalid methods: ${this.methods}`;
+            throw `${this.constructor.name}: Invalid methods: ${this.methods}`;
         }
     }
 
@@ -141,4 +139,7 @@ module.exports = class Url extends Base {
     }
 };
 
+const pathToRegexp = require('path-to-regexp');
 const ActiveRecord = require('../db/ActiveRecord');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');

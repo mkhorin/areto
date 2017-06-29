@@ -2,8 +2,15 @@
 
 module.exports = class StringHelper {
 
-    // capitalize first letters
-    static ucwords (str) {
+    static toFirstUpperCase (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    static toFirstLowerCase (str) {
+        return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+
+    static toWordFirstUpperCase (str) {
         return str.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, function ($1) {
             return $1.toUpperCase();
         });
@@ -11,7 +18,7 @@ module.exports = class StringHelper {
 
     // send_email -> SendEmail, who's online -> WhoSOnline
     static camelize (str) {
-        return this.ucwords(str.replace(/[^A-Za-z0-9]+/g, ' ')).replace(/ /g, '');
+        return this.toWordFirstUpperCase(str.replace(/[^A-Za-z0-9]+/g, ' ')).replace(/ /g, '');
     }
 
     // PostTag -> Post Tag
@@ -26,6 +33,6 @@ module.exports = class StringHelper {
 
     // post-type to PostType
     static idToCamel (str) {
-        return this.ucwords(str.split('-').join(' ')).replace(/ /g, '');
+        return this.toWordFirstUpperCase(str.split('-').join(' ')).replace(/ /g, '');
     }
 };

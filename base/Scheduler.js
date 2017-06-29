@@ -40,7 +40,7 @@ module.exports = class Scheduler extends Base {
     }
     
     taskFail (event) {
-        this.module.log('error', `Task: ${event.sender.id}`, event.err);
+        this.module.log('error', `${this.constructor.name}: ${event.sender.id}`, event.err);
         this.trigger(this.EVENT_TASK_FAIL, event);
     }
 };

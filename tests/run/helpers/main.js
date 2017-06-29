@@ -77,8 +77,8 @@ describe('helpers.main', ()=> {
         expect(result).to.equal('&lt;div&gt;test&lt;/div&gt;');
     });
 
-    it('toValueArray', ()=> {
-        let list = MainHelper.toValueArray({a: 1, b: 2, c: 3});
+    it('getValues', ()=> {
+        let list = MainHelper.getValues({a: 1, b: 2, c: 3});
         expect(list).to.eql([1, 2, 3]);
     });
 

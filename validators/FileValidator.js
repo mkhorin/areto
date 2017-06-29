@@ -1,12 +1,12 @@
 'use strict';
 
 const Base = require('./Validator');
-const fs = require('fs');
 
 module.exports = class FileValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
+            imageOnly: false,
             minSize: 1,
             maxSize: null,
             extensions: null,
@@ -17,6 +17,7 @@ module.exports = class FileValidator extends Base {
     init () {
         super.init();
         this.createMessage('message', 'Invalid file');
+        this.createMessage('notImage', 'File is not an image');
         this.createMessage('tooSmall', 'File size cannot be smaller than {limit} B');
         this.createMessage('tooBig', 'File size cannot exceed {limit} B');
         this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}');
@@ -24,10 +25,12 @@ module.exports = class FileValidator extends Base {
     }
 
     // file {  path, size, extension, mime }
-    
     validateValue (file, cb) {
         if (!file || !file.path) {
             return cb(null, this.message);
+        }
+        if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
+            return cb(null, this.notImage);
         }
         fs.stat(file.path, (err, stats)=> {
             if (err || !stats.isFile()) {
@@ -60,6 +63,7 @@ module.exports = class FileValidator extends Base {
 
     getParams () {
         return {
+            imageOnly: this.imageOnly,
             minSize: this.minSize,
             maxSize: this.maxSize,
             extensions: this.extensions,
@@ -71,3 +75,5 @@ module.exports = class FileValidator extends Base {
         };
     }
 };
+
+const fs = require('fs');

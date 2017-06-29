@@ -7,21 +7,14 @@ module.exports = class MessageSource extends Base {
     constructor (config) {
         super(Object.assign({
             forceTranslation: false,
-            sourceLanguage: config.i18n.sourceLanguage
+            sourceLanguage: config.i18n.sourceLanguage,
+            parent: null
         }, config));
     }
 
     init () {        
+        super.init();
         this.clearCache();
-    }
-
-    clearCache () {
-        this._messages = {};
-    }
-
-    loadMessages (category, language) {
-        // what about ASYNC load
-        throw new Error('Load the message translation from the storage');
     }
 
     translate (category, message, language) {
@@ -35,11 +28,24 @@ module.exports = class MessageSource extends Base {
             return message;
         }
         let key = `${language}/${category}`;
-        if (!(key in this._messages)) {
+        if (!this._messages[key]) {
             this._messages[key] = this.loadMessages(category, language);
         }
-        return message in this._messages[key]
-            ? this._messages[key][message]
-            : message;
+        if (Object.prototype.hasOwnProperty.call(this._messages[key], message)) {
+            return this._messages[key][message];
+        }
+        if (this.parent instanceof MessageSource) {
+            return this.parent.translateMessage(category, message, language);
+        }
+        return message;
+    }
+
+    loadMessages (category, language) {
+        // what about ASYNC load
+        throw new Error(`${this.constructor.name}: Load the message translation from the store`);
+    }
+
+    clearCache () {
+        this._messages = {};
     }
 };

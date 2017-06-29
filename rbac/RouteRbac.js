@@ -1,28 +1,28 @@
 'use strict';
 
-const Base = require('./Manager');
-const async = require('async');
+const Base = require('./Rbac');
 
-module.exports = class RouteManager extends Base {
+module.exports = class RouteRbac extends Base {
 
     configure (cb) {
-        setImmediate(()=>{
-            this.load(err =>{
-                if (!err) {
-                    this.useHandler();
-                }
-                cb(err);
-            });
-        });
+        async.series([
+            cb => setImmediate(cb),
+            cb => this.load(cb),
+            cb => {
+                this.useHandler();
+                cb();
+            }
+        ], cb);
     }
 
     load (cb) {
-        super.load(err => {
-            if (!err) {
+        async.series([
+            cb => super.load(cb),
+            cb => {
                 this.indexRoutes();
+                cb();
             }
-            cb(err);
-        });
+        ], cb);
     }
 
     indexRoutes () {
@@ -38,21 +38,23 @@ module.exports = class RouteManager extends Base {
         module.appendToExpress('use', (req, res, next)=> {
             let user = res.locals.user;
             let item = this.getRouteItemByPath(req.path);
-            if (item && user) {
-                if (user.isGuest()) {
-                    user.loginRequired();
-                } else {
-                    user.can(item.name, (err, access)=> {
-                        err ? next(new ServerErrorException(err)) : access ? next() : next(new ForbiddenException);
-                    }, req.query);
-                }
-            } else next();
+            if (!item || !user) {
+                return next();
+            }
+            if (user.isGuest()) {
+                user.loginRequired();
+            } else {
+                user.can(item.name, (err, access)=> {
+                    err ? next(new ServerErrorException(err))
+                        : access ? next() : next(new ForbiddenException);
+                }, req.query);
+            }
         });
     }
 
     getRouteItemByPath (path) {
         path = path.split('?')[0].toLowerCase();
-        while (!(path in this.routeIndex)) {
+        while (!Object.prototype.hasOwnProperty.call(this.routeIndex, path)) {
             if (path.length < 2) {
                 return null;
             }
@@ -63,5 +65,6 @@ module.exports = class RouteManager extends Base {
     }
 };
 
+const async = require('async');
 const ServerErrorException = require('../errors/ServerErrorHttpException');
 const ForbiddenException = require('../errors/ForbiddenHttpException');

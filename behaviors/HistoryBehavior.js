@@ -4,7 +4,7 @@ const Base = require('../base/Behavior');
 const arrayHelper = require('../helpers/ArrayHelper');
 const async = require('async');
 
-module.exports = class History extends Base {
+module.exports = class HistoryBehavior extends Base {
 
     constructor (config) {
         super(Object.assign({
@@ -28,7 +28,7 @@ module.exports = class History extends Base {
             let model = new this.ModelClass;
             model.setTargetData(this.owner, attr);
             model.save(err => {
-                err && model.module.log('error', 'History behavior:', model.getErrors());
+                err && model.module.log('error', 'HistoryBehavior:', model.getErrors());
                 cb();
             });
         }, cb)

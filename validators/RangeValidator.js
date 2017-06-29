@@ -15,7 +15,7 @@ module.exports = class RangeValidator extends Base {
     init () {
         super.init();
         if (!(this.range instanceof Array)) {
-            throw new Error('RangeValidator: The range property must be set');
+            throw new Error(`${this.constructor.name}: The range property must be set`);
         }
         this.createMessage('message', 'Invalid range');
     }

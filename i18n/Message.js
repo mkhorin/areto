@@ -13,5 +13,3 @@ module.exports = class Message extends Base {
         return this;
     }
 };
-
-const I18n = require('./I18n');
