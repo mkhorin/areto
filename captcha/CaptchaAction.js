@@ -1,9 +1,6 @@
 'use strict';
 
 const Base = require('../base/Action');
-const MainHelper = require('../helpers/MainHelper');
-const gm = require('gm');
-const path = require('path');                       
 
 module.exports = class Captcha extends Base {
 
@@ -88,3 +85,7 @@ module.exports = class Captcha extends Base {
         image.draw('skewX', angle, 'text', `${x},${y}`, `"${text}"`);
     }
 };
+
+const gm = require('gm');
+const path = require('path');
+const MainHelper = require('../helpers/MainHelper');
