@@ -242,34 +242,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     // DB INDEXES
-    /*
-     getIndexes: function (table, cb) {
-     this.getCollection(table).indexInformation({ full: true }, (err, result)=>{
-     if (err) console.error('MongoDriver: getIndexes:', err);
-     cb(result);
-     });
-     },
-     // data - [{ title:1 }, { unique: true }]
-     createIndex: function (table, data, cb) {
-     this.getCollection(table).createIndex(data[0], data[1], (err, result)=>{
-     if (err) console.error('MongoDriver: createIndex:',err);
-     cb(result);
-     });
-     },
-
-     dropIndex: function (table, name, cb) {
-     this.getCollection(table).dropIndex(name, (err, result)=>{
-     if (err) console.error('MongoDriver: dropIndex:', err);
-     cb(result);
-     });
-     },
-
-     reIndex: function (table, cb) {
-     this.getCollection(table).reIndex((err, result)=>{
-     if (err) console.error('MongoDriver: reIndex:', err);
-     cb(result);
-     });
-     } //*/
+    // TODO
 };
 module.exports.init();
 

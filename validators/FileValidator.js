@@ -18,8 +18,8 @@ module.exports = class FileValidator extends Base {
         super.init();
         this.createMessage('message', 'Invalid file');
         this.createMessage('notImage', 'File is not an image');
-        this.createMessage('tooSmall', 'File size cannot be smaller than {limit} B');
-        this.createMessage('tooBig', 'File size cannot exceed {limit} B');
+        this.createMessage('tooSmall', 'File size cannot be smaller than {limit}');
+        this.createMessage('tooBig', 'File size cannot exceed {limit}');
         this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}');
         this.createMessage('wrongMimeType', 'Only these file MIME types are allowed: {mimeTypes}');
     }
@@ -38,12 +38,12 @@ module.exports = class FileValidator extends Base {
             }
             if (this.minSize && file.size < this.minSize) {
                 return cb(null, this.tooSmall, {
-                    limit: this.minSize
+                    limit: [this.minSize, 'bytes']
                 });
             }
             if (this.maxSize && file.size > this.maxSize) {
                 return cb(null, this.tooBig, {
-                    limit: this.maxSize
+                    limit: [this.maxSize, 'bytes']
                 });
             }
             if (this.extensions instanceof Array

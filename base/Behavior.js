@@ -14,7 +14,8 @@ module.exports = class Behavior extends Base {
 
     constructor (config) {
         super(Object.assign({
-            owner: null 
+            // name: 'behavior-name'
+            // owner: null
         }, config));
     }
     

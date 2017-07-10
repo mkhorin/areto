@@ -11,7 +11,11 @@ module.exports = class Driver extends Base {
             EVENT_ERROR: 'error',
             EVENT_COMMAND: 'command'
         };
-    }    
+    }
+
+    static normalizeId (id) {
+        return id;
+    }
 
     init () {
         super.init();
@@ -20,6 +24,10 @@ module.exports = class Driver extends Base {
         if (this.module.components.logger) {
             this.module.components.logger.traceDb(this);
         }
+    }
+
+    normalizeId () {
+        return this.constructor.normalizeId.apply(this.constructor,arguments);
     }
 
     getUri (withPassword) {
@@ -85,14 +93,6 @@ module.exports = class Driver extends Base {
 
     formatCommandData (data) {
         return JSON.stringify(data);
-    }
-
-    indexOfId (id, ids) {
-        return ids.indexOf(id);
-    }
-
-    normalizeId (id) {
-        return id;
     }
 
     buildCondition (condition) {

@@ -60,7 +60,7 @@ module.exports = class ActiveRecord extends Base {
             return undefined;
         }
         let index = name.indexOf('.');
-        if (index < 0) {
+        if (index === -1) {
             return this._related[name];
         }
         let rel = this._related[name.substring(0, index)];
@@ -145,6 +145,10 @@ module.exports = class ActiveRecord extends Base {
 
     static findById (id) {
         return this.find(['ID', this.PK, id]);
+    }
+
+    find () {
+        return this.constructor.find.apply(this.constructor, arguments);
     }
 
     findById (id) {
@@ -287,20 +291,19 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelation (name, cb, renew) {
-        if (!Object.prototype.hasOwnProperty.call(this._related, name) || renew) {
-            let relation = this.getRelation(name);
-            if (relation) {
-                relation.findFor((err, result)=> {
-                    this.populateRelation(name, result);
-                    cb(err, this._related[name]);
-                });
-            } else if (relation === null) {
-                cb(`${this.constructor.name}: Relation '${name}' not found`);
-            } else {
-                cb(null, null);
-            }
+        if (Object.prototype.hasOwnProperty.call(this._related, name) && !renew) {
+            return cb(null, this._related[name]);
+        }
+        let relation = this.getRelation(name);
+        if (relation) {
+            relation.findFor((err, result)=> {
+                this.populateRelation(name, result);
+                cb(err, this._related[name]);
+            });
+        } else if (relation === null) {
+            cb(`${this.constructor.name}: Relation '${name}' not found`);
         } else {
-            cb(null, this._related[name]);
+            cb(null, null);
         }
     }
 
@@ -318,12 +321,12 @@ module.exports = class ActiveRecord extends Base {
         this._related[name] = records;
     }
 
-    hasOne (Model, link) {
-        return Model.find().hasOne(this, link);
+    hasOne (ModelClass, link) {
+        return ModelClass.find().hasOne(this, link);
     }
 
-    hasMany (Model, link) {
-        return Model.find().hasMany(this, link);
+    hasMany (ModelClass, link) {
+        return ModelClass.find().hasMany(this, link);
     }
 
     // LINK
@@ -349,7 +352,7 @@ module.exports = class ActiveRecord extends Base {
             }
             if (!relation._multiple) {
                 this._related[name] = model; // update lazily loaded related objects
-            } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
+            } else if (this.isRelationPopulated(name)) {
                 if (relation._indexBy) {
                     this._related[name][model._indexBy] = model;
                 } else {
@@ -403,9 +406,9 @@ module.exports = class ActiveRecord extends Base {
         }
         let unlink = relation._via ? this.unlinkVia : this.unlinkInline;
         unlink.call(this, relation, model, remove, ()=> {
-            if (!relation._multiple) {
+            if (!relation.isMultiple()) {
                 this.unsetRelation(name);
-            } else if (Object.prototype.hasOwnProperty.call(this._related, name)) {
+            } else if (this.isRelationPopulated(name)) {
                 for (let i = this._related[name].length - 1; i >= 0; --i) {
                     if (MainHelper.isEqualIds(model.getId(), this._related[name][i].getId())) {
                         this._related[name].splice(i, 1);
@@ -431,27 +434,27 @@ module.exports = class ActiveRecord extends Base {
             [viaRelation._link[0]]: this.get(viaRelation._link[1]),
             [relation._link[1]]: model.get(relation._link[0])
         };
-        let nulls = {};
-        for (let key in columns) {
-            nulls[key] = null;
-        }
+        let nulls = {
+            [viaRelation._link[0]]: null,
+            [relation._link[1]]: null
+        };
         if (relation._via instanceof Array) {
-            remove ? viaModel.constructor.removeAll(columns, cb) 
-                   : viaModel.constructor.updateAll(nulls, columns, cb);
+            remove ? viaModel.constructor.removeAll(columns, cb)
+                : viaModel.constructor.updateAll(nulls, columns, cb);
         } else {
-            remove ? this.getDb().remove(viaTable, columns, cb) 
-                   : this.getDb().update(viaTable, columns, nulls, cb);
+            remove ? this.getDb().remove(viaTable, columns, cb)
+                : this.getDb().update(viaTable, columns, nulls, cb);
         }
     }
 
     unlinkInline (relation, model, remove, cb) {
         let a = relation._link[0];
         let b = relation._link[1];
-        let asBackRef= relation._asBackRef;
+        let asBackRef = relation._asBackRef;
         if (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
             if (model.get(a) instanceof Array) {
-                let index = this.getDb().indexOfId(this.get(b), model.get(a));
-                if (index > -1) {
+                let index = MainHelper.indexOfId(this.get(b), model.get(a));
+                if (index !== -1) {
                     model.get(a).splice(index, 1);
                 }
             } else {
@@ -460,8 +463,8 @@ module.exports = class ActiveRecord extends Base {
             remove ? model.remove(cb) : model.forceSave(cb);
         } else {
             if (this.get(b) instanceof Array) {
-                let index = this.getDb().indexOfId(model.get(a), this.get(b));
-                if (index > -1) {
+                let index = MainHelper.indexOfId(model.get(a), this.get(b));
+                if (index !== -1) {
                     this.get(b).splice(index, 1);
                 }
             } else {
@@ -502,7 +505,7 @@ module.exports = class ActiveRecord extends Base {
         if (viaRelation._where) {
             condition = ['AND', condition, viaRelation._where];
         }
-        if (relation._via instanceof Array) {
+        if (relation.remove instanceof Array) {
             if (remove) {
                 viaModel.constructor.find(condition).all((err, models)=> {
                     err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
@@ -512,8 +515,8 @@ module.exports = class ActiveRecord extends Base {
             }
         } else {
             condition = this.getDb().buildCondition(condition);
-            remove ? this.getDb().remove(viaTable, condition, cb) 
-                   : this.getDb().update(viaTable, condition, nulls, cb);
+            remove ? this.getDb().remove(viaTable, condition, cb)
+                : this.getDb().update(viaTable, condition, nulls, cb);
         }
     }
 
@@ -555,7 +558,7 @@ module.exports = class ActiveRecord extends Base {
             if (!(foreignModel.get(fk) instanceof Array)) {
                 foreignModel.set(fk, []);
             }
-            if (this.getDb().indexOfId(value, foreignModel.get(fk)) < 0) {
+            if (MainHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
                 foreignModel.get(fk).push(value);
                 foreignModel.forceSave(cb);
             } else {

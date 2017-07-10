@@ -44,7 +44,9 @@ module.exports = class I18n extends Base {
                 this.sources[category] = this.sources[category] || this.parent.sources[category];
             }
         }
-        this.messageFormatter = new this.MessageFormatter;
+        this.messageFormatter = MainHelper.createInstance(this.MessageFormatter, {
+            i18n: this
+        });
     }
 
     translate (category, message, params, language) {
@@ -61,6 +63,10 @@ module.exports = class I18n extends Base {
 
     format (message, params, language) {
         return params ? this.messageFormatter.format(message, params, language) : message;
+    }
+
+    getActiveNotSourceLanguage () {
+        return this.language !== this.sourceLanguage ? this.language : null;
     }
 
     getMessageSource (category) {

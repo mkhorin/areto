@@ -11,7 +11,20 @@ module.exports = class MongoDriver extends Base {
             MongoId: mongodb.ObjectID
         };
     }
-    
+
+    static normalizeId (id) {
+        if (!(id instanceof Array)) {
+            return id instanceof this.MongoId ? id
+                : this.MongoId.isValid(id) ? this.MongoId(id) : null;
+        }
+        let result = [];
+        for (let item of id) {
+            result.push(item instanceof this.MongoId ? item
+                : this.MongoId.isValid(item) ? this.MongoId(item) : null);
+        }
+        return result;
+    }
+
     constructor (config) {
         super(Object.assign({
             client: MongoClient,
@@ -36,17 +49,17 @@ module.exports = class MongoDriver extends Base {
     // OPERATIONS
 
     isCollectionExists (table, cb) {
-        this.connection.listCollections().get((err, items)=> {
-            if (err) {
-                return cb(err);
-            }
-            for (let item of items) {
-                if (item.name === table) {
-                    return cb(null, true);
+        async.waterfall([
+            cb => this.connection.listCollections().get(cb),
+            (items, cb)=> {
+                for (let item of items) {
+                    if (item.name === table) {
+                        return cb(null, true);
+                    }
                 }
+                cb(null, false);
             }
-            return cb(null, false);
-        });
+        ], cb);
     }
 
     getCollection (table) {
@@ -58,7 +71,7 @@ module.exports = class MongoDriver extends Base {
 
     getCollections (cb) {
         this.connection.collections((err, results)=> {
-            err && this.afterError('MongoDriver: get collections failed');
+            err && this.afterError(`${this.constructor.name}: get collections failed`);
             cb(err, results);
         });
     }
@@ -128,15 +141,15 @@ module.exports = class MongoDriver extends Base {
     }
 
     drop (table, cb) {
-        this.isCollectionExists(table, (err, exists)=> {
-            if (err || !exists) {
-                return cb && cb(err);
+        async.waterfall([
+            cb => this.isCollectionExists(table, cb),
+            (exists, cb)=> {
+                exists ? this.getCollection(table).drop(err => {
+                    this.afterCommand({err, cmd: 'truncate', table});
+                    cb && cb(err);
+                }) : cb();
             }
-            this.getCollection(table).drop(err => {
-                this.afterCommand({err, cmd: 'truncate', table});
-                cb && cb(err);
-            });
-        });
+        ], cb);
     }
 
     truncate (table, cb) {
@@ -241,34 +254,7 @@ module.exports = class MongoDriver extends Base {
         });
     }
 
-    // HELPERS
-
-    indexOfId (id, ids) {
-        if (!(id instanceof this.MongoId)) {
-            return ids.indexOf(id);
-        }    
-        for (let i = 0; i < ids.length; ++i) {
-            if (id.equals(ids[i])) {
-                return i;
-            }
-        }    
-        return -1;
-    }
-
-    normalizeId (id) {
-        if (!(id instanceof Array)) {
-            return id instanceof this.MongoId ? id
-                : this.MongoId.isValid(id) ? this.MongoId(id) : null;
-        }    
-        let result = [];
-        for (let item of id) {
-            result.push(item instanceof this.MongoId ? item
-                : this.MongoId.isValid(item) ? this.MongoId(item) : null);
-        }    
-        return result;
-    }
-
-    // DB INDEXES
+    // INDEXES
 
     getIndexes (table, cb) {
         this.getCollection(table).indexInformation({full: true}, cb);
@@ -291,6 +277,13 @@ module.exports = class MongoDriver extends Base {
         });
     }
 
+    dropIndexes (table, cb) {
+        this.getCollection(table).dropIndexes(err => {
+            this.afterCommand({cmd: 'dropIndexes', err, table});
+            cb(err);
+        });
+    }
+
     reIndex (table, cb) {
         this.getCollection(table).reIndex(err => {
             this.afterCommand({cmd: 'reIndex', err, table});
@@ -300,4 +293,5 @@ module.exports = class MongoDriver extends Base {
 }
 module.exports.init();
 
+const async = require('async');
 const MongoQueryBuilder = require('./MongoQueryBuilder');

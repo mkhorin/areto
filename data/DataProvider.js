@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Base');
-const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class DataProvider extends Base {
 
@@ -64,3 +63,5 @@ module.exports = class DataProvider extends Base {
         });
     }
 };
+
+const MainHelper = require('../helpers/MainHelper');

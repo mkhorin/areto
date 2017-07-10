@@ -24,9 +24,12 @@ module.exports = class LogType extends Base {
     }
 
     log (message, data) {
-        if (this.active) {            
-            if (this.consoleOutput) {                
-                console[this.consoleOutputMethod](`${this.name}:`, message, data ? data : '');
+        if (this.active) {
+            if (data instanceof Function) {
+                data = `[Function: ${data.name}]`;
+            }
+            if (this.consoleOutput) {
+                console[this.consoleOutputMethod](`${this.name}:`, message, data || '');
             }
             if (this.store instanceof LogStore) {
                 this.store.save(this.name, message, data);

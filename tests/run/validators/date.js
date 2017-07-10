@@ -1,9 +1,9 @@
 'use strict';
 
-let expect = require('chai').expect;
-let Model = require('../../../models/Model');
-const Validator = require('../../../validators/DateValidator');
-let validator = new Validator;
+const expect = require('chai').expect;
+const Model = require('../../apps/main/models/Model');
+const Validator = require('areto/validators/DateValidator');
+const validator = new Validator;
 
 describe('validators.date', ()=> {
 
@@ -50,5 +50,4 @@ describe('validators.date', ()=> {
             expect(model.hasError()).to.false;
         });
     });
-
 });

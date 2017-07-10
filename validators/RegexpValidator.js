@@ -24,8 +24,8 @@ module.exports = class RegExpValidator extends Base {
             throw new Error(`${this.constructor.name}: Not set pattern`);
         }
         if (typeof this.pattern === 'string') {
-            if (!this.BUILTIN.hasOwnProperty(this.pattern)) {
-                throw new Error(`${this.constructor.name}: Not found builtin pattern: ${this.pattern}`);
+            if (!Object.prototype.hasOwnProperty.call(this.BUILTIN, this.pattern)) {
+                throw new Error(`${this.constructor.name}: Not found built-in pattern: ${this.pattern}`);
             }
             this.pattern = this.BUILTIN[this.pattern];
         } else if (!(this.pattern instanceof RegExp)) {

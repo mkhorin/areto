@@ -2,20 +2,34 @@
 
 module.exports = class ArrayHelper {
 
-    static diff (target, excluded) {
-        return target.filter(item => excluded.indexOf(item) < 0);
-    }
-
-    static intersect (source, target) {
+    static diff (target, excluded, customIndexOf) {
         let result = [];
-        for (let item of source) {
-            target.includes(item) && result.push(item);
+        for (let item of target) {
+            if (customIndexOf ? customIndexOf(item, excluded) === -1 : !excluded.includes(item)) {
+                result.push(item);
+            }
         }
         return result;
     }
 
-    static unique (values) {
-        return values.filter((value, index)=> values.indexOf(value) === index);
+    static intersect (source, target, customIndexOf) {
+        let result = [];
+        for (let item of source) {
+            if (customIndexOf ? customIndexOf(item, target) !== -1 : target.includes(item)) {
+                result.push(item);
+            }
+        }
+        return result;
+    }
+
+    static unique (values, customIndexOf) {
+        let result = [];
+        for (let i = 0; i < values.length; ++i) {
+            if ((customIndexOf ? customIndexOf(values[i], values) : values.indexOf(values[i])) === i) {
+                result.push(values[i]);
+            }
+        }
+        return result;
     }
 
     static flip (values) {

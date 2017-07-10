@@ -304,14 +304,14 @@ module.exports = class Model extends Base {
         }, cb);
     }
 
-    // DEFAULT CONTROLLER
+    // MODEL CONTROLLER
 
-    getDefaultController () {
+    getController () {
         return require(this.module.getPath('controllers', `${this.ID}Controller`));
     }
 
-    createDefaultController () {
-        return new (this.getDefaultController());
+    createController (params) {
+        return new (this.getController())(params);
     }
 };
 module.exports.init();

@@ -1,9 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const MongoId = require('mongodb').ObjectID;
-
 module.exports = class MainHelper {
 
     static isEmpty (value) {
@@ -12,6 +8,16 @@ module.exports = class MainHelper {
 
     static isEqualIds (id1, id2) {
         return id1 instanceof MongoId ? id1.equals(id2) : id1 === id2;
+    }
+
+    static indexOfId (id, ids) {
+        if (!(id instanceof MongoId)) {
+            return ids.indexOf(id);
+        }
+        for (let i = 0; i < ids.length; ++i) {
+            if (id.equals(ids[i])) return i;
+        }
+        return -1;
     }
 
     static getRandom (min, max) {
@@ -24,12 +30,12 @@ module.exports = class MainHelper {
         } catch (err) {}
     }
 
-    static parseArguments (args, prefix = '--') {
+    static parseArguments (args, optionPrefix = '--') {
         let result = {}, key;
         if (args instanceof Array) {
             for (let item of args) {
-                if (typeof item === 'string' && item.indexOf(prefix) === 0) {
-                    key = item.substring(prefix.length);
+                if (typeof item === 'string' && item.indexOf(optionPrefix) === 0) {
+                    key = item.substring(optionPrefix.length);
                 } else if (key !== undefined) {
                     if (result[key] instanceof Array) {
                         result[key].push(item);
@@ -85,7 +91,7 @@ module.exports = class MainHelper {
         return config && config.Class ? new config.Class(config) : null;
     }
    
-    // can get from Class['name'] and (new Class)['name']
+    // get value from Class[name] and (new Class)[name]
     static defineClassProperty (Class, name, value, writable) {
         Object.defineProperty(Class, name, {value, writable});
         Object.defineProperty(Class.prototype, name, {value, writable});
@@ -111,3 +117,7 @@ module.exports = class MainHelper {
         }
     }    
 };
+
+const fs = require('fs');
+const path = require('path');
+const MongoId = require('mongodb').ObjectID;

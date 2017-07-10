@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Component');
-const async = require('async');
 
 module.exports = class AccessRule extends Base {
 
@@ -17,46 +16,45 @@ module.exports = class AccessRule extends Base {
     }
 
     can (action, user, cb) {
-        if ((!this.actions || this.actions.includes(action.id))
-            && (!this.verbs || this.verbs.includes(action.controller.req.method))
-            && (!this.controllers || this.controllers.includes(action.controller.ID))) {
-
-            this.match(user, (err, access)=> {
-                if (err) {
-                    cb(err);
-                } else if (access === true) {
-                    cb(null, this.allow);
-                } else if (access === false) {
-                    cb(null, !this.allow);
-                } else {
-                    cb(); // skip rule
-                }
-            });
-        } else {
-            cb(); // skip rule
+        if ((this.actions && !this.actions.includes(action.id))
+            || (this.verbs && !this.verbs.includes(action.controller.req.method))
+            || (this.controllers && !this.controllers.includes(action.controller.ID))) {
+            return cb(); // skip rule
         }
+        this.match(user, (err, access)=> {
+            if (err) {
+                cb(err);
+            } else if (access === true) {
+                cb(null, this.allow);
+            } else if (access === false) {
+                cb(null, !this.allow);
+            } else {
+                cb(); // skip rule
+            }
+        });
     }
 
     match (user, cb) {
-        if (this.roles instanceof Array) {
-            let roles = [];
-            for (let item of this.roles) {
-                if (item === '?') {
-                    return cb(null, user.isGuest());
-                } else if (item === '@') {
-                    return cb(null, !user.isGuest());
-                } else {
-                    roles.push(item);
-                }
-            }
-            async.eachSeries(roles, (item, roleCallback)=> {
-                user.can(item, (err, access)=> {
-                    err ? roleCallback(err)
-                        : access ? cb(null, true) : roleCallback();
-                });
-            }, err => cb(err, false));
-        } else {
-            cb();
+        if (!(this.roles instanceof Array)) {
+            return cb();
         }
+        let roles = [];
+        for (let item of this.roles) {
+            if (item === '?') {
+                return cb(null, user.isGuest());
+            } else if (item === '@') {
+                return cb(null, !user.isGuest());
+            } else {
+                roles.push(item);
+            }
+        }
+        async.eachSeries(roles, (item, roleCallback)=> {
+            user.can(item, (err, access)=> {
+                err ? roleCallback(err)
+                    : access ? cb(null, true) : roleCallback();
+            });
+        }, err => cb(err, false));
     }
 };
+
+const async = require('async');

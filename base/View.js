@@ -22,7 +22,7 @@ module.exports = class View extends Base {
     }
 
     get (template) {
-        return this.theme.get(template, this.language);
+        return this.theme.get(template, this.controller.language);
     }
 
     render (template, params, cb) {

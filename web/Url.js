@@ -17,7 +17,7 @@ module.exports = class Url extends Base {
             url = url[0];
         }
         let index = url.indexOf('/');
-        if (index < 0) {
+        if (index === -1) {
             url = controller.module.getRoute(`${controller.ID}/${url}`); // relative controller
         } else if (index > 0 && url.indexOf('http') !== 0) {
             url = controller.module.getRoute(url); // relative module
@@ -53,8 +53,7 @@ module.exports = class Url extends Base {
     static parse (url) {
         let parts = url.split('?');        
         let segments = parts[0].replace(/^\/|\/$/g, '').split('/');
-        let params = {};
-        let anchor;
+        let params = {}, anchor;
         if (parts[1]) {
             parts = parts[1].split('#');
             anchor = parts[1];
@@ -63,7 +62,7 @@ module.exports = class Url extends Base {
                 params[parts[0]] = parts[1];
             }
         }        
-        return { segments, params, anchor};
+        return {segments, params, anchor};
     }
 
     init () {

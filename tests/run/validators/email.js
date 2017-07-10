@@ -1,7 +1,7 @@
 'use strict';
 
-let expect = require('chai').expect;
-let Model = require('../../../models/Model');
+const expect = require('chai').expect;
+const Model = require('../../../models/Model');
 const Validator = require('../../../validators/EmailValidator');
 let validator = new Validator;
 

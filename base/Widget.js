@@ -24,7 +24,7 @@ module.exports = class Widget extends Base {
         if (this.disabled) {
             return cb();
         }
-        this.module.log('trace', `Widget: execute: ${this.id}`);
+        this.module.log('trace', `${Widget.name}: execute: ${this.id}`);
         if (this.caching) {
             this.module.components[this.cacheComponentId].use(`widget-${this.id}`, this.run.bind(this), (err, content) => {
                 this.content = content;

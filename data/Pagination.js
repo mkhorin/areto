@@ -46,42 +46,39 @@ module.exports = class Pagination extends Base {
 
     setPageSize (value) {
         if (value === null) {
-            this.pageSize = null;
-        } else {
-            value = parseInt(value);
-            if (this.pageSizeLimit instanceof Array && this.pageSizeLimit.length === 2) {
-                if (value < this.pageSizeLimit[0]) {
-                    value = this.pageSizeLimit[0];
-                } else if (value > this.pageSizeLimit[1]) {
-                    value = this.pageSizeLimit[1];
-                }
-            }
-            this.pageSize = value;
+            return this.pageSize = null;
         }
+        value = parseInt(value);
+        if (this.pageSizeLimit instanceof Array && this.pageSizeLimit.length === 2) {
+            if (value < this.pageSizeLimit[0]) {
+                value = this.pageSizeLimit[0];
+            } else if (value > this.pageSizeLimit[1]) {
+                value = this.pageSizeLimit[1];
+            }
+        }
+        this.pageSize = value;
     }
 
     setPage (value) {
         if (value === null) {
-            this.page = null;
-        } else {
-            value = parseInt(value);
-            if (this.validatePage) {
-                let pageCount = this.getPageCount();
-                if (value >= pageCount) {
-                    value = pageCount - 1;
-                }
-            }
-            this.page = value < 0 ? 0 : value;
+            return this.page = null;
         }
+        value = parseInt(value);
+        if (this.validatePage) {
+            let pageCount = this.getPageCount();
+            if (value >= pageCount) {
+                value = pageCount - 1;
+            }
+        }
+        this.page = value < 0 ? 0 : value;
     }
     
     getPageCount () {
         if (this.pageSize < 1) {
             return this.totalCount > 0 ? 1 : 0;
-        } else {
-            let total = this.totalCount < 0 ? 0 : this.totalCount;
-            return parseInt((total + this.pageSize - 1) / this.pageSize);
         }
+        let total = this.totalCount < 0 ? 0 : this.totalCount;
+        return parseInt((total + this.pageSize - 1) / this.pageSize);
     }
 
     getOffset () {

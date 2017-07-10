@@ -1,8 +1,5 @@
 'use strict';
 
-const crypto = require('crypto');
-const fs = require('fs');
-
 const HASH_ALGO = 'sha1';
 const HASH_LENGTH = 40;
 const SALT_LENGTH = 8;
@@ -59,3 +56,6 @@ module.exports = class SecurityHelper {
         });
     }
 };
+
+const crypto = require('crypto');
+const fs = require('fs');

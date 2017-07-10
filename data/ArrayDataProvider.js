@@ -31,16 +31,18 @@ module.exports = class ArrayDataProvider extends Base {
             for (let attr in orders) {
                 directions[attr] = orders[attr] === Sort.ASC ? 1 : -1;
             }
-            models.sort((a, b)=> {                
-                for (let attr in orders) {
-                    let result = a[attr].toString().localeCompare(b[attr].toString());
-                    if (result !== 0) {
-                        return result * directions[attr];
-                    }
-                }
-                return 0;
-            });
+            models.sort(this.compareModels.bind(this, orders));
         }
         return models;
+    }
+
+    compareModels (orders, a, b) {
+        for (let attr in orders) {
+            let result = a[attr].toString().localeCompare(b[attr].toString());
+            if (result !== 0) {
+                return result * directions[attr];
+            }
+        }
+        return 0;
     }
 };

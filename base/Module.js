@@ -151,8 +151,7 @@ module.exports = class Module extends Base {
         }
         let fullName = this.getFullName();
         for (let item of this._expressQueue) {
-            let data = typeof item.args[0] === 'function' ? '[handler]' : item.args[0];
-            this.log('trace', `${fullName}: ${item.method}('${data}')`);
+            this.log('trace', `${fullName}: ${item.method}`, item.args[0]);
             this.express[item.method].apply(this.express, item.args);
         }
     }
@@ -176,11 +175,10 @@ module.exports = class Module extends Base {
     getConfigFile (name) {
         let file = this.getPath('config', `${name}.js`);
         try {
-            fs.statSync(file);
+            return require(file);
         } catch (err) {
             return {}; // no config file
         }
-        return require(file);
     }
 
     configure (parent, configName, cb) {
@@ -408,7 +406,7 @@ module.exports = class Module extends Base {
         cb();
     }
 
-    // HANDLE
+    // HANDLERS
 
     handleUser (req, res, next) {
         let module = res.locals.module;
@@ -422,7 +420,6 @@ module.exports = class Module extends Base {
 module.exports.init();
 
 const async = require('async');
-const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const MainHelper = require('../helpers/MainHelper');

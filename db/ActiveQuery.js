@@ -456,9 +456,9 @@ module.exports = class ActiveQuery extends Base {
             value = isActiveRecord ? model.get(attr) : model[attr];
             if (value instanceof Array) {
                 values = values.concat(value);
-            } else if (value !== undefined && value !== null) {
+            } else if (value !== undefined && value !== null && value !== '') {
                 values.push(value);
-            }   
+            }
         }
         if (this._orderByIn) {
             this._orderByIn = values;

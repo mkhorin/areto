@@ -96,7 +96,7 @@ module.exports = class Component extends Base {
 
     getBehavior (name) {
         this.ensureBehaviors();
-        return this._behaviors.hasOwnProperty(name) ? this._behaviors[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._behaviors, name) ? this._behaviors[name] : null;
     }
 
     getBehaviors () {
@@ -144,17 +144,21 @@ module.exports = class Component extends Base {
     }
 
     attachBehaviorInternal (name, behavior) {
-        if (typeof behavior === 'function') {
-            behavior = new behavior;
-        } else if (behavior) {
+        if (!behavior) {
+            throw new Error(`${this.constructor.name}: Attach undefined behavior: ${name}`);
+        }
+        if (behavior.prototype instanceof Behavior) {
+            behavior = new behavior({name});
+        } else if (behavior.Class && behavior.Class.prototype instanceof Behavior) {
+            behavior.name = behavior.name || name;
             behavior = new behavior.Class(behavior);
-        }        
-        if (this._behaviors.hasOwnProperty(name)) {
+        } else {
+            throw new Error(`${this.constructor.name}: Attach invalid behavior: ${name}`);
+        }
+        if (Object.prototype.hasOwnProperty.call(this._behaviors, name)) {
             this._behaviors[name].detach();
         }
-        if (behavior) {
-            behavior.attach(this);
-        }                
+        behavior.attach(this);
         this._behaviors[name] = behavior;
         return behavior;
     }
@@ -162,3 +166,4 @@ module.exports = class Component extends Base {
 
 const async = require('async');
 const ExtEvent = require('./ExtEvent');
+const Behavior = require('./Behavior');

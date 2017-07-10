@@ -10,32 +10,47 @@ module.exports = class Router extends Base {
         this.attachAll();
         this.errors && this.attachErrorHandlers(this.errors);
     }
-    
-    attachErrorHandlers (config) {
-        this.module.appendToExpress('all', '*', function (req, res, next) {
-            next(new NotFoundHttpException());
-        });
-        let Controller = config.Controller || this.module.getDefaultController();
-        this.module.appendToExpress('use', function (err, req, res, next) {            
-            err = err instanceof HttpException ? err : new ServerErrorHttpException(err);
-            err.setParams(req, res);
-            Controller ? (new Controller).assign(req, res, next, err).execute(config.action || 'error') 
-                       : next(err);
-        });
+
+    attachDefault (Controller) {
+        if (Controller === undefined) {
+            Controller = this.module.getDefaultController();
+        }
+        if (Controller && Controller.DEFAULT_ACTION) {
+            let controller = new Controller;
+            let id = Controller.DEFAULT_ACTION;
+            if (controller.getActionIds().includes(id)) {
+                this.attachAction(id, controller, '');
+            }
+        }
+    }
+
+    attachAll () {
+        let dir = this.module.getControllerDir();
+        try {
+            fs.readdirSync(dir).forEach(fileName => {
+                this.attachFile(path.join(dir, fileName));
+            });
+        } catch (err) {}
+    }
+
+    attachFile (file) {
+        if (fs.lstatSync(file).isFile()) {
+            try {
+                this.attach(require(file));
+            } catch (err) {
+                this.module.log('error', `${this.constructor.name}: ${file}`, err);
+            }
+        }
     }
 
     attach (Controller) {
-        try {
-            let controller = new Controller;
-            let route = `/${Controller.ID}`;
-            for (let id of controller.getActionIds()) {
-                this.attachAction(id, controller, `${route}/${id}`);
-                if (controller.DEFAULT_ACTION === id) {
-                    this.attachAction(id, controller, route);
-                }
+        let controller = new Controller;
+        let route = `/${Controller.ID}`;
+        for (let id of controller.getActionIds()) {
+            this.attachAction(id, controller, `${route}/${id}`);
+            if (controller.DEFAULT_ACTION === id) {
+                this.attachAction(id, controller, route);
             }
-        } catch (err) {
-            this.module.log('error', `${this.constructor.name}: attach`, err);
         }
     }
 
@@ -52,39 +67,22 @@ module.exports = class Router extends Base {
         }
     }
 
-    attachAll () {
-        let dir = this.module.getControllerDir();
-        try {
-            fs.readdirSync(dir).forEach(filename => {
-                let file = path.join(dir, filename);
-                if (fs.lstatSync(file).isFile()) {
-                    try {
-                        this.attach(require(file));
-                    } catch (err) {
-                        this.module.log('error', `${this.constructor.name}: ${file}`, err);
-                    }    
-                }
-            });
-        } catch (err) {}
-    }
-
-    attachDefault (Controller) {
-        if (Controller === undefined) {
-            Controller = this.module.getDefaultController();
-        }
-        if (Controller && Controller.DEFAULT_ACTION) {
-            let controller = new Controller;
-            let id = Controller.DEFAULT_ACTION;
-            if (controller.getActionIds().includes(id)) {
-                this.attachAction(id, controller, '');
-            }    
-        }
+    attachErrorHandlers (config) {
+        this.module.appendToExpress('all', '*', function (req, res, next) {
+            next(new NotFoundHttpException());
+        });
+        let Controller = config.Controller || this.module.getDefaultController();
+        this.module.appendToExpress('use', function handleError (err, req, res, next) {
+            err = err instanceof HttpException ? err : new ServerErrorHttpException(err);
+            err.setParams(req, res);
+            Controller ? (new Controller).assign(req, res, next, err).execute(config.action || 'error')
+                : next(err);
+        });
     }
 };
 
 const fs = require('fs');
 const path = require('path');
-const MainHelper = require('../helpers/MainHelper');
 const HttpException = require('../errors/HttpException');
 const ServerErrorHttpException = require('../errors/ServerErrorHttpException');
 const NotFoundHttpException = require('../errors/NotFoundHttpException');

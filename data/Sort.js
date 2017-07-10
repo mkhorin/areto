@@ -49,28 +49,29 @@ module.exports = class Sort extends Base {
     }
 
     getOrders (recalc) {
-        if (!this._attrOrders || recalc) {
-            this._attrOrders = {};
-            let attrs = this.params || this.controller.getQueryParam(this.sortParam);
-            if (attrs) {
-                attrs = attrs.split(this.separator);
-                for (let attr of attrs) {
-                    let desc = false;
-                    if (attr.charAt(0) === '-') {
-                        desc = true;
-                        attr = attr.substring(1);
-                    }
-                    if (Object.prototype.hasOwnProperty.call(this.attrs, attr)) {
-                        this._attrOrders[attr] = desc ? this.DESC : this.ASC;
-                        if (!this.enableMultiSort) {
-                            return this._attrOrders;
-                        }
+        if (this._attrOrders && !recalc) {
+            return this._attrOrders;
+        }
+        this._attrOrders = {};
+        let attrs = this.params || this.controller.getQueryParam(this.sortParam);
+        if (attrs) {
+            attrs = attrs.split(this.separator);
+            for (let attr of attrs) {
+                let desc = false;
+                if (attr.charAt(0) === '-') {
+                    desc = true;
+                    attr = attr.substring(1);
+                }
+                if (Object.prototype.hasOwnProperty.call(this.attrs, attr)) {
+                    this._attrOrders[attr] = desc ? this.DESC : this.ASC;
+                    if (!this.enableMultiSort) {
+                        return this._attrOrders;
                     }
                 }
             }
-            if (this.defaultOrder && Object.keys(this._attrOrders).length === 0) {
-                this._attrOrders = this.defaultOrder;
-            }
+        }
+        if (this.defaultOrder && Object.keys(this._attrOrders).length === 0) {
+            this._attrOrders = this.defaultOrder;
         }
         return this._attrOrders;
     }
@@ -100,9 +101,9 @@ module.exports = class Sort extends Base {
     }
 
     createUrl (attr) {
-        let params = this.params ? this.params : Object.assign({}, this.controller.getQueryParams());
+        let params = this.params || Object.assign({}, this.controller.getQueryParams());
         params[this.sortParam] = this.createSortParam(attr);
-        let route = this.route ? this.route : this.controller.getCurrentRoute();
+        let route = this.route || this.controller.getCurrentRoute();
         return this.controller.createUrl([route, params]);
     }
 
@@ -125,5 +126,4 @@ module.exports = class Sort extends Base {
         return sorts.join(this.separator);
     }    
 };
-
 module.exports.init();

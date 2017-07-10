@@ -16,8 +16,7 @@ module.exports = class Formatter extends Base {
     constructor (config) {
         super(Object.assign({
             language: config.i18n ? config.i18n.language : 'en',
-            nullFormat: '<span class="not-set">[null]</span>',
-            undefinedFormat: '<span class="not-set">[undefined]</span>',
+            nullFormat: '<span class="not-set">[not set]</span>',
             booleanFormat: ['No', 'Yes'],
             byteFractionalPart: 100,
             dateFormat: 'L',
@@ -29,33 +28,29 @@ module.exports = class Formatter extends Base {
         }, config));
     }
 
-    translate (msg, language) {
-        return this.i18n ? this.i18n.translate('areto', msg, null, language || this.language) : msg;
-    }
-
     format (value, type, params) {
         let method = `as${StringHelper.toFirstUpperCase(type)}`;
         if (typeof this[method] === 'function') {
             return this[method](value, params);
         }
-        this.module.log('error', `${this.constructor.name}: Unknown type: ${type}`);
+        this.module.log('error', `${this.constructor.name}: Unknown type '${type}' for value '${value}'`);
         return value;
     }
 
     asRaw (value, params = {}) {
-        return value === undefined ? this.undefinedFormat : value === null ? this.nullFormat : value;
+        return value === undefined ? '' : value === null ? this.nullFormat : value;
     }
 
     asBoolean (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.asRaw(value, params);
+            return this.nullFormat;
         }
         return this.translate(this.booleanFormat[value ? 1 : 0], params.language);
     }
 
     asBytes (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.asRaw(value, params);
+            return this.nullFormat;
         }
         let unit;
         if (value < this.KiB) {
@@ -143,6 +138,12 @@ module.exports = class Formatter extends Base {
     asIso (value, params) {
         return value ? moment(value).toISOString()
             : this.asRaw(value, params);
+    }
+
+    // TRANSLATE
+
+    translate (msg, language) {
+        return this.i18n ? this.i18n.translate('areto', msg, null, language || this.language) : msg;
     }
 };
 module.exports.init();

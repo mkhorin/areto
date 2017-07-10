@@ -36,7 +36,7 @@ module.exports = class Validator extends Base {
     static createValidator (type, model, attrs, config = {}) {
         config.attrs = attrs instanceof Array ? attrs : [attrs];
         if (typeof type === 'function' || typeof model[type] === 'function') {
-            if (Object.getPrototypeOf(type) !== Validator) {
+            if (!(type.prototype instanceof Validator)) {
                 config.method = type;
                 type = this.BUILTIN.inline;
             }

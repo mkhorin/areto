@@ -26,19 +26,27 @@ module.exports = class ActiveDataProvider extends Base {
         if (this.sort) {
             let model = this.query.model;
             let names = Object.keys(this.sort.attrs);
-            if (names.length === 0) {
-                for (let name of model.getAttrNames()) {
-                    this.sort.attrs[name] = {
-                        asc: {[name]: this.sort.ASC},
-                        desc: {[name]: this.sort.DESC},
-                        label: model.getLabel(name) 
-                    };
-                }
-            } else {
-                for (let name of names) 
-                    if (!this.sort.attrs[name].label)
-                        this.sort.attrs[name].label = model.getLabel(name);
-            }                         
+            names.length
+                ? this.setSortByNames(names, model)
+                : this.setSortByAttrNames(model);
+        }
+    }
+
+    setSortByNames (names, model) {
+        for (let name of names) {
+            if (!this.sort.attrs[name].label) {
+                this.sort.attrs[name].label = model.getLabel(name);
+            }
+        }
+    }
+
+    setSortByAttrNames (model) {
+        for (let name of model.getAttrNames()) {
+            this.sort.attrs[name] = {
+                asc: {[name]: this.sort.ASC},
+                desc: {[name]: this.sort.DESC},
+                label: model.getLabel(name)
+            };
         }
     }
 };

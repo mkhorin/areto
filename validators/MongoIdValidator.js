@@ -6,7 +6,8 @@ module.exports = class MongoIdValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            normalize: true
+            normalize: true,
+            skipOnEmpty: false
         }, config));
     }
 
@@ -16,22 +17,27 @@ module.exports = class MongoIdValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, msg, params)=> {
+        let value = model.get(attr);
+        if (this.isEmptyValue(value)) {
+            model.set(attr, null);
+            return cb();
+        }
+        this.validateValue(value, (err, msg, params)=> {
             if (err) {
                 return cb(err);
             }
             if (msg) {
                 this.addError(model, attr, msg, params)
             } else if (this.normalize) {
-                model.set(attr, ObjectID(model.get(attr)));
+                model.set(attr, MongoDriver.MongoId(model.get(attr)));
             }
             cb();
         });
     }
 
     validateValue (value, cb) {
-        ObjectID.isValid(value) ? cb() : cb(null, this.message);
+        MongoDriver.MongoId.isValid(value) ? cb() : cb(null, this.message);
     }
 };
 
-const ObjectID = require('mongodb').ObjectID;
+const MongoDriver = require('../db/MongoDriver');

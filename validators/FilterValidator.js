@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Validator');
-const ObjectID = require('mongodb').ObjectID;
 
 module.exports = class FilterValidator extends Base {
 
@@ -9,22 +8,16 @@ module.exports = class FilterValidator extends Base {
         return {
             BUILTIN: {
                 'boolean': function (value, cb) {
-                    cb(null, value == 'on' ? true : false);
+                    cb(null, value === 'on' ? true : false);
                 },
                 'json': function (value, cb) {
-                    try {
-                        cb(null, (!value || typeof value === 'object') ? value : JSON.parse(value));
-                    } catch (err) {
-                        cb(null, value, this.createMessage('message', 'Invalid JSON'));
-                    }
-                },
-                'mongoId': function (value, cb) {
-                    if (!value) {
+                    if (!value || typeof value === 'object') {
                         return cb(null, value);
                     }
-                    ObjectID.isValid(value)
-                        ? cb(null, ObjectID(value))
-                        : cb(null, value, this.createMessage('message', 'Invalid MongoID'));
+                    value = MainHelper.parseJson(value);
+                    value === undefined
+                        ? cb(null, value, this.createMessage('message', 'Invalid JSON'))
+                        : cb(null, value);
                 }
             }
         };
@@ -44,7 +37,7 @@ module.exports = class FilterValidator extends Base {
             throw new Error(`${this.constructor.name}: The filter property must be set`);
         }
         if (typeof this.filter === 'string') {
-            if (this.BUILTIN.hasOwnProperty(this.filter)) {
+            if (Object.prototype.hasOwnProperty.call(this.BUILTIN, this.filter)) {
                 this.filter = this.BUILTIN[this.filter];
             }
         } else if (typeof this.filter !== 'function') {
@@ -81,3 +74,5 @@ module.exports = class FilterValidator extends Base {
     }
 };
 module.exports.init();
+
+const MainHelper = require('../helpers/MainHelper');

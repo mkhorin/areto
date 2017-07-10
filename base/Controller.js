@@ -26,7 +26,7 @@ module.exports = class Controller extends Base {
     
     static getId () {
         let index = this.name.indexOf('Controller');
-        if (index < 0) {
+        if (index === -1) {
             throw new Error(`${this.name}: Invalid class name: ${this.name}`);
         }
         return StringHelper.camelToId(this.name.substring(0, index));
@@ -60,8 +60,8 @@ module.exports = class Controller extends Base {
         return this.constructor.getModelClass();
     }
     
-    createModel () {
-        return new (this.getModelClass());
+    createModel (params) {
+        return new (this.getModelClass())(params);
     }
 
     getActionIds () {
@@ -74,23 +74,26 @@ module.exports = class Controller extends Base {
         return ids;
     }
 
-    assignFrom (controller) {
-        this.req = controller.req;
-        this.res = controller.res;
-        this.next = controller.next;
-        this.err = controller.err;
-        this.user = controller.user;
-        this.timestamp = controller.timestamp;
-        return this;
-    }
-
     assign (req, res, next, err) {
         this.req = req;
         this.res = res;
         this.next = next;
         this.err = err;
         this.user = res.locals.user;
+        this.language = res.locals.language || (this.module.components.i18n
+            && this.module.components.i18n.getActiveNotSourceLanguage());
         this.timestamp = (new Date).getTime();
+        return this;
+    }
+
+    assignFrom (controller) {
+        this.req = controller.req;
+        this.res = controller.res;
+        this.next = controller.next;
+        this.err = controller.err;
+        this.user = controller.user;
+        this.language = controller.language;
+        this.timestamp = controller.timestamp;
         return this;
     }
 
@@ -235,12 +238,11 @@ module.exports = class Controller extends Base {
     }
 
     render (template, params, cb) {
-        if (template.toString().indexOf('/') < 0) {
+        if (template.toString().indexOf('/') === -1) {
             template = `${this.ID}/${template}`;
         }
         let view = new this.VIEW_CLASS({
-            controller: this,
-            language: this.res.locals.language || (this.module.components.i18n && this.module.components.i18n.language)
+            controller: this
         });
         view.render(template, params, (err, content)=> {
             cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
@@ -317,10 +319,8 @@ module.exports = class Controller extends Base {
     // I18N
 
     format (value, type, params) {
-        if (this.res.locals.language) {
-            params = Object.assign({
-                language: this.res.locals.language
-            }, params);
+        if (this.language) {
+            params = Object.assign({language: this.language}, params);
         }
         return this.module.components.formatter.format(value, type, params);
     }
@@ -332,8 +332,8 @@ module.exports = class Controller extends Base {
             category = category.category;
         }
         return category 
-            ? this.module.components.i18n.translate(category, message, params, this.res.locals.language)
-            : this.module.components.i18n.format(message, params, this.res.locals.language);
+            ? this.module.components.i18n.translate(category, message, params, this.language)
+            : this.module.components.i18n.format(message, params, this.language);
     }
 
     translateMessages (messages) {

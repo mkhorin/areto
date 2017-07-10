@@ -92,7 +92,7 @@ module.exports = class Logger extends Base {
 
     log (type, message, data) {
         if (this.types.hasOwnProperty(type)) {
-            this.types[type].log(message, data);            
+            this.types[type].log(message, data);
         } else if (this.types.error) {
             this.types.error.log(`${this.constructor.name}: Not found type: ${type}`, {message, data});
         } else {
@@ -101,7 +101,7 @@ module.exports = class Logger extends Base {
     }
 
     traceProcessingTime () {
-        this.module.appendToExpress('use', (req, res, next)=> {
+        this.module.appendToExpress('use', function traceProcessingTime (req, res, next) {
             res.locals.startProcessingTime = (new Date).getTime();
             next();
         });

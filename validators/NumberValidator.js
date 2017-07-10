@@ -8,9 +8,7 @@ module.exports = class NumberValidator extends Base {
         super(Object.assign({
             integerOnly: false,
             max: null,
-            min: null,
-            integerPattern: '^\\s*[+-]?\\d+\\s*$', // = /^\s*[+-]?\d+\s*$/,
-            numberPattern: '^\\s*[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?\\s*$'
+            min: null
         }, config));
     }
 
@@ -32,19 +30,16 @@ module.exports = class NumberValidator extends Base {
                 return cb(err);
             }
             msg ? this.addError(model, attr, msg, params)
-                : model.set(attr, parseFloat(value));
+                : model.set(attr, Number(value));
             cb();
         });
     }
 
     validateValue (value, cb) {
-        if (typeof value === 'object' || (value - parseFloat(value) + 1) < 0) {
+        if (isNaN(Number(value))) {
             return cb(null, this.message);
         }
-        let regex = new RegExp(this.integerOnly ? this.integerPattern : this.numberPattern);
-        if (!regex.test(value)) {
-            return cb(null, this.message);        
-        }
+        value = Number(value);
         if (this.min !== null && value < this.min) {
             return cb(null, this.tooSmall, {min: this.min});
         } 

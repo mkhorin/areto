@@ -30,17 +30,17 @@ module.exports = class StringValidator extends Base {
         let value = model.get(attr);
         if (typeof value !== 'string') {
             this.addError(model, attr, this.message);
-        } else {
-            let length = value.length;
-            if (this.min !== null && length < this.min) {
-                this.addError(model, attr, this.tooShort, {min: this.min});
-            }
-            if (this.max !== null && length > this.max) {
-                this.addError(model, attr, this.tooLong, {max: this.max});
-            }
-            if (this.length !== null && length !== this.length) {
-                this.addError(model, attr, this.notEqual, {length: this.length});
-            }
+            return cb();
+        }
+        let length = value.length;
+        if (this.min !== null && length < this.min) {
+            this.addError(model, attr, this.tooShort, {min: this.min});
+        }
+        if (this.max !== null && length > this.max) {
+            this.addError(model, attr, this.tooLong, {max: this.max});
+        }
+        if (this.length !== null && length !== this.length) {
+            this.addError(model, attr, this.notEqual, {length: this.length});
         }
         cb();
     }

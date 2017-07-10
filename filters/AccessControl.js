@@ -1,8 +1,6 @@
 'use strict';
 
 const Base = require('./ActionFilter');
-const MainHelper = require('../helpers/MainHelper');
-const async = require('async');
 
 module.exports = class AccessControl extends Base {
 
@@ -44,9 +42,11 @@ module.exports = class AccessControl extends Base {
     }
 
     denyAccess (action, user, cb) {
-        let Exception = require('../errors/ForbiddenHttpException');
-        user.isGuest() ? user.loginRequired() : cb(new Exception);
+        user.isGuest() ? user.loginRequired() : cb(new ForbiddenHttpException);
     }
 };
 
+const async = require('async');
 const AccessRule = require('./AccessRule');
+const MainHelper = require('../helpers/MainHelper');
+const ForbiddenHttpException = require('../errors/ForbiddenHttpException');

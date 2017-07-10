@@ -13,8 +13,8 @@ module.exports = {
     'Date must be no greater than {max}': 'Дата должна быть не позднее {max}',
 
     'File is not an image': 'Файл не является изображением',
-    'File size cannot be smaller than {limit} B': 'Размер файла не может быть менее {limit} Б',
-    'File size cannot exceed {limit} B': 'Размер файла не может превышать {limit} Б',
+    'File size cannot be smaller than {limit}': 'Размер файла не может быть менее {limit}',
+    'File size cannot exceed {limit}': 'Размер файла не может превышать {limit}',
 
     'Invalid date': 'Недействительная дата',
     'Invalid email': 'Неверный адрес электронной почты',
