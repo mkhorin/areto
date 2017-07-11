@@ -280,7 +280,7 @@ module.exports = class ActiveQuery extends Base {
                 return cb(err);
             } 
             if (!this._multiple && primaryModels.length === 1) {
-                this.one((err, model)=> {
+                return this.one((err, model)=> {
                     if (err) {
                         cb(err);
                     } else if (model) {
@@ -290,23 +290,22 @@ module.exports = class ActiveQuery extends Base {
                         cb(null, []);
                     }
                 });
-            } else {
-                let indexBy = this._indexBy;
-                this._indexBy = null;
-                this.all((err, models)=> {
-                    if (err) {
-                        return cb(err);
-                    }
-                    let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
-                    this._indexBy = indexBy;
-                    if (indexBy !== null && this._multiple) {
-                        buckets = this.indexBuckets(buckets, indexBy);
-                    }
-                    let link = viaQuery ? viaQuery._link[1] : this._link[1];
-                    this.populateMultipleRelation(name, primaryModels, buckets, link);
-                    cb(null, models);
-                });
             }
+            let indexBy = this._indexBy;
+            this._indexBy = null;
+            this.all((err, models)=> {
+                if (err) {
+                    return cb(err);
+                }
+                let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
+                this._indexBy = indexBy;
+                if (indexBy !== null && this._multiple) {
+                    buckets = this.indexBuckets(buckets, indexBy);
+                }
+                let link = viaQuery ? viaQuery._link[1] : this._link[1];
+                this.populateMultipleRelation(name, primaryModels, buckets, link);
+                cb(null, models);
+            });
         });
     }
 
@@ -462,7 +461,8 @@ module.exports = class ActiveQuery extends Base {
         }
         if (this._orderByIn) {
             this._orderByIn = values;
-        }    
+        }
+        values
         this.andWhere(['IN', this._link[0], values]);
     }
 
@@ -477,17 +477,16 @@ module.exports = class ActiveQuery extends Base {
     }
 
     findJunctionRows (primaryModels, cb) {
-        if (primaryModels.length) {
-            this.filterByModels(primaryModels);
-            let pm = primaryModels[0];
-            if (!(pm instanceof ActiveRecord)) {
-                // when primaryModels are array of arrays (asArray case)
-                pm = new this.model.constructor;
-            }
-            this.asArray().all(cb);
-        } else {
-            cb(null, []);
+        if (!primaryModels.length) {
+            return cb(null, []);
         }
+        this.filterByModels(primaryModels);
+        /*let pm = primaryModels[0];
+        if (!(pm instanceof ActiveRecord)) {
+            // when primaryModels are array of arrays (asArray case)
+            pm = new this.model.constructor;
+        }*/
+        this.asArray().all(cb);
     }
 };
 

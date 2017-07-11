@@ -6,7 +6,7 @@ module.exports = class Component extends Base {
 
     static getConstants () {
         return {
-            BEHAVIORS: {
+            BEHAVIORS: { // auto-attached behaviors
                 //behavior1: require('./UserBehavior1'),
                 //behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
             }
@@ -118,7 +118,7 @@ module.exports = class Component extends Base {
 
     detachBehavior (name) {
         this.ensureBehaviors();
-        if (!this._behaviors.hasOwnProperty(name)) {
+        if (!Object.prototype.hasOwnProperty.call(this._behaviors, name)) {
             return null;
         }
         let behavior = this._behaviors[name];
@@ -146,13 +146,12 @@ module.exports = class Component extends Base {
     attachBehaviorInternal (name, behavior) {
         if (!behavior) {
             throw new Error(`${this.constructor.name}: Attach undefined behavior: ${name}`);
-        }
-        if (behavior.prototype instanceof Behavior) {
+        } else if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
         } else if (behavior.Class && behavior.Class.prototype instanceof Behavior) {
             behavior.name = behavior.name || name;
             behavior = new behavior.Class(behavior);
-        } else {
+        } else if (!(behavior instanceof Behavior)) {
             throw new Error(`${this.constructor.name}: Attach invalid behavior: ${name}`);
         }
         if (Object.prototype.hasOwnProperty.call(this._behaviors, name)) {

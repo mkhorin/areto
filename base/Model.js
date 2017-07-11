@@ -247,20 +247,6 @@ module.exports = class Model extends Base {
         ], cb);
     }
 
-    createValidators () {
-        let validators = [];
-        for (let rule of this.RULES) {
-            if (rule instanceof Validator) {
-                validators.push(rule);
-            } else if (rule instanceof Array && rule[0] && rule[1]) {
-                validators.push(Validator.createValidator(rule[1], this, rule[0], rule[2]));
-            } else {
-                this.module.log('error', `${this.constructor.name}: Invalid validation rule`);
-            }    
-        }
-        return validators;
-    }
-
     getValidators () {
         if (!this._validators) {
             this._validators = this.createValidators();
@@ -302,6 +288,34 @@ module.exports = class Model extends Base {
         async.each(this.getActiveValidatorsByClass(DefaultValueValidator), (validator, cb)=> {
             validator.validateAttrs(this, null, cb);
         }, cb);
+    }
+
+    addValidator (rule) {
+        rule = this.createValidator(rule);
+        if (rule) {
+            this.getValidators().push(rule);
+        }
+    }
+
+    createValidators () {
+        let validators = [];
+        for (let rule of this.RULES) {
+            rule = this.createValidator(rule);
+            if (rule) {
+                validators.push(rule);
+            }
+        }
+        return validators;
+    }
+
+    createValidator (rule) {
+        if (rule instanceof Validator) {
+            return rule;
+        }
+        if (rule instanceof Array && rule[0] && rule[1]) {
+            return Validator.createValidator(rule[1], this, rule[0], rule[2]);
+        }
+        this.module.log('error', `${this.constructor.name}: Invalid validation rule`, rule);
     }
 
     // MODEL CONTROLLER
