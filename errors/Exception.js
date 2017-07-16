@@ -13,7 +13,7 @@ module.exports = class Exception {
             this.message = '';
             this.data = err;
         } else {
-            this.message = err;
+            this.message = err || '';
             this.data = data;
         }
     }

@@ -105,7 +105,7 @@ module.exports = class MongoQueryBuilder extends Base {
             throw new Error(`${this.constructor.name}: Simple requires 2 operands.`);
         }
         if (!(SIMPLE_OPERATORS.hasOwnProperty(operator))) {
-            throw new Error(`${this.constructor.name}: Simple operator not found.`);
+            throw new Error(`${this.constructor.name}: Simple operator not found: ${operator}`);
         }        
         return {[this.getFieldName(operands[0])]: {[SIMPLE_OPERATORS[operator]]: operands[1]}};
     }

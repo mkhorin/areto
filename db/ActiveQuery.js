@@ -25,7 +25,7 @@ module.exports = class ActiveQuery extends Base {
 
     exceptModel (model) {
         if (model instanceof this.model.constructor) {
-            return model.getId() ? this.andWhere(['!=', model.PK, model.getId()]) : this;
+            return model.getId() ? this.and(['!=', model.PK, model.getId()]) : this;
         } else {
             this.model.module.log('error', `ActiveQuery: exceptModel: ${this.model.constructor.name}: Invalid target model`);
             return this;
@@ -74,9 +74,9 @@ module.exports = class ActiveQuery extends Base {
             if (this._orderByIn) {
                 this._orderByIn = val;
             }
-            this.andWhere(['IN', this._link[0], val]);
+            this.and(['IN', this._link[0], val]);
         } else { // back ref to array
-            this.andWhere({[this._link[0]]: val});
+            this.and({[this._link[0]]: val});
         }
         this.execAfterPrepare(cb);
     }
@@ -462,8 +462,7 @@ module.exports = class ActiveQuery extends Base {
         if (this._orderByIn) {
             this._orderByIn = values;
         }
-        values
-        this.andWhere(['IN', this._link[0], values]);
+        this.and(['IN', this._link[0], values]);
     }
 
     indexModels (models) {

@@ -25,7 +25,7 @@ module.exports = class Url extends Base {
         if (typeof params === 'object') {
             if (params instanceof ActiveRecord) {
                 params = `id=${params.getId()}`;
-            } else {
+            } else if (params) {
                 anchor = params['#'];
                 delete params['#'];
                 params = this.serializeParams(params);

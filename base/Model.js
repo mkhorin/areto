@@ -40,14 +40,16 @@ module.exports = class Model extends Base {
         this._attrs[name] = value;
     }
 
+    unset (name) {
+        if (this.hasAttr(name)) {
+            delete this._attrs[name];
+        }
+    }
+
     hasAttr (name) {
         return Object.prototype.hasOwnProperty.call(this._attrs, name);
     }
 
-    resetAttr (name) {
-        delete this._attrs[name];
-    }
-    
     isAttrRequired (name) {
         for (let validator of this.getActiveValidators(name)) {
             if (validator instanceof RequiredValidator && validator.when === null) {
@@ -131,8 +133,15 @@ module.exports = class Model extends Base {
         }
     }
 
-    setAttrs (values) {
-        Object.assign(this._attrs, values instanceof Model ? values._attrs : values);
+    setAttrs (values, except) {
+        values = values instanceof Model ? values._attrs : values;
+        if (values) {
+            for (let key of Object.keys(values)) {
+                if (except instanceof Array ? !except.includes(key) : (except !== key)) {
+                    this._attrs[key] = values[key];
+                }
+            }
+        }
     }
 
     getScenarioAttrs (scenario) {

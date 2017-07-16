@@ -54,8 +54,7 @@ module.exports = class Theme extends Base {
         if (this.manager.parent) {
             return this.manager.parent.getTheme(this.name).get(name);
         }
-        this.manager.module.log('error', `${this.constructor.name}: Not found template: ${name}`);
-        return '';
+        return name; // name as absolute path
     }
 };
 

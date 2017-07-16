@@ -13,7 +13,8 @@ module.exports = class RelationValidator extends Base {
     constructor (config) {
         super(Object.assign({
             allow: null, // allow changes ['unlinks', ...]
-            deny: null
+            deny: null,
+            filter: null // handler (value, model, attr, cb)
         }, config));
     }
 
@@ -30,8 +31,12 @@ module.exports = class RelationValidator extends Base {
             if (err) {
                 return cb(err);
             }
-            message ? this.addError(model, attr, message, params) : model.set(attr, changes);
-            cb();
+            if (message) {
+                this.addError(model, attr, message, params);
+                return cb();
+            }
+            model.set(attr, changes);
+            this.filter ? this.filter(changes, model, attr, cb) : cb();
         });
     }
 

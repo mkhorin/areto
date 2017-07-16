@@ -175,10 +175,11 @@ module.exports = class Module extends Base {
     getConfigFile (name) {
         let file = this.getPath('config', `${name}.js`);
         try {
-            return require(file);
+            fs.statSync(file); // skip absent config file
         } catch (err) {
-            return {}; // no config file
+            return {};
         }
+        return require(file); // show config exception
     }
 
     configure (parent, configName, cb) {
@@ -420,6 +421,7 @@ module.exports = class Module extends Base {
 module.exports.init();
 
 const async = require('async');
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const MainHelper = require('../helpers/MainHelper');

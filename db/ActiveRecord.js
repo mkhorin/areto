@@ -33,7 +33,11 @@ module.exports = class ActiveRecord extends Base {
     getDb () {
         return this.module.getDb();
     }
-    
+
+    isNew () {
+        return this._isNewRecord;
+    }
+
     isPk (key) {
         return this.PK === key;
     }
@@ -44,10 +48,6 @@ module.exports = class ActiveRecord extends Base {
 
     getTitle () {
         return this.get(this.PK);
-    }
-    
-    isNewRecord () {
-        return this._isNewRecord;
     }
 
     // ATTRIBUTES
@@ -108,15 +108,12 @@ module.exports = class ActiveRecord extends Base {
     }
 
     afterRemove (cb) {
-        if (this.UNLINK_ON_REMOVE instanceof Array) {
-            async.eachSeries(this.UNLINK_ON_REMOVE, (name, cb)=> {
-                this.unlinkAll(name, cb);
-            }, ()=> {
-                this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
-            });
-        } else {
-            this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
+        if (!(this.UNLINK_ON_REMOVE instanceof Array)) {
+            return this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
         }
+        async.eachSeries(this.UNLINK_ON_REMOVE, this.unlinkAll.bind(this), ()=> {
+            this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
+        });
     }
 
     // POPULATE

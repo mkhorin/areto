@@ -75,7 +75,6 @@ module.exports = class ArrayHelper {
                 }
             }
         }
-        return null;
     }
 
     // INDEX
@@ -83,15 +82,17 @@ module.exports = class ArrayHelper {
     static indexObjects (docs, key) {
         let map = {};
         for (let doc of docs) {
-            let value = doc[key];
-            if (Object.prototype.hasOwnProperty.call(map, value)) {
-                if (map[value] instanceof Array) {
-                    map[value].push(doc);
+            if (doc !== null) {
+                let value = doc[key];
+                if (Object.prototype.hasOwnProperty.call(map, value)) {
+                    if (map[value] instanceof Array) {
+                        map[value].push(doc);
+                    } else {
+                        map[value] = [map[value], doc];
+                    }
                 } else {
-                    map[value] = [map[value], doc];
+                    map[value] = doc;
                 }
-            } else {
-                map[value] = doc;
             }
         }
         return map;

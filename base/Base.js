@@ -1,8 +1,8 @@
 'use strict';
 
-const MainHelper = require('../helpers/MainHelper');
-const path = require('path');
 const MODULE_FILENAME = 'module.js';
+const path = require('path');
+const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Base {
 
@@ -54,7 +54,8 @@ module.exports = class Base {
         if (childProp && parentProp) {
             if (childProp instanceof Array && parentProp instanceof Array) {
                 return childProp.concat(parentProp);
-            } else if (typeof childProp === 'object' && typeof parentProp === 'object') {
+            }
+            if (typeof childProp === 'object' && typeof parentProp === 'object') {
                 return Object.assign({}, parentProp, childProp);
             }    
         }

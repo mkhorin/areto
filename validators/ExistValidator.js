@@ -36,19 +36,19 @@ module.exports = class ExistValidator extends Base {
         }
         if (this.ignoreCase) {
             for (let name of attrs) {
-                query.andWhere(['LIKE', name, model.get(attr)]);
+                query.and(['LIKE', name, model.get(attr)]);
             }
         } else {
             let params = {};
             for (let name of attrs) {
                 params[name] = model.get(attr);
             }
-            query.andWhere(params);
+            query.and(params);
         }
         if (typeof this.filter === 'function') {
             this.filter(query, model, attr);
         } else if (this.filter) {
-            query.andWhere(this.filter);
+            query.and(this.filter);
         }
         query.count((err, count)=> {
             if (count === 0) {

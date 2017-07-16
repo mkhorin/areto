@@ -238,7 +238,8 @@ module.exports = class Controller extends Base {
     }
 
     render (template, params, cb) {
-        if (template.toString().indexOf('/') === -1) {
+        template = template.toString();
+        if (template.indexOf('/') === -1 && template.indexOf(':') === -1) {
             template = `${this.ID}/${template}`;
         }
         let view = new this.VIEW_CLASS({

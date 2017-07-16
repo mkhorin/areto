@@ -29,8 +29,8 @@ module.exports = class DbRateLimitStore extends Base {
     getQueryBy (type, user) {
         let query = this.getQuery().where({type});
         return user.isGuest()
-            ? query.andWhere({ip: user.getIp(), userId: null})
-            : query.andWhere({userId: user.getId()});
+            ? query.and({ip: user.getIp(), userId: null})
+            : query.and({userId: user.getId()});
     }
 
     getQuery () {

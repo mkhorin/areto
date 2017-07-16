@@ -50,35 +50,35 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    andWhere (condition) {
+    and (condition) {
         if (condition) {
             this._where = this._where ? ['AND', this._where, condition] : condition;
         }
         return this;
     }
 
-    orWhere (condition) {
+    or (condition) {
         if (condition) {
             this._where = this._where ? ['OR', this._where, condition] : condition;
         }
         return this;
     }
 
-    filterWhere (condition) {
+    filter (condition) {
         condition = this.filterCondition(condition);
         condition.length && this.where(condition);
         return this;
     }
 
-    andFilterWhere (condition) {
+    andFilter (condition) {
         condition = this.filterCondition(condition);
-        condition.length && this.andWhere(condition);
+        condition.length && this.and(condition);
         return this;
     }
 
-    orFilterWhere (condition) {
+    orFilter (condition) {
         condition = this.filterCondition(condition);
-        condition.length && this.orWhere(condition);
+        condition.length && this.or(condition);
         return this;
     }
 
