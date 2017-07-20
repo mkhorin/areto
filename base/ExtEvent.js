@@ -129,7 +129,7 @@ module.exports = class ExtEvent extends Base {
                 id = sender ? sender.CLASS_FILE : null;
             };
         }
-        (tasks && tasks.length) ? async.parallel(tasks, cb) : cb();
+        (tasks instanceof Array && tasks.length) ? async.parallel(tasks, cb) : cb();
     }
 };                       
 module.exports._events = {};

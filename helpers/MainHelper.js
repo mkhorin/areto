@@ -6,7 +6,7 @@ module.exports = class MainHelper {
         return value === undefined || value === null || value === '';
     }
 
-    static isEqualIds (id1, id2) {
+    static isEqual (id1, id2) {
         return id1 instanceof MongoId ? id1.equals(id2) : id1 === id2;
     }
 

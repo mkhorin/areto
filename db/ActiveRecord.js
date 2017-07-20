@@ -407,7 +407,7 @@ module.exports = class ActiveRecord extends Base {
                 this.unsetRelation(name);
             } else if (this.isRelationPopulated(name)) {
                 for (let i = this._related[name].length - 1; i >= 0; --i) {
-                    if (MainHelper.isEqualIds(model.getId(), this._related[name][i].getId())) {
+                    if (MainHelper.isEqual(model.getId(), this._related[name][i].getId())) {
                         this._related[name].splice(i, 1);
                     }
                 }
