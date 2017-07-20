@@ -37,17 +37,14 @@ module.exports = class Controller extends Base {
     }
 
     static getModelClass () {
-        if (!this._modelClass) {
-            try {
-                let name = this.name.substring(0, this.name.lastIndexOf('Controller'));
-                this._modelClass = require(this.module.getPath('models', name));
-            } catch (err) {
-                this.module.log('error', err);
-            }
-        } 
-        return this._modelClass;
+        try {
+            let name = this.name.substring(0, this.name.lastIndexOf('Controller'));
+            return require(this.module.getPath('models', name));
+        } catch (err) {
+            this.module.log('error', err);
+        }
     }
-   
+
     constructor (config) {
         super(Object.assign({            
             action: null,
@@ -57,7 +54,10 @@ module.exports = class Controller extends Base {
     }
 
     getModelClass () {
-        return this.constructor.getModelClass();
+        if (!this._modelClass) {
+            this._modelClass = this.constructor.getModelClass();
+        }
+        return this._modelClass;
     }
     
     createModel (params) {
