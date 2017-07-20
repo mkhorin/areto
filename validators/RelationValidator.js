@@ -45,17 +45,9 @@ module.exports = class RelationValidator extends Base {
         if (!value) {
             return cb(null, null, value);
         }
-        try {
-            value = JSON.parse(value);
-        } catch (err) {
+        value = typeof value === 'string' ? MainHelper.parseJson(value) : value;
+        if (!value) {
             return cb(null, this.message);
-        }
-        for (let item of this.CHANGES) {
-            for (let id of value[item]) {
-                if (!id || typeof id === 'object') {
-                    return cb(null, this.message);
-                }
-            }
         }
         this.filterChanges(value);
         if (this.isIntersection(value)) {
@@ -74,20 +66,27 @@ module.exports = class RelationValidator extends Base {
     }
 
     filterChanges (changes) {
+        for (let type of this.CHANGES) {
+            if (!(changes[type] instanceof Array)) {
+                changes[type] = [];
+            }
+        }
         if (this.allow) {
-            for (let item of this.CHANGES) {
-                if (!this.allow.includes(item)) {
-                    changes[item] = [];
+            for (let type of this.CHANGES) {
+                if (!this.allow.includes(type)) {
+                    changes[type] = [];
                 }
             }
         }
         if (this.deny) {
-            for (let item of this.CHANGES) {
-                if (this.deny.includes(item)) {
-                    changes[item] = [];
+            for (let type of this.CHANGES) {
+                if (this.deny.includes(type)) {
+                    changes[type] = [];
                 }
             }
         }
     }
 };
 module.exports.init();
+
+const MainHelper = require('../helpers/MainHelper');
