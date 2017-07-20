@@ -7,8 +7,8 @@ module.exports = class OrderBehavior extends Base {
     constructor (config) {
         super(Object.assign({
             orderAttr: 'order',
-            start: 1,
-            step: 1,
+            start: 10,
+            step: 10,
             filter: null
         }, config));
     }
@@ -46,6 +46,20 @@ module.exports = class OrderBehavior extends Base {
             (last, cb)=> {
                 cb(null, MainHelper.isEmpty(last) ? this.start : (parseInt(last) + this.step));
             }
+        ], cb);
+    }
+
+    updateAllByIds (ids, cb) {
+        let index = 0;
+        async.waterfall([
+            cb => this.owner.findById(ids).indexBy(this.owner.PK).all(cb),
+            (map, cb)=> async.eachSeries(ids, (id, cb)=> {
+                if (!(map[id] instanceof this.owner.constructor)) {
+                    return cb();
+                }
+                map[id].set(this.orderAttr, ++index * this.step);
+                map[id].forceSave(cb);
+            }, cb)
         ], cb);
     }
 };
