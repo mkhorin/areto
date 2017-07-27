@@ -15,7 +15,10 @@ module.exports = class BooleanValidator extends Base {
 
     init () {
         super.init();
-        this.createMessage('message', 'Value must be "{true}" or "{false}"');
+        this.createMessage('message', 'Value must be "{true}" or "{false}"', {
+            'true': this.trueValue,
+            'false': this.falseValue
+        });
     }
 
     validateAttr (model, attr, cb) {
@@ -29,10 +32,7 @@ module.exports = class BooleanValidator extends Base {
                 model.set(attr, this.falseValue);
             }
         } else {
-            this.addError(model, attr, this.message, {
-                'true': this.trueValue,
-                'false': this.falseValue
-            });
+            this.addError(model, attr, this.message);
         }
         cb();
     }
@@ -42,9 +42,6 @@ module.exports = class BooleanValidator extends Base {
             || (this.strict && (value === this.trueValue || value === this.falseValue))) {
             return cb();
         }
-        cb(null, this.message, {
-            'true': this.trueValue,
-            'false': this.falseValue
-        });
+        cb(null, this.message);
     }
 };

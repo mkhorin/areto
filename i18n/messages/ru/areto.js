@@ -33,6 +33,9 @@ module.exports = {
     'Only these file extensions are allowed: {extensions}': 'Разрешены только эти расширения файлов: {extensions}',
     'Only these file MIME types are allowed: {mimeTypes}': 'Разрешены только эти MIME-типы файлов: {mimeTypes}',
 
+    'Relation should contain at least {min} lnk.': 'Связей в отношение должно содержать не менее {min}',
+    'Relation should contain at most {max} lnk.': 'Связей в отношение должно содержать не более {max}'
+
     'The height cannot be larger than {limit} px': 'Высота не может быть более {limit} пк',
     'The height cannot be smaller than {limit} px': 'Высота не может быть менее {limit} пк',
     'The verification code is incorrect': 'Неверный проверочный код',

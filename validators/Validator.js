@@ -63,9 +63,10 @@ module.exports = class Validator extends Base {
         }, config));
     }
 
-    createMessage (msgAttr, message) {
+    createMessage (msgAttr, message, params) {
         if (!(this[msgAttr] instanceof Message)) {
-            this[msgAttr] = this[msgAttr] ? new Message(null, this[msgAttr]) : new Message('areto', message);
+            this[msgAttr] = this[msgAttr] ? new Message(null, this[msgAttr], params)
+                : new Message('areto', message, params);
         }
         return this[msgAttr];
     }

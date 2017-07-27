@@ -16,13 +16,13 @@ module.exports = class StringValidator extends Base {
         super.init();
         this.createMessage('message', 'Value must be a string');
         if (this.min !== null) {
-            this.createMessage('tooShort', 'Value should contain at least {min} chr.');
+            this.createMessage('tooShort', 'Value should contain at least {min} chr.', {min: this.min});
         }
         if (this.max !== null) {
-            this.createMessage('tooLong', 'Value should contain at most {max} chr.');
+            this.createMessage('tooLong', 'Value should contain at most {max} chr.', {max: this.max});
         }
         if (this.length !== null) {
-            this.createMessage('notEqual', 'Value should contain {length} chrs.');
+            this.createMessage('notEqual', 'Value should contain {length} chrs.', {length: this.length});
         }
     }
 
@@ -34,13 +34,13 @@ module.exports = class StringValidator extends Base {
         }
         let length = value.length;
         if (this.min !== null && length < this.min) {
-            this.addError(model, attr, this.tooShort, {min: this.min});
+            this.addError(model, attr, this.tooShort);
         }
         if (this.max !== null && length > this.max) {
-            this.addError(model, attr, this.tooLong, {max: this.max});
+            this.addError(model, attr, this.tooLong);
         }
         if (this.length !== null && length !== this.length) {
-            this.addError(model, attr, this.notEqual, {length: this.length});
+            this.addError(model, attr, this.notEqual);
         }
         cb();
     }
@@ -51,13 +51,13 @@ module.exports = class StringValidator extends Base {
         }
         let length = value.length;
         if (this.min !== null && length < this.min) {
-            return cb(null, this.tooShort, {min: this.min});
+            return cb(null, this.tooShort);
         }
         if (this.max !== null && length > this.max) {
-            return cb(null, this.tooLong, {max: this.max});
+            return cb(null, this.tooLong);
         }
         if (this.length !== null && length !== this.length) {
-            return cb(null, this.notEqual, {length: this.length});
+            return cb(null, this.notEqual);
         } 
         cb();
     }

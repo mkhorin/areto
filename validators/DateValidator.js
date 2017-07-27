@@ -6,7 +6,6 @@ module.exports = class DateValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            //pattern: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/; // /^\d{4}-\d{2}-\d{2}$/,
             min: null,
             max: null
         }, config));
@@ -16,22 +15,22 @@ module.exports = class DateValidator extends Base {
         super.init();
         this.createMessage('message', 'Invalid date');
         if (this.min !== null) {
-            this.createMessage('tooSmall', 'Date must be no less than {min}');
             if (!(this.min instanceof Date)) {
                 this.min = new Date(this.min);
             }
             if (!this.isValidDateObject(this.min)) {
-                throw new Error(`DateValidator: Invalid min date`);
+                throw new Error(`${this.constructor.name}: Invalid min date`);
             }
+            this.createMessage('tooSmall', 'Date must be no less than {min}', {min: this.min});
         }
         if (this.max !== null) {
-            this.createMessage('tooBig', 'Date must be no greater than {max}');
             if (!(this.max instanceof Date)) {
                 this.max = new Date(this.max);
             }
             if (!this.isValidDateObject(this.max)) {
                 throw new Error(`${this.constructor.name}: Invalid max date`);
             }
+            this.createMessage('tooBig', 'Date must be no greater than {max}', {max: this.max});
         }
     }
 
@@ -55,10 +54,10 @@ module.exports = class DateValidator extends Base {
             return cb(null, this.message);
         }
         if (this.min !== null && value < this.min) {
-            return cb(null, this.tooSmall, {min: this.min});
+            return cb(null, this.tooSmall);
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.tooBig, {max: this.max});
+            return cb(null, this.tooBig);
         }
         cb();
     }

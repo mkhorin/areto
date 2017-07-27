@@ -17,11 +17,29 @@ module.exports = class FileValidator extends Base {
     init () {
         super.init();
         this.createMessage('message', 'Invalid file');
-        this.createMessage('notImage', 'File is not an image');
-        this.createMessage('tooSmall', 'File size cannot be smaller than {limit}');
-        this.createMessage('tooBig', 'File size cannot exceed {limit}');
-        this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}');
-        this.createMessage('wrongMimeType', 'Only these file MIME types are allowed: {mimeTypes}');
+        if (this.imageOnly) {
+            this.createMessage('notImage', 'File is not an image');
+        }
+        if (this.minSize) {
+            this.createMessage('tooSmall', 'File size cannot be smaller than {limit}', {
+                limit: [this.minSize, 'bytes']
+            });
+        }
+        if (this.maxSize) {
+            this.createMessage('tooBig', 'File size cannot exceed {limit}', {
+                limit: [this.maxSize, 'bytes']
+            });
+        }
+        if (this.extensions instanceof Array) {
+            this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}', {
+                extensions: this.extensions
+            });
+        }
+        if (this.mimeTypes instanceof Array) {
+            this.createMessage('wrongMimeType', 'Only these file MIME types are allowed: {mimeTypes}', {
+                mimeTypes: this.mimeTypes
+            });
+        }
     }
 
     // file {  path, size, extension, mime }
@@ -37,25 +55,17 @@ module.exports = class FileValidator extends Base {
                 return cb(null, this.message);
             }
             if (this.minSize && file.size < this.minSize) {
-                return cb(null, this.tooSmall, {
-                    limit: [this.minSize, 'bytes']
-                });
+                return cb(null, this.tooSmall);
             }
             if (this.maxSize && file.size > this.maxSize) {
-                return cb(null, this.tooBig, {
-                    limit: [this.maxSize, 'bytes']
-                });
+                return cb(null, this.tooBig);
             }
             if (this.extensions instanceof Array
                 && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
-                return cb(null, this.wrongExtension, {
-                    extensions: this.extensions
-                });
+                return cb(null, this.wrongExtension);
             }
             if (this.mimeTypes instanceof Array && (!file.mime || !this.mimeTypes.includes(file.mime))) {
-                return cb(null, this.wrongMimeType, {
-                    mimeTypes: this.mimeTypes
-                });
+                return cb(null, this.wrongMimeType);
             }
             cb();
         });

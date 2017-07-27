@@ -16,10 +16,10 @@ module.exports = class NumberValidator extends Base {
         super.init();
         this.createMessage('message', this.integerOnly ? 'Number must be a integer' : 'Value must be a number');
         if (this.min !== null) {
-            this.createMessage('tooSmall', 'Value must be no less than {min}');
+            this.createMessage('tooSmall', 'Value must be no less than {min}', {min: this.min});
         }
         if (this.max !== null) {
-            this.createMessage('tooBig', 'Value must be no greater than {max}');
+            this.createMessage('tooBig', 'Value must be no greater than {max}', {max: this.max});
         }
     }
 
@@ -41,10 +41,10 @@ module.exports = class NumberValidator extends Base {
         }
         value = Number(value);
         if (this.min !== null && value < this.min) {
-            return cb(null, this.tooSmall, {min: this.min});
+            return cb(null, this.tooSmall);
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.tooBig, {max: this.max});
+            return cb(null, this.tooBig);
         }
         cb();
     }
