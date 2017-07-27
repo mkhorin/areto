@@ -14,7 +14,9 @@ module.exports = class RelationValidator extends Base {
         super(Object.assign({
             allow: null, // allow changes ['unlinks', ...]
             deny: null,
-            filter: null // handler (value, model, attr, cb)
+            filter: null, // handler (value, model, attr, cb),
+            min: null,
+            max: null
         }, config));
     }
 
@@ -22,6 +24,12 @@ module.exports = class RelationValidator extends Base {
         super.init();
         if (this.allow && this.deny) {
             throw new Error(`${this.constructor.name}: Allowed only one permission`);
+        }
+        if (this.min > 0) {
+            this.createMessage('tooFew', 'Relation should contain at least {min} lnk.', {min: this.min});
+        }
+        if (this.max > 0) {
+            this.createMessage('tooMany', 'Relation should contain at most {max} lnk.', {max: this.max});
         }
         this.createMessage('message', 'Invalid relation request');
     }
@@ -35,34 +43,31 @@ module.exports = class RelationValidator extends Base {
                 this.addError(model, attr, message, params);
                 return cb();
             }
-            model.set(attr, changes);
-            this.filter ? this.filter(changes, model, attr, cb) : cb();
+            if (changes) {
+                model.set(attr, changes);
+            }
+            if (!this.filter || !changes) {
+                return this.checkTotal(changes, model, attr, cb);
+            }
+            async.series([
+                cb => this.filter(changes, model, attr, cb),
+                cb => this.checkTotal(changes, model, attr, cb)
+            ], cb);
         });
     }
 
     validateValue (value, cb) {
         let error = false;
-        if (!value) {
-            return cb(null, null, value);
-        }
         value = typeof value === 'string' ? MainHelper.parseJson(value) : value;
-        if (!value) {
-            return cb(null, this.message);
+        if (!value || (!value.links && !value.unlinks && !value.removes)) {
+            return cb();
         }
         this.filterChanges(value);
-        if (this.isIntersection(value)) {
+        let all = value.links.concat(value.unlinks, value.removes);
+        if (ArrayHelper.unique(all).length !== all.length) {
             return cb(null, this.message);
         }
         cb(null, null, null, value);
-    }
-
-    isIntersection (changes) {
-        for (let link of changes.links) {
-            if (changes.unlinks.includes(link) || changes.removes.includes(link)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     filterChanges (changes) {
@@ -86,7 +91,38 @@ module.exports = class RelationValidator extends Base {
             }
         }
     }
+
+    checkTotal (changes, model, attr, cb) {
+        this.min || this.max ? async.waterfall([
+            cb => model.findRelation(attr, cb),
+            (models, cb) => {
+                models = models instanceof Array ? models : models ? [models] : [];
+                let map = models.length ? ArrayHelper.indexModels(models, models[0].PK) : {};
+                if (changes) {
+                    if (changes.links instanceof Array) {
+                        changes.links.forEach(id => map[id] = true);
+                    }
+                    if (changes.unlinks instanceof Array) {
+                        changes.unlinks.forEach(id => delete map[id]);
+                    }
+                    if (changes.removes instanceof Array) {
+                        changes.removes.forEach(id => delete map[id]);
+                    }
+                }
+                let total = Object.keys(map).length;
+                if (this.min && total < this.min) {
+                    this.addError(model, attr, this.tooFew);
+                }
+                if (this.max && total > this.max) {
+                    this.addError(model, attr, this.tooMany);
+                }
+                cb();
+            }
+        ], cb) : cb();
+    }
 };
 module.exports.init();
 
+const async = require('async');
 const MainHelper = require('../helpers/MainHelper');
+const ArrayHelper = require('../helpers/ArrayHelper');

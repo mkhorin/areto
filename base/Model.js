@@ -168,7 +168,8 @@ module.exports = class Model extends Base {
     }
 
     getErrors (attr) {
-        return attr ? (Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr] : []) : this._errors;
+        return attr ? (Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr] : [])
+            : this._errors;
     }
 
     getFirstError (attr) {

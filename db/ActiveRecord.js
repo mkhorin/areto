@@ -521,8 +521,7 @@ module.exports = class ActiveRecord extends Base {
         let model = relation.model;
         let a = relation._link[0];
         let b = relation._link[1];
-        if (!remove && this.get(b) instanceof Array) {
-            // relation via array valued attr
+        if (!remove && this.get(b) instanceof Array) { // relation via array valued attr
             this.set(b, []);
             this.forceSave(cb);
         } else {
@@ -532,7 +531,6 @@ module.exports = class ActiveRecord extends Base {
                 condition = ['AND', condition, relation._where];
             }
             if (remove) {
-                //model.constructor.removeAll(condition, cb);
                 relation.all((err, models)=> {
                    err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
                 });
@@ -551,20 +549,18 @@ module.exports = class ActiveRecord extends Base {
         if (!value) {
             return cb(`${this.constructor.name}: bindModels: PK is null`);
         }
-        if (relation._viaArray) {
-            if (!(foreignModel.get(fk) instanceof Array)) {
-                foreignModel.set(fk, []);
-            }
-            if (MainHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
-                foreignModel.get(fk).push(value);
-                foreignModel.forceSave(cb);
-            } else {
-                cb(); // value is exists already
-            }
-        } else {
+        if (!relation._viaArray) {
             foreignModel.set(fk, value);
-            foreignModel.forceSave(cb);
+            return foreignModel.forceSave(cb);
         }
+        if (!(foreignModel.get(fk) instanceof Array)) {
+            foreignModel.set(fk, []);
+        }
+        if (MainHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
+            foreignModel.get(fk).push(value);
+            return foreignModel.forceSave(cb);
+        }
+        cb(); // value is exists already
     }
 
     // HANDLER
