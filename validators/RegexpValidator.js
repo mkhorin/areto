@@ -14,7 +14,7 @@ module.exports = class RegExpValidator extends Base {
     constructor (config) {
         super(Object.assign({
             pattern: null,
-            not: false // not match the pattern
+            not: false // not match pattern
         }, config));
     }
 
