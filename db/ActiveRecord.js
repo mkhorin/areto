@@ -350,8 +350,8 @@ module.exports = class ActiveRecord extends Base {
             if (!relation._multiple) {
                 this._related[name] = model; // update lazily loaded related objects
             } else if (this.isRelationPopulated(name)) {
-                if (relation._indexBy) {
-                    this._related[name][model._indexBy] = model;
+                if (relation._index) {
+                    this._related[name][model._index] = model;
                 } else {
                     this._related[name].push(model);
                 }

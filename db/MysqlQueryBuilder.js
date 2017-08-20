@@ -34,7 +34,7 @@ module.exports = class MysqlQueryBuilder extends Base {
             from: this.db.escapeId(query._from),
             select: this.buildSelect(query._select),
             where: this.buildWhere(query._where),
-            order: this.buildOrder(query._orderBy),
+            order: this.buildOrder(query._order),
             offset: query._offset,
             limit: query._limit,
         };

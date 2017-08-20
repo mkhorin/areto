@@ -70,7 +70,7 @@ module.exports = class MainHelper {
     // ESCAPE
 
     static escapeRegExp (text) {
-        return text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+        return String(text).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     }
 
     static escapeHtml (html) {

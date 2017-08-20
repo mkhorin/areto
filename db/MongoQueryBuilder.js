@@ -36,7 +36,7 @@ module.exports = class MongoQueryBuilder extends Base {
             from: query._from,
             select: this.buildSelect(query._select),
             where: this.buildWhere(query._where),
-            order: this.buildOrder(query._orderBy)
+            order: this.buildOrder(query._order)
         };
         if (query._offset) {
             query.cmd.offset = query._offset;

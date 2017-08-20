@@ -60,7 +60,7 @@ module.exports = class DbLogStore extends Base {
                     return cb();
                 }
                 async.waterfall([
-                    cb => this.getQuery().offset(this.maxRows).orderBy({[this.pk]: -1}).scalar(this.pk, cb),
+                    cb => this.getQuery().offset(this.maxRows).order({[this.pk]: -1}).scalar(this.pk, cb),
                     (id, cb)=> this.getQuery().where(['<', this.pk, id]).remove(cb)
                 ], cb);
             },

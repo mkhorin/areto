@@ -5,10 +5,10 @@ const Base = require('../base/Base');
 module.exports = class Query extends Base {
 
     init () {
-        this._indexBy = null;
+        this._index = null;
         this._limit = null;
         this._offset = null;
-        this._orderBy = null;
+        this._order = null;
         this._where = null;
     }
 
@@ -22,8 +22,8 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    indexBy (column) {
-        this._indexBy = column;
+    index (column) {
+        this._index = column;
         return this;
     }
 
@@ -82,17 +82,17 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    // ORDER BY
+    // ORDER
     /**
      * @param columns - { attr1: 1, attr2: -1 }
      */
-    orderBy (columns) {
-        this._orderBy = columns;
+    order (columns) {
+        this._order = columns;
         return this;
     }
 
-    addOrderBy (columns) {
-        this._orderBy = Object.assign(this._orderBy || {}, columns);
+    addOrder (columns) {
+        this._order = Object.assign(this._order || {}, columns);
         return this;
     }
 
@@ -180,13 +180,13 @@ module.exports = class Query extends Base {
     }
 
     populate (rows, cb) {
-        if (!this._indexBy) {
+        if (!this._index) {
             return cb(null, rows);
         }
         let result = {};
-        let indexBy = this._indexBy;
+        let index = this._index;
         for (let row of rows) {
-            let key = typeof indexBy === 'function' ? indexBy(row) : row[indexBy];
+            let key = typeof index === 'function' ? index(row) : row[index];
             result[key] = row;
         }
         cb(null, result);

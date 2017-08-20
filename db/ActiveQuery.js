@@ -266,10 +266,10 @@ module.exports = class ActiveQuery extends Base {
             } 
             if (models.length && Object.keys(this._with).length) {
                 this.findWith(this._with, models, err => {
-                    cb(err, this._indexBy ? this.indexModels(models) : models);
+                    cb(err, this._index ? this.indexModels(models) : models);
                 });
             } else {
-                cb(null, this._indexBy ? this.indexModels(models) : models);
+                cb(null, this._index ? this.indexModels(models) : models);
             }
         });
     }
@@ -291,16 +291,16 @@ module.exports = class ActiveQuery extends Base {
                     }
                 });
             }
-            let indexBy = this._indexBy;
-            this._indexBy = null;
+            let index = this._index;
+            this._index = null;
             this.all((err, models)=> {
                 if (err) {
                     return cb(err);
                 }
                 let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
-                this._indexBy = indexBy;
-                if (indexBy !== null && this._multiple) {
-                    buckets = this.indexBuckets(buckets, indexBy);
+                this._index = index;
+                if (index !== null && this._multiple) {
+                    buckets = this.indexBuckets(buckets, index);
                 }
                 let link = viaQuery ? viaQuery._link[1] : this._link[1];
                 this.populateMultipleRelation(name, primaryModels, buckets, link);
@@ -424,14 +424,14 @@ module.exports = class ActiveQuery extends Base {
         return buckets;
     }
 
-    indexBuckets (buckets, indexBy) {
-        let index, result = {};
-        for (let key in buckets) {
+    indexBuckets (buckets, index) {
+        let result = {};
+        for (let key of Object.keys(buckets)) {
             result[key] = [];
             for (let model of buckets[key]) {
-                index = typeof indexBy === 'function'
-                    ? indexBy(model)
-                    : (model instanceof ActiveRecord ? model.get(indexBy) : model[indexBy]);
+                let map = typeof index === 'function'
+                    ? index(model)
+                    : (model instanceof ActiveRecord ? model.get(index) : model[index]);
                 result[key][index] = model;
             }
         }
@@ -466,10 +466,10 @@ module.exports = class ActiveQuery extends Base {
     }
 
     indexModels (models) {
-        let indexBy = this._indexBy;
+        let index = this._index;
         let map = {};
         for (let model of models) {
-            let key = typeof indexBy === 'function' ? indexBy(model) : model.get(indexBy);
+            let key = typeof index === 'function' ? index(model) : model.get(index);
             map[key] = model;
         }
         return map;

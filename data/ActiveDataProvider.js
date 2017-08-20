@@ -16,7 +16,7 @@ module.exports = class ActiveDataProvider extends Base {
             }
         }
         if (this.sort) {
-            this.query.addOrderBy(this.sort.getOrders());
+            this.query.addOrder(this.sort.getOrders());
         }
         this.query.all(cb);
     }

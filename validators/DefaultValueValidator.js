@@ -16,10 +16,9 @@ module.exports = class DefaultValueValidator extends Base {
             return cb();
         }
         if (typeof this.value === 'function') {
-            this.value.call(this, model, attr, cb);
-        } else {
-            model.set(attr, this.value);
-            cb();
+            return this.value.call(this, model, attr, cb);
         }
+        model.set(attr, this.value);
+        cb();
     }
 };

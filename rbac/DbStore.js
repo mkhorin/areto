@@ -15,8 +15,8 @@ module.exports = class DbStore extends Base {
     load (cb) {
         async.waterfall([
             cb => async.series({
-                itemIndex: cb => this.find('item').indexBy(this.pk).all(cb),
-                ruleIndex: cb => this.find('rule').indexBy(this.pk).all(cb),
+                itemIndex: cb => this.find('item').index(this.pk).all(cb),
+                ruleIndex: cb => this.find('rule').index(this.pk).all(cb),
                 links: cb => this.find('item_child').all(cb),
                 assignments: cb => this.find('assignment').all(cb)
             }, cb),

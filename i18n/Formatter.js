@@ -29,12 +29,16 @@ module.exports = class Formatter extends Base {
     }
 
     format (value, type, params) {
-        let method = `as${StringHelper.toFirstUpperCase(type)}`;
-        if (typeof this[method] === 'function') {
-            return this[method](value, params);
+        let methodName = this.getMethodName(type);
+        if (typeof this[methodName] === 'function') {
+            return this[methodName](value, params);
         }
         this.module.log('error', `${this.constructor.name}: Unknown type '${type}' for value '${value}'`);
         return value;
+    }
+
+    getMethodName (type) {
+        return `as${StringHelper.toFirstUpperCase(type)}`;
     }
 
     asRaw (value, params = {}) {

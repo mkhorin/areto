@@ -40,7 +40,7 @@ module.exports = class OrderBehavior extends Base {
                 } else if (typeof this.filter === 'string') {
                     query.where({[this.filter]: this.owner.get(this.filter)});
                 }
-                query.orderBy({[this.orderAttr]: this.step > 0 ? -1 : 1});
+                query.order({[this.orderAttr]: this.step > 0 ? -1 : 1});
                 query.scalar(this.orderAttr, cb);
             },
             (last, cb)=> {
@@ -52,7 +52,7 @@ module.exports = class OrderBehavior extends Base {
     updateAllByIds (ids, cb) {
         let index = 0;
         async.waterfall([
-            cb => this.owner.findById(ids).indexBy(this.owner.PK).all(cb),
+            cb => this.owner.findById(ids).index(this.owner.PK).all(cb),
             (map, cb)=> async.eachSeries(ids, (id, cb)=> {
                 if (!(map[id] instanceof this.owner.constructor)) {
                     return cb();
