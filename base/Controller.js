@@ -238,16 +238,17 @@ module.exports = class Controller extends Base {
     }
 
     render (template, params, cb) {
-        template = template.toString();
-        if (template.indexOf('/') === -1 && template.indexOf(':') === -1) {
-            template = `${this.ID}/${template}`;
-        }
         let view = new this.VIEW_CLASS({
             controller: this
         });
-        view.render(template, params, (err, content)=> {
+        view.render(this.getTemplateName(template), params, (err, content)=> {
             cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
         });
+    }
+
+    getTemplateName (template) {
+        template = template.toString();
+        return template.indexOf('/') === -1 && template.indexOf(':') === -1 ? `${this.ID}/${template}` : template;
     }
 
     send (data, code) {

@@ -25,6 +25,10 @@ module.exports = class View extends Base {
         return this.theme.get(template, this.controller.language);
     }
 
+    getInner (template) {
+        return this.get(this.controller.getTemplateName(template));
+    }
+
     render (template, params, cb) {
         params = Object.assign({
             _view: this,
