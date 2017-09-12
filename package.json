@@ -1,6 +1,6 @@
 {
   "name": "areto",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
@@ -20,17 +20,17 @@
     "body-parser": "^1.17.2",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
-    "express": "^4.15.2",
-    "express-session": "^1.15.2",
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
     "gm": "^1.23.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.18.1",
-    "mongodb": "^2.2.26",
-    "mysql": "^2.13.0",
-    "path-to-regexp": "^1.7.0"
+    "mongodb": "^2.2.31",
+    "mysql": "^2.14.1",
+    "path-to-regexp": "^2.0.0"
   },
   "devDependencies": {
-    "chai": "^4.0.2"
+    "chai": "^4.1.1"
   },
   "scripts": {
     "test": "echo: \"Error: no test specified\" && exit 1"

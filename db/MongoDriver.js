@@ -158,9 +158,9 @@ module.exports = class MongoDriver extends Base {
 
     // AGGREGATE
 
-    count (table, query, cb) {
-        this.getCollection(table).count(query, (err, counter)=> {
-            this.afterCommand({err, cmd: 'count', table, query});
+    count (table, condition, cb) {
+        this.getCollection(table).count(condition, (err, counter)=> {
+            this.afterCommand({err, cmd: 'count', table, query: condition});
             cb(err, counter);
         });
     }
