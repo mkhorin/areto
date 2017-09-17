@@ -435,6 +435,9 @@ module.exports = class ActiveRecord extends Base {
             [viaRelation._link[0]]: null,
             [relation._link[1]]: null
         };
+        if (remove === undefined) {
+            remove = viaRelation._removeOnUnlink;
+        }
         if (relation._via instanceof Array) {
             remove ? viaModel.constructor.removeAll(columns, cb)
                 : viaModel.constructor.updateAll(nulls, columns, cb);
@@ -497,8 +500,12 @@ module.exports = class ActiveRecord extends Base {
             viaRelation = relation._via;
             viaTable = viaRelation._from;
         }
-        let condition = {[viaRelation._link[0]]: this.get(viaRelation._link[1])};
-        let nulls = {[viaRelation._link[0]]: null};                
+        let condition = {
+            [viaRelation._link[0]]: this.get(viaRelation._link[1])
+        };
+        let nulls = {
+            [viaRelation._link[0]]: null
+        };
         if (viaRelation._where) {
             condition = ['AND', condition, viaRelation._where];
         }
@@ -523,22 +530,21 @@ module.exports = class ActiveRecord extends Base {
         let b = relation._link[1];
         if (!remove && this.get(b) instanceof Array) { // relation via array valued attr
             this.set(b, []);
-            this.forceSave(cb);
+            return this.forceSave(cb);
+        }
+        let nulls = {[a]: null};
+        let condition = {[a]: this.get(b)};
+        if (relation._where) {
+            condition = ['AND', condition, relation._where];
+        }
+        if (remove) {
+            relation.all((err, models)=> {
+                err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
+            });
+        } else if (relation._viaArray) {
+            model.getDb().updateAllPull(model.TABLE, {}, condition, cb);
         } else {
-            let nulls = {[a]: null}; 
-            let condition = {[a]: this.get(b)};
-            if (relation._where) {
-                condition = ['AND', condition, relation._where];
-            }
-            if (remove) {
-                relation.all((err, models)=> {
-                   err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
-                });
-            } else if (relation._viaArray) {
-                model.getDb().updateAllPull(model.TABLE, {}, condition, cb);
-            } else {
-                model.constructor.updateAll(nulls, condition, cb);
-            }
+            model.constructor.updateAll(nulls, condition, cb);
         }
     }
 
