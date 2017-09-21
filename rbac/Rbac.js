@@ -12,14 +12,15 @@ module.exports = class Rbac extends Base {
     
     constructor (config) {
         super(Object.assign({
-            store: require('./FileStore')
+            store: require('./FileStore'),
+            Inspector: require('./Inspector'),
         }, config));        
     }
     
     init () {
         super.init();
         this.store = MainHelper.createInstance(this.store, {
-            manager: this
+            rbac: this
         });
     }
 
@@ -69,14 +70,14 @@ module.exports = class Rbac extends Base {
     }
 
     resolveItemLinks (item) {
-        if (item.children) {
+        if (item.children instanceof Array) {
             let children = [];
             for (let id of item.children) {
                 if (this.itemIndex[id] instanceof Item) {
                     children.push(this.itemIndex[id]);
                     this.itemIndex[id].addParent(item);
                 } else {
-                    throw new Error(`${this.constructor.name}: Unknown child "${id}"`);
+                    throw new Error(`${this.constructor.name}: Unknown child: ${id}`);
                 }
             }
             item.children = children;
@@ -85,68 +86,24 @@ module.exports = class Rbac extends Base {
 
     getUserAssignments (userId) {
         return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId)
-            ? this.assignmentIndex[userId].items : null;
+            ? this.assignmentIndex[userId] : null;
     }
 
-    can (user, assignments, id, cb, params) {
-        let item = this.itemIndex[id];
-        if (this.loading || !item || !assignments || assignments.length === 0) {
-            return cb();
+    can (user, assignments, itemId, callback, params) {
+        if (this.loading || !Object.prototype.hasOwnProperty.call(this.itemIndex, itemId)
+            || !assignments || assignments.length === 0) {
+            return callback();
         }
-        let result, data = {
-            assignment: null,
-            ruleCache: {},
-            user,
-            params
-        };
-        async.eachSeries(assignments, (assignment, assignCallback)=> {
-            if (Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
-                data.assignment = this.itemIndex[assignment];
-                this.canItem(item, data, (err, access)=> {
-                    err ? cb(err)
-                        : access ? cb(null, true) : assignCallback();
-                });
-            } else {
-                assignCallback();
+        let inspector = new this.Inspector({user, params});
+        async.eachSeries(assignments, (assignment, cb)=> {
+            if (!Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
+                return cb();
             }
-        }, cb);
-    }
-    
-    canItem (item, data, cb) {
-        this.canRule(item, data, (err, access)=> {
-            if (err) {
-                cb(err);
-            } else if (!access) {
-                cb();
-            } else if (item !== data.assignment) {
-                if (!item.parents || item.parents.length == 0) {
-                    return cb();
-                }
-                async.eachSeries(item.parents, (parent, cb2)=> {
-                    this.canItem(parent, data, (err, access)=> {
-                        err ? cb(err) : access ? cb(null, true) : cb2();
-                    });
-                }, cb);
-            } else {
-                cb(null, true);
-            }
-        });
-    }
-
-    canRule (item, data, cb) {
-        if (!item.rule) {
-            return cb(null, true);
-        }
-        if (Object.prototype.hasOwnProperty.call(data.ruleCache, item.rule.id)) {
-            return cb(null, data.ruleCache[item.rule.id]);
-        }
-        item.rule.execute(data.user, (err, access)=> {
-            if (err) {
-                return cb(err);
-            }
-            data.ruleCache[item.rule.id] = access ? true : false;
-            cb(null, access);
-        }, data.params);
+            inspector.assignment = this.itemIndex[assignment];
+            inspector.execute(this.itemIndex[itemId], (err, access)=> {
+                err ? cb(err) : access ? callback(null, true) : cb();
+            });
+        }, callback);
     }
 };
 module.exports.init();

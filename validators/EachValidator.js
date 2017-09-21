@@ -24,7 +24,7 @@ module.exports = class EachValidator extends Base {
         return this._validator;
     }
 
-    createEmbedded (model) {
+    createEmbeddedValidator (model) {
         if (this.rule instanceof Base) {
             return this.rule;
         }

@@ -6,7 +6,7 @@ module.exports = class DbStore extends Base {
 
     constructor (config) {
         super(Object.assign({
-            db: config.manager.module.getDb(),
+            db: config.rbac.module.getDb(),
             tablePrefix: 'rbac_',
             pk: '_id'
         }, config));
@@ -14,12 +14,7 @@ module.exports = class DbStore extends Base {
     
     load (cb) {
         async.waterfall([
-            cb => async.series({
-                itemIndex: cb => this.find('item').index(this.pk).all(cb),
-                ruleIndex: cb => this.find('rule').index(this.pk).all(cb),
-                links: cb => this.find('item_child').all(cb),
-                assignments: cb => this.find('assignment').all(cb)
-            }, cb),
+            cb => this.loadData(cb),
             (data, cb)=> {
                 try {
                     data = this.prepare(data);
@@ -29,6 +24,15 @@ module.exports = class DbStore extends Base {
                 cb(null, data);
             }
         ], cb);
+    }
+
+    loadData (cb) {
+        async.series({
+            itemIndex: cb => this.find('item').index(this.pk).all(cb),
+            ruleIndex: cb => this.find('rule').index(this.pk).all(cb),
+            links: cb => this.find('item_child').all(cb),
+            assignments: cb => this.find('assignment').all(cb)
+        }, cb);
     }
 
     prepare (data) {

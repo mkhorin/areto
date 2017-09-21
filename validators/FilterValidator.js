@@ -18,6 +18,12 @@ module.exports = class FilterValidator extends Base {
                     value === undefined
                         ? cb(null, value, this.createMessage('message', 'Invalid JSON'))
                         : cb(null, value);
+                },
+                'split': function (value, cb) {
+                    if (!Array.isArray(value)) {
+                        value = this.isEmptyValue(value) ? [] : String(value).split(this.separator);
+                    }
+                    cb(null, value);
                 }
             }
         };
@@ -27,7 +33,8 @@ module.exports = class FilterValidator extends Base {
         super(Object.assign({
             filter: null,
             skipOnEmpty: false,
-            skipOnArray: false
+            skipOnArray: false,
+            separator: ','
         }, config));
     }
 

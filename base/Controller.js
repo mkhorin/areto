@@ -214,7 +214,7 @@ module.exports = class Controller extends Base {
     }
 
     goLogin () {
-        this.redirect(this.user.opts.loginUrl);
+        this.redirect(this.user.params.loginUrl);
     }
 
     goBack (url) {

@@ -16,7 +16,8 @@ module.exports = class RelationValidator extends Base {
             deny: null,
             filter: null, // handler (value, model, attr, cb),
             min: null,
-            max: null
+            max: null,
+            skipOnEmpty: false
         }, config));
     }
 

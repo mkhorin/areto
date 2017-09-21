@@ -11,7 +11,15 @@ module.exports = class Item extends Base {
             TYPE_ROUTE: 'route'
         };
     }
-      
+
+    isPermission () {
+        return this.type === this.TYPE_PERMISSION;
+    }
+
+    isRole () {
+        return this.type === this.TYPE_ROLE;
+    }
+
     isRoute () {
         return this.type === this.TYPE_ROUTE;
     }

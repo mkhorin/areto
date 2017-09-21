@@ -7,7 +7,7 @@ module.exports = class FileStore extends Base {
 
     constructor (config) {
         super(Object.assign({            
-            basePath: config.manager.module.getPath('rbac')
+            basePath: config.rbac.module.getPath('rbac')
         }, config));
     }
     
@@ -27,7 +27,7 @@ module.exports = class FileStore extends Base {
             }
             return items;
         } catch (err) {
-            this.manager.module.log('error', 'RBAC: FileStore: getItems', err);
+            this.rbac.module.log('error', 'RBAC: FileStore: getItems', err);
             return {};
         }
     }
@@ -36,7 +36,7 @@ module.exports = class FileStore extends Base {
         try {
             return require(path.join(this.basePath, 'rules'));
         } catch (err) {
-            this.manager.module.log('error', 'RBAC: FileStore: getRules', err);
+            this.rbac.module.log('error', 'RBAC: FileStore: getRules', err);
             return {};
         }
     }
@@ -50,7 +50,7 @@ module.exports = class FileStore extends Base {
             }
             return assignments;
         } catch (err) {
-            this.manager.module.log('error', 'RBAC: FileStore: getAssignments', err);
+            this.rbac.module.log('error', 'RBAC: FileStore: getAssignments', err);
             return {};
         }
     }

@@ -41,14 +41,13 @@ module.exports = class RouteRbac extends Base {
             if (!item || !user) {
                 return next();
             }
-            if (user.isGuest()) {
-                user.loginRequired();
-            } else {
-                user.can(item.name, (err, access)=> {
-                    err ? next(new ServerErrorException(err))
-                        : access ? next() : next(new ForbiddenException);
-                }, req.query);
+            if (user.isAnonymous()) {
+                return user.loginRequired();
             }
+            user.can(item.name, (err, access)=> {
+                err ? next(new ServerErrorException(err))
+                    : access ? next() : next(new ForbiddenException);
+            }, req.query);
         });
     }
 
