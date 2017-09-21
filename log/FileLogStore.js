@@ -11,7 +11,7 @@ module.exports = class FileLogStore extends Base {
             fileName: config.logType ? config.logType.name : 'common',
             observeInterval: 60, // seconds, 0 - off
             maxFileSize: 2, // megabytes
-            maxFiles: 9
+            maxFiles: 2
         }, config));
     }
 

@@ -414,7 +414,7 @@ module.exports = class Module extends Base {
         let config = module.components.userConfig;
         res.locals.user = new config.User(req, res, next, config);
         module.attachUserEvents && module.attachUserEvents(res.locals.user);
-        // try to identify the user immediately, otherwise have to do a callback for isGuest
+        // try to identify the user immediately, otherwise have to do a callback for isAnonymous
         res.locals.user.ensureIdentity(next);
     }
 };

@@ -41,9 +41,9 @@ module.exports = class AccessRule extends Base {
         let roles = [];
         for (let item of this.roles) {
             if (item === '?') {
-                return cb(null, user.isGuest());
+                return cb(null, user.isAnonymous());
             } else if (item === '@') {
-                return cb(null, !user.isGuest());
+                return cb(null, !user.isAnonymous());
             } else {
                 roles.push(item);
             }

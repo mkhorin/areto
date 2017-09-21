@@ -42,7 +42,7 @@ module.exports = class AccessControl extends Base {
     }
 
     denyAccess (action, user, cb) {
-        user.isGuest() ? user.loginRequired() : cb(new ForbiddenHttpException);
+        user.isAnonymous() ? user.loginRequired() : cb(new ForbiddenHttpException);
     }
 };
 

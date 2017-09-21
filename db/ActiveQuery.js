@@ -144,7 +144,7 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    isAsBackRef () {
+    isBackRef () {
         return this._asBackRef;
     }
 

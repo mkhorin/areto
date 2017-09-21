@@ -18,7 +18,8 @@ module.exports = class User extends Base {
                 returnUrlParam: '__returnUrl',
                 identityCookieParam: '__identity',
                 assignmentsParam: '__assignments',
-                defaultAssignments: [],
+                defaultAssignments: ['guest'],
+                anonymousAssignments: ['anonymous'],
                 identityCookie: {
                     httpOnly: true
                 },
@@ -32,25 +33,25 @@ module.exports = class User extends Base {
         };
     }
 
-    constructor (req, res, next, opts) {
+    constructor (req, res, next, params) {
         super({
             req, 
             res, 
             next, 
-            opts, 
-            session: req.session, 
-            canCache: {}
+            params,
+            session: req.session
         });
     }
 
     init () {
         super.init();                                                     
-        if (!this.opts.Identity) {
+        if (!this.params.Identity) {
             throw new Error(`${this.constructor.name}: Identity class is not set`);
         }
-        if (this.opts.enableAutoLogin && !this.opts.identityCookieParam) {
+        if (this.params.enableAutoLogin && !this.params.identityCookieParam) {
             throw new Error(`${this.constructor.name}: identityCookieParam is not set`);
         }
+        this._canCache = {};
     }
 
     getTitle (defaultValue) {
@@ -59,7 +60,7 @@ module.exports = class User extends Base {
 
     // LOGIN
 
-    isGuest () {
+    isAnonymous () {
         return this.identity === null;
     }
 
@@ -72,12 +73,12 @@ module.exports = class User extends Base {
     }
 
     getReturnUrl (defaultUrl) {
-        let url = this.session[this.opts.returnUrlParam] || defaultUrl;
-        return url ? url : this.opts.returnUrl ? this.opts.returnUrl : this.res.locals.module.getHomeUrl();
+        defaultUrl = this.session[this.params.returnUrlParam] || defaultUrl || this.params.returnUrl;
+        return defaultUrl || this.res.locals.module.getHomeUrl();
     }
 
     setReturnUrl (url) {
-        this.session[this.opts.returnUrlParam] = url;
+        this.session[this.params.returnUrlParam] = url;
     }
 
     login (identity, duration, cb) {
@@ -90,16 +91,16 @@ module.exports = class User extends Base {
     }
 
     loginByCookie (cb) {
-        let value = this.req.cookies[this.opts.identityCookieParam];
+        let value = this.req.cookies[this.params.identityCookieParam];
         if (value && typeof value === 'object' && typeof value.id === 'string'
             && typeof value.key === 'string' && typeof value.duration === 'number') {
             let duration = value.duration;
             async.waterfall([
-                cb => this.opts.Identity.findIdentity(value.id).one(cb),
+                cb => this.params.Identity.findIdentity(value.id).one(cb),
                 (identity, cb)=> {
                     identity && identity.validateAuthKey(value.key) ? async.series([
                         cb => this.beforeLogin(identity, true, duration, cb),
-                        cb => this.switchIdentity(identity, this.opts.autoRenewCookie ? duration : 0, cb),
+                        cb => this.switchIdentity(identity, this.params.autoRenewCookie ? duration : 0, cb),
                         cb => this.afterLogin(identity, true, duration, cb)
                     ], cb) : cb();
                 }
@@ -119,11 +120,11 @@ module.exports = class User extends Base {
     }
 
     loginRequired () {
-        if (this.opts.enableSession) {
+        if (this.params.enableSession) {
             this.setReturnUrl(this.req.originalUrl);
         }
-        this.opts.loginUrl && !this.req.xhr   
-            ? this.res.redirect(this.opts.loginUrl) 
+        this.params.loginUrl && !this.req.xhr
+            ? this.res.redirect(this.params.loginUrl)
             : this.next(new ForbiddenHttpException);
     }
 
@@ -157,7 +158,7 @@ module.exports = class User extends Base {
             return cb();
         }
         this.identity = null;
-        this.opts.enableSession && autoRenew
+        this.params.enableSession && autoRenew
             ? this.renewAuthStatus(()=> this.setAssignments(cb))
             : cb();
     }
@@ -168,7 +169,7 @@ module.exports = class User extends Base {
 
     switchIdentity (identity, duration, cb) {
         this.setIdentity(identity);
-        if (!this.opts.enableSession) {
+        if (!this.params.enableSession) {
             return cb();
         }
         let returnUrl = this.getReturnUrl();
@@ -178,69 +179,72 @@ module.exports = class User extends Base {
             this.setReturnUrl(returnUrl);
             if (identity) {
                 let now = Math.floor((new Date).getTime() / 1000);
-                this.session[this.opts.idParam] = this.getId();
-                if (this.opts.authTimeout !== null) {
-                    this.session[this.opts.authTimeoutParam] = now + this.opts.authTimeout;
+                this.session[this.params.idParam] = this.getId();
+                if (this.params.authTimeout !== null) {
+                    this.session[this.params.authTimeoutParam] = now + this.params.authTimeout;
                 }
-                if (this.opts.absoluteAuthTimeout !== null) {
-                    this.session[this.opts.absoluteAuthTimeoutParam] = now + this.opts.absoluteAuthTimeout;
+                if (this.params.absoluteAuthTimeout !== null) {
+                    this.session[this.params.absoluteAuthTimeoutParam] = now + this.params.absoluteAuthTimeout;
                 }
                 if (this.assignments) {
-                    this.session[this.opts.assignmentsParam] = this.assignments;
+                    this.session[this.params.assignmentsParam] = this.assignments;
                 }
-                if (duration > 0 && this.opts.enableAutoLogin) {
+                if (duration > 0 && this.params.enableAutoLogin) {
                     this.sendIdentityCookie(identity, duration);
                 }
-            } else if (this.opts.enableAutoLogin) {
-                this.res.clearCookie(this.opts.identityCookieParam, this.opts.identityCookie);
+            } else if (this.params.enableAutoLogin) {
+                this.res.clearCookie(this.params.identityCookieParam, this.params.identityCookie);
             }
             cb();
         });
     }
 
     sendIdentityCookie (identity, duration) {
-        this.opts.identityCookie.maxAge = duration * 1000;
-        this.res.cookie(this.opts.identityCookieParam, {
+        this.params.identityCookie.maxAge = duration * 1000;
+        this.res.cookie(this.params.identityCookieParam, {
             id: identity.getId(),
             key: identity.getAuthKey(),
             duration
-        }, this.opts.identityCookie);
+        }, this.params.identityCookie);
     }
 
     // RENEW AUTH
 
     renewAuthStatus (cb) {
-        let id = this.session[this.opts.idParam];
-        id ? async.waterfall([
-            cb => this.opts.Identity.findIdentity(id).one(cb),
+        let id = this.session[this.params.idParam];
+        if (!id) {
+            return this.renewAuthExpire(null, cb);
+        }
+        async.waterfall([
+            cb => this.params.Identity.findIdentity(id).one(cb),
             this.renewAuthExpire.bind(this)
-        ], cb) : this.renewAuthExpire(null, cb);
+        ], cb);
     }
 
     renewAuthExpire (identity, cb) {
         this.setIdentity(identity);
-        if (identity && (this.opts.authTimeout !== null || this.opts.absoluteAuthTimeout !== null)) {
+        if (identity && (this.params.authTimeout !== null || this.params.absoluteAuthTimeout !== null)) {
             let now = Math.floor((new Date).getTime() / 1000);
-            let expire = this.opts.authTimeout !== null
-                ? this.session[this.opts.authTimeoutParam] : null;
-            let expireAbsolute = this.opts.absoluteAuthTimeout !== null
-                ? this.session[this.opts.absoluteAuthTimeoutParam] : null;
+            let expire = this.params.authTimeout !== null
+                ? this.session[this.params.authTimeoutParam] : null;
+            let expireAbsolute = this.params.absoluteAuthTimeout !== null
+                ? this.session[this.params.absoluteAuthTimeoutParam] : null;
             if (expire !== null && expire < now || expireAbsolute !== null && expireAbsolute < now) {
                 return this.logout(()=> this.renewAuthCookie(cb), false);
             }
-            if (this.opts.authTimeout !== null) {
-                this.session[this.opts.authTimeoutParam] = now + this.opts.authTimeout;
+            if (this.params.authTimeout !== null) {
+                this.session[this.params.authTimeoutParam] = now + this.params.authTimeout;
             }
         }
         this.renewAuthCookie(cb);
     }
 
     renewAuthCookie (cb) {
-        if (this.opts.enableAutoLogin) {
-            if (this.isGuest()) {
+        if (this.params.enableAutoLogin) {
+            if (this.isAnonymous()) {
                 return this.loginByCookie(cb);
             }
-            if (this.opts.autoRenewCookie) {
+            if (this.params.autoRenewCookie) {
                 this.renewIdentityCookie();
             }
         }
@@ -248,28 +252,35 @@ module.exports = class User extends Base {
     }
 
     renewIdentityCookie () {
-        let value = this.req.cookies[this.opts.identityCookieParam];
-        if (value && typeof value === 'object' && typeof value.duration === 'number') {
-            this.opts.identityCookie.maxAge = value.duration * 1000;
-            this.res.cookie(this.opts.identityCookieParam, value, this.opts.identityCookie);
+        let value = this.req.cookies[this.params.identityCookieParam];
+        if (value && typeof value.duration === 'number') {
+            this.params.identityCookie.maxAge = value.duration * 1000;
+            this.res.cookie(this.params.identityCookieParam, value, this.params.identityCookie);
         }
     }
 
     // RBAC
 
     setAssignments (cb) {
-        this.identity && this.res.locals.module.components.rbac ? async.waterfall([
-            cb => this.identity.getAssignments(cb),
-            (result, cb)=> {
-                this.assignments = result || this.opts.defaultAssignments || [];
-                cb();
+        if (!this.res.locals.module.components.rbac) {
+            return cb();
+        }
+        if (!this.identity) {
+            this.assignments = this.params.anonymousAssignments || [];
+            return cb();
+        }
+        this.identity.getAssignments((err, result)=> {
+            if (err) {
+                return cb(err);
             }
-        ], cb) : cb();
+            this.assignments = result || this.params.defaultAssignments || [];
+            cb();
+        });
     }
 
     can (name, cb, params) {
-        Object.prototype.hasOwnProperty.call(this.canCache, name)
-            ? cb(null, this.canCache[name]) : this.forceCan(name, cb, params);
+        Object.prototype.hasOwnProperty.call(this._canCache, name)
+            ? cb(null, this._canCache[name]) : this.forceCan(name, cb, params);
     }
 
     forceCan (name, cb, params) {
@@ -277,7 +288,7 @@ module.exports = class User extends Base {
             if (err) {
                 return cb(err);
             }
-            this.canCache[name] = access ? true : false;
+            this._canCache[name] = !!access;
             cb(null, access);
         }, params);
     }

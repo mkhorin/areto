@@ -44,7 +44,7 @@ module.exports = class App extends Base {
             this.log('error', 'Server error', err);
             cb(err);
         }).listen(this.config.port, ()=> {
-            this.log('info', `${this.ID} started in ${this.configName}`, this.server.address());
+            this.log('info', `${this.ID} started as ${this.configName}`, this.server.address());
             this.trigger(this.EVENT_START_APP);
             cb();
         });

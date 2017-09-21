@@ -6,6 +6,7 @@ module.exports = class ActiveRecord extends Base {
 
     static getConstants () {        
         return {
+            TABLE: 'table_name',
             PK: '_id', // primary key name
             QUERY_CLASS: require('./ActiveQuery'),            
             //UNLINK_ON_REMOVE: [], // unlink relations after model remove
