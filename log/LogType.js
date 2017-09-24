@@ -11,7 +11,7 @@ module.exports = class LogType extends Base {
         }, config));
     }
 
-    init () {        
+    init () {
         this.store = this.store
             ? MainHelper.createInstance(this.store, {
                 logger: this.logger,
@@ -21,6 +21,7 @@ module.exports = class LogType extends Base {
         if (this.exclusive || this.store === this.commonStore) {
             this.commonStore = null;
         }
+        this.counter = 0;
     }
 
     log (message, data) {
@@ -37,6 +38,7 @@ module.exports = class LogType extends Base {
             if (this.commonStore) {
                 this.commonStore.save(this.name, message, data);
             }
+            this.counter += 1;
             this.logger.afterLog(this.name, message, data);
         }
     }

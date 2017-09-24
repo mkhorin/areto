@@ -94,9 +94,9 @@ module.exports = class Logger extends Base {
         if (this.types.hasOwnProperty(type)) {
             this.types[type].log(message, data);
         } else if (this.types.error) {
-            this.types.error.log(`${this.constructor.name}: Not found type: ${type}`, {message, data});
+            this.types.error.log(`${this.constructor.name}: Unknown type: ${type}`, {message, data});
         } else {
-            console.error(`${this.constructor.name}: Not found type:`, type, message, data);
+            console.error(`${this.constructor.name}: Unknown type:`, type, message, data);
         }
     }
 
