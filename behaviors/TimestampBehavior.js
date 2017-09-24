@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Behavior');
-const moment = require('moment');
 
 module.exports = class TimestampBehavior extends Base {
 
@@ -38,4 +37,5 @@ module.exports = class TimestampBehavior extends Base {
     }
 };
 
+const moment = require('moment');
 const ActiveRecord = require('../db/ActiveRecord');

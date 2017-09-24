@@ -4,6 +4,15 @@ const Base = require('./Store');
 
 module.exports = class DbStore extends Base {
 
+    static getConstants () {
+        return {
+            TABLE_ITEM: 'item',
+            TABLE_ITEM_CHILD: 'item_child',
+            TABLE_ASSIGNMENT: 'assignment',
+            TABLE_RULE: 'rule'
+        };
+    }
+
     constructor (config) {
         super(Object.assign({
             db: config.rbac.module.getDb(),
@@ -28,10 +37,10 @@ module.exports = class DbStore extends Base {
 
     loadData (cb) {
         async.series({
-            itemIndex: cb => this.find('item').index(this.pk).all(cb),
-            ruleIndex: cb => this.find('rule').index(this.pk).all(cb),
-            links: cb => this.find('item_child').all(cb),
-            assignments: cb => this.find('assignment').all(cb)
+            itemIndex: cb => this.find(this.TABLE_ITEM).index(this.pk).all(cb),
+            ruleIndex: cb => this.find(this.TABLE_RULE).index(this.pk).all(cb),
+            links: cb => this.find(this.TABLE_ITEM_CHILD).all(cb),
+            assignments: cb => this.find(this.TABLE_ASSIGNMENT).all(cb)
         }, cb);
     }
 
@@ -76,8 +85,129 @@ module.exports = class DbStore extends Base {
     find (table) {
         return (new Query).db(this.db).from(`${this.tablePrefix}${table}`);
     }
+
+    findItem () {
+        return this.find(this.TABLE_ITEM);
+    }
+
+    findRuleByName (name) {
+        return this.find(this.TABLE_RULE).where({name});
+    }
+
+    // CREATE
+
+    createItems (items, cb) {
+        async.series([
+            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+                this.createItem(name, data, cb);
+            }, cb),
+            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+                data.children ? this.setItemChildren(name, data, cb) : cb();
+            }, cb),
+            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+                data.parents ? this.setItemParents(name, data, cb) : cb();
+            }, cb)
+        ], cb);
+    }
+
+    createItem (name, data, callback) {
+        if (!Item.isValidType(data.type)) {
+            return callback(`RBAC: Invalid '${type}' type  for '${name}' item`);
+        }
+        async.waterfall([
+            cb => this.findItem().where({name}).one(cb),
+            (item, cb)=> {
+                if (item) {
+                    this.rbac.module.log('warning', `RBAC: Item already exists: ${name}`);
+                    return callback();
+                }
+                data.rule ? this.findRuleByName(data.rule).one(cb) : cb(null, null);
+            },
+            (rule, cb)=> {
+                if (!rule && data.rule) {
+                    return cb(`RBAC: Not found '${data.rule}' rule for '${name}' item`);
+                }
+                let doc = Object.assign({
+                    name,
+                    ruleId: rule ? rule[this.pk] : null
+                }, data);
+                delete doc.rule;
+                delete doc.chldren;
+                this.findItem().insert(doc, cb);
+            }
+        ], callback);
+    }
+
+    setItemChildren (name, data, cb) {
+        async.waterfall([
+            cb => this.findItemRelatives(name, data, 'children', cb),
+            (ids, cb)=> {
+                data.children = ids;
+                this.find(this.TABLE_ITEM_CHILD).where({
+                    parentId: data.itemId,
+                    childId: data.children
+                }).remove(cb);
+            },
+            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.children.map(child => ({
+                parentId: data.itemId,
+                childId: child
+            })), cb)
+        ], cb);
+    }
+
+    setItemParents (name, data, cb) {
+        async.waterfall([
+            cb => this.findItemRelatives(name, data, 'parents', cb),
+            (ids, cb)=> {
+                data.parents = ids;
+                this.find(this.TABLE_ITEM_CHILD).where({
+                    parentId: data.parents,
+                    childId: data.itemId
+                }).remove(cb);
+            },
+            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.parents.map(parent => ({
+                parentId: parent,
+                childId: data.itemId
+            })), cb)
+        ], cb);
+    }
+
+    findItemRelatives (name, data, relName, cb) {
+        async.waterfall([
+            cb => this.findItem().where({name}).one(cb),
+            (item, cb)=> {
+                data.itemId = item[this.pk];
+                this.findItem().where({name: data[relName]}).all(cb);
+            },
+            (items, cb)=> {
+                items.length !== data[relName].length
+                    ? cb(`RBAC: Not found '${data[relName]}' ${relName} for '${name}' item`)
+                    : cb(null, items.map(item => item[this.pk]));
+            }
+        ], cb);
+    }
+
+    createRules (rules, cb) {
+        async.forEachOfSeries(rules, (data, name, cb)=> {
+            this.createRule(name, data, cb);
+        }, cb);
+    }
+
+    createRule (name, data, cb) {
+        async.waterfall([
+            cb => this.find(this.TABLE_RULE).where({name}).one(cb),
+            (rule, cb)=> {
+                if (rule) {
+                    this.rbac.module.log('warning', `RBAC: Rule already exists: ${name}`);
+                    return cb();
+                }
+                this.find(this.TABLE_RULE).insert(Object.assign({name}, data), cb);            }
+        ], cb);
+    }
 };
+module.exports.init();
 
 const async = require('async');
 const MainHelper = require('../helpers/MainHelper');
 const Query = require('../db/Query');
+const Item = require('./Item');

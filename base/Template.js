@@ -7,7 +7,8 @@ module.exports = class Template extends Base {
     constructor (config) {
         super(Object.assign({
             themeDir: 'themes',
-            viewDir: 'views'
+            viewDir: 'views',
+            Theme: require('./Theme')
         }, config));
     }
 
@@ -20,8 +21,7 @@ module.exports = class Template extends Base {
     }
 
     initThemes () {
-        let Theme = require('./Theme');
-        this.defaultTheme = new Theme({
+        this.defaultTheme = new this.Theme({
             manager: this,
             name: null,
             baseDir: this.viewDir
@@ -34,7 +34,7 @@ module.exports = class Template extends Base {
             for (let themeName of files)  {
                 let dir = path.join(this.themeDir, themeName);
                 if (fs.lstatSync(dir).isDirectory()) {
-                    this.themes[themeName] = new Theme({
+                    this.themes[themeName] = new this.Theme({
                         manager: this,
                         name: themeName,
                         baseDir: dir

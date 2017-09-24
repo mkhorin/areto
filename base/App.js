@@ -14,7 +14,7 @@ module.exports = class App extends Base {
                 'template': {},
                 'bodyParser': {}
             },
-            EVENT_START_APP: 'startApp'
+            EVENT_AFTER_START: 'afterStart'
         };
     }
 
@@ -39,15 +39,21 @@ module.exports = class App extends Base {
     }
 
     createServer (cb) {
-        let http = require('http');
+        const http = require('http');
         this.server = http.createServer(this.express).on('error', err => {
             this.log('error', 'Server error', err);
             cb(err);
         }).listen(this.config.port, ()=> {
             this.log('info', `${this.ID} started as ${this.configName}`, this.server.address());
-            this.trigger(this.EVENT_START_APP);
+            this.afterStart();
             cb();
         });
+    }
+
+    // EVENTS
+
+    afterStart () {
+        this.trigger(this.EVENT_AFTER_START);
     }
 
     // MIGRATION

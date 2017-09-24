@@ -181,7 +181,7 @@ module.exports = class ActiveRecord extends Base {
                 }
             ], cb),
             cb => this.afterSave(true, cb)
-        ], err => cb(err)); // clear async results
+        ], err => cb(err)); // clear async.series result - cb(err, ...)
     }
 
     update (cb) {
@@ -189,7 +189,7 @@ module.exports = class ActiveRecord extends Base {
             cb => this.beforeSave(false, cb),
             cb => this.findById().update(this.filterAttrs(), cb),
             cb => this.afterSave(false, cb)
-        ], err => cb(err)); // clear async results
+        ], err => cb(err)); // clear async.series result - cb(err, ...)
     }
 
     /**

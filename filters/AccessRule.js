@@ -9,7 +9,7 @@ module.exports = class AccessRule extends Base {
             allow: true, // allow or deny rule result
             // actions: ['update'],
             // controllers: ['article'],
-            // roles: ['?', '@', 'reader'],
+            // roles: ['?', '@', 'reader'], // RBAC items
             // verbs: ['GET', 'POST'],
             // denyCallback: // TODO
         }, config));

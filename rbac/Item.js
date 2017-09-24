@@ -12,6 +12,10 @@ module.exports = class Item extends Base {
         };
     }
 
+    static isValidType (type) {
+        return type === this.TYPE_PERMISSION || type === this.TYPE_ROLE || type === this.TYPE_ROUTE;
+    }
+
     isPermission () {
         return this.type === this.TYPE_PERMISSION;
     }
