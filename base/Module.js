@@ -390,8 +390,7 @@ module.exports = class Module extends Base {
         this.createComponent('template', Object.assign({
             Class: require('./Template'),
             parent: this.parent ? this.parent.components.template : null
-        }, config));
-        cb();
+        }, config)).configure(cb);
     }
     
     componentViewEngine (config, cb) {

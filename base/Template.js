@@ -8,63 +8,83 @@ module.exports = class Template extends Base {
         super(Object.assign({
             themeDir: 'themes',
             viewDir: 'views',
-            Theme: require('./Theme')
+            Theme: require('./Theme'),
+            moduleViewPriority: false
         }, config));
     }
 
     init () {
-        super.init();
-        this.baseDir = this.module.getPath();
-        this.viewDir = path.join(this.baseDir, this.viewDir);
-        this.themeDir = path.join(this.baseDir, this.themeDir);
-        this.initThemes();
+        this.viewDir = this.module.getPath(this.viewDir);
+        this.themeDir = this.module.getPath(this.themeDir);
     }
 
-    initThemes () {
+    configure (cb) {
+        this.initThemes(cb);
+    }
+
+    initThemes (cb) {
         this.defaultTheme = new this.Theme({
-            manager: this,
+            template: this,
             name: null,
             baseDir: this.viewDir
         });
         this.themes = {};
         fs.readdir(this.themeDir, (err, files)=> {
             if (err) {
-                return this.setThemeParents();
+                return cb(); // ignore not exists theme dir
             }
-            for (let themeName of files)  {
-                let dir = path.join(this.themeDir, themeName);
-                if (fs.lstatSync(dir).isDirectory()) {
-                    this.themes[themeName] = new this.Theme({
-                        manager: this,
-                        name: themeName,
-                        baseDir: dir
-                    });
-                }
-            }
-            this.setThemeParents();
+            this.setThemes(files, err => {
+                this.setThemeParents();
+                cb(err);
+            });
         });
     }
 
+    setThemes (files, cb) {
+        async.eachSeries(files, (name, cb)=> {
+            let baseDir = path.join(this.themeDir, name);
+            async.waterfall([
+                cb => fs.stat(file, cb),
+                (stat, cb)=> {
+                    if (stat.isDirectory()) {
+                        this.themes[name] = new this.Theme({name, baseDir, template: this});
+                    }
+                    cb();
+                }
+            ], cb);
+        }, cb);
+    }
+
     setThemeParents () {
-        for (let name in this.themes) {
-            let parent = this.defaultTheme;
-            let pos = name.lastIndexOf('.');
+        for (let name of Object.keys(this.themes)) {
+            let parent, pos = name.lastIndexOf('.');
             if (pos > 0) {
                 let parentName = name.substring(0, pos);
-                if (Object.prototype.hasOwnProperty.call(this.themes, parentName)) {
+                if (this.hasTheme(parentName)) {
                     parent = this.themes[parentName];
                 }
+            } else if (!this.moduleViewPriority) {
+                parent = this.getParentTemplateTheme(name);
             }
-            this.themes[name].parent = parent;
+            this.themes[name].parent = parent || this.defaultTheme;
         }
+    }
+
+    getParentTemplateTheme (name) {
+        return !this.parent ? null : this.parent.hasTheme(name)
+            ? this.parent.themes[name] : this.parent.getParentTemplateTheme(name);
+    }
+
+    hasTheme (name) {
+        return Object.prototype.hasOwnProperty.call(this.themes, name);
     }
 
     getTheme (name) {        
         name = name || this.theme;
-        return Object.prototype.hasOwnProperty.call(this.themes, name)
-            ? this.themes[name] : this.defaultTheme;
+        return this.hasTheme(name) ? this.themes[name] : this.defaultTheme;
     }
 };
 
+const async = require('async');
 const fs = require('fs');
 const path = require('path');

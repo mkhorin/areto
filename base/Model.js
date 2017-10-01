@@ -144,6 +144,10 @@ module.exports = class Model extends Base {
         }
     }
 
+    assignAttrs (values) {
+        Object.assign(this._attrs, values instanceof Model ? values._attrs : values);
+    }
+
     getScenarioAttrs (scenario) {
         let attrs = {};
         for (let validator of this.getValidators()) {

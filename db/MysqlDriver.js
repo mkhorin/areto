@@ -59,25 +59,25 @@ module.exports = class MysqlDriver extends Base {
         this.execute(sql, cb);
     }
 
-    insert (table, doc, cb) {
-        let columns = this.escapeId(Object.keys(doc)).join(',');
-        let values = this.escape(ObjectHelper.getValues(doc));
+    insert (table, data, cb) {
+        let columns = this.escapeId(Object.keys(data)).join(',');
+        let values = this.escape(ObjectHelper.getValues(data));
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
         this.execute(sql, (err, result)=> {
             err ? cb(err) : cb(null, result.insertId);
         });
     }
     
-    upsert (table, condition, doc, cb) {
-        let columns = this.escapeId(Object.keys(doc));
-        let values = this.escape(ObjectHelper.getValues(doc));
+    upsert (table, condition, data, cb) {
+        let columns = this.escapeId(Object.keys(data));
+        let values = this.escape(ObjectHelper.getValues(data));
         let updates = columns.map(column => `${column}=VALUES(${column})`).join(',');
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join(',')}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
         this.execute(sql, cb);
     }
 
-    update (table, condition, doc, cb) {
-        let values = Object.keys(doc).map(key => `${this.escapeId(key)}=${this.escape(doc[key])}`).join(',');
+    update (table, condition, data, cb) {
+        let values = Object.keys(data).map(key => `${this.escapeId(key)}=${this.escape(data[key])}`).join(',');
         let sql = `UPDATE ${this.escapeId(table)} SET ${values}`;
         if (condition) {
             sql += condition;
@@ -85,7 +85,7 @@ module.exports = class MysqlDriver extends Base {
         this.execute(sql, cb);
     }
 
-    updateAll (table, condition, doc, cb) {
+    updateAll (table, condition, data, cb) {
         cb(`${this.constructor.name}: updateAll: TODO...`);
     }
 
@@ -155,27 +155,27 @@ module.exports = class MysqlDriver extends Base {
         });
     }
 
-    queryInsert (query, doc, cb) {
+    queryInsert (query, data, cb) {
         this.queryBuild(query, (err, cmd)=> {
-            err ? cb(err) : this.insert(cmd.from, doc, cb);
+            err ? cb(err) : this.insert(cmd.from, data, cb);
         });
     }
 
-    queryUpdate (query, doc, cb) {
+    queryUpdate (query, data, cb) {
         this.queryBuild(query, (err, cmd)=> {
-            err ? cb(err) : this.update(cmd.from, cmd.where, doc, cb);
+            err ? cb(err) : this.update(cmd.from, cmd.where, data, cb);
         });
     }
 
-    queryUpdateAll (query, doc, cb) {
+    queryUpdateAll (query, data, cb) {
         this.queryBuild(query, (err, cmd)=> {
-            err ? cb(err) : this.updateAll(cmd.from, cmd.where, doc, cb);
+            err ? cb(err) : this.updateAll(cmd.from, cmd.where, data, cb);
         });
     }
 
-    queryUpsert (query, doc, cb) {
+    queryUpsert (query, data, cb) {
         this.queryBuild(query, (err, cmd)=> {
-            err ? cb(err) : this.upsert(cmd.from, cmd.where, doc, cb);
+            err ? cb(err) : this.upsert(cmd.from, cmd.where, data, cb);
         });
     }
 

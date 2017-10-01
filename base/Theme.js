@@ -35,6 +35,16 @@ module.exports = class Theme extends Base {
     }
 
     get (name, language) {
+        return this.getInner(name, language)
+            || (this.template.parent && this.template.parent.getTheme(this.name).get(name, language))
+            || name; // as absolute path
+    }
+
+    getInner (name, language) {
+        return this.getOnly(name, language) || (this.parent && this.parent.get(name, language));
+    }
+
+    getOnly (name, language) {
         if (Object.prototype.hasOwnProperty.call(this._files, name)) {
             if (!language) {
                 return this._files[name];
@@ -47,14 +57,7 @@ module.exports = class Theme extends Base {
                 this._languageFiles[name][language] = this._files[file] || this._files[name];
             }
             return this._languageFiles[name][language];
-        }    
-        if (this.parent) {
-            return this.parent.get(name);
-        }    
-        if (this.manager.parent) {
-            return this.manager.parent.getTheme(this.name).get(name);
         }
-        return name; // name as absolute path
     }
 };
 

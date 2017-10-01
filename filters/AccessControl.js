@@ -7,15 +7,20 @@ module.exports = class AccessControl extends Base {
     constructor (config) {
         super(Object.assign({
             denyCallback: null,
-            rules: []
+            rules: [],
+            AccessRule: require('./AccessRule')
         }, config));
     }
 
     init () {
         super.init();
+        this.initRules();
+    }
+
+    initRules () {
         for (let i = 0; i < this.rules.length; ++i) {
-            if (!(this.rules[i] instanceof AccessRule)) {
-                let RuleClass = this.rules[i].Class || AccessRule;
+            if (!(this.rules[i] instanceof this.AccessRule)) {
+                let RuleClass = this.rules[i].Class || this.AccessRule;
                 this.rules[i] = new RuleClass(this.rules[i]);
             }
         }
@@ -47,6 +52,5 @@ module.exports = class AccessControl extends Base {
 };
 
 const async = require('async');
-const AccessRule = require('./AccessRule');
 const MainHelper = require('../helpers/MainHelper');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');

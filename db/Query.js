@@ -135,20 +135,20 @@ module.exports = class Query extends Base {
         this._db.queryScalar(this, key, cb);
     }
 
-    insert (doc, cb) {
-        this._db.queryInsert(this, doc, cb);
+    insert (data, cb) {
+        this._db.queryInsert(this, data, cb);
     }
 
-    update (doc, cb) {
-        this._db.queryUpdate(this, doc, cb);
+    update (data, cb) {
+        this._db.queryUpdate(this, data, cb);
     }
 
-    updateAll (doc, cb) {
-        this._db.queryUpdateAll(this, doc, cb);
+    updateAll (data, cb) {
+        this._db.queryUpdateAll(this, data, cb);
     }
 
-    upsert (doc, cb) {
-        this._db.queryUpsert(this, doc, cb);
+    upsert (data, cb) {
+        this._db.queryUpsert(this, data, cb);
     }
 
     remove (cb) {
