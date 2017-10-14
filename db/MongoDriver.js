@@ -78,56 +78,56 @@ module.exports = class MongoDriver extends Base {
 
     find (table, condition, cb) {
         this.getCollection(table).find(condition).toArray((err, data)=> {
-            this.afterCommand({err, cmd: 'find', table, query: condition});
+            this.afterCommand(err, {cmd: 'find', table, query: condition});
             cb(err, data);
         });
     }
 
     distinct (table, key, query, options, cb) {
         this.getCollection(table).distinct(key, query, options, (err, values)=> {
-            this.afterCommand({err, cmd: 'distinct', table, query});
+            this.afterCommand(err, {cmd: 'distinct', table, query});
             cb(err, values);
         });
     }
 
     insert (table, data, cb) {
         this.getCollection(table).insert(data, {}, (err, result)=> {
-            this.afterCommand({err, cmd: 'insert', table, data});
+            this.afterCommand(err, {cmd: 'insert', table, data});
             err ? cb(err) : cb(null, result.insertedIds[0]);
         });
     }
 
     upsert (table, condition, data, cb) {
         this.getCollection(table).update(condition, {$set: data}, {upsert: true}, (err, result)=> {
-            this.afterCommand({err, cmd: 'upsert', table, query: condition, data});
+            this.afterCommand(err, {cmd: 'upsert', table, query: condition, data});
             cb(err, result);
         });
     }
 
     update (table, condition, data, cb) {
         this.getCollection(table).update(condition, {$set: data}, {}, (err, result)=> {
-            this.afterCommand({err, cmd: 'update', table, query: condition, data});
+            this.afterCommand(err, {cmd: 'update', table, query: condition, data});
             cb(err, result);
         });
     }
 
     updateAll (table, condition, data, cb) {
         this.getCollection(table).update(condition, {$set: data}, {multi: true}, (err, result)=> {
-            this.afterCommand({err, cmd: 'updateAll', table, query: condition, data});
+            this.afterCommand(err, {cmd: 'updateAll', table, query: condition, data});
             cb(err, result);
         });
     }
 
     updateAllPull (table, condition, data, cb) {
         this.getCollection(table).update(condition, {$pull: data}, {multi: true}, (err, result)=> {
-            this.afterCommand({err, cmd: 'updateAllPull', table, query: condition, data});
+            this.afterCommand(err, {cmd: 'updateAllPull', table, query: condition, data});
             cb(err, result);
         });
     }
 
     updateAllPush (table, condition, data, cb) {
         this.getCollection(table).update(condition, {$push: data}, {multi: true}, (err, result)=> {
-            this.afterCommand({err, cmd: 'updateAllPush', table, query: condition, data});
+            this.afterCommand(err, {cmd: 'updateAllPush', table, query: condition, data});
             cb(err, result);
         });
     }
@@ -135,7 +135,7 @@ module.exports = class MongoDriver extends Base {
     remove (table, condition, cb) {
         condition = condition || {};
         this.getCollection(table).remove(condition, err => {
-            this.afterCommand({err, cmd: 'remove', table, query: condition});
+            this.afterCommand(err, {cmd: 'remove', table, query: condition});
             cb && cb(err);
         });
     }
@@ -145,7 +145,7 @@ module.exports = class MongoDriver extends Base {
             cb => this.isCollectionExists(table, cb),
             (exists, cb)=> {
                 exists ? this.getCollection(table).drop(err => {
-                    this.afterCommand({err, cmd: 'truncate', table});
+                    this.afterCommand(err, {cmd: 'truncate', table});
                     cb && cb(err);
                 }) : cb();
             }
@@ -160,7 +160,7 @@ module.exports = class MongoDriver extends Base {
 
     count (table, condition, cb) {
         this.getCollection(table).count(condition, (err, counter)=> {
-            this.afterCommand({err, cmd: 'count', table, query: condition});
+            this.afterCommand(err, {cmd: 'count', table, query: condition});
             cb(err, counter);
         });
     }
@@ -168,7 +168,7 @@ module.exports = class MongoDriver extends Base {
     // QUERY
 
     queryAll (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             if (err) {
                 return cb(err);
             }
@@ -177,8 +177,7 @@ module.exports = class MongoDriver extends Base {
             cmd.offset && cursor.skip(cmd.offset);
             cmd.limit && cursor.limit(cmd.limit);
             cursor.toArray((err, docs)=> {
-                this.afterCommand({
-                    err,
+                this.afterCommand(err, {
                     cmd: 'find',
                     table: cmd.from,
                     query: cmd
@@ -201,7 +200,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     queryColumn (query, key, cb) {
-        this.queryAll(query.asArray().select({[key]: 1}), (err, docs)=> {
+        this.queryAll(query.asRaw().select({[key]: 1}), (err, docs)=> {
             err ? cb(err) : cb(null, docs.map(doc => doc[key]));
         });
     }
@@ -213,43 +212,43 @@ module.exports = class MongoDriver extends Base {
     }
 
     queryScalar (query, key, cb) {
-        this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
+        this.queryAll(query.asRaw().select({[key]: 1}).limit(1), (err, docs)=> {
             err ? cb(err) : cb(null, docs.length ? docs[0][key] : null);
         });
     }
 
     queryInsert (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.insert(cmd.from, data, cb);
         });
     }
 
     queryUpdate (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.update(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpdateAll (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.updateAll(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpsert (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.upsert(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryRemove (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.remove(cmd.from, cmd.where, cb);
         });
     }
 
     queryCount (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.count(cmd.from, cmd.where, cb);
         });
     }
@@ -265,32 +264,32 @@ module.exports = class MongoDriver extends Base {
      */ 
     createIndex (table, data, cb) {
         this.getCollection(table).createIndex(data[0], data[1], err => {            
-            this.afterCommand({cmd: 'createIndex', err, table, data});
+            this.afterCommand(err, {cmd: 'createIndex', table, data});
             cb(err);
         });
     }
 
     dropIndex (table, name, cb) {
         this.getCollection(table).dropIndex(name, err => {
-            this.afterCommand({cmd: 'dropIndex', err, table, name});
+            this.afterCommand(err, {cmd: 'dropIndex', table, name});
             cb(err);
         });
     }
 
     dropIndexes (table, cb) {
         this.getCollection(table).dropIndexes(err => {
-            this.afterCommand({cmd: 'dropIndexes', err, table});
+            this.afterCommand(err, {cmd: 'dropIndexes', table});
             cb(err);
         });
     }
 
     reIndex (table, cb) {
         this.getCollection(table).reIndex(err => {
-            this.afterCommand({cmd: 'reIndex', err, table});
+            this.afterCommand(err, {cmd: 'reIndex', table});
             cb(err);
         });
     }
-}
+};
 module.exports.init();
 
 const async = require('async');

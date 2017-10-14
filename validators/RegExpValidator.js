@@ -39,9 +39,9 @@ module.exports = class RegExpValidator extends Base {
         if (typeof value !== 'string') {
             valid = false;
         } else if (this.pattern.test(value)) {
-            valid = this.not ? false : true;
+            valid = !this.not;
         } else {
-            valid = this.not ? true : false;
+            valid = !!this.not;
         }
         cb(null, valid ? null : this.message);
     }

@@ -30,7 +30,7 @@ const SIMPLE_OPERATORS = {
 };
 
 module.exports = class MongoQueryBuilder extends Base {
-
+    
     build (query) {
         query.cmd = {
             from: query._from,
@@ -59,7 +59,7 @@ module.exports = class MongoQueryBuilder extends Base {
         }
         let result = {};
         for (let key of Object.keys(order)) {
-            result[key] = order[key] == 1 ? 1 : -1;
+            result[key] = order[key] === 1 ? 1 : -1;
         }
         return result;
     }
@@ -156,7 +156,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (value instanceof RegExp) {
             return value;
         }
-        value = MainHelper.escapeRegExp(value);
+        value = MiscHelper.escapeRegExp(value);
         value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
         value = value.charAt(value.length - 1) === '%' ?  value.substring(0, value.length - 1) : `${value}$`;
         return new RegExp(value, 'i');
@@ -237,4 +237,4 @@ module.exports = class MongoQueryBuilder extends Base {
 };
 
 const mongodb = require('mongodb');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');

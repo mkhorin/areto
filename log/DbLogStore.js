@@ -22,7 +22,7 @@ module.exports = class DbLogStore extends Base {
     }
 
     save (type, message, data) {
-        this.getQuery().insert(this.format(type, message, data), err => {
+        this.find().insert(this.format(type, message, data), err => {
             if (err) {
                 console.error(`${this.constructor.name}: save`, err);
             }
@@ -46,7 +46,7 @@ module.exports = class DbLogStore extends Base {
     observe () {
         setTimeout(()=> {
             this.truncate(err => {
-                err ? this.logger.module.log('error', `${this.constructor.name}: truncate`, err)
+                err ? this.log('error', `${this.constructor.name}: truncate`, err)
                     : this.observe();
             });
         }, this.observePeriod * 1000);
@@ -54,20 +54,20 @@ module.exports = class DbLogStore extends Base {
 
     truncate (cb) {
         async.waterfall([
-            cb => this.getQuery().count(cb),
+            cb => this.find().count(cb),
             (counter, cb)=> {
                 if (counter < this.maxRows + this.maxRows / 2) {
                     return cb();
                 }
                 async.waterfall([
-                    cb => this.getQuery().offset(this.maxRows).order({[this.pk]: -1}).scalar(this.pk, cb),
-                    (id, cb)=> this.getQuery().where(['<', this.pk, id]).remove(cb)
+                    cb => this.find().offset(this.maxRows).order({[this.pk]: -1}).scalar(this.pk, cb),
+                    (id, cb)=> this.find().where(['<', this.pk, id]).remove(cb)
                 ], cb);
             },
         ], cb);
     }
 
-    getQuery () {
+    find () {
         return (new Query).db(this.db).from(this.table);
     }
 };

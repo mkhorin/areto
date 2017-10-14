@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./Validator');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');
 
 module.exports = class UniqueValidator extends Base {
 
@@ -51,7 +51,7 @@ module.exports = class UniqueValidator extends Base {
                 if (targetClass === model.constructor) {
                     let id1 = model.getId();
                     let id2 = models[0].getId();
-                    exists = !id1 || !MainHelper.isEqual(id1, id2);
+                    exists = !id1 || !MiscHelper.isEqual(id1, id2);
                 }
             } else if (models.length === 0) {
                 exists = false;

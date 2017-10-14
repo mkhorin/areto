@@ -7,18 +7,21 @@ module.exports = class Module extends Base {
     
     static getConstants () {
         return {
-            ID: this.getId(),
+            NAME: this.getName(),
             DEFAULT_COMPONENTS: {
                 'template': {}
             },
             EVENT_BEFORE_INIT: 'beforeInit',
             EVENT_AFTER_INIT: 'afterInit',
             EVENT_BEFORE_ACTION: 'beforeAction',
-            EVENT_AFTER_ACTION: 'afterAction'
+            EVENT_AFTER_ACTION: 'afterAction',
+            VIEW_CLASS: require('./View'), // default controller view
+            VIEW_LAYOUT: 'default', // default controller template layout
+            INLINE_ACTION_CLASS: require('./InlineAction')
         };
     }
 
-    static getId () {
+    static getName () {
         return StringHelper.camelToId(this.name);
     }
     
@@ -38,28 +41,19 @@ module.exports = class Module extends Base {
         this._expressQueue = []; // for deferred assign    
     }
 
-    log (type, message, data) {
-        if (this.components.logger) {
-            this.components.logger.log(type, message, data);
-        } else {
-            console.log(type, message, data);
-        }
-    }
-
-    getRoute (url) {
-        if (!this._fullRoute) {
-            this._fullRoute = this.parent ? (this.parent.getRoute() + this.url) : this.url;
-        }
-        return url ? `${this._fullRoute}/${url}` : this._fullRoute;
-    }
-
     getDb (id = 'connection') {
         return this.components[id] ? this.components[id].driver : null;
     }
 
-    getFullName (separator = '.') {
-        // eg - app.admin.post
-        return this.parent ? `${this.parent.getFullName(separator)}${separator}${this.ID}` : this.ID;
+    getFullName (separator = '.') { // eg - app.admin.post
+        return this.parent ? `${this.parent.getFullName(separator)}${separator}${this.NAME}` : this.NAME;
+    }
+
+    getRoute (url) {
+        if (!this._route) {
+            this._route = this.parent ? (this.parent.getRoute() + this.url) : this.url;
+        }
+        return url ? `${this._route}/${url}` : this._route;
     }
 
     getAncestry () {
@@ -90,12 +84,22 @@ module.exports = class Module extends Base {
         return this.getController(this.config.defaultController || 'default');
     }
 
+    require (...args) {
+        return require(this.getPath.apply(this, args));
+    }
+
     getController (id) {
         try {
             return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
-        } catch (err) {
-            return null;
+        } catch (err) {}
+        return null;
+    }
+
+    log (type, message, data) {
+        if (this.logger) {
+            return this.logger.log(type, message, data);
         }
+        console.log.apply(console, arguments);
     }
 
     // URL
@@ -105,15 +109,12 @@ module.exports = class Module extends Base {
     }
 
     resolveUrl (url) {
-        if (!this.app.urlCache[url]) {
-            this.app.urlCache[url] = url;
-            let newUrl = this.resolveSourceUrl(Url.parse(url));
-            if (newUrl) {
-                this.app.urlCache[url] = newUrl;
-                return newUrl;
-            }
+        let newUrl = this.app.getUrlFromCache(url);
+        if (!newUrl) {
+            newUrl = this.resolveSourceUrl(Url.parse(url)) || url;
+            this.app.setUrlToCache(newUrl, url);
         }
-        return this.app.urlCache[url];
+        return newUrl;
     }
 
     resolveSourceUrl (data) {
@@ -193,13 +194,14 @@ module.exports = class Module extends Base {
             ObjectHelper.deepAssignUndefined(this.params, parent.params);
             ObjectHelper.deepAssignUndefined(this.widgets, parent.widgets);
         }
-        this.url = this.config.url || (parent ? `/${this.ID}` : '');
+        this.url = this.config.url || (parent ? `/${this.NAME}` : '');
         this.setForwarder(this.config.forwarder);
         async.series([
             cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
             cb => this.setModules(this.config.modules, cb),
             cb => {
+                this.logger = this.components.logger;
                 this.setRouter(this.config.router);
                 this.setExpress();
                 this.afterInit(cb);
@@ -209,63 +211,17 @@ module.exports = class Module extends Base {
 
     setForwarder (config) {
         if (config) {
-            this.forwarder = MainHelper.createInstance({
+            this.forwarder = ClassHelper.createInstance({
                 Class: require('../web/Forwarder'),
                 module: this
             }, config);
         }
     }
 
-    // COMPONENTS
-
-    setComponents (components, cb) {
-        components = components || {};
-        this.extendComponentsByDefaults(components);
-        async.forEachOfSeries(components, (config, id, cb)=> {
-            if (!config) {
-                this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
-                return cb();
-            }
-            config.module = config.module || this;
-            let type = config.componentType || id;
-            let handler = `component${StringHelper.idToCamel(type)}`;
-            if (typeof this[handler] !== 'function') {
-                this.createComponent(type, config);
-                return cb();
-            }
-            this[handler](config, err => {
-                err || this.log('trace', `${this.getFullName()}: ${id} ready`);
-                cb(err);
-            });
-        }, cb);
-    }
-
-    extendComponentsByDefaults (components) {
-        for (let name of Object.keys(this.DEFAULT_COMPONENTS)) {
-            if (!Object.prototype.hasOwnProperty.call(components, name)) {
-                components[name] = this.DEFAULT_COMPONENTS[name];
-            }
-        }
-    }
-
-    createComponent (name, config) {   
-        return this.components[name] = MainHelper.createInstance(config);
-    }
-
-    deepAssignComponent (name, newComponent) {
-        let currentComponent = this.components[name];
-        for (let id of Object.keys(this.modules)) {
-            if (this.modules[id].components[name] === currentComponent) {
-                this.modules[id].deepAssignComponent(name, newComponent);
-            }
-        }
-        this.components[name] = newComponent;
-    }
-
     setModules (config, cb) {
         async.forEachOfSeries(config || {}, (config, id, cb)=> {
             if (!config) {
-                this.log('info', `Module '${this.getFullName()}.${id}' skipped`)
+                this.log('info', `Module '${this.getFullName()}.${id}' skipped`);
                 return cb();
             }
             let configName = config.configName || this.configName;
@@ -279,8 +235,8 @@ module.exports = class Module extends Base {
         }, cb);
     }
 
-    setRouter (config) {        
-        this.router = MainHelper.createInstance(Object.assign({
+    setRouter (config) {
+        this.router = ClassHelper.createInstance(Object.assign({
             Class: require('../web/Router'),
             module: this
         }, config));
@@ -298,9 +254,61 @@ module.exports = class Module extends Base {
         });
     }
 
-    // COMPONENT HANDLERS
+    // COMPONENTS
 
-    componentBodyParser (config, cb) {
+    hasComponent (name) {
+        return Object.prototype.hasOwnProperty.call(this.components, name);
+    }
+
+    getComponent (name) {
+        return this.hasComponent(name) ? this.components[name] : null;
+    }
+
+    setComponents (components, cb) {
+        components = components || {};
+        this.extendComponentsByDefaults(components);
+        async.forEachOfSeries(components, (config, id, cb)=> {
+            if (!config) {
+                this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
+                return cb();
+            }
+            config.module = config.module || this;
+            let name = config.setter || id;
+            let method = `set${StringHelper.idToCamel(name)}Component`;
+            if (typeof this[method] !== 'function') {
+                this.setComponent(id, config);
+                return cb();
+            }
+            this[method](id, config, err => {
+                err || this.log('trace', `${this.getFullName()}: ${id} ready`);
+                cb(err);
+            });
+        }, cb);
+    }
+
+    extendComponentsByDefaults (components) {
+        for (let name of Object.keys(this.DEFAULT_COMPONENTS)) {
+            if (!Object.prototype.hasOwnProperty.call(components, name)) {
+                components[name] = this.DEFAULT_COMPONENTS[name];
+            }
+        }
+    }
+
+    setComponent (id, config) {
+        return this.components[id] = ClassHelper.createInstance(config);
+    }
+
+    deepAssignComponent (name, newComponent) {
+        let currentComponent = this.components[name];
+        for (let id of Object.keys(this.modules)) {
+            if (this.modules[id].components[name] === currentComponent) {
+                this.modules[id].deepAssignComponent(name, newComponent);
+            }
+        }
+        this.components[name] = newComponent;
+    }
+
+    setBodyParserComponent (id, config, cb) {
         config = Object.assign({
             extended: true
         }, config);
@@ -310,96 +318,96 @@ module.exports = class Module extends Base {
         cb();
     }
 
-    componentCache (config, cb) {
-        this.createComponent('cache', Object.assign({
+    setCacheComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../caching/Cache')
         }, config));
         cb();
     }
 
-    componentConnection (config, cb) {        
-        this.createComponent('connection', Object.assign({
+    setConnectionComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../db/Connection')
         }, config));
         this.getDb().open(cb);
     }
 
-    componentCookie (config, cb) {
+    setCookieComponent (id, config, cb) {
         config = config || {};
         let cookieParser = require('cookie-parser');
         this.appendToExpress('use', cookieParser(config.secret, config.options));
         cb();
     }
 
-    componentFormatter (config, cb) {
-        this.createComponent('formatter', Object.assign({
+    setFormatterComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../i18n/Formatter'),
             i18n: this.components.i18n
         }, config));
         cb();
     }
 
-    componentI18n (config, cb) {        
-        this.createComponent('i18n', Object.assign({
+    setI18nComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../i18n/I18n'),
             parent: this.parent ? this.parent.components.i18n : null
         }, config));
         cb();
     }
 
-    componentLogger (config, cb) {        
-        this.createComponent('logger', Object.assign({
+    setLoggerComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../log/Logger')
         }, config)).configure(cb);
     }
 
-    componentRateLimit (config, cb) {
-        this.createComponent('rateLimit', Object.assign({
+    setRateLimitComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../web/rate-limit/RateLimit')
         }, config)).configure(cb);
     }
 
-    componentRbac (config, cb) {         
-        this.createComponent('rbac', Object.assign({
+    setRbacComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../rbac/Rbac')
         }, config)).configure(cb);
     }
 
-    componentScheduler (config, cb) {        
-        this.createComponent('scheduler', Object.assign({
+    setSchedulerComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('./Scheduler')
         }, config));
         cb();
     }
 
-    componentSession (config, cb) {        
-        this.createComponent('session', Object.assign({
+    setSessionComponent (id, config, cb) {
+        this.setComponent(id, Object.assign({
             Class: require('../web/session/Session')
         }, config));
         cb();
     }
 
-    componentStatic (config, cb) {
+    setStaticComponent (id, config, cb) {
         // use static content handlers before others
         this.app.express.use(this.getRoute(), express.static(this.getPath('web')));
         cb();
     }
 
-    componentTemplate (config, cb) {
+    setTemplateComponent (id, config, cb) {
         this.appendToExpress('set', 'views', '/');
-        this.createComponent('template', Object.assign({
+        this.setComponent(id, Object.assign({
             Class: require('./Template'),
             parent: this.parent ? this.parent.components.template : null
         }, config)).configure(cb);
     }
     
-    componentViewEngine (config, cb) {
+    setViewEngineComponent (id, config, cb) {
         this.appendToExpress('engine', config.extension, config.engine);
         this.appendToExpress('set', 'view engine', config.extension);
         cb();
     }    
 
-    componentUser (config, cb) {
+    setUserComponent (id, config, cb) {
         let User = config.User || require('../web/User');
         this.components.userConfig = Object.assign({User}, User.DEFAULTS, config);
         this.appendToExpress('use', this.handleUser);
@@ -423,7 +431,7 @@ const async = require('async');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const MainHelper = require('../helpers/MainHelper');
+const ClassHelper = require('../helpers/ClassHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');
 const Url = require('../web/Url');

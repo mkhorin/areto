@@ -14,8 +14,8 @@ module.exports = class TimestampBehavior extends Base {
 
     init () {
         super.init();
-        this._events[ActiveRecord.EVENT_BEFORE_INSERT] = 'beforeInsert';
-        this._events[ActiveRecord.EVENT_BEFORE_UPDATE] = 'beforeUpdate';
+        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
+        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
     beforeInsert (event, cb) {

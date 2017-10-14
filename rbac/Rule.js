@@ -7,4 +7,8 @@ module.exports = class Rule extends Base {
     execute (user, cb, params) {
         cb(null, true);
     }
+
+    getModel (fileName) {
+        return null;
+    }
 };

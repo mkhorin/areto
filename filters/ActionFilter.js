@@ -13,8 +13,7 @@ module.exports = class ActionFilter extends Base {
 
     init () {
         super.init();
-        this._events[Controller.EVENT_BEFORE_ACTION] = 'beforeFilter';
-        this._events[Controller.EVENT_AFTER_ACTION] = 'afterFilter';
+        this.assign(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
     }
 
     beforeFilter (event, cb) {
@@ -25,18 +24,16 @@ module.exports = class ActionFilter extends Base {
             if (err) {
                 return cb(err);
             }
-            // call afterFilter only if beforeFilter succeeds
-            let name = Controller.EVENT_AFTER_ACTION;
-            this._events[name] = 'afterFilter';
-            this.resolveEventHandler(name);
-            this.owner.on(name, this._events[name]);
+            // use afterFilter on beforeFilter success only
+            this.assign(Controller.EVENT_AFTER_ACTION, this.afterFilter);
+            this.attachHandler(Controller.EVENT_AFTER_ACTION);
             cb();
         });
     }
 
     afterFilter (event, cb) {
         this.afterAction(event.action, err => {
-            this.owner.off(Controller.EVENT_AFTER_ACTION, this._events[Controller.EVENT_AFTER_ACTION]);
+            this.detachHandler(Controller.EVENT_AFTER_ACTION);
             cb(err);
         });        
     }
@@ -50,12 +47,9 @@ module.exports = class ActionFilter extends Base {
     }
 
     isActive (action) {
-        let id = action.id;
-        let uid = action.getUniqueId();
-        let rid = action.getRelativeModuleId();
-        if (this.owner instanceof Module) {
-            id = action.getRelativeModuleId();
-        }
+        let rid = action.getRelativeModuleName();
+        let uid = action.getUniqueName();
+        let id = this.owner instanceof Module ? rid : action.name;
         return !this.except.includes(id) && (!this.only || this.only.includes(id));
     }
 };

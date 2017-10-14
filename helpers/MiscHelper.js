@@ -1,23 +1,14 @@
 'use strict';
 
-module.exports = class MainHelper {
+module.exports = class MiscHelper {
 
     static isEmpty (value) {
         return value === undefined || value === null || value === '';
     }
 
     static isEqual (id1, id2) {
-        return id1 instanceof MongoId ? id1.equals(id2) : id1 === id2;
-    }
-
-    static indexOfId (id, ids) {
-        if (!(id instanceof MongoId)) {
-            return ids.indexOf(id);
-        }
-        for (let i = 0; i < ids.length; ++i) {
-            if (id.equals(ids[i])) return i;
-        }
-        return -1;
+        return id1 instanceof MongoId ? id1.equals(id2)
+            : id2 instanceof MongoId ? id2.equals(id1) : id1 === id2;
     }
 
     static getRandom (min, max) {
@@ -79,45 +70,33 @@ module.exports = class MainHelper {
             .replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     }
 
-    // CLASS INSTANCE
+    // PROCESS
 
-    static createInstance (config, params) {
-        if (typeof config === 'function') {
-            return new config(params);
-        }
-        if (params) {
-            Object.assign(config, params);
-        }
-        return config && config.Class ? new config.Class(config) : null;
-    }
-   
-    // get value from Class[name] and (new Class)[name]
-    static defineClassProperty (Class, name, value, writable) {
-        Object.defineProperty(Class, name, {value, writable});
-        Object.defineProperty(Class.prototype, name, {value, writable});
+    static isWinPlatform () {
+        return /^win/.test(process.platform);
     }
 
-    static getClosestDirByTarget (file, target) {
-        let dir = path.dirname(file);
-        if (dir === file) {
-            return null;
-        } else if (this.isFileInDir(target, dir)) {
-            return dir;
-        } else {
-            return this.getClosestDirByTarget(dir, target);
-        }
-    }
-
-    static isFileInDir (filename, dir) {
+    static spawnProcess (path, command, args, cb) {
         try {
-            let stat = fs.statSync(path.join(dir, filename));
-            return stat && stat.isFile();
+            if (this.isWinPlatform()) {
+                command += '.cmd';
+            }
+            let child = childProcess.spawn(command, args, {
+                cwd: path,
+                env: process.env
+            });
+            child.stdout.on('data', data => console.log(`${data}`));
+            child.stderr.on('data', data => console.error(`${data}`));
+            child.on('close', code => {
+                cb(code ? `Spawn process '${command}' failed: ${code}` : null);
+            });
         } catch (err) {
-            return false;
+            return cb(err);
         }
-    }    
+    }
 };
 
+const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const MongoId = require('mongodb').ObjectID;

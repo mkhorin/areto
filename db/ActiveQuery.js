@@ -10,7 +10,7 @@ module.exports = class ActiveQuery extends Base {
 
     init () {
         super.init();
-        this._asArray = null;
+        this._asRaw = null;
         this._with = {};
         if (this.model) { // for clone
             this._db = this.model.getDb();
@@ -18,18 +18,17 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    asArray (value = true) {
-        this._asArray = value;
+    asRaw (value = true) {
+        this._asRaw = value;
         return this;
     }
 
     exceptModel (model) {
         if (model instanceof this.model.constructor) {
             return model.getId() ? this.and(['!=', model.PK, model.getId()]) : this;
-        } else {
-            this.model.module.log('error', `ActiveQuery: exceptModel: ${this.model.constructor.name}: Invalid target model`);
-            return this;
         }
+        this.model.log('error', `ActiveQuery: exceptModel: ${this.model.constructor.name}: Invalid target model`);
+        return this;
     }
 
     // PREPARE
@@ -179,7 +178,7 @@ module.exports = class ActiveQuery extends Base {
             this._via = [name, relation];
             callable && callable(relation);
         } else {
-            this._primaryModel.module.log('error', `ActiveQuery: via: not found relation: ${name}`);
+            this._primaryModel.log('error', `ActiveQuery: via: not found relation: ${name}`);
         }
         return this;
     }
@@ -189,7 +188,7 @@ module.exports = class ActiveQuery extends Base {
         relation._from = tableName;
         relation._link = link;
         relation._multiple = true;
-        relation._asArray = true;        
+        relation._asRaw = true;
         callable && callable(relation);
         this._via = relation;
         return this;
@@ -212,8 +211,8 @@ module.exports = class ActiveQuery extends Base {
         let primaryModel = new this.model.constructor;
         relations = this.normalizeRelations(primaryModel, relations);
         async.forEachOf(relations, (relation, name, cb)=> {
-            if (relation._asArray === null) { // relation is ActiveQuery
-                relation.asArray(this._asArray); // inherit asArray from primary query
+            if (relation._asRaw === null) { // relation is ActiveQuery
+                relation._asRaw = this._asRaw; // inherit from primary query
             }
             relation.populateRelation(name, models, cb);
         }, err => cb(err, models));
@@ -251,7 +250,7 @@ module.exports = class ActiveQuery extends Base {
     // POPULATE
 
     populate (docs, cb) {
-        if (this._asArray) {
+        if (this._asRaw) {
             return super.populate(docs, cb);
         }
         let models = [];
@@ -352,9 +351,8 @@ module.exports = class ActiveQuery extends Base {
             // via relation
             let viaName = this._via[0];
             let viaQuery = this._via[1];
-            if (viaQuery._asArray === null) {
-                // inherit asArray from primary query
-                viaQuery.asArray(this._asArray);
+            if (viaQuery._asRaw === null) {
+                viaQuery._asRaw = this._asRaw; // inherit from primary query
             }
             viaQuery._primaryModel = null;
             viaQuery.populateRelation(viaName, primaryModels, (err, viaModels)=> {
@@ -480,12 +478,7 @@ module.exports = class ActiveQuery extends Base {
             return cb(null, []);
         }
         this.filterByModels(primaryModels);
-        /*let pm = primaryModels[0];
-        if (!(pm instanceof ActiveRecord)) {
-            // when primaryModels are array of arrays (asArray case)
-            pm = new this.model.constructor;
-        }*/
-        this.asArray().all(cb);
+        this.asRaw().all(cb);
     }
 };
 

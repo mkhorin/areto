@@ -120,7 +120,7 @@ module.exports = class Pagination extends Base {
             delete params[this.pageParam];
         }
         pageSize = pageSize || this.pageSize;
-        if (pageSize != this.defaultPageSize) {
+        if (pageSize !== this.defaultPageSize) {
             params[this.pageSizeParam] = pageSize;
         } else {
             delete params[this.pageSizeParam];
@@ -128,5 +128,4 @@ module.exports = class Pagination extends Base {
         return this.controller.createUrl([this.route, params]);
     }
 };
-
 module.exports.init();

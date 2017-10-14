@@ -7,7 +7,7 @@ module.exports = class View extends Base {
     static getConstants () {
         return {
             'ArrayHelper': require('../helpers/ArrayHelper'),
-            'MainHelper': require('../helpers/MainHelper'),
+            'MiscHelper': require('../helpers/MiscHelper'),
             'StringHelper': require('../helpers/StringHelper'),
             'ObjectHelper': require('../helpers/ObjectHelper')
         };
@@ -37,6 +37,7 @@ module.exports = class View extends Base {
             _t: this.controller.translate.bind(this.controller),
             _url: this.controller.createUrl.bind(this.controller)
         }, params);
+        this.layout = params.viewLayout || this.controller.VIEW_LAYOUT || this.controller.module.VIEW_LAYOUT;
         this.controller.res.app.render(this.get(template), params, (err, content)=> {
             err ? cb(err) : this.renderWidgets(content, params, cb);
         });
@@ -61,7 +62,7 @@ module.exports = class View extends Base {
     createWidget (params) {
         let anchor = `${params.id}-${this.controller.timestamp}`;
         if (this.widgets[anchor]) {
-            this.controller.module.log('error', `${View.name}: "${params.id}" widget already exists`);
+            this.controller.log('error', `${View.name}: "${params.id}" widget already exists`);
             return '';
         }
         if (!params.configId) {
@@ -80,13 +81,13 @@ module.exports = class View extends Base {
             let params = this.widgets[anchor];
             let widget = this.controller.module.widgets[params.configId];
             if (widget) {
-                widget = MainHelper.createInstance(Object.assign({
+                widget = ClassHelper.createInstance(Object.assign({
                     view: this
                 }, widget, params));
                 this.widgets[anchor] = widget;
                 widget.execute(cb, renderParams);
             } else {
-                this.controller.module.log('error', `${View.name}: "${params.configId}" widget config not found`);
+                this.controller.log('error', `${View.name}: "${params.configId}" widget config not found`);
                 delete this.widgets[anchor];
                 cb();
             }
@@ -106,4 +107,4 @@ module.exports = class View extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const ClassHelper = require('../helpers/ClassHelper');

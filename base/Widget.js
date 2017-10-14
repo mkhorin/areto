@@ -7,11 +7,17 @@ module.exports = class Widget extends Base {
     constructor (config) {
         super(Object.assign({
             module: config.view.controller.module,
-            // disabled: true
-            // caching: true                        
-            cacheComponentId: 'cache'
+            // disabled: true,
+            // caching: true,
+            cacheComponentId: 'cache',
             // cacheDuration: 60 // seconds
         }, config));
+    }
+
+    init () {
+        if (this.caching && !this.cache) {
+            this.cache = this.module.components[this.cacheComponentId];
+        }
     }
 
     run (cb) {
@@ -24,18 +30,17 @@ module.exports = class Widget extends Base {
         if (this.disabled) {
             return cb();
         }
-        this.module.log('trace', `${Widget.name}: execute: ${this.id}`);
-        if (this.caching) {
-            this.module.components[this.cacheComponentId].use(`widget-${this.id}`, this.run.bind(this), (err, content) => {
-                this.content = content;
+        this.view.controller.log('trace', `${Widget.name}: execute: ${this.id}`);
+        if (this.cache) {
+            return this.cache.use(`widget-${this.id}`, this.run.bind(this), (err, data)=> {
+                this.content = data;
                 cb(err);
             }, this.cacheDuration);
-        } else {
-            this.run((err, content)=> {
-                this.content = content;
-                cb(err);
-            });
         }
+        this.run((err, data)=> {
+            this.content = data;
+            cb(err);
+        });
     }
 
     render (template, cb, params) {

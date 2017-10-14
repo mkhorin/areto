@@ -8,15 +8,15 @@ module.exports = class ActiveRecord extends Base {
         return {
             TABLE: 'table_name',
             PK: '_id', // primary key name
-            QUERY_CLASS: require('./ActiveQuery'),            
-            //UNLINK_ON_REMOVE: [], // unlink relations after model remove
+            QUERY_CLASS: require('./ActiveQuery'),
             EVENT_AFTER_REMOVE: 'afterRemove',
             EVENT_AFTER_FIND: 'afterFind',
             EVENT_AFTER_INSERT: 'afterInsert',
             EVENT_AFTER_UPDATE: 'afterUpdate',
             EVENT_BEFORE_REMOVE: 'beforeRemove',
             EVENT_BEFORE_INSERT: 'beforeInsert',
-            EVENT_BEFORE_UPDATE: 'beforeUpdate'
+            EVENT_BEFORE_UPDATE: 'beforeUpdate',
+            //UNLINK_ON_REMOVE: [], // unlink relations after model remove
         };
     }
 
@@ -286,15 +286,15 @@ module.exports = class ActiveRecord extends Base {
         }
         let relation = this.getRelation(name);
         if (relation) {
-            relation.findFor((err, result)=> {
+            return relation.findFor((err, result)=> {
                 this.populateRelation(name, result);
                 cb(err, this._related[name]);
             });
-        } else if (relation === null) {
-            cb(`${this.constructor.name}: Relation '${name}' not found`);
-        } else {
-            cb(null, null);
         }
+        if (relation === null) {
+            return cb(`${this.constructor.name}: Relation '${name}' not found`);
+        }
+        cb(null, null);
     }
 
     findRelations (names, cb, renew) {
@@ -400,7 +400,7 @@ module.exports = class ActiveRecord extends Base {
                 this.unsetRelation(name);
             } else if (this.isRelationPopulated(name)) {
                 for (let i = this._related[name].length - 1; i >= 0; --i) {
-                    if (MainHelper.isEqual(model.getId(), this._related[name][i].getId())) {
+                    if (MiscHelper.isEqual(model.getId(), this._related[name][i].getId())) {
                         this._related[name].splice(i, 1);
                     }
                 }
@@ -446,7 +446,7 @@ module.exports = class ActiveRecord extends Base {
         let asBackRef = relation._asBackRef;
         if (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
             if (model.get(a) instanceof Array) {
-                let index = MainHelper.indexOfId(this.get(b), model.get(a));
+                let index = ArrayHelper.indexOfId(this.get(b), model.get(a));
                 if (index !== -1) {
                     model.get(a).splice(index, 1);
                 }
@@ -456,7 +456,7 @@ module.exports = class ActiveRecord extends Base {
             remove ? model.remove(cb) : model.forceSave(cb);
         } else {
             if (this.get(b) instanceof Array) {
-                let index = MainHelper.indexOfId(model.get(a), this.get(b));
+                let index = ArrayHelper.indexOfId(model.get(a), this.get(b));
                 if (index !== -1) {
                     this.get(b).splice(index, 1);
                 }
@@ -555,7 +555,7 @@ module.exports = class ActiveRecord extends Base {
         if (!(foreignModel.get(fk) instanceof Array)) {
             foreignModel.set(fk, []);
         }
-        if (MainHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
+        if (ArrayHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
             foreignModel.get(fk).push(value);
             return foreignModel.forceSave(cb);
         }
@@ -577,6 +577,7 @@ module.exports = class ActiveRecord extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const MiscHelper = require('../helpers/MiscHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const StringHelper = require('../helpers/StringHelper');

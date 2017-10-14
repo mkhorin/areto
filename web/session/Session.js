@@ -18,7 +18,9 @@ module.exports = class Session extends Base {
 
     init () {
         this.lifetime *= 1000;
-        this.store = MainHelper.createInstance(this.store, {session: this});
+        this.store = ClassHelper.createInstance(this.store, {
+            session: this
+        });
         this.module.appendToExpress('use', session(this));
         this.module.appendToExpress('use', flash());
     }
@@ -38,4 +40,4 @@ module.exports = class Session extends Base {
 
 const flash = require('connect-flash');
 const session = require('express-session');
-const MainHelper = require('../../helpers/MainHelper');
+const ClassHelper = require('../../helpers/ClassHelper');

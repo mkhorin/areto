@@ -6,35 +6,23 @@ module.exports = class Connection extends Base {
     
     init () {
         super.init(this);
-        if (!this.driver) {
-            this.setDriver();
-        }
+        this.drivers = Object.assign({
+            mongodb: require('./MongoDriver'),
+            mysql: require('./MysqlDriver')
+        }, this.drivers);
+        this.initDriver();
     }
 
-    setDriver () {
-        let params = {
-            settings: this.settings,
-            module: this.module
-        };
-        let drivers = Object.assign({
-            mongodb: [ MongoDriver, params ],
-            mysql: [ MysqlDriver, params ]
-        }, this.drivers);
-
-        if (Object.prototype.hasOwnProperty.call(drivers, this.schema)) {
-            let driver = drivers[this.schema];
-            if (driver instanceof Array) {
-                this.driver = new driver[0](driver[1]);
-            } else if (driver instanceof Function) {
-                this.driver = new driver;
-            } else {
-                throw new Error(`${this.constructor.name}: Invalid driver`);
-            }
-        } else {
-            throw new Error(`${this.constructor.name}: Driver '${this.schema}' not found`);
+    initDriver () {
+        this.driver = this.driver || this.drivers[this.schema];
+        if (!this.driver) {
+            throw new Error(`${this.constructor.name}: Unknown driver: ${this.schema}`);
         }
+        this.driver = ClassHelper.createInstance(this.driver, {
+            module: this.module,
+            settings: this.settings
+        });
     }
 };
 
-const MongoDriver = require('./MongoDriver');
-const MysqlDriver = require('./MysqlDriver');
+const ClassHelper = require('../helpers/ClassHelper');

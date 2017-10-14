@@ -33,26 +33,34 @@ module.exports = class Template extends Base {
             if (err) {
                 return cb(); // ignore not exists theme dir
             }
-            this.setThemes(files, err => {
+            this.findThemes(files, err => {
                 this.setThemeParents();
                 cb(err);
             });
         });
     }
 
-    setThemes (files, cb) {
+    createThemes (files, cb) {
         async.eachSeries(files, (name, cb)=> {
-            let baseDir = path.join(this.themeDir, name);
-            async.waterfall([
-                cb => fs.stat(file, cb),
-                (stat, cb)=> {
-                    if (stat.isDirectory()) {
-                        this.themes[name] = new this.Theme({name, baseDir, template: this});
-                    }
-                    cb();
-                }
-            ], cb);
+            this.createTheme(name, cb);
         }, cb);
+    }
+
+    createTheme (name, cb) {
+        let baseDir = path.join(this.themeDir, name);
+        async.waterfall([
+            cb => fs.stat(baseDir, cb),
+            (stat, cb)=> {
+                if (stat.isDirectory()) {
+                    this.themes[name] = new this.Theme({
+                        name,
+                        baseDir,
+                        template: this
+                    });
+                }
+                cb();
+            }
+        ], cb);
     }
 
     setThemeParents () {

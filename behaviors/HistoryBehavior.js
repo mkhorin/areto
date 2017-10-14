@@ -1,14 +1,12 @@
 'use strict';
 
 const Base = require('../base/Behavior');
-const arrayHelper = require('../helpers/ArrayHelper');
-const async = require('async');
 
 module.exports = class HistoryBehavior extends Base {
 
     constructor (config) {
         super(Object.assign({
-            ModelClass: null, // history ActiveRecord
+            History: null, // history ActiveRecord
             includes: null, // [] tracked attr names
             excludes: null // [] tracked attr names
         }, config));
@@ -16,34 +14,40 @@ module.exports = class HistoryBehavior extends Base {
 
     init () {
         super.init();
-        this._events[ActiveRecord.EVENT_BEFORE_UPDATE] = 'beforeUpdate';
-        this._events[ActiveRecord.EVENT_AFTER_REMOVE] = 'afterRemove';
+        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
+        this.assign(ActiveRecord.EVENT_AFTER_REMOVE, this.afterRemove);
     }
 
     beforeUpdate (event, cb) {
         async.each(this.getAttrNames(), (attr, cb)=> {
-            if (!this.owner.isAttrChanged(attr)) {
-                 return cb();
+            this.owner.isAttrChanged(attr) ? this.createHistory(attr, cb) : cb();
+        }, cb);
+    }
+
+    createHistory (attr, cb) {
+        let model = new this.History;
+        model.setTargetData(this.owner, attr);
+        model.save(err => {
+            if (err) {
+                return cb(err);
             }
-            let model = new this.ModelClass;
-            model.setTargetData(this.owner, attr);
-            model.save(err => {
-                err && model.module.log('error', 'HistoryBehavior:', model.getErrors());
-                cb();
-            });
-        }, cb)
+            if (model.hasError()) {
+                this.owner.log('error', this.constructor.name, model.getErrors());
+            }
+            cb();
+        });
     }
 
     afterRemove (event, cb) {
         // remove all target object history
-        this.ModelClass.removeTargetAll(this.owner, cb);
+        this.History.removeTargetAll(this.owner, cb);
     }
 
     getAttrNames () {
         return this.includes instanceof Array
             ? this.includes
             : this.excludes instanceof Array 
-                ? arrayHelper.diff(this.owner.STORED_ATTRS, this.excludes) : [];
+                ? ArrayHelper.diff(this.owner.STORED_ATTRS, this.excludes) : [];
     }
 
     hasAttr (name) {
@@ -51,4 +55,6 @@ module.exports = class HistoryBehavior extends Base {
     }
 };
 
+const async = require('async');
+const ArrayHelper = require('../helpers/ArrayHelper');
 const ActiveRecord = require('../db/ActiveRecord');

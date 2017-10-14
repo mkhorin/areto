@@ -27,7 +27,7 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    asArray () {
+    asRaw () {
         return this;
     }
     
@@ -80,6 +80,10 @@ module.exports = class Query extends Base {
         condition = this.filterCondition(condition);
         condition.length && this.or(condition);
         return this;
+    }
+
+    andNotIn (key, value) {
+        return this.and(['NOT IN', key, value]);
     }
 
     // ORDER

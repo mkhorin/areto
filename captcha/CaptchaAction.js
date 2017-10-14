@@ -25,7 +25,7 @@ module.exports = class Captcha extends Base {
     }
 
     getSessionKey () {
-        return `__captcha/${this.getUniqueId()}`;
+        return `__captcha/${this.getUniqueName()}`;
     }
 
     getVerifyCode (generate) {
@@ -41,10 +41,10 @@ module.exports = class Captcha extends Base {
     }
 
     generateVerifyCode () {
-        let length = MainHelper.getRandom(this.minLength, this.maxLength);
+        let length = MiscHelper.getRandom(this.minLength, this.maxLength);
         let buffer = [];
         for (let i = 0; i < length; ++i) {
-            buffer.push(this.symbolPool.charAt(MainHelper.getRandom(0, this.symbolPool.length - 1)));
+            buffer.push(this.symbolPool.charAt(MiscHelper.getRandom(0, this.symbolPool.length - 1)));
         }
         return buffer.join('');
     }
@@ -62,18 +62,18 @@ module.exports = class Captcha extends Base {
         //image.affine(5,5);
         let step = (w - 0) / code.length + this.offset;
         for (let i = 0; i < code.length; ++i) {
-            image.fontSize(`${MainHelper.getRandom(25, 65)}px`);
-            let angle = MainHelper.getRandom(-16, 16);
-            this.drawText(image, i * step + 10, MainHelper.getRandom(35, 60), code[i], angle);
+            image.fontSize(`${MiscHelper.getRandom(25, 65)}px`);
+            let angle = MiscHelper.getRandom(-16, 16);
+            this.drawText(image, i * step + 10, MiscHelper.getRandom(35, 60), code[i], angle);
         }
         let downB = 20, topB = 20; //частота сетки
         for (let x = 4; x < w; x += step) {
-            image.drawLine(MainHelper.getRandom(0, w), 0, MainHelper.getRandom(0, w), h);
-            step = MainHelper.getRandom(downB, topB);
+            image.drawLine(MiscHelper.getRandom(0, w), 0, MiscHelper.getRandom(0, w), h);
+            step = MiscHelper.getRandom(downB, topB);
         }
         for (let y = 3; y < h; y += step) {
-            image.drawLine(0, MainHelper.getRandom(0, w), w, MainHelper.getRandom(0, w));
-            step = MainHelper.getRandom(downB, topB);
+            image.drawLine(0, MiscHelper.getRandom(0, w), w, MiscHelper.getRandom(0, w));
+            step = MiscHelper.getRandom(downB, topB);
         }
         //image.noise(1);
         image.setFormat('jpg').quality(this.quality).toBuffer((err, buffer)=> {
@@ -88,4 +88,4 @@ module.exports = class Captcha extends Base {
 
 const gm = require('gm');
 const path = require('path');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');

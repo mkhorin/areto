@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('../base/Base');
-const StringHelper = require('../helpers/StringHelper');
 
 module.exports = class Sort extends Base {
 
@@ -48,8 +47,8 @@ module.exports = class Sort extends Base {
         return Object.prototype.hasOwnProperty.call(this.attrs, name);
     }
 
-    getOrders (recalc) {
-        if (this._attrOrders && !recalc) {
+    getOrders (recalculate) {
+        if (this._attrOrders && !recalculate) {
             return this._attrOrders;
         }
         this._attrOrders = {};
@@ -127,3 +126,5 @@ module.exports = class Sort extends Base {
     }    
 };
 module.exports.init();
+
+const StringHelper = require('../helpers/StringHelper');

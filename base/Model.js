@@ -6,12 +6,19 @@ module.exports = class Model extends Base {
 
     static getConstants () {
         return {
-            ID: this.getId(),
+            NAME: this.getName(),
             RULES: [
                 // [['attr1', 'attr2'], '{type}', {...params}]
                 // [['attr1', 'attr2'], '{model method name}']
                 // [['attr1', 'attr2'], {validator class} ]
+                // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
+                // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
+                // [['!attr1'], '{type}' ] - attr1 unsafe to load
             ],
+            SCENARIOS: {
+                // 'scenario1': ['attr1', '!attr2'] - attr2 unsafe to load
+                // 'scenario2': ['attr2', 'attr3']
+            },
             LABELS: {},
             HINTS: {},
             EVENT_BEFORE_VALIDATE: 'beforeValidate',
@@ -19,7 +26,7 @@ module.exports = class Model extends Base {
         }   
     }
 
-    static getId () {
+    static getName () {
         return this.name;
     }
 
@@ -76,11 +83,11 @@ module.exports = class Model extends Base {
     }
 
     getFormAttrId (name, prefix) {
-        return prefix ? `${prefix}-${this.ID}-${name}` : `${this.ID}-${name}`;
+        return prefix ? `${prefix}-${this.NAME}-${name}` : `${this.NAME}-${name}`;
     }
 
     getFormAttrName (name) {
-        return `${this.ID}[${name}]`;
+        return `${this.NAME}[${name}]`;
     }
 
     getAttrNames () {
@@ -88,23 +95,32 @@ module.exports = class Model extends Base {
     }
 
     getSafeAttrNames () {
-        let names = [];
-        for (let name of this.getScenarioAttrs(this.scenario)) {
-            if (name.charAt(0) !== '!') {
-                names.push(name);
-            }
-        }
-        return names;
+        return this.getScenarioAttrNames(this.scenario).filter(name => name.charAt(0) !== '!');
     }
 
     getActiveAttrNames () {
-        let names = this.getScenarioAttrs(this.scenario);
+        let names = this.getScenarioAttrNames(this.scenario);
         for (let i = 0; i < names.length; ++i) {
             if (names[i].charAt(0) === '!') {
                 names[i] = names[i].substring(1);
             }
         }
         return names;
+    }
+
+    getScenarioAttrNames (scenario) {
+        let names = {};
+        let only = this.SCENARIOS && this.SCENARIOS[scenario] instanceof Array ? this.SCENARIOS[scenario] : null;
+        for (let validator of this.getValidators()) {
+            if (validator.isActive(scenario)) {
+                for (let name of validator.attrs) {
+                    if (!only || only.includes(name)) {
+                        names[name] = true;
+                    }
+                }
+            }
+        }
+        return Object.keys(names);
     }
 
     getAttrs (names, except) {
@@ -148,18 +164,6 @@ module.exports = class Model extends Base {
         Object.assign(this._attrs, values instanceof Model ? values._attrs : values);
     }
 
-    getScenarioAttrs (scenario) {
-        let attrs = {};
-        for (let validator of this.getValidators()) {
-            if (validator.isActive(scenario)) {
-                for (let attr of validator.attrs) {
-                    attrs[attr] = true;
-                }
-            }
-        }
-        return Object.keys(attrs);
-    }
-
     generateLabel (name) {
         this.LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
         return this.LABELS[name];
@@ -172,16 +176,15 @@ module.exports = class Model extends Base {
     }
 
     getErrors (attr) {
-        return attr ? (Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr] : [])
-            : this._errors;
+        return !attr ? this._errors : this.hasError(attr) ? this._errors[attr] : [];
     }
 
     getFirstError (attr) {
         if (attr) {
-            return Object.prototype.hasOwnProperty.call(this._errors, attr) ? this._errors[attr][0] : '';
+            return this.hasError(attr) ? this._errors[attr][0] : '';
         }
-        for (attr in this._errors) {
-            if (this._errors[attr] && this._errors[attr].length) {
+        for (attr of Object.keys(this._errors)) {
+            if (this._errors[attr].length) {
                 return this._errors[attr][0];
             }
         }
@@ -191,30 +194,28 @@ module.exports = class Model extends Base {
     getFirstErrors () {
         let errors = {};
         for (let attr of Object.keys(this._errors)) {
-            let err = this._errors[attr]; 
-            if (err instanceof Array && err.length) {
-                errors[attr] = err[0];
+            if (this._errors[attr].length) {
+                errors[attr] = this._errors[attr][0];
             }
         }
         return errors;
     }
 
     addError (attr, error) {
-        if (!Object.prototype.hasOwnProperty.call(this._errors, attr)) {
+        if (!this.hasError(attr)) {
             this._errors[attr] = [];
         }
         this._errors[attr].push(error instanceof Message ? error : new Message(null, error));
     }
 
     addErrors (items) {
-        for (let atrr in items) {
-            let errors = items[attr];
-            if (errors instanceof Array) {
-                for (let error of errors) {
+        for (let attr of Object.keys(items)) {
+            if (items[attr] instanceof Array) {
+                for (let error of items[attr]) {
                     this.addError(attr, error);
                 }
             } else {
-                this.addError(attr, errors);
+                this.addError(attr, items[attr]);
             }
         }
     }
@@ -227,7 +228,7 @@ module.exports = class Model extends Base {
 
     load (data) {        
         if (data) {
-            this.setSafeAttrs(data[this.ID]);
+            this.setSafeAttrs(data[this.NAME]);
         }
         return this;
     }
@@ -329,13 +330,13 @@ module.exports = class Model extends Base {
         if (rule instanceof Array && rule[0] && rule[1]) {
             return Validator.createValidator(rule[1], this, rule[0], rule[2]);
         }
-        this.module.log('error', `${this.constructor.name}: Invalid validation rule`, rule);
+        this.log('error', `${this.constructor.name}: Invalid validation rule`, rule);
     }
 
     // MODEL CONTROLLER
 
     getController () {
-        return require(this.module.getPath('controllers', `${this.ID}Controller`));
+        return require(this.module.getPath('controllers', `${this.NAME}Controller`));
     }
 
     createController (params) {

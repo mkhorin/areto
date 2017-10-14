@@ -1,28 +1,27 @@
 'use strict';
 
-const HASH_ALGO = 'sha1';
-const HASH_LENGTH = 40;
-const SALT_LENGTH = 8;
-const SALT_MIN = Math.pow(10, SALT_LENGTH - 1);
-const SALT_MAX = SALT_MIN * 10 - SALT_MIN - 1;
+const DEFAULT_HASH_ALGO = 'sha1';
+const DEFAULT_HASH_LENGTH = 40;
+const DEFAULT_SALT_LENGTH = 8;
 
 module.exports = class SecurityHelper {
 
-    static createSalt () {
-        return String(parseInt(Math.random() * SALT_MAX) + SALT_MIN);
+    static createSalt (length = DEFAULT_SALT_LENGTH) {
+        let min = Math.pow(10, length - 1);
+        return String(parseInt(Math.random() * (min * 9 - 1)) + min);
     }
 
-    static extractSalt (hash) {
-        return hash.substring(HASH_LENGTH);
+    static extractSalt (hash, length = DEFAULT_HASH_LENGTH) {
+        return hash.substring(length);
     }
 
-    static validateHash (hash) {
-        let s = `^[0-9a-f]{${HASH_LENGTH + SALT_LENGTH}`+'}$';
+    static validateHash (hash, hashLength = DEFAULT_HASH_LENGTH, saltLength = DEFAULT_SALT_LENGTH) {
+        let s = `^[0-9a-f]{${hashLength + saltLength}`+'}$';
         return typeof hash === 'string' ? (new RegExp(s)).test(hash) : false;
     }
 
-    static hashValue (value, salt) {
-        return crypto.createHmac(HASH_ALGO, salt).update(value).digest('hex') + salt;
+    static hashValue (value, salt, algo = DEFAULT_HASH_ALGO) {
+        return crypto.createHmac(algo, salt).update(value).digest('hex') + salt;
     }
 
     static encryptPassword (password) {
@@ -33,7 +32,7 @@ module.exports = class SecurityHelper {
         if (!password || !this.validateHash(hash)) {
             return false;
         }
-        return this.hashValue(password, this.extractSalt(hash)) == hash;
+        return this.hashValue(password, this.extractSalt(hash)) === hash;
     }
 
     static generateRandomString (length, cb) {
@@ -42,7 +41,7 @@ module.exports = class SecurityHelper {
         });
     }
 
-    static hashFile (file, cb, algo = HASH_ALGO) {
+    static hashFile (file, cb, algo = DEFAULT_HASH_ALGO) {
         fs.readFile(file, (err, data)=> {
             if (err) {
                 return cb(err);

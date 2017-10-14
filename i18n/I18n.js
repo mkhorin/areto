@@ -1,6 +1,6 @@
 'use strict';
 
-const Base = require('../base/Base');
+const Base = require('../base/Component');
 
 module.exports = class I18n extends Base {
 
@@ -22,8 +22,7 @@ module.exports = class I18n extends Base {
         }, config));
     }
 
-    init () {        
-        super.init();
+    init () {
         for (let category of Object.keys(this.sources)) {
             this.sources[category] = this.createSource(category, this.sources[category]);
         }
@@ -44,7 +43,7 @@ module.exports = class I18n extends Base {
                 this.sources[category] = this.sources[category] || this.parent.sources[category];
             }
         }
-        this.messageFormatter = MainHelper.createInstance(this.MessageFormatter, {
+        this.messageFormatter = ClassHelper.createInstance(this.MessageFormatter, {
             i18n: this
         });
     }
@@ -93,7 +92,7 @@ module.exports = class I18n extends Base {
             }
             return sources[this.ASTERISK];
         }
-        this.module.log('error', `${this.constructor.name}: Unable to find message source for "${category}"`);
+        this.log('error', `${this.constructor.name}: Unable to find message source for "${category}"`);
         return null;
     }
 
@@ -101,7 +100,7 @@ module.exports = class I18n extends Base {
         if (data instanceof MessageSource) {
             return data;
         }
-        return MainHelper.createInstance(Object.assign({
+        return ClassHelper.createInstance(Object.assign({
             Class: JsMessageSource,
             i18n: this,
             parent: this.getSourceParent(category)
@@ -115,7 +114,7 @@ module.exports = class I18n extends Base {
 module.exports.init();
 
 const path = require('path');
-const MainHelper = require('../helpers/MainHelper');
+const ClassHelper = require('../helpers/ClassHelper');
 const MessageSource = require('./MessageSource');
 const JsMessageSource = require('./JsMessageSource');
 const MessageFormatter = require('./MessageFormatter');

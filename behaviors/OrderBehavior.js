@@ -15,11 +15,11 @@ module.exports = class OrderBehavior extends Base {
 
     init () {
         super.init();
-        this._events[ActiveRecord.EVENT_BEFORE_INSERT] = 'beforeInsert';
+        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 
     beforeInsert (event, cb) {
-        if (!MainHelper.isEmpty(this.owner.get(this.orderAttr))) {
+        if (!MiscHelper.isEmpty(this.owner.get(this.orderAttr))) {
             return cb();
         }
         async.waterfall([
@@ -44,7 +44,7 @@ module.exports = class OrderBehavior extends Base {
                 query.scalar(this.orderAttr, cb);
             },
             (last, cb)=> {
-                cb(null, MainHelper.isEmpty(last) ? this.start : (parseInt(last) + this.step));
+                cb(null, MiscHelper.isEmpty(last) ? this.start : (parseInt(last) + this.step));
             }
         ], cb);
     }
@@ -66,4 +66,4 @@ module.exports = class OrderBehavior extends Base {
 
 const async = require('async');
 const ActiveRecord = require('../db/ActiveRecord');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');

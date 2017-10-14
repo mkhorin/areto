@@ -32,16 +32,17 @@ module.exports = class AccessControl extends Base {
         async.eachSeries(this.rules, (rule, ruleCallback)=> {
             rule.can(action, user, (err, access)=> {                
                 if (err) {
-                    cb(err);
-                } else if (access === true) {
-                    cb();
-                } else if (access === false) {
-                    this.denyCallback
-                        ? this.denyCallback(action, user, cb)
-                        : this.denyAccess(action, user, cb);
-                } else {
-                    ruleCallback();
+                    return cb(err);
                 }
+                if (access === true) {
+                    return cb();
+                }
+                if (access !== false) {
+                    return ruleCallback();
+                }
+                this.denyCallback
+                    ? this.denyCallback(action, user, cb)
+                    : this.denyAccess(action, user, cb);
             });
         }, cb);
     }
@@ -52,5 +53,5 @@ module.exports = class AccessControl extends Base {
 };
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');

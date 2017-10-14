@@ -8,8 +8,8 @@ module.exports = class Message extends Base {
         super({category, message, params, language});
     }
 
-    addParams (addon) {
-        this.params = Object.assign(this.params || {}, addon);
+    addParams (params) {
+        this.params = Object.assign(this.params || {}, params);
         return this;
     }
 };

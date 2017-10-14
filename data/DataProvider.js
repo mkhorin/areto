@@ -15,53 +15,52 @@ module.exports = class DataProvider extends Base {
         }, config));
     }
 
-    setPagination (config) {
-        if (config !== null) {
-            if (!config.Class) {
-                config.Class = require('./Pagination');
-            }
-            if (this.id) {
-                if (!config.pageParam) {
-                    config.pageParam = `${this.id}-page`;
-                }
-                if (!config.pageSizeParam) {
-                    config.pageSizeParam = `${this.id}-page-size`;
-                }
-            }
-            config.controller = this.controller;
-            config = MainHelper.createInstance(config);
+    createPagination (config) {
+        if (!config) {
+            return null;
         }
-        this.pagination = config;
+        let defaults = {
+            Class: require('./Pagination'),
+            controller: this.controller,
+            totalCount: this.totalCount
+        };
+        if (this.id) {
+            defaults.pageParam = `${this.id}-page`;
+            defaults.pageSizeParam = `${this.id}-page-size`;
+        }
+        return ClassHelper.createInstance(Object.assign(defaults, config));
     }
 
-    setSort (config) {
-        if (config !== null) {           
-            if (!config.Class) {
-                config.Class = require('./Sort');
-            }
-            if (this.id && !config.sortParam) {
-                config.sortParam = `${this.id}-sort`;
-            }
-            config.controller = this.controller;            
-            config = MainHelper.createInstance(config);
+    createSort (config) {
+        if (!config) {
+            return null;
         }
-        this.sort = config;
+        let defaults = {
+            Class: require('./Sort'),
+            controller: this.controller
+        };
+        if (this.id) {
+            defaults.sortParam = `${this.id}-sort`;
+        }
+        return ClassHelper.createInstance(Object.assign(defaults, config));
     }
    
     prepare (cb) {
-        this.prepareTotalCount((err, total)=> {
-            this.totalCount = total;
-            if (this.pagination) {
-                this.pagination.totalCount = total;
-            }
-            this.setPagination(this.pagination);
-            this.setSort(this.sort);
-            err ? cb(err) : this.prepareModels((err, models)=> {
+        async.waterfall([
+            cb => this.prepareTotalCount(cb),
+            (total, cb)=> {
+                this.totalCount = total;
+                this.pagination = this.createPagination(this.pagination);
+                this.sort = this.createSort(this.sort);
+                this.prepareModels(cb);
+            },
+            (models, cb)=> {
                 this.models = models;
-                cb(err);
-            });
-        });
+                cb();
+            }
+        ], cb);
     }
 };
 
-const MainHelper = require('../helpers/MainHelper');
+const async = require('async');
+const ClassHelper = require('../helpers/ClassHelper');

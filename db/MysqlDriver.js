@@ -19,7 +19,9 @@ module.exports = class MysqlDriver extends Base {
     openClient (cb) {
         // try to open the first connection in the pool
         this.client.getConnection((err, connection)=> {
-            connection && connection.release();
+            if (connection) {
+                connection.release();
+            }
             cb(err, connection);
         });
     }
@@ -36,16 +38,21 @@ module.exports = class MysqlDriver extends Base {
 
     getConnection (cb) {
         this.client.getConnection((err, connection)=> {
-            err && connection && connection.release();
+            if (err && connection) {
+                connection.release();
+            }
             cb(err, connection);
         });
     }
 
     execute (sql, cb) {
         this.getConnection((err, connection)=> {
-            err ? cb(err) : connection.query(sql, (err, results, fields)=> {
+            if (err) {
+                return cb(err);
+            }
+            connection.query(sql, (err, results, fields)=> {
                 connection.release();
-                this.afterCommand({err, sql});
+                this.afterCommand(err, {sql});
                 cb(err, results);
             });
         });
@@ -127,7 +134,7 @@ module.exports = class MysqlDriver extends Base {
     // QUERY
 
     queryAll (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             if (err) {
                 return cb(err);
             }
@@ -144,49 +151,49 @@ module.exports = class MysqlDriver extends Base {
     }
 
     queryColumn (query, key, cb) {        
-        this.queryAll(query.asArray().select({[key]: 1}), (err, docs)=> {
+        this.queryAll(query.asRaw().select({[key]: 1}), (err, docs)=> {
             err ? cb(err) : cb(null, docs.map(doc => doc[key]));
         });
     }
 
     queryScalar (query, key, cb) {
-        this.queryAll(query.asArray().select({[key]: 1}).limit(1), (err, docs)=> {
+        this.queryAll(query.asRaw().select({[key]: 1}).limit(1), (err, docs)=> {
             err ? cb(err) : cb(null, docs.length ? docs[0] : null);
         });
     }
 
     queryInsert (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.insert(cmd.from, data, cb);
         });
     }
 
     queryUpdate (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.update(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpdateAll (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.updateAll(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpsert (query, data, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.upsert(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryRemove (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.remove(cmd.from, cmd.where, cb);
         });
     }
 
     queryCount (query, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.count(cmd.from, cmd.where, cb);
         });
     }
@@ -238,7 +245,7 @@ module.exports = class MysqlDriver extends Base {
         return list.map(item => item instanceof Array
             ? this.escapeValueArray(item)
             : this.escape(item)
-        ).join(',');
+        ).join();
     }
 
     // DB INDEXES
@@ -246,8 +253,8 @@ module.exports = class MysqlDriver extends Base {
 };
 module.exports.init();
 
+const mysql = require('mysql');
+const moment = require('moment');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');
-const mysql = require('mysql');
-const moment = require('moment');

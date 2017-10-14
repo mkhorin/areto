@@ -54,7 +54,7 @@ module.exports = class MemorySessionStore extends Base {
         cb();
     }
 
-    remmoveByUserId (userId, cb) {
+    removeByUserId (userId, cb) {
         if (Object.prototype.hasOwnProperty.call(this._users, userId)) {            
             delete this._sessions[this._users[userId]];
             delete this._users[userId];

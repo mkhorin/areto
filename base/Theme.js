@@ -5,7 +5,6 @@ const Base = require('./Base');
 module.exports = class Theme extends Base {
 
     init () {
-        super.init();
         this.indexFiles();
     }
 

@@ -1,10 +1,10 @@
 'use strict';
 
-const Base = require('./ExtEvent');
+const Base = require('./Event');
 
 module.exports = class ActionEvent extends Base {
 
     constructor (action) {
-        super({ action });
+        super({action});
     }
 };

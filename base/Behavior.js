@@ -4,50 +4,43 @@ const Base = require('./Base');
 
 module.exports = class Behavior extends Base {
 
-    /**
-     * init ()
-     * event title will be replaced with handler
-     * Model::EVENT_BEFORE_VALIDATE: 'myBeforeValidate',
-     * Model::EVENT_AFTER_VALIDATE: 'myAfterValidate',
-     * Model::EVENT_BEFORE_VALIDATE: cb => { cb(); },
-     */
-
-    constructor (config) {
-        super(Object.assign({
-            // name: 'behavior-name'
-            // owner: null
-        }, config));
-    }
-    
     init () {
-        super.init();
-        this._events = {};
+        this._handlers = {};
+    }
+
+    hasHandler (eventName) {
+        return Object.prototype.hasOwnProperty.call(this._handlers, eventName);
+    }
+
+    assign (eventName, method) {
+        this._handlers[eventName] = method.bind(this);
     }
 
     attach (owner) {
         this.owner = owner;
-        for (let name of Object.keys(this._events)) {
-            this.resolveEventHandler(name);
-            this.owner.on(name, this._events[name]);
-        }
-    }
-
-    // replace string to this method handler
-    resolveEventHandler (name) {
-        if (typeof this._events[name] === 'string') {
-            let handler = this[this._events[name]];
-            if (typeof handler === 'function') {                
-                this._events[name] = handler.bind(this); // handler(event, cb, data)
-            }
+        for (let name of Object.keys(this._handlers)) {
+            this.owner.on(name, this._handlers[name]);
         }
     }
 
     detach () {
         if (this.owner) {
-            for (let name of Object.keys(this._events)) {
-                this.owner.off(name, this._events[name]);
+            for (let name of Object.keys(this._handlers)) {
+                this.owner.off(name, this._handlers[name]);
             }
             this.owner = null;
+        }
+    }
+
+    attachHandler (eventName) {
+        if (!this.owner && this.hasHandler(eventName)) {
+            this.owner.on(eventName, this._handlers[eventName]);
+        }
+    }
+
+    detachHandler (eventName) {
+        if (this.owner && this.hasHandler(eventName)) {
+            this.owner.off(eventName, this._handlers[eventName]);
         }
     }
 };

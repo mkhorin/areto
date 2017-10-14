@@ -15,18 +15,30 @@ module.exports = class Logger extends Base {
             level: 'info', // and right types
             typeNames: ['trace', 'debug', 'info', 'warning', 'error', 'fatal'],
             types: {},
-            store: FileLogStore, // common store
+            LogType,
+            store: require('./FileLogStore'), // common store
             consoleOutput: true,
-            processingTimeTreshold: 0, // ms
+            processingTimeThreshold: 0, // ms
             dbTraced: true
         }, config));
     }
 
     init () {
         super.init();
-        this.store = MainHelper.createInstance(this.store, {
+        this.store = ClassHelper.createInstance(this.store, {
             logger: this
         });
+        this.createTypes();
+    }
+
+    configure (cb) {
+        if (this.isDebug()) {
+            this.traceProcessingTime();
+        }
+        cb();
+    }
+
+    createTypes () {
         let errorOutputIndex = this.typeNames.indexOf('info');
         for (let i = 0; i < this.typeNames.length; ++i) {
             this.createType(this.typeNames[i], {
@@ -35,16 +47,10 @@ module.exports = class Logger extends Base {
         }
     }
 
-    configure (cb) {
-        if (this.isTrace()) {
-            this.traceProcessingTime();
-        }
-        cb();
-    }
-
     createType (name, config) {
         let type = this.types[name];
         config = Object.assign({
+            Class: this.LogType,
             name,
             logger: this,
             commonStore: this.store,
@@ -57,10 +63,8 @@ module.exports = class Logger extends Base {
         if (type instanceof LogType) {
             Object.assign(config, type);
             Object.assign(type, config);
-        } else if (type) {
-            type = MainHelper.createInstance(type, Object.assign(config, type.Class ? type : null));
         } else {
-            type = new LogType(config);
+            type = ClassHelper.createInstance(Object.assign(config, type));
         }
         this.types[name] = type;
         this.setTypeShortcut(name);
@@ -72,10 +76,9 @@ module.exports = class Logger extends Base {
 
     setTypeShortcut (name) {
         if (name in this) {
-            this.log('error', `${this.constructor.name}: setTypeShortcut: already taken: ${name}`);
-        } else {
-            this[name] = (message, data)=> this.log(name, message, data);
+            return this.log('error', `${this.constructor.name}: setTypeShortcut: already taken: ${name}`);
         }
+        this[name] = (message, data)=> this.log(name, message, data);
     }
 
     isActive (type) {
@@ -101,18 +104,22 @@ module.exports = class Logger extends Base {
     }
 
     traceProcessingTime () {
-        this.module.appendToExpress('use', function traceProcessingTime (req, res, next) {
-            res.locals.startProcessingTime = (new Date).getTime();
-            next();
-        });
-        this.module.on(this.module.EVENT_AFTER_ACTION, (event, cb)=> {
-            let controller = event.action.controller;
-            let time = (new Date).getTime() - controller.res.locals.startProcessingTime;
-            if (time >= this.processingTimeTreshold) {
-                this.log('trace', this.formatProcessingTime(time, controller));
-            }
-            cb();
-        });
+        this.module.appendToExpress('use', this.startProcessingTime);
+        this.module.on(this.module.EVENT_AFTER_ACTION, this.endProcessingTime.bind(this));
+    }
+
+    startProcessingTime (req, res, next) {
+        res.locals.startProcessingTime = (new Date).getTime();
+        next();
+    }
+
+    endProcessingTime (event, cb) {
+        let controller = event.action.controller;
+        let time = (new Date).getTime() - controller.res.locals.startProcessingTime;
+        if (time >= this.processingTimeThreshold) {
+            this.log('trace', this.formatProcessingTime(time, controller));
+        }
+        cb();
     }
 
     formatProcessingTime (time, controller) {
@@ -134,7 +141,5 @@ module.exports = class Logger extends Base {
 };
 module.exports.init();
 
-const ExtEvent = require('../base/ExtEvent');
-const FileLogStore = require('./FileLogStore');
+const ClassHelper = require('../helpers/ClassHelper');
 const LogType = require('./LogType');
-const MainHelper = require('../helpers/MainHelper');

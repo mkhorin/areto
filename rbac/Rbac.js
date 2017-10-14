@@ -19,7 +19,7 @@ module.exports = class Rbac extends Base {
     
     init () {
         super.init();
-        this.store = MainHelper.createInstance(this.store, {
+        this.store = ClassHelper.createInstance(this.store, {
             rbac: this
         });
     }
@@ -40,7 +40,7 @@ module.exports = class Rbac extends Base {
         this.store.load((err, data)=> {
             this.loading = false;
             if (err) {
-                this.module.log('error', `${this.constructor.name}: load`, err);
+                this.log('error', `${this.constructor.name}: load`, err);
                 return cb(err);
             }
             this.build(data);
@@ -52,14 +52,14 @@ module.exports = class Rbac extends Base {
     build (data) {
         this.ruleIndex = {};
         for (let id of Object.keys(data.rules)) {
-            this.ruleIndex[id] = MainHelper.createInstance(data.rules[id], {id});
+            this.ruleIndex[id] = ClassHelper.createInstance(data.rules[id], {id});
         }
         this.itemIndex = {};
         for (let id of Object.keys(data.items)) {
             let rule = data.items[id].rule;
             if (rule) {
                 data.items[id].rule = Object.prototype.hasOwnProperty.call(this.ruleIndex, rule)
-                    ? this.ruleIndex[rule] : MainHelper.createInstance(rule, {id});
+                    ? this.ruleIndex[rule] : ClassHelper.createInstance(rule, {id});
             }
             this.itemIndex[id] = new Item(data.items[id]);
         }
@@ -120,6 +120,6 @@ module.exports = class Rbac extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const ClassHelper = require('../helpers/ClassHelper');
 const Item = require('./Item');
 const Rule = require('./Rule');

@@ -104,8 +104,6 @@ module.exports = class ObjectHelper {
         return defaults;
     }
 
-    // INTERNAL
-
     static _assign (to, from) {
         if (from && typeof from === 'object') {
             for (let prop of Object.keys(from)) {

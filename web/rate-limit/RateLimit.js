@@ -21,7 +21,7 @@ module.exports = class RateLimit extends Base {
 
     init () {
         super.init();
-        this.store = MainHelper.createInstance(this.store, {
+        this.store = ClassHelper.createInstance(this.store, {
             rateLimit: this
         });
     }
@@ -39,7 +39,7 @@ module.exports = class RateLimit extends Base {
     }
 
     afterRateUpdate (model, cb) {
-        this.triggerCallback(this.EVENT_AFTER_RATE_UPDATE, cb, new ExtEvent({model}));
+        this.triggerCallback(this.EVENT_AFTER_RATE_UPDATE, cb, new Event({model}));
     }
 
     getAttempts (type) {
@@ -61,5 +61,5 @@ module.exports = class RateLimit extends Base {
 };
 module.exports.init();
 
-const MainHelper = require('../../helpers/MainHelper');
-const ExtEvent = require('../../base/ExtEvent');
+const ClassHelper = require('../../helpers/ClassHelper');
+const Event = require('../../base/Event');

@@ -53,7 +53,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         }
         let result = [];
         for (let key of Object.keys(order)) {
-            result.push(`${this.db.escapeId(key)} ${order[key] == 1 ? 'ASC' : 'DESC'}`);
+            result.push(`${this.db.escapeId(key)} ${order[key] === 1 ? 'ASC' : 'DESC'}`);
         }
         return result.length ? result.join(',') : null;
     }
@@ -88,28 +88,28 @@ module.exports = class MysqlQueryBuilder extends Base {
     }
 
     buildCondition (condition) {
-        if (condition instanceof Array) {
-            let operator = condition[0];
-            return Object.prototype.hasOwnProperty.call(CONDITION_BUILDERS, operator)
-                ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
-                : this.buildSimpleCondition(operator, condition.slice(1));
+        if (!(condition instanceof Array)) {
+            return this.buildHashCondition(condition);    
         }
-        return this.buildHashCondition(condition);
+        let operator = condition[0];
+        return Object.prototype.hasOwnProperty.call(CONDITION_BUILDERS, operator)
+            ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
+            : this.buildSimpleCondition(operator, condition.slice(1));        
     }
 
-    // hash format: 'column1': 'value1', 'column2': 'value2'
-    buildHashCondition (condition) {
+    buildHashCondition (condition) {        
+        if (!condition) {
+            return '';
+        }
         let result = [];
-        if (condition) {
-            for (let key of Object.keys(condition)) {
-                let field = this.getFieldName(key);
-                if (condition[key] instanceof Array) {
-                    result.push(`field IN (${this.db.escape(condition[key])})`);
-                } else if (condition[key] === null) {
-                    result.push(`${field} IS NULL`);
-                } else {
-                    result.push(`${field}=${this.db.escape(condition[key])}`);
-                }
+        for (let key of Object.keys(condition)) {
+            let field = this.getFieldName(key);
+            if (condition[key] instanceof Array) {
+                result.push(`field IN (${this.db.escape(condition[key])})`);
+            } else if (condition[key] === null) {
+                result.push(`${field} IS NULL`);
+            } else {
+                result.push(`${field}=${this.db.escape(condition[key])}`);
             }
         }
         return result.join(' AND ');
@@ -233,5 +233,3 @@ module.exports = class MysqlQueryBuilder extends Base {
         return `${this.getFieldName(operands[0])} IS NOT NULL`;
     }
 };
-
-const MainHelper = require('../helpers/MainHelper');

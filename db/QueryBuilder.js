@@ -1,11 +1,9 @@
 'use strict';
 
-const Base = require('../base/Base');
-
-module.exports = class QueryBuilder extends Base {
+module.exports = class QueryBuilder {
 
     constructor (db) {
-        super({db});
+        this.db = db;
     }
 
     build (query) {

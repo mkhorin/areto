@@ -1,13 +1,13 @@
 'use strict';
 
-const async = require('async');
-const fs = require('fs');
-const path = require('path');
-
 module.exports = class FileHelper {
 
-    // DIR 
-    
+    // DIR
+
+    static getNestedDir (file, root) {
+        return path.dirname(file).substring(root.length + 1);
+    }
+
     static readDir (dir, handler, cb) {
         async.waterfall([
             cb => fs.readdir(dir, cb),
@@ -17,27 +17,63 @@ module.exports = class FileHelper {
 
     static emptyDir (dir, cb) {
         this.readDir(dir, (file, cb)=> {
-            file = path.join(dir, file);
-            async.waterfall([
-                cb => fs.stat(file, cb),
-                (stat, cb)=> stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb)
-            ], cb);
+            this.removeDeep(path.join(dir, file), cb);
         }, cb);
     }
 
-    static removeDir (dir, cb) {
-        async.series([
-            cb => this.readDir(dir, (file, cb)=> {
-                file = path.join(dir, file);
-                async.waterfall([
-                    cb => fs.stat(file, cb),
-                    (stat, cb)=> stat.isDirectory() ? this.removeDir(file, cb) : fs.unlink(file, cb)
+    static removeDeep (file, cb) {
+        async.waterfall([
+            cb => fs.stat(file, (err, stat)=> cb(null, stat)), // skip if not exists
+            (stat, cb)=> {
+                if (!stat) {
+                    return cb();
+                }
+                if (stat.isFile()) {
+                    return fs.unlink(file, cb);
+                }
+                async.series([
+                    cb => this.readDir(file, (name, cb)=> {
+                        this.removeDeep(path.join(file, name), cb);
+                    }, cb),
+                    cb => fs.rmdir(file, cb)
                 ], cb);
-            }, cb),
-            cb => fs.rmdir(dir, cb)
+            }
         ], cb);
     }
-    
+
+    static copyDeep (source, target, cb) {
+        async.waterfall([
+            cb => fs.stat(source, cb),
+            (stat, cb)=> {
+                if (stat.isFile()) {
+                    return async.series([
+                        cb => mkdirp(path.dirname(target), {mode: stat.mode}, cb),
+                        cb => fs.copyFile(source, target, cb)
+                    ], cb);
+                }
+                async.series([
+                    cb => mkdirp(target, {mode: stat.mode}, cb),
+                    cb => this.readDir(source, (name, cb)=> {
+                        this.copyDeep(path.join(source, name), path.join(target, name), cb);
+                    }, cb)
+                ], cb);
+            }
+        ], cb);
+    }
+
+    static getClosestDirByTarget (file, target) {
+        let dir = path.dirname(file);
+        if (dir === file) {
+            return null;
+        }
+        try {
+            fs.statSync(path.join(dir, target));
+            return dir;
+        } catch (err) {
+        }
+        return this.getClosestDirByTarget(dir, target);
+    }
+
     // JSON
 
     static isJsonExt (file) {
@@ -58,3 +94,8 @@ module.exports = class FileHelper {
         ], cb);
     }
 };
+
+const async = require('async');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const path = require('path');

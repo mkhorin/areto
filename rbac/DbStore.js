@@ -75,7 +75,7 @@ module.exports = class DbStore extends Base {
     getItemChildren (id, data) {
         let children = [];
         for (let link of data.links) {
-            if (link.parentId == id && data.itemIndex[link.childId]) {
+            if (MiscHelper.isEqual(link.parentId, id) && data.itemIndex[link.childId]) {
                 children.push(data.itemIndex[link.childId].name);
             }
         }
@@ -118,7 +118,7 @@ module.exports = class DbStore extends Base {
             cb => this.findItem().where({name}).one(cb),
             (item, cb)=> {
                 if (item) {
-                    this.rbac.module.log('warning', `RBAC: Item already exists: ${name}`);
+                    this.log('warning', `RBAC: Item already exists: ${name}`);
                     return callback();
                 }
                 data.rule ? this.findRuleByName(data.rule).one(cb) : cb(null, null);
@@ -198,7 +198,7 @@ module.exports = class DbStore extends Base {
             cb => this.find(this.TABLE_RULE).where({name}).one(cb),
             (rule, cb)=> {
                 if (rule) {
-                    this.rbac.module.log('warning', `RBAC: Rule already exists: ${name}`);
+                    this.log('warning', `RBAC: Rule already exists: ${name}`);
                     return cb();
                 }
                 this.find(this.TABLE_RULE).insert(Object.assign({name}, data), cb);            }
@@ -208,6 +208,6 @@ module.exports = class DbStore extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');
 const Query = require('../db/Query');
 const Item = require('./Item');

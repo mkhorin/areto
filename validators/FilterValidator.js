@@ -8,13 +8,13 @@ module.exports = class FilterValidator extends Base {
         return {
             BUILTIN: {
                 'boolean': function (value, cb) {
-                    cb(null, value === 'on' ? true : false);
+                    cb(null, value === 'on');
                 },
                 'json': function (value, cb) {
                     if (!value || typeof value === 'object') {
                         return cb(null, value);
                     }
-                    value = MainHelper.parseJson(value);
+                    value = MiscHelper.parseJson(value);
                     value === undefined
                         ? cb(null, value, this.createMessage('message', 'Invalid JSON'))
                         : cb(null, value);
@@ -58,7 +58,7 @@ module.exports = class FilterValidator extends Base {
             return cb();
         }
         if (typeof this.filter === 'string') {
-            if (value === null || value == undefined) {
+            if (value === null || value === undefined) {
                 return cb();
             }
             if (typeof value[this.filter] !== 'function') {
@@ -82,4 +82,4 @@ module.exports = class FilterValidator extends Base {
 };
 module.exports.init();
 
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');

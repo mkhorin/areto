@@ -7,8 +7,10 @@ module.exports = class Router extends Base {
     init () {
         super.init();        
         this.attachDefault();
-        this.attachAll();
-        this.errors && this.attachErrorHandlers(this.errors);
+        this.attachDir(this.module.getControllerDir());
+        if (this.errors) {
+            this.attachErrorHandlers(this.errors);
+        }
     }
 
     attachDefault (Controller) {
@@ -24,28 +26,29 @@ module.exports = class Router extends Base {
         }
     }
 
-    attachAll () {
-        let dir = this.module.getControllerDir();
+    attachDir (dir) {
         try {
-            fs.readdirSync(dir).forEach(fileName => {
-                this.attachFile(path.join(dir, fileName));
+            fs.readdirSync(dir).forEach(file => {
+                this.attachFile(path.join(dir, file));
             });
         } catch (err) {}
     }
 
     attachFile (file) {
-        if (fs.lstatSync(file).isFile()) {
-            try {
-                this.attach(require(file));
-            } catch (err) {
-                this.module.log('error', `${this.constructor.name}: ${file}`, err);
-            }
+        let stat = fs.lstatSync(file);
+        if (stat.isDirectory()) {
+            return this.attachDir(file);
+        }
+        try {
+            this.attach(require(file));
+        } catch (err) {
+            this.log('error', `${this.constructor.name}: ${file}`, err);
         }
     }
 
     attach (Controller) {
         let controller = new Controller;
-        let route = `/${Controller.ID}`;
+        let route = `/${Controller.NAME}`;
         for (let id of controller.getActionIds()) {
             this.attachAction(id, controller, `${route}/${id}`);
             if (controller.DEFAULT_ACTION === id) {
@@ -75,7 +78,8 @@ module.exports = class Router extends Base {
         this.module.appendToExpress('use', function handleError (err, req, res, next) {
             err = err instanceof HttpException ? err : new ServerErrorHttpException(err);
             err.setParams(req, res);
-            Controller ? (new Controller).assign(req, res, next, err).execute(config.action || 'error')
+            Controller 
+                ? (new Controller).assign(req, res, next, err).execute(config.action || 'error')
                 : next(err);
         });
     }

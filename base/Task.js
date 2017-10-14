@@ -26,7 +26,7 @@ module.exports = class Task extends Base {
     }
 
     canRepeat () {
-        return this.repeats == 0 || this.counter < this.repeats;
+        return this.repeats === 0 || this.counter < this.repeats;
     }
 
     inProgress () {
@@ -40,11 +40,11 @@ module.exports = class Task extends Base {
     }
     
     done (result) {
-        this.trigger(this.EVENT_DONE, new ExtEvent({result}));
+        this.trigger(this.EVENT_DONE, new Event({result}));
     }
 
     fail (error) {
-        this.trigger(this.EVENT_FAIL, new ExtEvent({error}));
+        this.trigger(this.EVENT_FAIL, new Event({error}));
     }
     
     //
@@ -88,25 +88,30 @@ module.exports = class Task extends Base {
             return cb(err);
         }
         this.beforeRun(err => {
+            if (err) {
+                this.fail(err);
+                return cb(err);
+            }
             try {
-                if (err) {
-                    throw err;
-                }
-                this.scheduler.module.log('debug', `Task start: ${this.id}`);
-                this._runned = true;
-                this.run((err, result)=> {
-                    ++this.counter;
-                    this._runned = false;
-                    err ? this.fail(err) : this.done(result);
-                    this.next();
-                    cb(err, result);
-                });
+                this.process(cb);
             } catch (err) {
                 this.fail(err);
                 cb(err);
             }
         });
     }
+
+    process (cb) {
+        this.log('debug', `Task start: ${this.id}`);
+        this._runned = true;
+        this.run((err, result)=> {
+            ++this.counter;
+            this._runned = false;
+            err ? this.fail(err) : this.done(result);
+            this.next();
+            cb(err, result);
+        });
+    }
 };
 
-const ExtEvent = require('./ExtEvent');
+const Event = require('./Event');

@@ -1,6 +1,6 @@
 'use strict';
 
-const Base = require('../base/Base');
+const Base = require('../base/Component');
 
 module.exports = class Formatter extends Base {
 
@@ -33,7 +33,7 @@ module.exports = class Formatter extends Base {
         if (typeof this[methodName] === 'function') {
             return this[methodName](value, params);
         }
-        this.module.log('error', `${this.constructor.name}: Unknown type '${type}' for value '${value}'`);
+        this.log('error', `${this.constructor.name}: Unknown type '${type}' for value '${value}'`);
         return value;
     }
 
@@ -143,8 +143,6 @@ module.exports = class Formatter extends Base {
         return value ? moment(value).toISOString()
             : this.asRaw(value, params);
     }
-
-    // TRANSLATE
 
     translate (msg, language) {
         return this.i18n ? this.i18n.translate('areto', msg, null, language || this.language) : msg;

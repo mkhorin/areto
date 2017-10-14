@@ -7,8 +7,7 @@ module.exports = class Url extends Base {
      * @url - ['action', { param1: param1, param2: param2 }]
      * '/module/controller/action' - relative root
      * 'controller/action' - relative module
-     * 'action' - relative controller
-     * @conroller - controller object or class
+     * 'action' - relative controller     
      */
     static create (url, controller) {
         let params, anchor;
@@ -18,7 +17,7 @@ module.exports = class Url extends Base {
         }
         let index = url.indexOf('/');
         if (index === -1) {
-            url = controller.module.getRoute(`${controller.ID}/${url}`); // relative controller
+            url = controller.module.getRoute(`${controller.NAME}/${url}`); // relative controller
         } else if (index > 0 && url.indexOf('http') !== 0) {
             url = controller.module.getRoute(url); // relative module
         }
@@ -66,23 +65,23 @@ module.exports = class Url extends Base {
     }
 
     init () {
-        let sourceTokens = pathToRegexp.parse(this.source);
-        let targetTokens = pathToRegexp.parse(this.target);
+        let sources = pathToRegexp.parse(this.source);
+        let targets = pathToRegexp.parse(this.target);
         
-        this.sourceParamNames = this.getParamNames(sourceTokens);
-        this.targetParamNames = this.getParamNames(targetTokens);
+        this.sourceParamNames = this.getParamNames(sources);
+        this.targetParamNames = this.getParamNames(targets);
 
-        this.sourceRegexp = pathToRegexp.tokensToRegExp(sourceTokens);
-        this.targetRegexp = pathToRegexp.tokensToRegExp(targetTokens);
-        this.createSource = pathToRegexp.tokensToFunction(sourceTokens);
-        this.createTarget = pathToRegexp.tokensToFunction(targetTokens);
+        this.sourceRegexp = pathToRegexp.tokensToRegExp(sources);
+        this.targetRegexp = pathToRegexp.tokensToRegExp(targets);
+        this.createSource = pathToRegexp.tokensToFunction(sources);
+        this.createTarget = pathToRegexp.tokensToFunction(targets);
             
         // target params must be a subset of the source's params
         if (ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
-            throw `${this.constructor.name}: Invalid target params: source: ${this.source}: target: ${this.target}`;
+            throw new Error(`${this.constructor.name}: Invalid params: source: ${this.source}: target: ${this.target}`);
         }
         if (this.methods && !(this.methods instanceof Array)) {
-            throw `${this.constructor.name}: Invalid methods: ${this.methods}`;
+            throw new Error(`${this.constructor.name}: Invalid methods: ${this.methods}`);
         }
     }
 
@@ -91,34 +90,41 @@ module.exports = class Url extends Base {
             return null;
         }
         let result = this.sourceRegexp.exec(url);
-        if (result) {
-            let params = this.getParams(result, this.sourceParamNames);
-            this.defaults && Object.assign({}, this.defaults, params);
-            return {path: this.createTarget(params), params};
+        if (!result) {
+            return null;
         }
-        return null;
+        let params = this.getParams(result, this.sourceParamNames);
+        if (this.defaults) {
+            params = Object.assign({}, this.defaults, params);
+        }
+        return {
+            path: this.createTarget(params),
+            params
+        };
     }
 
     createSourceUrl (data) {
         let result = this.targetRegexp.exec(data.path);
-        if (result) {
-            let params = this.getParams(result, this.targetParamNames);
-            try {
-                data.params = { id: 234, fera: '456'};
-                data.anchor = 'mita';
-                let url = this.createSource(Object.assign(params, data.params));
-                ObjectHelper.deleteProperties(params, this.sourceParamNames);
-                params = this.constructor.serializeParams(params);
-                if (params) {
-                    url = `${url}?${params}`;
-                }
-                if (data.anchor !== undefined) {
-                    url = `${url}#${data.anchor}`;
-                }
-                return url;
-            } catch (err) {}
+        if (!result) {
+            return null;
         }
-        return null;
+        let params = this.getParams(result, this.targetParamNames);
+        try {
+            // data.params = { id: 123, test: '456'};
+            // data.anchor = 'anchor';
+            let url = this.createSource(Object.assign(params, data.params));
+            ObjectHelper.deleteProperties(params, this.sourceParamNames);
+            params = this.constructor.serializeParams(params);
+            if (params) {
+                url = `${url}?${params}`;
+            }
+            if (data.anchor !== undefined) {
+                url = `${url}#${data.anchor}`;
+            }
+            return url;
+        } catch (err) {
+            return null;
+        }
     }
 
     getParams (result, names) {
@@ -132,7 +138,9 @@ module.exports = class Url extends Base {
     getParamNames (tokens) {
         let names = [];
         for (let token of tokens) {
-            token.name && !names.includes(token.name) && names.push(token.name);
+            if (token.name && !names.includes(token.name)) {
+                names.push(token.name);
+            }
         }
         return names;
     }

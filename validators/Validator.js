@@ -51,8 +51,8 @@ module.exports = class Validator extends Base {
     constructor (config) {
         super(Object.assign({
             attrs: [],
-            // on: [] // only scenarious
-            // except: [] // excepted scenarious
+            // on: [] // only scenarios
+            // except: [] // excepted scenarios
             skipOnError: true,
             skipOnAnyError: false,
             skipOnEmpty: true,

@@ -46,7 +46,7 @@ module.exports = class User extends Base {
     init () {
         super.init();                                                     
         if (!this.params.Identity) {
-            throw new Error(`${this.constructor.name}: Identity class is not set`);
+            throw new Error(`${this.constructor.name}: Identity is not set`);
         }
         if (this.params.enableAutoLogin && !this.params.identityCookieParam) {
             throw new Error(`${this.constructor.name}: identityCookieParam is not set`);
@@ -92,22 +92,21 @@ module.exports = class User extends Base {
 
     loginByCookie (cb) {
         let value = this.req.cookies[this.params.identityCookieParam];
-        if (value && typeof value === 'object' && typeof value.id === 'string'
-            && typeof value.key === 'string' && typeof value.duration === 'number') {
-            let duration = value.duration;
-            async.waterfall([
-                cb => this.params.Identity.findIdentity(value.id).one(cb),
-                (identity, cb)=> {
-                    identity && identity.validateAuthKey(value.key) ? async.series([
-                        cb => this.beforeLogin(identity, true, duration, cb),
-                        cb => this.switchIdentity(identity, this.params.autoRenewCookie ? duration : 0, cb),
-                        cb => this.afterLogin(identity, true, duration, cb)
-                    ], cb) : cb();
-                }
-            ], cb);
-        } else {
-            cb();
+        if (!value || typeof value !== 'object' || typeof value.id !== 'string'
+            || typeof value.key !== 'string' || typeof value.duration !== 'number') {
+            return cb();
         }
+        let duration = value.duration;
+        async.waterfall([
+            cb => this.params.Identity.findIdentity(value.id).one(cb),
+            (identity, cb)=> {
+                identity && identity.validateAuthKey(value.key) ? async.series([
+                    cb => this.beforeLogin(identity, true, duration, cb),
+                    cb => this.switchIdentity(identity, this.params.autoRenewCookie ? duration : 0, cb),
+                    cb => this.afterLogin(identity, true, duration, cb)
+                ], cb) : cb();
+            }
+        ], cb);
     }
 
     logout (cb, destroySession = true) {
@@ -132,23 +131,23 @@ module.exports = class User extends Base {
 
     // if override this method call - super.beforeLogin
     beforeLogin (identity, cookieBased, duration, cb) {
-        this.triggerCallback(this.EVENT_BEFORE_LOGIN, cb, new ExtEvent({
+        this.triggerCallback(this.EVENT_BEFORE_LOGIN, cb, new Event({
             identity, cookieBased, duration
         }));
     }
 
     afterLogin (identity, cookieBased, duration, cb) {
-        this.triggerCallback(this.EVENT_AFTER_LOGIN, cb, new ExtEvent({
+        this.triggerCallback(this.EVENT_AFTER_LOGIN, cb, new Event({
             identity, cookieBased, duration
         }));
     }
 
     beforeLogout (identity, cb) {
-        this.triggerCallback(this.EVENT_BEFORE_LOGOUT, cb, new ExtEvent({identity}));
+        this.triggerCallback(this.EVENT_BEFORE_LOGOUT, cb, new Event({identity}));
     }
 
     afterLogout (identity, cb) {
-        this.triggerCallback(this.EVENT_AFTER_LOGOUT, cb, new ExtEvent({identity}));
+        this.triggerCallback(this.EVENT_AFTER_LOGOUT, cb, new Event({identity}));
     }
 
     // IDENTITY
@@ -296,6 +295,6 @@ module.exports = class User extends Base {
 module.exports.init();
 
 const async = require('async');
-const ExtEvent = require('../base/ExtEvent');
+const Event = require('../base/Event');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');
 const ServerErrorHttpException = require('../errors/ServerErrorHttpException');

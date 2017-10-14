@@ -1,9 +1,8 @@
 'use strict';
 
-require('../helpers/init');
+require('../init');
 
 const Base = require('./Module');
-const async = require('async');
 
 module.exports = class App extends Base {
 
@@ -20,13 +19,13 @@ module.exports = class App extends Base {
 
     init () {
         super.init();
-        this.urlCache = {};
+        this._urlCache = {};
     }
 
     configure (configName, cb) {
         super.configure(null, configName, err => {
             if (err) {
-                console.error(`App: ${this.ID}:`, err);
+                console.error(`App: ${this.NAME}:`, err);
                 return cb(err);
             }
             cb();
@@ -44,10 +43,18 @@ module.exports = class App extends Base {
             this.log('error', 'Server error', err);
             cb(err);
         }).listen(this.config.port, ()=> {
-            this.log('info', `${this.ID} started as ${this.configName}`, this.server.address());
+            this.log('info', `${this.NAME} started as ${this.configName}`, this.server.address());
             this.afterStart();
             cb();
         });
+    }
+
+    getUrlFromCache (key) {
+        return this._urlCache[key];
+    }
+
+    setUrlToCache (url, key) {
+        this._urlCache[key] = url;
     }
 
     // EVENTS
@@ -88,3 +95,5 @@ module.exports = class App extends Base {
     }
 };
 module.exports.init();
+
+const async = require('async');

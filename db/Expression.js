@@ -1,11 +1,10 @@
 'use strict';
 
-const Base = require('../base/Base');
-
-module.exports = class Expression extends Base {
+module.exports = class Expression {
 
     constructor (value, params) {
-        super({value, params});
+        this.value = value;
+        this.params = params;
     }
 
     get (db) {

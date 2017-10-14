@@ -12,8 +12,7 @@ module.exports = class MessageSource extends Base {
         }, config));
     }
 
-    init () {        
-        super.init();
+    init () {
         this.clearCache();
     }
 
@@ -41,11 +40,14 @@ module.exports = class MessageSource extends Base {
     }
 
     loadMessages (category, language) {
-        // what about ASYNC load
         throw new Error(`${this.constructor.name}: Load the message translation from the store`);
     }
 
     clearCache () {
         this._messages = {};
+    }
+
+    log () {
+        this.i18n.log.apply(this.i18n, arguments);
     }
 };

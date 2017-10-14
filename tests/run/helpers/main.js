@@ -1,35 +1,35 @@
 'use strict';
 
 const expect = require('chai').expect;
-const MainHelper = require('../../../helpers/MainHelper');
+const MiscHelper = require('../../../helpers/MiscHelper');
 
 describe('helpers.main', ()=> {
 
     describe('date', ()=> {        
         
         it('isValidDate', ()=> {
-            expect(MainHelper.isValidDate(new Date)).to.true;
-            expect(MainHelper.isValidDate('12-10-1905')).to.true;
-            expect(MainHelper.isValidDate('test')).to.false;
-            expect(MainHelper.isValidDate('12-40-1905')).to.false;
+            expect(MiscHelper.isValidDate(new Date)).to.true;
+            expect(MiscHelper.isValidDate('12-10-1905')).to.true;
+            expect(MiscHelper.isValidDate('test')).to.false;
+            expect(MiscHelper.isValidDate('12-40-1905')).to.false;
         });
         
         it('getValidDate', ()=> {
             let date = new Date;
-            expect(MainHelper.getValidDate(date)).to.equal(date);
-            expect(MainHelper.getValidDate('12-10-2015').getTime()).to.equal(new Date('12-10-2015').getTime());
-            expect(MainHelper.getValidDate('12-40-2015')).to.null;
+            expect(MiscHelper.getValidDate(date)).to.equal(date);
+            expect(MiscHelper.getValidDate('12-10-2015').getTime()).to.equal(new Date('12-10-2015').getTime());
+            expect(MiscHelper.getValidDate('12-40-2015')).to.null;
         });
     });
 
     it('createInstance', ()=> {        
-        let object = MainHelper.createInstance({ 
+        let object = ClassHelper.createInstance({
             Class: String 
         });
         expect(object).to.be.an.instanceof(String);        
-        object = MainHelper.createInstance(String);
+        object = ClassHelper.createInstance(String);
         expect(object).to.be.an.instanceof(String);
-        object = MainHelper.createInstance({});
+        object = ClassHelper.createInstance({});
         expect(object).to.be.an.object;
     });
 
@@ -45,40 +45,40 @@ describe('helpers.main', ()=> {
 
     it('defineClassProperty', ()=> {
         class Test {}
-        MainHelper.defineClassProperty(Test, 'prop', 'value');
+        ClassHelper.defineClassProperty(Test, 'prop', 'value');
         let test = new Test;
         expect(Test.prop).to.equal('value');
         expect(test.prop).to.equal('value');
     });
 
     it('parseJson: return JSON from string', ()=> {
-        let json = MainHelper.parseJson(JSON.stringify({a: 5}));
+        let json = MiscHelper.parseJson(JSON.stringify({a: 5}));
         expect(json.a).to.equal(5);
     });
 
     it('parseJson: return NULL from invalid JSON string', ()=> {
-        let json = MainHelper.parseJson('non-json');
+        let json = MiscHelper.parseJson('non-json');
         expect(json).to.equal(null);
     });
 
     it('getRandom', ()=> {
-        let num = MainHelper.getRandom(5, 10);
+        let num = MiscHelper.getRandom(5, 10);
         expect(num).to.be.within(5,10);
     });
 
     it('escapeRegExp: set special symbols as simple string', ()=> {
-        let result = MainHelper.escapeRegExp('^test{1}$');
+        let result = MiscHelper.escapeRegExp('^test{1}$');
         result = (new RegExp(result)).test('^test{1}$');
         expect(result).to.true;
     });
 
     it('escapeHtml: set special symbols as simple string', ()=> {
-        let result = MainHelper.escapeHtml('<div>test</div>');
+        let result = MiscHelper.escapeHtml('<div>test</div>');
         expect(result).to.equal('&lt;div&gt;test&lt;/div&gt;');
     });
 
     it('getValues', ()=> {
-        let list = MainHelper.getValues({a: 1, b: 2, c: 3});
+        let list = MiscHelper.getValues({a: 1, b: 2, c: 3});
         expect(list).to.eql([1, 2, 3]);
     });
 

@@ -2,30 +2,30 @@
 
 module.exports = class ArrayHelper {
 
-    static diff (target, excluded, customIndexOf) {
+    static diff (target, excluded, indexOf) {
         let result = [];
         for (let item of target) {
-            if (customIndexOf ? customIndexOf(item, excluded) === -1 : !excluded.includes(item)) {
+            if (indexOf ? indexOf(item, excluded) === -1 : !excluded.includes(item)) {
                 result.push(item);
             }
         }
         return result;
     }
 
-    static intersect (source, target, customIndexOf) {
+    static intersect (source, target, indexOf) {
         let result = [];
         for (let item of source) {
-            if (customIndexOf ? customIndexOf(item, target) !== -1 : target.includes(item)) {
+            if (indexOf ? indexOf(item, target) !== -1 : target.includes(item)) {
                 result.push(item);
             }
         }
         return result;
     }
 
-    static unique (values, customIndexOf) {
+    static unique (values, indexOf) {
         let result = [];
         for (let i = 0; i < values.length; ++i) {
-            if ((customIndexOf ? customIndexOf(values[i], values) : values.indexOf(values[i])) === i) {
+            if ((indexOf ? indexOf(values[i], values) : values.indexOf(values[i])) === i) {
                 result.push(values[i]);
             }
         }
@@ -38,6 +38,62 @@ module.exports = class ArrayHelper {
             object[value] = null;
         }
         return object;
+    }
+
+    static indexOfId (id, ids) {
+        if (!(id instanceof MongoId)) {
+            return ids.indexOf(id);
+        }
+        for (let i = 0; i < ids.length; ++i) {
+            if (id.equals(ids[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static getValueByKey (key, keyProp, valueProp, objects) {
+        for (let object of objects) {
+            if (object[keyProp] === key) {
+                return object[valueProp];
+            }
+        }
+    }
+
+    static indexObjects (docs, key) {
+        let map = {};
+        for (let doc of docs) {
+            if (doc !== null) {
+                let value = doc[key];
+                if (Object.prototype.hasOwnProperty.call(map, value)) {
+                    if (map[value] instanceof Array) {
+                        map[value].push(doc);
+                    } else {
+                        map[value] = [map[value], doc];
+                    }
+                } else {
+                    map[value] = doc;
+                }
+            }
+        }
+        return map;
+    }
+
+    static indexModels (models, key) {
+        let map = {};
+        for (let model of models) {
+            let value = model.get(key);
+            if (Object.prototype.hasOwnProperty.call(map, value)) {
+                if (map[value] instanceof Array) {
+                    map[value].push(model);
+                } else {
+                    map[value] = [map[value], model];
+                }
+            } else {
+                map[value] = model;
+            }
+        }
+        return map;
     }
 
     // RANDOM
@@ -76,42 +132,6 @@ module.exports = class ArrayHelper {
             }
         }
     }
-
-    // INDEX
-
-    static indexObjects (docs, key) {
-        let map = {};
-        for (let doc of docs) {
-            if (doc !== null) {
-                let value = doc[key];
-                if (Object.prototype.hasOwnProperty.call(map, value)) {
-                    if (map[value] instanceof Array) {
-                        map[value].push(doc);
-                    } else {
-                        map[value] = [map[value], doc];
-                    }
-                } else {
-                    map[value] = doc;
-                }
-            }
-        }
-        return map;
-    }
-
-    static indexModels (models, key) {
-        let map = {};
-        for (let model of models) {
-            let value = model.get(key);
-            if (Object.prototype.hasOwnProperty.call(map, value)) {
-                if (map[value] instanceof Array) {
-                    map[value].push(model);
-                } else {
-                    map[value] = [map[value], model];
-                }
-            } else {
-                map[value] = model;
-            }
-        }
-        return map;
-    }
 };
+
+const MongoId = require('mongodb').ObjectID;

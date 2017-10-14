@@ -6,8 +6,8 @@ module.exports = class RelationChangeBehavior extends Base {
 
     init () {
         super.init();
-        this._events[ActiveRecord.EVENT_AFTER_VALIDATE] = 'afterValidate';
-        this._events[ActiveRecord.EVENT_BEFORE_UPDATE] = 'afterSave';
+        this.assign(ActiveRecord.EVENT_AFTER_VALIDATE, this.afterValidate);
+        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.afterSave);
     }
 
     afterValidate (event, cb) {

@@ -16,7 +16,7 @@ module.exports = class FileLogStore extends Base {
     }
 
     init () {
-        super.init();        
+        super.init();
         this.baseDir = path.join(this.baseDir, this.dir);
         mkdirp.sync(this.baseDir);
         this.maxFileSize *= 1024 * 1024;
@@ -57,7 +57,7 @@ module.exports = class FileLogStore extends Base {
         setTimeout(()=> {
             fs.fstat(this.fd, (err, stats)=> {
                 if (err) {
-                    this.logger.module.log('error', `${this.constructor.name}: observe`, err);
+                    this.log('error', `${this.constructor.name}: observe`, err);
                 } else if (stats.size > this.maxFileSize) {
                     this.rotate();
                 }
@@ -79,7 +79,7 @@ module.exports = class FileLogStore extends Base {
             fs.renameSync(files[i], this.getFile(files.length - i));
         }
         this.fd = fs.openSync(this.file, 'a');
-        this.logger.module.log('info', `${this.constructor.name}: rotate success: ${this.fileName}`);
+        this.log('info', `${this.constructor.name}: rotate success: ${this.fileName}`);
     }
 
     getFile (index) {

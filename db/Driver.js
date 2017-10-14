@@ -52,7 +52,7 @@ module.exports = class Driver extends Base {
             this.openClient.bind(this),
             (connection, cb)=> {
                 this.connection = connection;
-                this.module.log('info', `Connection is opened: ${this.getUri()}`);
+                this.log('info', `Connection is opened: ${this.getUri()}`);
                 this.trigger(this.EVENT_OPEN);
                 cb();
             }    
@@ -67,28 +67,26 @@ module.exports = class Driver extends Base {
             this.closeClient.bind(this),
             cb => {
                 this.connection = null;
-                this.module.log('info', `Connection is closed: ${this.getUri()}`);
+                this.log('info', `Connection is closed: ${this.getUri()}`);
                 this.trigger(this.EVENT_CLOSE);
                 cb();
             }
         ], cb);
     }
 
-    afterError (message, data) {
-        this.module.log('error', message, data);
-        this.trigger(this.EVENT_ERROR, {message, data});
+    afterCommand (err, data) {
+        if (err) {
+            return this.afterError(`db: ${this.settings.database}`, Object.assign({err}, data));
+        }
+        this.trigger(this.EVENT_COMMAND, {
+            message: `db: ${this.settings.database}`,
+            data
+        });
     }
 
-    afterCommand (data) {
-        if (data.err) {
-            this.afterError(`db: ${this.settings.database}`, data);
-        } else {
-            data.err = undefined;
-            this.trigger(this.EVENT_COMMAND, {
-                message: `db: ${this.settings.database}`,
-                data
-            });
-        }
+    afterError (message, data) {
+        this.log('error', message, data);
+        this.trigger(this.EVENT_ERROR, {message, data});
     }
 
     formatCommandData (data) {
@@ -99,9 +97,7 @@ module.exports = class Driver extends Base {
         return this.builder.buildWhere(condition);
     }
 
-    // QUERY
-
-    queryBuild (query, cb) {
+    buildQuery (query, cb) {
         query.prepare(err => {
             if (err) {
                 return cb(err);

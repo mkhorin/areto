@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Component');
-const MainHelper = require('../helpers/MainHelper');
 
 module.exports = class Scheduler extends Base {
 
@@ -22,7 +21,10 @@ module.exports = class Scheduler extends Base {
     init () {
         super.init();
         for (let id in this.tasks) {
-            let task = MainHelper.createInstance(this.tasks[id], {id, scheduler: this});
+            let task = ClassHelper.createInstance(this.tasks[id], {
+                id,
+                scheduler: this
+            });
             task.on(task.EVENT_BEFORE_RUN, this.taskBeforeRun.bind(this));
             task.on(task.EVENT_DONE, this.taskDone.bind(this));
             task.on(task.EVENT_FAIL, this.taskFail.bind(this));
@@ -35,13 +37,15 @@ module.exports = class Scheduler extends Base {
     }
 
     taskDone (event, cb, data) {
-        this.module.log('info', `Task done: ${event.sender.id}:`, event.result);
+        this.log('info', `Task done: ${event.sender.id}:`, event.result);
         this.trigger(this.EVENT_TASK_DONE, event);
     }
     
     taskFail (event) {
-        this.module.log('error', `${this.constructor.name}: ${event.sender.id}`, event.err);
+        this.log('error', `${this.constructor.name}: ${event.sender.id}`, event.err);
         this.trigger(this.EVENT_TASK_FAIL, event);
     }
 };
 module.exports.init();
+
+const ClassHelper = require('../helpers/ClassHelper');

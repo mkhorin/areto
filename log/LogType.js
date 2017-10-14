@@ -13,7 +13,7 @@ module.exports = class LogType extends Base {
 
     init () {
         this.store = this.store
-            ? MainHelper.createInstance(this.store, {
+            ? ClassHelper.createInstance(this.store, {
                 logger: this.logger,
                 logType: this
             })
@@ -44,6 +44,5 @@ module.exports = class LogType extends Base {
     }
 };
 
-const Exception = require('../errors/Exception');
 const LogStore = require('./LogStore');
-const MainHelper = require('../helpers/MainHelper');
+const ClassHelper = require('../helpers/ClassHelper');

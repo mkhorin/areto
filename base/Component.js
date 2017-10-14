@@ -6,163 +6,77 @@ module.exports = class Component extends Base {
 
     static getConstants () {
         return {
-            BEHAVIORS: { // auto-attached behaviors
-                //behavior1: require('./UserBehavior1'),
-                //behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
-            }
+            // BEHAVIORS: { // auto-attached behaviors
+                // behavior1: require('./UserBehavior1'),
+                // behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
+                // behavior3: new BehaviorClass,
+            // }
         };
     }
 
     init () {
-        this._events = {};
-        this._behaviors = null;
+        this.events = this.events ? ClassHelper.createInstance(this.events, {
+            owner: this
+        }) : new Events({
+            owner: this
+        });
+        this.behaviors = this.behaviors ? ClassHelper.createInstance(this.behaviors, {
+            owner: this
+        }) : new Behaviors({
+            owner: this,
+            autoAttachedItems: this.BEHAVIORS
+        });
     }
 
-    // OBJECT-LEVEL SYNC/ASYNC EVENTS
-
-    hasEventHandlers (name) {
-        this.ensureBehaviors();
-        return !!this._events[name] || ExtEvent.hasHandlers(this, name);
+    on () {
+        this.events.on.apply(this.events, arguments);
     }
 
-    /**
-     * @param data - get only with this handler
-     */
-    on (name, handler, data, prepend) {
-        if (!name) {
-            throw new Error(`${this.constructor.name}: Invalid event name`);
-        }   
-        if (typeof handler !== 'function') {
-            throw new Error(`${this.constructor.name}: Invalid event handler`);
-        }    
-        this.ensureBehaviors();
-        if (!this._events[name]) {
-            this._events[name] = [];
-        }
-        // reverse order of addition, see trigger()
-        prepend ? this._events[name].push([handler, data]) 
-                : this._events[name].unshift([handler, data]);
+    off () {
+        this.events.off.apply(this.events, arguments);
     }
 
-    off (name, handler) {
-        this.ensureBehaviors();
-        if (!this._events[name]) {
-            return false;
-        }
-        if (handler) {
-            let removed = false;
-            for (let i = this._events[name].length - 1; i >= 0; --i) {
-                if (this._events[name][i][0] === handler) {
-                    this._events[name].splice(i, 1);
-                    removed = true;    
-                }
-            }
-            return removed;
-        }
-        delete this._events[name];
-        return true;
+    trigger () {
+        this.events.trigger.apply(this.events, arguments);
     }
 
-    trigger (name, event) {
-        this.ensureBehaviors();
-        if (this._events[name]) {
-            event = ExtEvent.initEvent(event, this, name);
-            // триггер может быть удален внутри хэндлера, изменится массив this._events[name]
-            for (let i = this._events[name].length - 1; i >= 0; --i) {
-                this._events[name][i][0](event, this._events[name][i][1]); // handler(event, data)
-                if (event.handled) {
-                    return;
-                }
-            }
-        }        
-        ExtEvent.trigger(this, name, event); // invoke class-level attached handlers
+    triggerCallback () {
+        this.events.triggerCallback.apply(this.events, arguments);
     }
 
-    triggerCallback (name, cb, event) {
-        let tasks = [];
-        this.ensureBehaviors();
-        if (this._events[name]) {
-            event = ExtEvent.initEvent(event, this, name);
-            this._events[name].forEach(function (handler) {
-                tasks.push(function (cb) {
-                    handler[0](event, cb, handler[1]); 
-                });
-            });
-        }
-        ExtEvent.triggerCallback(this, name, cb, event, tasks);
+    getBehavior () {
+        return this.behaviors.get.apply(this.behaviors, arguments);
     }
 
-    // BEHAVIORS
-
-    getBehavior (name) {
-        this.ensureBehaviors();
-        return Object.prototype.hasOwnProperty.call(this._behaviors, name) ? this._behaviors[name] : null;
+    attachBehavior () {
+        return this.behaviors.attach.apply(this.behaviors, arguments);
     }
 
-    getBehaviors () {
-        this.ensureBehaviors();
-        return this._behaviors;
+    detachBehavior () {
+        return this.behaviors.detach.apply(this.behaviors, arguments);
     }
 
-    attachBehavior (name, behavior) {
-        this.ensureBehaviors();
-        return this.attachBehaviorInternal(name, behavior);
+    getAllBehaviors () {
+        return this.behaviors.getAll.apply(this.behaviors, arguments);
     }
 
-    attachBehaviors (behaviors) {
-        this.ensureBehaviors();
-        for (let name of Object.keys(behaviors)) {
-            this.attachBehaviorInternal(name, behaviors[name]);
-        }
+    attachAllBehaviors () {
+        this.behaviors.attachAll.apply(this.behaviors, arguments);
     }
 
-    detachBehavior (name) {
-        this.ensureBehaviors();
-        if (!Object.prototype.hasOwnProperty.call(this._behaviors, name)) {
-            return null;
-        }
-        let behavior = this._behaviors[name];
-        delete this._behaviors[name];
-        behavior.detach();
-        return behavior;
-    }
-
-    detachBehaviors () {
-        this.ensureBehaviors();
-        for (let name of Object.keys(this._behaviors)) {
-            this.detachBehavior(name);
-        }
+    detachAllBehaviors () {
+        this.behaviors.detachAll.apply(this.behaviors, arguments);
     }
 
     ensureBehaviors () {
-        if (!this._behaviors) {
-            this._behaviors = {};
-            for (let name of Object.keys(this.BEHAVIORS)) {
-                this.attachBehavior(name, this.BEHAVIORS[name]);
-            }    
-        }
+        this.behaviors.ensure.call(this.behaviors);
     }
 
-    attachBehaviorInternal (name, behavior) {
-        if (!behavior) {
-            throw new Error(`${this.constructor.name}: Attach undefined behavior: ${name}`);
-        } else if (behavior.prototype instanceof Behavior) {
-            behavior = new behavior({name});
-        } else if (behavior.Class && behavior.Class.prototype instanceof Behavior) {
-            behavior.name = behavior.name || name;
-            behavior = new behavior.Class(behavior);
-        } else if (!(behavior instanceof Behavior)) {
-            throw new Error(`${this.constructor.name}: Attach invalid behavior: ${name}`);
-        }
-        if (Object.prototype.hasOwnProperty.call(this._behaviors, name)) {
-            this._behaviors[name].detach();
-        }
-        behavior.attach(this);
-        this._behaviors[name] = behavior;
-        return behavior;
+    log () {
+        this.module.log.apply(this.module, arguments);
     }
 };
 
-const async = require('async');
-const ExtEvent = require('./ExtEvent');
-const Behavior = require('./Behavior');
+const ClassHelper = require('../helpers/ClassHelper');
+const Events = require('./Events');
+const Behaviors = require('./Behaviors');

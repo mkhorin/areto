@@ -1,9 +1,8 @@
 'use strict';
 
 const Base = require('./Base');
-const async = require('async');
 
-module.exports = class ExtEvent extends Base {
+module.exports = class Event extends Base {
 
     constructor (config) {
         super(Object.assign({
@@ -14,9 +13,17 @@ module.exports = class ExtEvent extends Base {
     }
 
     // CLASS-LEVEL EVENTS
-   
-    static hasHandlers (sender, name) {
-        if (!(name in this._events)) {
+
+    static create (event, sender, name) {
+        event = event || new this;
+        event.sender = event.sender || sender;
+        event.handled = false;
+        event.name = name;
+        return event;
+    }
+
+    static hasHandler (sender, name) {
+        if (!(this._events[name] instanceof Array)) {
             return false;
         }
         if (typeof sender !== 'function') {
@@ -75,14 +82,6 @@ module.exports = class ExtEvent extends Base {
         return true;
     }
 
-    static initEvent (event, sender, name) {
-        event = event || new this;
-        event.sender = event.sender || sender;
-        event.handled = false;
-        event.name = name;
-        return event;
-    }
-
     static trigger (sender, name, event) {
         if (!this._events[name]) {
             return;
@@ -95,10 +94,12 @@ module.exports = class ExtEvent extends Base {
         while (id) {
             let handlers = this._events[name][id];
             if (handlers) {
-                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив this._events[name]
+                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив _events[name]
                 for (let i = handlers.length - 1; i >= 0; --i) {
                     handlers[i][0](event, handlers[i][1]);
-                    if (event.handled) return;
+                    if (event.handled) {
+                        return;
+                    }
                 }
             }
             sender = Object.getPrototypeOf(sender); // get parent class
@@ -129,7 +130,9 @@ module.exports = class ExtEvent extends Base {
                 id = sender ? sender.CLASS_FILE : null;
             };
         }
-        (tasks instanceof Array && tasks.length) ? async.parallel(tasks, cb) : cb();
+        (tasks instanceof Array && tasks.length) ? async.series(tasks, cb) : cb();
     }
-};                       
+};
 module.exports._events = {};
+
+const async = require('async');

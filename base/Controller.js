@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Component');
+const ClassHelper = require('../helpers/ClassHelper');
 const StringHelper = require('../helpers/StringHelper');
 
 module.exports = class Controller extends Base {
@@ -12,9 +13,11 @@ module.exports = class Controller extends Base {
     static getConstants () {
         return {            
             // class name PostNum -> post-num 
-            ID: this.getId(),
+            NAME: this.getName(),
             DEFAULT_ACTION: 'index',
-            VIEW_CLASS: require('./View'),
+            // VIEW_CLASS: require('./View'), // by default inherited from module
+            // VIEW_LAYOUT: 'default', // by default inherited from module
+            // INLINE_ACTION_CLASS: require('./InlineAction'), // by default inherited from module
             // declares allow methods for action if not set then all, name: [ 'GET', 'POST' ]
             METHODS: {}, // 'logout': ['POST']
             // declares external actions for the controller
@@ -24,7 +27,7 @@ module.exports = class Controller extends Base {
         };
     }
     
-    static getId () {
+    static getName () {
         let index = this.name.indexOf('Controller');
         if (index === -1) {
             throw new Error(`${this.name}: Invalid class name: ${this.name}`);
@@ -33,16 +36,26 @@ module.exports = class Controller extends Base {
     }
 
     static getFullName (separator = '.') {
-        return this.module.getFullName(separator) + separator + this.ID;
+        return this.module.getFullName(separator) + separator + this.NAME;
+    }
+
+    static getNestedDir () {
+        if (this._NESTED_DIR === undefined) {
+            this._NESTED_DIR = FileHelper.getNestedDir(this.CLASS_FILE, this.module.getControllerDir());
+        }
+        return this._NESTED_DIR;
     }
 
     static getModelClass () {
-        try {
-            let name = this.name.substring(0, this.name.lastIndexOf('Controller'));
-            return require(this.module.getPath('models', name));
-        } catch (err) {
-            this.module.log('error', err);
+        if (this._MODEL_CLASS === undefined) {
+            try {
+                let name = this.name.substring(0, this.name.lastIndexOf('Controller'));
+                this._MODEL_CLASS = require(this.module.getPath('models', this.getNestedDir(), name));
+            } catch (err) {
+                this._MODEL_CLASS = null;
+            }
         }
+        return this._MODEL_CLASS;
     }
 
     constructor (config) {
@@ -54,10 +67,7 @@ module.exports = class Controller extends Base {
     }
 
     getModelClass () {
-        if (!this._modelClass) {
-            this._modelClass = this.constructor.getModelClass();
-        }
-        return this._modelClass;
+        return this.constructor.getModelClass();
     }
     
     createModel (params) {
@@ -97,10 +107,10 @@ module.exports = class Controller extends Base {
         return this;
     }
 
-    execute (id) {
-        this.action = this.createAction(id);
+    execute (name) {
+        this.action = this.createAction(name);
         if (!this.action) {
-            return this.throwError(`Controller ${this.constructor.getFullName()}: unable to create action ${id}`);
+            return this.throwError(`${this.constructor.getFullName()}: unable to create action: ${name}`);
         }
         async.series([
             this.triggerBeforeAction.bind(this),
@@ -111,25 +121,26 @@ module.exports = class Controller extends Base {
         });
     }
 
-    createAction (id) {
-        id = id || this.DEFAULT_ACTION;
-        let action = this.ACTIONS[id];
-        if (action) {
-            return MainHelper.createInstance(action, {
-                id,
+    createAction (name) {
+        name = name || this.DEFAULT_ACTION;
+        let action = this.ACTIONS[name];
+        if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
+            return ClassHelper.createInstance(this.ACTIONS[name], {
+                name,
                 controller: this
             });
         }
-        let name = `action${StringHelper.idToCamel(id)}`;
-        return typeof this[name] === 'function' ? new InlineAction({
-            id,
+        let method = `action${StringHelper.idToCamel(name)}`;
+        let InlineAction = this.INLINE_ACTION_CLASS || this.module.INLINE_ACTION_CLASS;
+        return typeof this[method] === 'function' ? new InlineAction({
+            name,
             controller: this,
-            method: name
+            method: this[method]
         }) : null;
     }
 
     triggerBeforeAction (cb) {
-        // trigger module's beforeAction - from root to current
+        // trigger module's beforeAction from root to current
         async.eachSeries(this.module.getAncestry().slice().reverse(), (module, cb)=> {
             module.beforeAction(this.action, cb);
         }, err => {
@@ -139,7 +150,7 @@ module.exports = class Controller extends Base {
 
     triggerAfterAction (cb) {
         this.afterAction(err => {
-            // trigger module's afterAction - from current to root
+            // trigger module's afterAction from current to root
             err ? cb(err) : async.eachSeries(this.module.getAncestry(), (module, cb)=> {
                 module.afterAction(this.action, cb);
             }, cb);
@@ -200,7 +211,7 @@ module.exports = class Controller extends Base {
     setFlash (key, msg) {
         typeof this.req.flash === 'function'
             ? this.req.flash(key, msg)
-            : this.module.log('error', `${this.constructor.name}: Session flash not found:`, msg);
+            : this.log('error', `${this.constructor.name}: Session flash not found:`, msg);
     }
 
     getFlash (key) {
@@ -238,7 +249,7 @@ module.exports = class Controller extends Base {
     }
 
     render (template, params, cb) {
-        (new this.VIEW_CLASS({
+        (new (this.VIEW_CLASS || this.module.VIEW_CLASS)({
             controller: this
         })).render(this.getTemplateName(template), params, (err, content)=> {
             cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
@@ -247,7 +258,8 @@ module.exports = class Controller extends Base {
 
     getTemplateName (template) {
         template = String(template);
-        return template.indexOf('/') === -1 && template.indexOf(':') === -1 ? `${this.ID}/${template}` : template;
+        return template.indexOf('/') === -1 && template.indexOf(':') === -1
+            ? `${this.NAME}/${template}` : template;
     }
 
     send (data, code) {
@@ -302,7 +314,7 @@ module.exports = class Controller extends Base {
     // URL
 
     createUrl (data) {        
-        return this.module.resolveUrl(Url.create(data, this));
+        return this.module.app.resolveUrl(Url.create(data, this));
     }
     
     createSimpleUrl (data) {
@@ -350,10 +362,9 @@ module.exports = class Controller extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const FileHelper = require('../helpers/FileHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');
-const InlineAction = require('./InlineAction');
 const Response = require('../web/Response');
 const Message = require('../i18n/Message');
 const Url = require('../web/Url');

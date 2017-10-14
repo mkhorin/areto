@@ -59,7 +59,7 @@ module.exports = class RelationValidator extends Base {
 
     validateValue (value, cb) {
         let error = false;
-        value = typeof value === 'string' ? MainHelper.parseJson(value) : value;
+        value = typeof value === 'string' ? MiscHelper.parseJson(value) : value;
         if (!value || (!value.links && !value.unlinks && !value.removes)) {
             return cb();
         }
@@ -125,5 +125,5 @@ module.exports = class RelationValidator extends Base {
 module.exports.init();
 
 const async = require('async');
-const MainHelper = require('../helpers/MainHelper');
+const MiscHelper = require('../helpers/MiscHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');

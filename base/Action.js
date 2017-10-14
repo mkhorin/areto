@@ -8,12 +8,12 @@ module.exports = class Action extends Base {
         cb(`${this.constructor.name}: Need to override`);
     }
 
-    getRelativeModuleId () {
-        return `${this.controller.ID}/${this.id}`;
+    getRelativeModuleName () {
+        return `${this.controller.NAME}/${this.name}`;
     }
 
-    getUniqueId () {
-        return this.controller.module.getRoute(this.getRelativeModuleId());
+    getUniqueName () {
+        return this.controller.module.getRoute(this.getRelativeModuleName());
     }
 
     execute (cb) {

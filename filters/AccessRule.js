@@ -16,21 +16,22 @@ module.exports = class AccessRule extends Base {
     }
 
     can (action, user, cb) {
-        if ((this.actions && !this.actions.includes(action.id))
+        if ((this.actions && !this.actions.includes(action.name))
             || (this.verbs && !this.verbs.includes(action.controller.req.method))
-            || (this.controllers && !this.controllers.includes(action.controller.ID))) {
+            || (this.controllers && !this.controllers.includes(action.controller.NAME))) {
             return cb(); // skip rule
         }
         this.match(user, (err, access)=> {
             if (err) {
-                cb(err);
-            } else if (access === true) {
-                cb(null, this.allow);
-            } else if (access === false) {
-                cb(null, !this.allow);
-            } else {
-                cb(); // skip rule
+                return cb(err);
             }
+            if (access === true) {
+                return cb(null, this.allow);
+            }
+            if (access === false) {
+                return cb(null, !this.allow);
+            }
+            cb(); // skip rule
         });
     }
 
@@ -42,11 +43,11 @@ module.exports = class AccessRule extends Base {
         for (let item of this.roles) {
             if (item === '?') {
                 return cb(null, user.isAnonymous());
-            } else if (item === '@') {
-                return cb(null, !user.isAnonymous());
-            } else {
-                roles.push(item);
             }
+            if (item === '@') {
+                return cb(null, !user.isAnonymous());
+            }
+            roles.push(item);
         }
         async.eachSeries(roles, (item, roleCallback)=> {
             user.can(item, (err, access)=> {
