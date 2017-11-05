@@ -65,7 +65,8 @@ module.exports = class Validator extends Base {
 
     createMessage (msgAttr, message, params) {
         if (!(this[msgAttr] instanceof Message)) {
-            this[msgAttr] = this[msgAttr] ? new Message(null, this[msgAttr], params)
+            this[msgAttr] = this[msgAttr]
+                ? new Message(null, this[msgAttr], params)
                 : new Message('areto', message, params);
         }
         return this[msgAttr];
@@ -86,7 +87,9 @@ module.exports = class Validator extends Base {
 
     validateAttr (model, attr, cb) {
         this.validateValue(model.get(attr), (err, message, params)=> {
-            message && this.addError(model, attr, message, params);
+            if (message) {
+                this.addError(model, attr, message, params);
+            }
             cb(err);
         });
     }

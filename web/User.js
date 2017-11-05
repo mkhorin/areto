@@ -9,7 +9,7 @@ module.exports = class User extends Base {
             DEFAULTS: {
                 Identity: null,
                 enableSession: true,
-                loginUrl: null,
+                loginUrl: '',
                 enableAutoLogin: false,
                 autoRenewCookie: true,
                 idParam: '__id',
@@ -72,13 +72,17 @@ module.exports = class User extends Base {
         return this.req.ip;
     }
 
-    getReturnUrl (defaultUrl) {
-        defaultUrl = this.session[this.params.returnUrlParam] || defaultUrl || this.params.returnUrl;
-        return defaultUrl || this.res.locals.module.getHomeUrl();
+    getReturnUrl (url) {
+        url = this.session[this.params.returnUrlParam] || url || this.params.returnUrl;
+        return url || this.res.locals.module.getHomeUrl();
     }
 
     setReturnUrl (url) {
         this.session[this.params.returnUrlParam] = url;
+    }
+
+    getLoginUrl () {
+        return this.params.loginUrl;
     }
 
     login (identity, duration, cb) {
@@ -123,7 +127,7 @@ module.exports = class User extends Base {
             this.setReturnUrl(this.req.originalUrl);
         }
         this.params.loginUrl && !this.req.xhr
-            ? this.res.redirect(this.params.loginUrl)
+            ? this.res.redirect(Url.create(this.getLoginUrl(), this.res.locals.module))
             : this.next(new ForbiddenHttpException);
     }
 
@@ -298,3 +302,4 @@ const async = require('async');
 const Event = require('../base/Event');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');
 const ServerErrorHttpException = require('../errors/ServerErrorHttpException');
+const Url = require('./Url');

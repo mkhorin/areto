@@ -27,7 +27,6 @@ module.exports = class Module extends Base {
     
     constructor (config) {
         super(Object.assign({
-            express: express(),
             modules: {},
             config: {},
             components: {}, // inherited
@@ -38,6 +37,7 @@ module.exports = class Module extends Base {
     
     init () {
         super.init();
+        this._express = express();
         this._expressQueue = []; // for deferred assign    
     }
 
@@ -50,8 +50,8 @@ module.exports = class Module extends Base {
     }
 
     getRoute (url) {
-        if (!this._route) {
-            this._route = this.parent ? (this.parent.getRoute() + this.url) : this.url;
+        if (this._route === undefined) {
+            this._route = this.parent.getRoute() + this.mountPath;
         }
         return url ? `${this._route}/${url}` : this._route;
     }
@@ -103,9 +103,9 @@ module.exports = class Module extends Base {
     }
 
     // URL
-    
+
     getHomeUrl () {
-        return this.params.homeUrl || '';        
+        return this.params.homeUrl || '/';
     }
 
     resolveUrl (url) {
@@ -153,7 +153,7 @@ module.exports = class Module extends Base {
         let fullName = this.getFullName();
         for (let item of this._expressQueue) {
             this.log('trace', `${fullName}: ${item.method}`, item.args[0]);
-            this.express[item.method].apply(this.express, item.args);
+            this._express[item.method].apply(this._express, item.args);
         }
     }
 
@@ -194,8 +194,10 @@ module.exports = class Module extends Base {
             ObjectHelper.deepAssignUndefined(this.params, parent.params);
             ObjectHelper.deepAssignUndefined(this.widgets, parent.widgets);
         }
-        this.url = this.config.url || (parent ? `/${this.NAME}` : '');
-        this.setForwarder(this.config.forwarder);
+        this.setMountPath();
+        if (this.config.forwarder) {
+            this.setForwarder(this.config.forwarder);
+        }
         async.series([
             cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
@@ -209,13 +211,15 @@ module.exports = class Module extends Base {
         ], cb);
     }
 
+    setMountPath () {
+        this.mountPath = this.config.mountPath || (this.parent ? `/${this.NAME}` : '/');
+    }
+
     setForwarder (config) {
-        if (config) {
-            this.forwarder = ClassHelper.createInstance({
-                Class: require('../web/Forwarder'),
-                module: this
-            }, config);
-        }
+        this.forwarder = ClassHelper.createInstance({
+            Class: require('../web/Forwarder'),
+            module: this
+        }, config);
     }
 
     setModules (config, cb) {
@@ -244,14 +248,9 @@ module.exports = class Module extends Base {
 
     setExpress () {
         if (this.parent) {
-            this.parent.appendToExpress('use', this.url, this.express);
+            this.parent.appendToExpress('use', this.mountPath, this._express);
         }
-        this.express.use((req, res, next)=> {
-            // other module middleware can get res.locals.module
-            res.locals.module = this;
-            this.forwarder && this.forwarder.forward(req);
-            next();
-        });
+        this._express.use(this.handleModule.bind(this));
     }
 
     // COMPONENTS
@@ -389,7 +388,7 @@ module.exports = class Module extends Base {
 
     setStaticComponent (id, config, cb) {
         // use static content handlers before others
-        this.app.express.use(this.getRoute(), express.static(this.getPath('web')));
+        this.app.useBaseExpressHandler(this.getRoute(), express.static(this.getPath('web')));
         cb();
     }
 
@@ -414,7 +413,15 @@ module.exports = class Module extends Base {
         cb();
     }
 
-    // HANDLERS
+    // MIDDLEWARE HANDLERS
+
+    handleModule (req, res, next) {
+        res.locals.module = this; // other module middleware can get res.locals.module
+        if (this.forwarder) {
+            this.forwarder.forward(req);
+        }
+        next();
+    }
 
     handleUser (req, res, next) {
         let module = res.locals.module;

@@ -5,30 +5,34 @@ const Base = require('../base/Base');
 module.exports = class Url extends Base {
     /**
      * @url - ['action', { param1: param1, param2: param2 }]
-     * '/module/controller/action' - relative root
+     * '/module/controller/action' - relative app
      * 'controller/action' - relative module
      * 'action' - relative controller     
      */
-    static create (url, controller) {
+    static create (url, module, controller) {
         let params, anchor;
         if (url instanceof Array) {
             params = url[1];
             url = url[0];
         }
         let index = url.indexOf('/');
-        if (index === -1) {
-            url = controller.module.getRoute(`${controller.NAME}/${url}`); // relative controller
-        } else if (index > 0 && url.indexOf('http') !== 0) {
-            url = controller.module.getRoute(url); // relative module
-        }
-        if (typeof params === 'object') {
-            if (params instanceof ActiveRecord) {
-                params = `id=${params.getId()}`;
-            } else if (params) {
-                anchor = params['#'];
-                delete params['#'];
-                params = this.serializeParams(params);
+        if (index === -1) { // relative controller
+            url = module.getRoute(controller ? `${controller.NAME}/${url}` : url);
+        } else if (index === 0) { // relative app
+            if (module.app.mountPath !== '/') {
+                if (url.substring(0, module.app.mountPath.length) !== module.app.mountPath) {
+                    url = module.app.mountPath + url;
+                }
             }
+        } else if (url.substring(0, 4) !== 'http') { // relative module
+            url = module.getRoute(url);
+        }
+        if (params instanceof ActiveRecord) {
+            params = `id=${params.getId()}`;
+        } else if (typeof params === 'object' && params) {
+            anchor = params['#'];
+            delete params['#'];
+            params = this.serializeParams(params);
         }
         if (params) {
             url = `${url}?${params}`;

@@ -6,8 +6,8 @@ module.exports = class Driver extends Base {
 
     static getConstants () {
         return {            
-            EVENT_OPEN: 'openConnection',
-            EVENT_CLOSE: 'closeConnection',
+            EVENT_OPEN_CONNECTION: 'openConnection',
+            EVENT_CLOSE_CONNECTION: 'closeConnection',
             EVENT_ERROR: 'error',
             EVENT_COMMAND: 'command'
         };
@@ -53,7 +53,7 @@ module.exports = class Driver extends Base {
             (connection, cb)=> {
                 this.connection = connection;
                 this.log('info', `Connection is opened: ${this.getUri()}`);
-                this.trigger(this.EVENT_OPEN);
+                this.trigger(this.EVENT_OPEN_CONNECTION);
                 cb();
             }    
         ], cb);
@@ -68,7 +68,7 @@ module.exports = class Driver extends Base {
             cb => {
                 this.connection = null;
                 this.log('info', `Connection is closed: ${this.getUri()}`);
-                this.trigger(this.EVENT_CLOSE);
+                this.trigger(this.EVENT_CLOSE_CONNECTION);
                 cb();
             }
         ], cb);

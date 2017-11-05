@@ -35,7 +35,8 @@ module.exports = class View extends Base {
             _controller: this.controller,
             _format: this.controller.format.bind(this.controller),
             _t: this.controller.translate.bind(this.controller),
-            _url: this.controller.createUrl.bind(this.controller)
+            _url: this.controller.createUrl.bind(this.controller),
+            _baseUrl: this.controller.module.app.baseUrl
         }, params);
         this.layout = params.viewLayout || this.controller.VIEW_LAYOUT || this.controller.module.VIEW_LAYOUT;
         this.controller.res.app.render(this.get(template), params, (err, content)=> {

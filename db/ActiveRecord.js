@@ -142,7 +142,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     static findById (id) {
-        return this.find(['ID', this.PK, id]);
+        return this.find(['ID', this.PK, id instanceof ActiveRecord ? id.getId() : id]);
     }
 
     find () {
@@ -396,17 +396,22 @@ module.exports = class ActiveRecord extends Base {
         }
         let unlink = relation._via ? this.unlinkVia : this.unlinkInline;
         unlink.call(this, relation, model, remove, ()=> {
-            if (!relation.isMultiple()) {
-                this.unsetRelation(name);
-            } else if (this.isRelationPopulated(name)) {
-                for (let i = this._related[name].length - 1; i >= 0; --i) {
-                    if (MiscHelper.isEqual(model.getId(), this._related[name][i].getId())) {
-                        this._related[name].splice(i, 1);
-                    }
-                }
-            }
+            this.unsetUnlinked(name, model, relation);
             cb();
         });
+    }
+
+    unsetUnlinked (name, model, relation) {
+        if (!relation.isMultiple()) {
+            return this.unsetRelation(name);
+        }
+        if (this._related[name] instanceof Array) {
+            for (let i = this._related[name].length - 1; i >= 0; --i) {
+                if (MiscHelper.isEqual(model.getId(), this._related[name][i].getId())) {
+                    this._related[name].splice(i, 1);
+                }
+            }
+        }
     }
 
     unlinkVia (relation, model, remove, cb) {
@@ -433,10 +438,10 @@ module.exports = class ActiveRecord extends Base {
         }
         if (relation._via instanceof Array) {
             remove ? viaModel.find(condition).remove(cb)
-                : viaModel.find(condition).updateAll(nulls, cb);
+                   : viaModel.find(condition).updateAll(nulls, cb);
         } else {
             remove ? this.getDb().remove(viaTable, condition, cb)
-                : this.getDb().update(viaTable, condition, nulls, cb);
+                   : this.getDb().update(viaTable, condition, nulls, cb);
         }
     }
 
@@ -502,18 +507,17 @@ module.exports = class ActiveRecord extends Base {
         if (viaRelation._where) {
             condition = ['AND', condition, viaRelation._where];
         }
-        if (relation.remove instanceof Array) {
-            if (remove) {
-                viaModel.find(condition).all((err, models)=> {
-                    err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
-                });
-            } else {
-                viaModel.find(condition).updateAll(nulls, cb);
-            }
-        } else {
+        if (!(relation.remove instanceof Array)) {
             condition = this.getDb().buildCondition(condition);
             remove ? this.getDb().remove(viaTable, condition, cb)
-                : this.getDb().update(viaTable, condition, nulls, cb);
+                   : this.getDb().update(viaTable, condition, nulls, cb);
+        } else if (remove) {
+            viaModel.find(condition).all((err, models)=> {
+                err ? cb(err)
+                    : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
+            });
+        } else {
+            viaModel.find(condition).updateAll(nulls, cb);
         }
     }
 

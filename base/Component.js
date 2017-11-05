@@ -15,14 +15,14 @@ module.exports = class Component extends Base {
     }
 
     init () {
-        this.events = this.events ? ClassHelper.createInstance(this.events, {
+        this.events = this.eventManager ? ClassHelper.createInstance(this.eventManager, {
             owner: this
-        }) : new Events({
+        }) : new EventManager({
             owner: this
         });
-        this.behaviors = this.behaviors ? ClassHelper.createInstance(this.behaviors, {
+        this.behaviors = this.behaviorManager ? ClassHelper.createInstance(this.behaviorManager, {
             owner: this
-        }) : new Behaviors({
+        }) : new BehaviorManager({
             owner: this,
             autoAttachedItems: this.BEHAVIORS
         });
@@ -78,5 +78,5 @@ module.exports = class Component extends Base {
 };
 
 const ClassHelper = require('../helpers/ClassHelper');
-const Events = require('./Events');
-const Behaviors = require('./Behaviors');
+const EventManager = require('./EventManager');
+const BehaviorManager = require('./BehaviorManager');

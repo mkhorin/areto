@@ -49,19 +49,18 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepare (cb) {
-        if (this._primaryModel) {
-            // lazy loading of a relation
-            if (this._viaArray) {
-                this.prepareViaArray(cb);
-            } else if (this._via instanceof ActiveQuery) {
-                this.prepareViaTable(cb); // via junction table
-            } else if (this._via instanceof Array) {
-                this.prepareViaRelation(cb);
-            } else {
-                this.prepareFilter([this._primaryModel]);
-                this.execAfterPrepare(cb);
-            }
+        if (!this._primaryModel) {
+            this.execAfterPrepare(cb);
+        } else if (this._viaArray) { // lazy loading of a relation
+            this.prepareViaArray(cb);
+        } else if (this._via instanceof ActiveQuery) {
+            this.prepareViaTable(cb); // via junction table
+        } else if (this._via instanceof Array) {
+            this._via[1]._multiple
+                ? this.prepareViaRelationMultiple(cb)
+                : this.prepareViaRelation(cb);
         } else {
+            this.prepareFilter([this._primaryModel]);
             this.execAfterPrepare(cb);
         }
     }
@@ -90,28 +89,26 @@ module.exports = class ActiveQuery extends Base {
         });
     }
 
+    prepareViaRelationMultiple (cb) {
+        this._via[1].all((err, models)=> {
+            if (err) {
+                return cb(err);
+            }
+            this._primaryModel.populateRelation(this._via[0], models);
+            this.prepareFilter(models);
+            this.execAfterPrepare(cb);
+        });
+    }
+
     prepareViaRelation (cb) {
-        let viaName = this._via[0];
-        let viaQuery = this._via[1];
-        if (viaQuery._multiple) {
-            viaQuery.all((err, viaModels)=> {
-                if (err) {
-                    return cb(err);
-                }
-                this._primaryModel.populateRelation(viaName, viaModels);
-                this.prepareFilter(viaModels);
-                this.execAfterPrepare(cb);
-            });
-        } else {
-            viaQuery.one((err, model)=> {
-                if (err) {
-                    return cb(err);
-                }
-                this._primaryModel.populateRelation(viaName, model);
-                this.prepareFilter(model ? [model] : []);
-                this.execAfterPrepare(cb);
-            });
-        }
+        this._via[1].one((err, model)=> {
+            if (err) {
+                return cb(err);
+            }
+            this._primaryModel.populateRelation(this._via[0], model);
+            this.prepareFilter(model ? [model] : []);
+            this.execAfterPrepare(cb);
+        });
     }
 
     prepareFilter (models) {
@@ -260,16 +257,16 @@ module.exports = class ActiveQuery extends Base {
             models.push(model);
             model.afterFind(cb);
         }, err => {
-            if (err) {
-                return cb(err);
-            } 
-            if (models.length && Object.keys(this._with).length) {
-                this.findWith(this._with, models, err => {
-                    cb(err, this._index ? this.indexModels(models) : models);
-                });
-            } else {
-                cb(null, this._index ? this.indexModels(models) : models);
-            }
+            err ? cb(err) : this.populateWith(models, cb);
+        });
+    }
+
+    populateWith (models, cb) {
+        if (!models.length || !Object.keys(this._with).length) {
+            return cb(null, this._index ? this.indexModels(models) : models);
+        }
+        this.findWith(this._with, models, err => {
+            cb(err, this._index ? this.indexModels(models) : models);
         });
     }
 

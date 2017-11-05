@@ -15,8 +15,8 @@ module.exports = class Controller extends Base {
             // class name PostNum -> post-num 
             NAME: this.getName(),
             DEFAULT_ACTION: 'index',
-            // VIEW_CLASS: require('./View'), // by default inherited from module
-            // VIEW_LAYOUT: 'default', // by default inherited from module
+            // VIEW_CLASS: require('./View'), // inherited from module by default
+            // VIEW_LAYOUT: 'default', // inherited from module by default
             // INLINE_ACTION_CLASS: require('./InlineAction'), // by default inherited from module
             // declares allow methods for action if not set then all, name: [ 'GET', 'POST' ]
             METHODS: {}, // 'logout': ['POST']
@@ -39,13 +39,6 @@ module.exports = class Controller extends Base {
         return this.module.getFullName(separator) + separator + this.NAME;
     }
 
-    static getNestedDir () {
-        if (this._NESTED_DIR === undefined) {
-            this._NESTED_DIR = FileHelper.getNestedDir(this.CLASS_FILE, this.module.getControllerDir());
-        }
-        return this._NESTED_DIR;
-    }
-
     static getModelClass () {
         if (this._MODEL_CLASS === undefined) {
             try {
@@ -56,6 +49,20 @@ module.exports = class Controller extends Base {
             }
         }
         return this._MODEL_CLASS;
+    }
+
+    static getNestedDir () {
+        if (this._NESTED_DIR === undefined) {
+            this._NESTED_DIR = FileHelper.getNestedDir(this.CLASS_FILE, this.module.getControllerDir());
+        }
+        return this._NESTED_DIR;
+    }
+
+    static getTemplateDir () {
+        if (this._TEMPLATE_DIR === undefined) {
+            this._TEMPLATE_DIR = this.getNestedDir() ? `${this.getNestedDir()}/${this.NAME}/` : `${this.NAME}/`;
+        }
+        return this._TEMPLATE_DIR;
     }
 
     constructor (config) {
@@ -225,7 +232,7 @@ module.exports = class Controller extends Base {
     }
 
     goLogin () {
-        this.redirect(this.user.params.loginUrl);
+        this.redirect(this.user.getLoginUrl());
     }
 
     goBack (url) {
@@ -259,7 +266,7 @@ module.exports = class Controller extends Base {
     getTemplateName (template) {
         template = String(template);
         return template.indexOf('/') === -1 && template.indexOf(':') === -1
-            ? `${this.NAME}/${template}` : template;
+            ? (this.constructor.getTemplateDir() + template) : template;
     }
 
     send (data, code) {
@@ -313,12 +320,16 @@ module.exports = class Controller extends Base {
 
     // URL
 
+    getOriginalUrl () {
+        return this.req.originalUrl;
+    }
+
     createUrl (data) {        
-        return this.module.app.resolveUrl(Url.create(data, this));
+        return this.module.app.resolveUrl(Url.create(data, this.module, this));
     }
     
     createSimpleUrl (data) {
-        return Url.create(data, this);
+        return Url.create(data, this.module, this);
     }
 
     // SECURITY
@@ -340,9 +351,7 @@ module.exports = class Controller extends Base {
 
     translate (category, message, params) {
         if (category instanceof Message) {
-            message = category.message;
-            params = category.params;
-            category = category.category;
+            return category.translate(this.module, this.language);
         }
         return category 
             ? this.module.components.i18n.translate(category, message, params, this.language)

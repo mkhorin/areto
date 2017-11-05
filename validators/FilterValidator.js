@@ -8,7 +8,7 @@ module.exports = class FilterValidator extends Base {
         return {
             BUILTIN: {
                 'boolean': function (value, cb) {
-                    cb(null, value === 'on');
+                    cb(null, typeof value === 'boolean' ? value : value === 'on');
                 },
                 'json': function (value, cb) {
                     if (!value || typeof value === 'object') {

@@ -20,6 +20,7 @@ module.exports = class App extends Base {
     init () {
         super.init();
         this._urlCache = {};
+        this._baseExpress = express();
     }
 
     configure (configName, cb) {
@@ -28,8 +29,16 @@ module.exports = class App extends Base {
                 console.error(`App: ${this.NAME}:`, err);
                 return cb(err);
             }
+            this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
             cb();
         });
+    }
+
+    getRoute (url) {
+        if (this._route === undefined) {
+            this._route = this.mountPath === '/' ? '' : this.mountPath;
+        }
+        return url ? `${this._route}/${url}` : this._route;
     }
 
     start (cb) {
@@ -37,12 +46,21 @@ module.exports = class App extends Base {
         this.createServer(cb);
     }
 
+    useBaseExpressHandler () {
+        this._baseExpress.use.apply(this._baseExpress, arguments);
+    }
+
+    assignExpressQueue () {
+        super.assignExpressQueue();
+        this._baseExpress.use(this.mountPath, this._express);
+    }
+
     createServer (cb) {
-        const http = require('http');
-        this.server = http.createServer(this.express).on('error', err => {
+        this.server = http.createServer(this._baseExpress).on('error', err => {
             this.log('error', 'Server error', err);
             cb(err);
         }).listen(this.config.port, ()=> {
+            this.log('info', `${this.NAME} mounted as ${this.mountPath}`);
             this.log('info', `${this.NAME} started as ${this.configName}`, this.server.address());
             this.afterStart();
             cb();
@@ -97,3 +115,5 @@ module.exports = class App extends Base {
 module.exports.init();
 
 const async = require('async');
+const express = require('express');
+const http = require('http');

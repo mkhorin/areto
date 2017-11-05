@@ -16,8 +16,8 @@ module.exports = class Model extends Base {
                 // [['!attr1'], '{type}' ] - attr1 unsafe to load
             ],
             SCENARIOS: {
-                // 'scenario1': ['attr1', '!attr2'] - attr2 unsafe to load
-                // 'scenario2': ['attr2', 'attr3']
+                // scenario1: ['attr1', '!attr2'] - attr2 unsafe to load
+                // scenario2: ['attr2', 'attr3']
             },
             LABELS: {},
             HINTS: {},
@@ -226,15 +226,15 @@ module.exports = class Model extends Base {
 
     // LOAD
 
+    static loadMultiple (models, data) {
+        // TODO...
+    }
+
     load (data) {        
         if (data) {
             this.setSafeAttrs(data[this.NAME]);
         }
         return this;
-    }
-
-    loadMultiple (models, data) {        
-        // TODO...
     }
 
     // EVENTS
