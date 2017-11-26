@@ -207,7 +207,7 @@ module.exports = class ActiveQuery extends Base {
     findWith (relations, models, cb) {
         let primaryModel = new this.model.constructor;
         relations = this.normalizeRelations(primaryModel, relations);
-        async.forEachOf(relations, (relation, name, cb)=> {
+        async.eachOfSeries(relations, (relation, name, cb)=> {
             if (relation._asRaw === null) { // relation is ActiveQuery
                 relation._asRaw = this._asRaw; // inherit from primary query
             }
@@ -295,9 +295,6 @@ module.exports = class ActiveQuery extends Base {
                 }
                 let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
                 this._index = index;
-                if (index !== null && this._multiple) {
-                    buckets = this.indexBuckets(buckets, index);
-                }
                 let link = viaQuery ? viaQuery._link[1] : this._link[1];
                 this.populateMultipleRelation(name, primaryModels, buckets, link);
                 cb(null, models);
@@ -327,6 +324,9 @@ module.exports = class ActiveQuery extends Base {
                 }
             } else if (Object.prototype.hasOwnProperty.call(buckets, key)) {
                 value = buckets[key];
+            }
+            if (this._index && value instanceof Array) {
+                value = this._asRaw ? this.indexObjects(value) : this.indexModels(value);
             }
             if (pm instanceof ActiveRecord) {
                 pm.populateRelation(name, value);
@@ -419,20 +419,6 @@ module.exports = class ActiveQuery extends Base {
         return buckets;
     }
 
-    indexBuckets (buckets, index) {
-        let result = {};
-        for (let key of Object.keys(buckets)) {
-            result[key] = [];
-            for (let model of buckets[key]) {
-                let map = typeof index === 'function'
-                    ? index(model)
-                    : (model instanceof ActiveRecord ? model.get(index) : model[index]);
-                result[key][index] = model;
-            }
-        }
-        return result;
-    }
-    
     //
 
     getModelKey (model, attr) {

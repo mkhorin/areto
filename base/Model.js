@@ -48,8 +48,12 @@ module.exports = class Model extends Base {
     }
 
     unset (name) {
-        if (this.hasAttr(name)) {
-            delete this._attrs[name];
+        return delete this._attrs[name];
+    }
+
+    unsetAttrs (names) {
+        for (let name of names) {
+            this.unset(name);
         }
     }
 
@@ -172,7 +176,8 @@ module.exports = class Model extends Base {
     // ERRORS
 
     hasError (attr) {
-        return attr ? Object.prototype.hasOwnProperty.call(this._errors, attr) : Object.keys(this._errors).length > 0;
+        return attr ? Object.prototype.hasOwnProperty.call(this._errors, attr)
+                    : Object.keys(this._errors).length > 0;
     }
 
     getErrors (attr) {

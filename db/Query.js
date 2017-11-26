@@ -183,17 +183,21 @@ module.exports = class Query extends Base {
         }
     }
 
-    populate (rows, cb) {
-        if (!this._index) {
-            return cb(null, rows);
+    populate (docs, cb) {
+        if (this._index) {
+            docs = this.indexObjects(docs);
         }
+        cb(null, docs);
+    }
+
+    indexObjects (docs) {
         let result = {};
         let index = this._index;
-        for (let row of rows) {
-            let key = typeof index === 'function' ? index(row) : row[index];
-            result[key] = row;
+        for (let doc of docs) {
+            let key = typeof index === 'function' ? index(doc, this) : doc[index];
+            result[key] = doc;
         }
-        cb(null, result);
+        return result;
     }
 
     filterCondition (cond) {

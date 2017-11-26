@@ -223,7 +223,7 @@ module.exports = class Module extends Base {
     }
 
     setModules (config, cb) {
-        async.forEachOfSeries(config || {}, (config, id, cb)=> {
+        async.eachOfSeries(config || {}, (config, id, cb)=> {
             if (!config) {
                 this.log('info', `Module '${this.getFullName()}.${id}' skipped`);
                 return cb();
@@ -266,7 +266,7 @@ module.exports = class Module extends Base {
     setComponents (components, cb) {
         components = components || {};
         this.extendComponentsByDefaults(components);
-        async.forEachOfSeries(components, (config, id, cb)=> {
+        async.eachOfSeries(components, (config, id, cb)=> {
             if (!config) {
                 this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
                 return cb();

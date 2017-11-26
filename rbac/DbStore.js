@@ -98,13 +98,13 @@ module.exports = class DbStore extends Base {
 
     createItems (items, cb) {
         async.series([
-            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+            cb => async.eachOfSeries(items, (data, name, cb)=> {
                 this.createItem(name, data, cb);
             }, cb),
-            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+            cb => async.eachOfSeries(items, (data, name, cb)=> {
                 data.children ? this.setItemChildren(name, data, cb) : cb();
             }, cb),
-            cb => async.forEachOfSeries(items, (data, name, cb)=> {
+            cb => async.eachOfSeries(items, (data, name, cb)=> {
                 data.parents ? this.setItemParents(name, data, cb) : cb();
             }, cb)
         ], cb);
@@ -188,7 +188,7 @@ module.exports = class DbStore extends Base {
     }
 
     createRules (rules, cb) {
-        async.forEachOfSeries(rules, (data, name, cb)=> {
+        async.eachOfSeries(rules, (data, name, cb)=> {
             this.createRule(name, data, cb);
         }, cb);
     }

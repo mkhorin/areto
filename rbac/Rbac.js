@@ -111,7 +111,7 @@ module.exports = class Rbac extends Base {
         async.series([
             cb => defaults ? this.store.createRules(defaults.rules, cb) : cb(),
             cb => defaults ? this.store.createItems(defaults.items, cb) : cb(),
-            cb => async.forEachOfSeries(module.modules, (module, name, cb)=> {
+            cb => async.eachOfSeries(module.modules, (module, name, cb)=> {
                 this.setDefaults(module, cb);
             }, cb)
         ], cb);

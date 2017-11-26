@@ -15,17 +15,22 @@ module.exports = class Component extends Base {
     }
 
     init () {
-        this.events = this.eventManager ? ClassHelper.createInstance(this.eventManager, {
-            owner: this
-        }) : new EventManager({
-            owner: this
-        });
-        this.behaviors = this.behaviorManager ? ClassHelper.createInstance(this.behaviorManager, {
-            owner: this
-        }) : new BehaviorManager({
-            owner: this,
-            autoAttachedItems: this.BEHAVIORS
-        });
+        this.events = this.eventManager
+            ? ClassHelper.createInstance(this.eventManager, {
+                owner: this
+            })
+            : new EventManager({
+                owner: this
+            });
+
+        this.behaviors = this.behaviorManager
+            ? ClassHelper.createInstance(this.behaviorManager, {
+                owner: this
+            })
+            : new BehaviorManager({
+                owner: this,
+                autoAttachedItems: this.BEHAVIORS
+            });
     }
 
     on () {

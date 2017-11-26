@@ -289,10 +289,10 @@ module.exports = class ActiveRecord extends Base {
             return relation.findFor((err, result)=> {
                 this.populateRelation(name, result);
                 cb(err, this._related[name]);
-            });
+            })
         }
         if (relation === null) {
-            return cb(`${this.constructor.name}: Relation '${name}' not found`);
+            return cb(`${this.constructor.name}: Unknown relation: ${name}`);
         }
         cb(null, null);
     }
@@ -326,7 +326,7 @@ module.exports = class ActiveRecord extends Base {
         if (!linkModel) {
             linkModel = new viaRelation.model.constructor;
         } else if (!(linkModel instanceof viaRelation.model.constructor)) {
-            cb(`${this.constructor.name}: linkViaModel: Invalid link model`);
+            return cb(`${this.constructor.name}: linkViaModel: Invalid link model`);
         }
         linkModel.set(relation._link[1], this.get(relation._link[0]));
         linkModel.set(viaRelation._link[0], this.get(viaRelation._link[1]));
