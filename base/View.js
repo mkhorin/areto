@@ -15,7 +15,6 @@ module.exports = class View extends Base {
 
     constructor (config) {
         super(Object.assign({
-            theme: config.controller.module.components.template.getTheme(),
             widgets: {},
             data: {} 
         }, config));
@@ -27,6 +26,10 @@ module.exports = class View extends Base {
 
     getInner (template) {
         return this.get(this.controller.getTemplateName(template));
+    }
+
+    getParent (template) {
+        return this.theme.getParent(template, this.controller.language);
     }
 
     render (template, params, cb) {
@@ -63,7 +66,7 @@ module.exports = class View extends Base {
     createWidget (params) {
         let anchor = `${params.id}-${this.controller.timestamp}`;
         if (this.widgets[anchor]) {
-            this.controller.log('error', `${View.name}: "${params.id}" widget already exists`);
+            this.controller.log('error', `${View.name}: widget already exists: ${params.id}`);
             return '';
         }
         if (!params.configId) {
@@ -88,7 +91,7 @@ module.exports = class View extends Base {
                 this.widgets[anchor] = widget;
                 widget.execute(cb, renderParams);
             } else {
-                this.controller.log('error', `${View.name}: "${params.configId}" widget config not found`);
+                this.controller.log('error', `${View.name}: widget config not found: ${params.configId}`);
                 delete this.widgets[anchor];
                 cb();
             }
@@ -100,7 +103,9 @@ module.exports = class View extends Base {
     prepareWidgetContent (content) {
         let anchors = Object.keys(this.widgets).join('|');
         if (anchors.length) {
-            return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> this.widgets[anchor].content);
+            return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> {
+                return this.widgets[anchor].content;
+            });
         }
         return content;
     }

@@ -6,7 +6,9 @@ module.exports = class BehaviorManager extends Base {
 
     get (name) {
         this.ensure();
-        return Object.prototype.hasOwnProperty.call(this._behaviors, name) ? this._behaviors[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._behaviors, name) 
+            ? this._behaviors[name] 
+            : null;
     }
 
     attach (name, data) {
@@ -16,12 +18,12 @@ module.exports = class BehaviorManager extends Base {
 
     detach (name) {
         let behavior = this.get(name);
-        if (behavior) {
-            delete this._behaviors[name];
-            behavior.detach();
-            return behavior;
+        if (!behavior) {
+            return null;    
         }
-        return null;
+        delete this._behaviors[name];
+        behavior.detach();
+        return behavior;        
     }
 
     getAll () {
@@ -57,7 +59,8 @@ module.exports = class BehaviorManager extends Base {
     attachInternal (name, behavior) {
         if (!behavior) {
             throw new Error(`${this.constructor.name}: Attach undefined behavior: ${name}`);
-        } else if (behavior.prototype instanceof Behavior) {
+        } 
+        if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
         } else if (behavior.Class && behavior.Class.prototype instanceof Behavior) {
             behavior.name = behavior.name || name;

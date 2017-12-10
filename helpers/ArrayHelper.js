@@ -132,6 +132,30 @@ module.exports = class ArrayHelper {
             }
         }
     }
+
+    // HIERARCHY
+    // sort children after parents
+    static sortHierarchy (items, idProp, parentProp) {
+        let result = [], map = {};
+        for (let item of items) {
+            if (item[parentProp]) {
+                if (map[item[parentProp]] instanceof Array) {
+                    map[item[parentProp]].push(item);
+                } else {
+                    map[item[parentProp]] = [item];
+                }
+            } else {
+                result.push(item);
+            }
+        }
+        for (let i = 0; i < result.length; ++i) {
+            let item = result[i];
+            if (map[item[idProp]] instanceof Array) {
+                result = result.concat(map[item[idProp]]);
+            }
+        }
+        return result;
+    }
 };
 
 const MongoId = require('mongodb').ObjectID;

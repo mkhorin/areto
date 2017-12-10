@@ -18,7 +18,7 @@ module.exports = class OrderBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 
-    beforeInsert (event, cb) {
+    beforeInsert (cb, event) {
         if (!MiscHelper.isEmpty(this.owner.get(this.orderAttr))) {
             return cb();
         }
@@ -38,13 +38,19 @@ module.exports = class OrderBehavior extends Base {
                 if (this.filter instanceof Function) {
                     this.filter(query, this.owner);
                 } else if (typeof this.filter === 'string') {
-                    query.where({[this.filter]: this.owner.get(this.filter)});
+                    query.where({
+                        [this.filter]: this.owner.get(this.filter)
+                    });
                 }
-                query.order({[this.orderAttr]: this.step > 0 ? -1 : 1});
+                query.order({
+                    [this.orderAttr]: this.step > 0 ? -1 : 1
+                });
                 query.scalar(this.orderAttr, cb);
             },
             (last, cb)=> {
-                cb(null, MiscHelper.isEmpty(last) ? this.start : (parseInt(last) + this.step));
+                cb(null, MiscHelper.isEmpty(last)
+                    ? this.start
+                    : (parseInt(last) + this.step));
             }
         ], cb);
     }

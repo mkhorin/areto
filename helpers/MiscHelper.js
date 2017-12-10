@@ -94,6 +94,42 @@ module.exports = class MiscHelper {
             return cb(err);
         }
     }
+
+    // MONGO
+
+    static replaceMongoDataToJson (data) {
+        if (data) {
+            for (let key of Object.keys(data)) {
+                if (data[key] instanceof MongoId) {
+                    data[key] = {
+                        $oid: data[key].toString()
+                    };
+                } else if (data[key] instanceof Date) {
+                    data[key] = {
+                        $date: data[key].toISOString()
+                    };
+                } else if (data[key] instanceof Object) {
+                    this.replaceMongoDataToJson(data[key]);
+                }
+            }
+        }
+    }
+
+    static replaceJsonToMongoData (data) {
+        if (data) {
+            for (let key of Object.keys(data)) {
+                if (data[key] && data[key] instanceof Object) {
+                    if (this.isValidDate(data[key].$date)) {
+                        data[key] = new Date(data[key].$date);
+                    } else if (MongoId.isValid(data[key].$oid)) {
+                        data[key] = MongoId(data[key].$oid);
+                    } else {
+                        this.replaceJsonToMongoData(data[key]);
+                    }
+                }
+            }
+        }
+    }
 };
 
 const childProcess = require('child_process');

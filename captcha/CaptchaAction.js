@@ -77,7 +77,8 @@ module.exports = class Captcha extends Base {
         }
         //image.noise(1);
         image.setFormat('jpg').quality(this.quality).toBuffer((err, buffer)=> {
-            err ? cb(err) : this.controller.sendData(buffer, "binary");
+            err ? cb(err)
+                : this.controller.sendData(buffer, "binary");
         });
     }
 

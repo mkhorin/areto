@@ -24,7 +24,8 @@ module.exports = class Inspector extends Base {
             }
             async.eachSeries(item.parents, (parent, cb)=> {
                 this.execute(parent, (err, access)=> {
-                    err ? callback(err) : access ? callback(null, true) : cb();
+                    err ? callback(err)
+                        : access ? callback(null, true) : cb();
                 });
             }, callback);
         });

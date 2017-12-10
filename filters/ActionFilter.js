@@ -16,7 +16,7 @@ module.exports = class ActionFilter extends Base {
         this.assign(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
     }
 
-    beforeFilter (event, cb) {
+    beforeFilter (cb, event) {
         if (!this.isActive(event.action)) {
             return cb();
         }
@@ -31,7 +31,7 @@ module.exports = class ActionFilter extends Base {
         });
     }
 
-    afterFilter (event, cb) {
+    afterFilter (cb, event) {
         this.afterAction(event.action, err => {
             this.detachHandler(Controller.EVENT_AFTER_ACTION);
             cb(err);

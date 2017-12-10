@@ -104,6 +104,15 @@ module.exports = class ObjectHelper {
         return defaults;
     }
 
+    static addValueToMap (value, key, map, prepend) {
+        if (!(map[key] instanceof Array)) {
+            map[key] = [];
+        }
+        prepend ? map.unshift(value) : map.push(value);
+    }
+
+    // INTERNAL
+
     static _assign (to, from) {
         if (from && typeof from === 'object') {
             for (let prop of Object.keys(from)) {

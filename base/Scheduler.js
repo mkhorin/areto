@@ -32,11 +32,11 @@ module.exports = class Scheduler extends Base {
         }
     }
     
-    taskBeforeRun (event, cb) {
+    taskBeforeRun (cb, event) {
         this.triggerCallback(this.EVENT_TASK_BEFORE_RUN, cb, event);
     }
 
-    taskDone (event, cb, data) {
+    taskDone (cb, event, data) {
         this.log('info', `Task done: ${event.sender.id}:`, event.result);
         this.trigger(this.EVENT_TASK_DONE, event);
     }

@@ -18,14 +18,14 @@ module.exports = class TimestampBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
-    beforeInsert (event, cb) {
+    beforeInsert (cb, event) {
         if (this.createdAttr) {
             this.owner.set(this.createdAttr, this.formatDate());
         }
-        this.beforeUpdate(event, cb);
+        this.beforeUpdate(cb, event);
     }
 
-    beforeUpdate (event, cb) {
+    beforeUpdate (cb, event) {
         if (this.updatedAttr) {
             this.owner.set(this.updatedAttr, this.formatDate());
         }
@@ -33,7 +33,9 @@ module.exports = class TimestampBehavior extends Base {
     }
 
     formatDate () {
-        return this.format ? moment().format(this.format) : new Date;
+        return this.format 
+            ? moment().format(this.format) 
+            : new Date;
     }
 };
 

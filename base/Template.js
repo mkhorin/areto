@@ -9,7 +9,8 @@ module.exports = class Template extends Base {
             themeDir: 'themes',
             viewDir: 'views',
             Theme: require('./Theme'),
-            moduleViewPriority: false
+            moduleViewPriority: false,
+            theme: config.parent && config.parent.theme
         }, config));
     }
 
@@ -26,17 +27,21 @@ module.exports = class Template extends Base {
         this.defaultTheme = new this.Theme({
             template: this,
             name: null,
-            baseDir: this.viewDir
+            baseDir: this.viewDir,
+            parent: this.parent ? this.parent.getTheme() : null
         });
         this.themes = {};
         fs.readdir(this.themeDir, (err, files)=> {
             if (err) {
                 return cb(); // ignore not exists theme dir
             }
-            this.findThemes(files, err => {
-                this.setThemeParents();
-                cb(err);
-            });
+            async.series([
+                cb => this.createThemes(files, cb),
+                cb => {
+                    this.setThemeParents();
+                    cb();
+                }
+            ], cb);
         });
     }
 
@@ -71,25 +76,40 @@ module.exports = class Template extends Base {
                 if (this.hasTheme(parentName)) {
                     parent = this.themes[parentName];
                 }
-            } else if (!this.moduleViewPriority) {
-                parent = this.getParentTemplateTheme(name);
+            } else if (this.parent && !this.moduleViewPriority) {
+                parent = this.parent.getTheme(parentName);
             }
             this.themes[name].parent = parent || this.defaultTheme;
         }
     }
 
-    getParentTemplateTheme (name) {
-        return !this.parent ? null : this.parent.hasTheme(name)
-            ? this.parent.themes[name] : this.parent.getParentTemplateTheme(name);
+    isEmpty () {
+        if (!this.defaultTheme.isEmpty()) {
+            return false;
+        }
+        for (let name of Object.keys(this.themes)) {
+            if (!this.themes[name].isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     hasTheme (name) {
         return Object.prototype.hasOwnProperty.call(this.themes, name);
     }
 
-    getTheme (name) {        
+    getTheme (name) {
         name = name || this.theme;
-        return this.hasTheme(name) ? this.themes[name] : this.defaultTheme;
+        if (name) {
+            if (Object.prototype.hasOwnProperty.call(this.themes, name)) {
+                return this.themes[name];
+            }
+            if (this.parent) {
+                return this.parent.getTheme(name);
+            }
+        }
+        return this.defaultTheme;
     }
 };
 

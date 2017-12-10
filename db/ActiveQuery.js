@@ -25,7 +25,9 @@ module.exports = class ActiveQuery extends Base {
 
     exceptModel (model) {
         if (model instanceof this.model.constructor) {
-            return model.getId() ? this.and(['!=', model.PK, model.getId()]) : this;
+            return model.getId()
+                ? this.and(['!=', model.PK, model.getId()])
+                : this;
         }
         this.model.log('error', `ActiveQuery: exceptModel: ${this.model.constructor.name}: Invalid target model`);
         return this;
@@ -80,35 +82,35 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaTable (cb) {
-        this._via.findJunctionRows([this._primaryModel], (err, viaModels)=> {
-            if (err) {
-                return cb(err);
+        async.waterfall([
+            cb => this._via.findJunctionRows([this._primaryModel], cb),
+            (viaModels, cb)=> {
+                this.prepareFilter(viaModels);
+                this.execAfterPrepare(cb);
             }
-            this.prepareFilter(viaModels);
-            this.execAfterPrepare(cb);
-        });
+        ], cb);
     }
 
     prepareViaRelationMultiple (cb) {
-        this._via[1].all((err, models)=> {
-            if (err) {
-                return cb(err);
+        async.waterfall([
+            cb => this._via[1].all(cb),
+            (models, cb)=> {
+                this._primaryModel.populateRelation(this._via[0], models);
+                this.prepareFilter(models);
+                this.execAfterPrepare(cb);
             }
-            this._primaryModel.populateRelation(this._via[0], models);
-            this.prepareFilter(models);
-            this.execAfterPrepare(cb);
-        });
+        ], cb);
     }
 
     prepareViaRelation (cb) {
-        this._via[1].one((err, model)=> {
-            if (err) {
-                return cb(err);
+        async.waterfall([
+            cb => this._via[1].one(cb),
+            (model, cb)=> {
+                this._primaryModel.populateRelation(this._via[0], model);
+                this.prepareFilter(model ? [model] : []);
+                this.execAfterPrepare(cb);
             }
-            this._primaryModel.populateRelation(this._via[0], model);
-            this.prepareFilter(model ? [model] : []);
-            this.execAfterPrepare(cb);
-        });
+        ], cb);
     }
 
     prepareFilter (models) {
@@ -222,22 +224,24 @@ module.exports = class ActiveQuery extends Base {
     normalizeRelations (model, relations) {
         let result = {}; // { relationName: new ActiveQuery, ... }
         for (let name in relations) {
-            let handler = relations[name];
-            let childName = null;
-            let pos = name.indexOf('.');
-            if (pos > 0) {
-                childName = name.substring(pos + 1);
-                name = name.substring(0, pos);
-            }
-            let relation = model.getRelation(name);
-            if (relation) {
-                relation._primaryModel = null;
-                result[name] = relation;
-                // sub-relations -> orders.customer.address...
-                if (childName) {
-                    relation._with[childName] = handler;
-                } else if (handler) {
-                    handler(relation);
+            if (Object.prototype.hasOwnProperty.call(relations, name)) {
+                let handler = relations[name];
+                let childName = null;
+                let pos = name.indexOf('.');
+                if (pos > 0) {
+                    childName = name.substring(pos + 1);
+                    name = name.substring(0, pos);
+                }
+                let relation = model.getRelation(name);
+                if (relation) {
+                    relation._primaryModel = null;
+                    result[name] = relation;
+                    // sub-relations -> orders.customer.address...
+                    if (childName) {
+                        relation._with[childName] = handler;
+                    } else if (handler) {
+                        handler(relation);
+                    }
                 }
             }
         }
@@ -393,7 +397,7 @@ module.exports = class ActiveQuery extends Base {
         for (let model of models) {
             let key = this.getModelKey(model, linkKey);
             if (Object.prototype.hasOwnProperty.call(map, key)) {
-                for (let k in map[key]) {
+                for (let k of Object.keys(map[key])) {
                     if (buckets[k] instanceof Array) {
                         buckets[k].push(model);
                     } else {

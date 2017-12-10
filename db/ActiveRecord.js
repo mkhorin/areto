@@ -32,7 +32,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getDb () {
-        return this.module.getDb();
+        return this.constructor.getDb();
     }
 
     isNew () {

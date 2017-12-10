@@ -7,7 +7,7 @@ const StringHelper = require('../helpers/StringHelper');
 module.exports = class Controller extends Base {
 
     static getExtendedProperties () {
-        return ['METHODS','ACTIONS'];
+        return ['METHODS', 'ACTIONS'];
     }
     
     static getConstants () {
@@ -60,7 +60,9 @@ module.exports = class Controller extends Base {
 
     static getTemplateDir () {
         if (this._TEMPLATE_DIR === undefined) {
-            this._TEMPLATE_DIR = this.getNestedDir() ? `${this.getNestedDir()}/${this.NAME}/` : `${this.NAME}/`;
+            this._TEMPLATE_DIR = this.getNestedDir()
+                ? `${this.getNestedDir()}/${this.NAME}/`
+                : `${this.NAME}/`;
         }
         return this._TEMPLATE_DIR;
     }
@@ -139,11 +141,12 @@ module.exports = class Controller extends Base {
         }
         let method = `action${StringHelper.idToCamel(name)}`;
         let InlineAction = this.INLINE_ACTION_CLASS || this.module.INLINE_ACTION_CLASS;
-        return typeof this[method] === 'function' ? new InlineAction({
-            name,
-            controller: this,
-            method: this[method]
-        }) : null;
+        return typeof this[method] !== 'function' ? null
+            : new InlineAction({
+                name,
+                controller: this,
+                method: this[method]
+            });
     }
 
     triggerBeforeAction (cb) {
@@ -190,7 +193,9 @@ module.exports = class Controller extends Base {
     }
 
     getQueryParam (key, defaultValue) {
-        return Object.prototype.hasOwnProperty.call(this.req.query, key) ? this.req.query[key] : defaultValue;
+        return Object.prototype.hasOwnProperty.call(this.req.query, key)
+            ? this.req.query[key]
+            : defaultValue;
     }
 
     getQueryParams () {
@@ -198,7 +203,9 @@ module.exports = class Controller extends Base {
     }
 
     getBodyParam (key, defaultValue) {
-        return Object.prototype.hasOwnProperty.call(this.req.body, key) ? this.req.body[key] : defaultValue;
+        return Object.prototype.hasOwnProperty.call(this.req.body, key)
+            ? this.req.body[key]
+            : defaultValue;
     }
 
     getBodyParams () {
@@ -255,18 +262,27 @@ module.exports = class Controller extends Base {
         return this;
     }
 
-    render (template, params, cb) {
-        (new (this.VIEW_CLASS || this.module.VIEW_CLASS)({
-            controller: this
-        })).render(this.getTemplateName(template), params, (err, content)=> {
-            cb ? cb(err, content) : err ? this.action.complete(err) : this.send(content);
+    render (template, params, cb, view) {
+        view = view || this.createView();
+        view.render(this.getTemplateName(template), params, (err, content)=> {
+            cb ? cb(err, content)
+               : err ? this.action.complete(err)
+                     : this.send(content);
         });
+    }
+
+    createView (params) {
+        return new (this.VIEW_CLASS || this.module.VIEW_CLASS)(Object.assign({
+            controller: this,
+            theme: this.module.components.template.getTheme()
+        }, params));
     }
 
     getTemplateName (template) {
         template = String(template);
         return template.indexOf('/') === -1 && template.indexOf(':') === -1
-            ? (this.constructor.getTemplateDir() + template) : template;
+            ? (this.constructor.getTemplateDir() + template)
+            : template;
     }
 
     send (data, code) {
@@ -336,7 +352,8 @@ module.exports = class Controller extends Base {
 
     can (name, cb, params) {
         this.user.can(name, (err, access)=> {
-            err ? this.throwError(err) : access ? cb() : this.throwForbidden();
+            err ? this.throwError(err)
+                : access ? cb() : this.throwForbidden();
         }, params);
     }
 

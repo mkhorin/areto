@@ -14,12 +14,14 @@ module.exports = class MongoDriver extends Base {
 
     static normalizeId (id) {
         if (!(id instanceof Array)) {
-            return id instanceof this.MongoId ? id
+            return id instanceof this.MongoId
+                ? id
                 : this.MongoId.isValid(id) ? this.MongoId(id) : null;
         }
         let result = [];
         for (let item of id) {
-            result.push(item instanceof this.MongoId ? item
+            result.push(item instanceof this.MongoId
+                ? item
                 : this.MongoId.isValid(item) ? this.MongoId(item) : null);
         }
         return result;

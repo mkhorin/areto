@@ -13,13 +13,13 @@ module.exports = class DbRateLimitStore extends Base {
 
     find (type, user, cb) {
         let model = this.createModel({type, user});
-        this.getQueryBy(type, user).one((err, doc)=> {
-            if (err) {
-                return cb(err);
+        async.waterfall([
+            cb => this.getQueryBy(type, user).one(cb),
+            (doc, cb)=> {
+                model.setData(doc);
+                cb(null, model);
             }
-            model.setData(doc);
-            cb(null, model);
-        });
+        ], cb);
     }
 
     save (model, cb) {
@@ -29,8 +29,13 @@ module.exports = class DbRateLimitStore extends Base {
     getQueryBy (type, user) {
         let query = this.getQuery().where({type});
         return user.isAnonymous()
-            ? query.and({ip: user.getIp(), userId: null})
-            : query.and({userId: user.getId()});
+            ? query.and({
+                ip: user.getIp(),
+                userId: null
+            })
+            : query.and({
+                userId: user.getId()
+            });
     }
 
     getQuery () {
@@ -38,4 +43,5 @@ module.exports = class DbRateLimitStore extends Base {
     }
 };
 
+const async = require('async');
 const Query = require('../../db/Query');

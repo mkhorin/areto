@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Validator');
-const MiscHelper = require('../helpers/MiscHelper');
 
 module.exports = class UniqueValidator extends Base {
 
@@ -42,9 +41,9 @@ module.exports = class UniqueValidator extends Base {
         } else if (this.filter) {
             query.and(this.filter);
         }
-        query.limit(2).all((err, models)=> {            
+        query.limit(2).all((err, models)=> {
             if (err) {
-                return cb(err);                    
+                return cb(err);
             }
             let exists = true;
             if (models.length === 1) {
@@ -63,3 +62,6 @@ module.exports = class UniqueValidator extends Base {
         });
     }
 };
+
+const async = require('async');
+const MiscHelper = require('../helpers/MiscHelper');

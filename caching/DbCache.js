@@ -28,10 +28,13 @@ module.exports = class DbCache extends Base {
     }
 
     setValue (key, value, duration, cb) {
-        let expiredAt = duration ? (parseInt((new Date).getTime() / 1000) + duration) : 0;
+        let expiredAt = duration
+            ? (parseInt((new Date).getTime() / 1000) + duration)
+            : 0;
         let query = this.getQuery().where({key});        
         query.one((err, stored)=> {
-            err ? cb(err) : query.upsert({key, value, expiredAt}, cb);
+            err ? cb(err)
+                : query.upsert({key, value, expiredAt}, cb);
         });
     }
 

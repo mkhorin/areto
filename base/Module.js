@@ -12,6 +12,8 @@ module.exports = class Module extends Base {
                 'template': {}
             },
             EVENT_BEFORE_INIT: 'beforeInit',
+            EVENT_AFTER_SET_COMPONENTS: 'afterSetComponents',
+            EVENT_AFTER_SET_MODULES: 'afterSetModules',
             EVENT_AFTER_INIT: 'afterInit',
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction',
@@ -38,11 +40,13 @@ module.exports = class Module extends Base {
     init () {
         super.init();
         this._express = express();
-        this._expressQueue = []; // for deferred assign    
+        this._expressQueue = []; // for deferred assign
+        this._afterComponentInitHandlers = {};
+        this._afterModuleInitHandlers = {};
     }
 
     getDb (id = 'connection') {
-        return this.components[id] ? this.components[id].driver : null;
+        return this.components[id] instanceof Connection ? this.components[id].driver : null;
     }
 
     getFullName (separator = '.') { // eg - app.admin.post
@@ -128,6 +132,14 @@ module.exports = class Module extends Base {
         this.triggerCallback(this.EVENT_BEFORE_INIT, cb);
     }
 
+    afterSetComponents (cb) {
+        this.triggerCallback(this.EVENT_AFTER_SET_COMPONENTS, cb);
+    }
+
+    afterSetModules (cb) {
+        this.triggerCallback(this.EVENT_AFTER_SET_MODULES, cb);
+    }
+
     afterInit (cb) {
         this.triggerCallback(this.EVENT_AFTER_INIT, cb);
     }
@@ -138,6 +150,14 @@ module.exports = class Module extends Base {
 
     afterAction (action, cb) {
         this.triggerCallback(this.EVENT_AFTER_ACTION, cb, new ActionEvent(action));
+    }
+
+    onAfterComponentInit (id, handler) {
+        ObjectHelper.addValueToMap(handler, id, this._afterComponentInitHandlers);
+    }
+
+    onAfterModuleInit (id, cb) {
+        ObjectHelper.addValueToMap(handler, id, this._afterModuleInitHandlers);
     }
 
     // EXPRESS SETUP QUEUES
@@ -180,7 +200,7 @@ module.exports = class Module extends Base {
         } catch (err) {
             return {};
         }
-        return require(file); // show config exception
+        return require(file);
     }
 
     configure (parent, configName, cb) {
@@ -201,9 +221,10 @@ module.exports = class Module extends Base {
         async.series([
             cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
+            cb => this.afterSetComponents(cb),
             cb => this.setModules(this.config.modules, cb),
+            cb => this.afterSetModules(cb),
             cb => {
-                this.logger = this.components.logger;
                 this.setRouter(this.config.router);
                 this.setExpress();
                 this.afterInit(cb);
@@ -232,9 +253,14 @@ module.exports = class Module extends Base {
             let module = require(this.getPath('modules', id, 'module'));
             this.modules[id] = module;
             module.configure(this, configName, err => {
-                err ? this.log('error', `Module: ${module.getFullName()}:`, err)
-                    : this.log('info', `Module: attached ${module.getFullName()}`);
-                cb(err);
+                if (err) {
+                    this.log('error', `Module: ${module.getFullName()}:`, err);
+                    return cb();
+                }
+                this.log('info', `Module: attached ${module.getFullName()}`);
+                async.eachSeries(this._afterModuleInitHandlers[id], (handler, cb)=> {
+                    handler(cb, module);
+                }, cb);
             });
         }, cb);
     }
@@ -272,16 +298,24 @@ module.exports = class Module extends Base {
                 return cb();
             }
             config.module = config.module || this;
+            config.id = id;
             let name = config.setter || id;
             let method = `set${StringHelper.idToCamel(name)}Component`;
-            if (typeof this[method] !== 'function') {
-                this.setComponent(id, config);
-                return cb();
-            }
-            this[method](id, config, err => {
-                err || this.log('trace', `${this.getFullName()}: ${id} ready`);
-                cb(err);
-            });
+            async.series([
+                cb => {
+                    if (typeof this[method] === 'function') {
+                        return this[method](id, config, cb);
+                    }
+                    this.createComponent(id, config);
+                    cb();
+                },
+                cb => {
+                    this.log('trace', `${this.getFullName()}: ${id} ready`);
+                    async.eachSeries(this._afterComponentInitHandlers[id], (handler, cb)=> {
+                        handler(cb, this.components[id]);
+                    }, cb);
+                }
+            ], cb);
         }, cb);
     }
 
@@ -293,7 +327,7 @@ module.exports = class Module extends Base {
         }
     }
 
-    setComponent (id, config) {
+    createComponent (id, config) {
         return this.components[id] = ClassHelper.createInstance(config);
     }
 
@@ -318,16 +352,17 @@ module.exports = class Module extends Base {
     }
 
     setCacheComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../caching/Cache')
         }, config));
         cb();
     }
 
     setConnectionComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../db/Connection')
         }, config));
+        let y = this.getDb();
         this.getDb().open(cb);
     }
 
@@ -339,7 +374,7 @@ module.exports = class Module extends Base {
     }
 
     setFormatterComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../i18n/Formatter'),
             i18n: this.components.i18n
         }, config));
@@ -347,7 +382,7 @@ module.exports = class Module extends Base {
     }
 
     setI18nComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../i18n/I18n'),
             parent: this.parent ? this.parent.components.i18n : null
         }, config));
@@ -355,32 +390,33 @@ module.exports = class Module extends Base {
     }
 
     setLoggerComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.logger = this.createComponent(id, Object.assign({
             Class: require('../log/Logger')
-        }, config)).configure(cb);
+        }, config));
+        this.logger.configure(cb);
     }
 
     setRateLimitComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../web/rate-limit/RateLimit')
         }, config)).configure(cb);
     }
 
     setRbacComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../rbac/Rbac')
         }, config)).configure(cb);
     }
 
     setSchedulerComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('./Scheduler')
         }, config));
         cb();
     }
 
     setSessionComponent (id, config, cb) {
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../web/session/Session')
         }, config));
         cb();
@@ -393,8 +429,7 @@ module.exports = class Module extends Base {
     }
 
     setTemplateComponent (id, config, cb) {
-        this.appendToExpress('set', 'views', '/');
-        this.setComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('./Template'),
             parent: this.parent ? this.parent.components.template : null
         }, config)).configure(cb);
@@ -441,4 +476,5 @@ const express = require('express');
 const ClassHelper = require('../helpers/ClassHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');
+const Connection = require('../db/Connection');
 const Url = require('../web/Url');

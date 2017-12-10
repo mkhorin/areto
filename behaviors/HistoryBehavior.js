@@ -18,27 +18,29 @@ module.exports = class HistoryBehavior extends Base {
         this.assign(ActiveRecord.EVENT_AFTER_REMOVE, this.afterRemove);
     }
 
-    beforeUpdate (event, cb) {
+    beforeUpdate (cb, event) {
         async.each(this.getAttrNames(), (attr, cb)=> {
-            this.owner.isAttrChanged(attr) ? this.createHistory(attr, cb) : cb();
+            this.owner.isAttrChanged(attr) 
+                ? this.createHistory(attr, cb) 
+                : cb();
         }, cb);
     }
 
     createHistory (attr, cb) {
         let model = new this.History;
         model.setTargetData(this.owner, attr);
-        model.save(err => {
-            if (err) {
-                return cb(err);
+        async.series([
+            cb => model.save(cb),
+            cb => {
+                if (model.hasError()) {
+                    this.owner.log('error', this.constructor.name, model.getErrors());
+                }
+                cb();
             }
-            if (model.hasError()) {
-                this.owner.log('error', this.constructor.name, model.getErrors());
-            }
-            cb();
-        });
+        ], cb);
     }
 
-    afterRemove (event, cb) {
+    afterRemove (cb, event) {
         // remove all target object history
         this.History.removeTargetAll(this.owner, cb);
     }
@@ -47,7 +49,8 @@ module.exports = class HistoryBehavior extends Base {
         return this.includes instanceof Array
             ? this.includes
             : this.excludes instanceof Array 
-                ? ArrayHelper.diff(this.owner.STORED_ATTRS, this.excludes) : [];
+                ? ArrayHelper.diff(this.owner.STORED_ATTRS, this.excludes)
+                : [];
     }
 
     hasAttr (name) {

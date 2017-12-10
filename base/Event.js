@@ -57,7 +57,7 @@ module.exports = class Event extends Base {
             this._events[name] = event = {};
         }
         event[id] = event[id] || [];
-        // the reverse order, see trigger()
+        // reverse order, see trigger()
         prepend ? event[id].push([handler, data]) 
                 : event[id].unshift([handler, data]);
     }
@@ -94,7 +94,7 @@ module.exports = class Event extends Base {
         while (id) {
             let handlers = this._events[name][id];
             if (handlers) {
-                // обратный перебор, т.к. триггер может быть удален внутри хэндлера и изменится массив _events[name]
+                // trigger can be deleted inside the handler, array will change this._events[name]
                 for (let i = handlers.length - 1; i >= 0; --i) {
                     handlers[i][0](event, handlers[i][1]);
                     if (event.handled) {
@@ -119,10 +119,10 @@ module.exports = class Event extends Base {
             }
             tasks = tasks || [];
             while (id) {
-                if (this._events[name][id]) {
+                if (this._events[name][id] instanceof Array) {
                     this._events[name][id].forEach(function (handler) {
                         tasks.push(function (cb) {
-                            handler[0](event, cb, handler[1]);
+                            handler[0](cb, event, handler[1]);
                         });
                     });
                 }
@@ -130,7 +130,9 @@ module.exports = class Event extends Base {
                 id = sender ? sender.CLASS_FILE : null;
             };
         }
-        (tasks instanceof Array && tasks.length) ? async.series(tasks, cb) : cb();
+        (tasks instanceof Array && tasks.length) 
+            ? async.series(tasks.reverse(), cb)
+            : cb();
     }
 };
 module.exports._events = {};

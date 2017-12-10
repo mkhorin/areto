@@ -118,7 +118,7 @@ module.exports = class DbStore extends Base {
             cb => this.findItem().where({name}).one(cb),
             (item, cb)=> {
                 if (item) {
-                    this.log('warning', `RBAC: Item already exists: ${name}`);
+                    this.log('warn', `RBAC: Item already exists: ${name}`);
                     return callback();
                 }
                 data.rule ? this.findRuleByName(data.rule).one(cb) : cb(null, null);
@@ -198,7 +198,7 @@ module.exports = class DbStore extends Base {
             cb => this.find(this.TABLE_RULE).where({name}).one(cb),
             (rule, cb)=> {
                 if (rule) {
-                    this.log('warning', `RBAC: Rule already exists: ${name}`);
+                    this.log('warn', `RBAC: Rule already exists: ${name}`);
                     return cb();
                 }
                 this.find(this.TABLE_RULE).insert(Object.assign({name}, data), cb);            }

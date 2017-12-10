@@ -33,14 +33,21 @@ module.exports = class Theme extends Base {
         } catch (err) {}
     }
 
+    isEmpty () {
+        return Object.keys(this._files).length === 0;
+    }
+
     get (name, language) {
-        return this.getInner(name, language)
-            || (this.template.parent && this.template.parent.getTheme(this.name).get(name, language))
-            || name; // as absolute path
+        return this.getOnly(name, language) || (this.parent && this.parent.get(name, language)) || name;
     }
 
     getInner (name, language) {
-        return this.getOnly(name, language) || (this.parent && this.parent.get(name, language));
+        return this.getOnly(name, language)
+            || (this.parent && this.parent.template === this.template && this.parent.getInner(name, language));
+    }
+
+    getParent (name, language) {
+        return this.parent && this.parent.get(name, language);
     }
 
     getOnly (name, language) {

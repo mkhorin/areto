@@ -29,7 +29,7 @@ module.exports = class EventManager extends Base {
         if (!this._events[name]) {
             this._events[name] = [];
         }
-        // reverse order of addition, see trigger()
+        // reverse order, see trigger()
         prepend ? this._events[name].push([handler, data]) 
                 : this._events[name].unshift([handler, data]);
     }
@@ -57,7 +57,7 @@ module.exports = class EventManager extends Base {
         this.owner.ensureBehaviors();
         if (this._events[name] instanceof Array) {
             event = Event.create(event, this.owner, name);
-            // триггер может быть удален внутри хэндлера, изменится массив this._events[name]
+            // trigger can be deleted inside the handler, array will change this._events[name]
             for (let i = this._events[name].length - 1; i >= 0; --i) {
                 this._events[name][i][0](event, this._events[name][i][1]); // handler(event, data)
                 if (event.handled) {
@@ -75,7 +75,7 @@ module.exports = class EventManager extends Base {
             event = Event.create(event, this.owner, name);
             this._events[name].forEach(function (handler) {
                 tasks.push(function (cb) {
-                    handler[0](event, cb, handler[1]); 
+                    handler[0](cb, event, handler[1]);
                 });
             });
         }

@@ -22,14 +22,15 @@ module.exports = class UserIdentity extends Base {
     }
 
     setAuthKey (cb) {
-        SecurityHelper.generateRandomString(16, (err, result)=> {
-            if (err) {
-                return cb(err);
+        async.waterfall([
+            cb => SecurityHelper.generateRandomString(16, cb),
+            (result, cb)=> {
+                this.set('authKey', result);
+                cb();
             }
-            this.set('authKey', result);
-            cb();
-        });
+        ], cb);
     }
 };
 
+const async = require('async');
 const SecurityHelper = require('../helpers/SecurityHelper');

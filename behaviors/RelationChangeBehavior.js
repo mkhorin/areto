@@ -10,13 +10,16 @@ module.exports = class RelationChangeBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.afterSave);
     }
 
-    afterValidate (event, cb) {
+    afterValidate (cb, event) {
         this._changes = {};
         for (let name of this.owner.getActiveRelationNames()) {
             this._changes[name] = this.owner.get(name);
             let relation = this.owner.getRelation(name);
             let value = this.owner.getOldAttr(name);
-            this.owner.set(name, !value && relation._viaArray && !relation._asBackRef ? [] : value);
+            if (!value && relation._viaArray && !relation._asBackRef) {
+                value = [];
+            }
+            this.owner.set(name, value);
         }
         cb();
     }
@@ -46,11 +49,12 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     changeRelationById (id, relation, name, action, cb) {
-        relation.model.findById(id).all((err, targets)=> {
-            err ? cb(err) : async.eachSeries(targets, (target, cb)=> {
+        async.waterfall([
+            cb => relation.model.findById(id).all(cb),
+            (targets, cb)=> async.eachSeries(targets, (target, cb)=> {
                 relation._primaryModel[action](name, target, cb);
-            }, cb);
-        });
+            }, cb)
+        ], cb);
     }
 };
 

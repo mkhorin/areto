@@ -13,7 +13,7 @@ module.exports = class Logger extends Base {
     constructor (config) {
         super(Object.assign({
             level: 'info', // and right types
-            typeNames: ['trace', 'debug', 'info', 'warning', 'error', 'fatal'],
+            typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
             types: {},
             LogType,
             store: require('./FileLogStore'), // common store
@@ -70,6 +70,10 @@ module.exports = class Logger extends Base {
         this.setTypeShortcut(name);
     }
 
+    getType (name) {
+        return this.types[name] instanceof LogType ? this.types[name] : null;
+    }
+
     isActiveTypeName (name) {
         return this.level && this.typeNames.indexOf(name) >= this.typeNames.indexOf(this.level);
     }
@@ -113,7 +117,7 @@ module.exports = class Logger extends Base {
         next();
     }
 
-    endProcessingTime (event, cb) {
+    endProcessingTime (cb, event) {
         let controller = event.action.controller;
         let time = (new Date).getTime() - controller.res.locals.startProcessingTime;
         if (time >= this.processingTimeThreshold) {
@@ -137,6 +141,21 @@ module.exports = class Logger extends Base {
 
     afterLog (type, message, data) {
         this.trigger(this.EVENT_AFTER_LOG, {type, message, data});
+    }
+
+    getTotal (typeNames) {
+        let total = [];
+        typeNames = typeNames instanceof Array ? typeNames : this.typeNames;
+        for (let name of typeNames) {
+            let type = this.getType(name);
+            if (type && type.counter) {
+                total.push({
+                    type: name,
+                    counter: type.counter
+                });
+            }
+        }
+        return total;
     }
 };
 module.exports.init();

@@ -62,8 +62,7 @@ module.exports = class App extends Base {
         }).listen(this.config.port, ()=> {
             this.log('info', `${this.NAME} mounted as ${this.mountPath}`);
             this.log('info', `${this.NAME} started as ${this.configName}`, this.server.address());
-            this.afterStart();
-            cb();
+            this.afterStart(cb);
         });
     }
 
@@ -77,8 +76,8 @@ module.exports = class App extends Base {
 
     // EVENTS
 
-    afterStart () {
-        this.trigger(this.EVENT_AFTER_START);
+    afterStart (cb) {
+        this.triggerCallback(this.EVENT_AFTER_START, cb);
     }
 
     // MIGRATION

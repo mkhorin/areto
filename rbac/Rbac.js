@@ -101,7 +101,8 @@ module.exports = class Rbac extends Base {
             }
             inspector.assignment = this.itemIndex[assignment];
             inspector.execute(this.itemIndex[itemId], (err, access)=> {
-                err ? cb(err) : access ? callback(null, true) : cb();
+                err ? cb(err)
+                    : access ? callback(null, true) : cb();
             });
         }, callback);
     }
