@@ -16,7 +16,6 @@ module.exports = class FileLogStore extends Base {
     }
 
     init () {
-        super.init();
         this.baseDir = path.join(this.baseDir, this.dir);
         mkdirp.sync(this.baseDir);
         this.maxFileSize *= 1024 * 1024;

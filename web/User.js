@@ -86,7 +86,7 @@ module.exports = class User extends Base {
     }
 
     login (identity, duration, cb) {
-        duration = duration ? duration : 0;
+        duration = duration || 0;
         async.series([
             cb => this.beforeLogin(identity, false, duration, cb),
             cb => this.switchIdentity(identity, duration, cb),
@@ -96,19 +96,24 @@ module.exports = class User extends Base {
 
     loginByCookie (cb) {
         let value = this.req.cookies[this.params.identityCookieParam];
-        if (!value || typeof value !== 'object' || typeof value.id !== 'string'
-            || typeof value.key !== 'string' || typeof value.duration !== 'number') {
+        if (!value || typeof value !== 'object'
+            || typeof value.id !== 'string'
+            || typeof value.key !== 'string'
+            || typeof value.duration !== 'number') {
             return cb();
         }
         let duration = value.duration;
         async.waterfall([
             cb => this.params.Identity.findIdentity(value.id).one(cb),
             (identity, cb)=> {
-                identity && identity.validateAuthKey(value.key) ? async.series([
+                if (!identity || !identity.validateAuthKey(value.key)) {
+                    return cb();
+                }
+                async.series([
                     cb => this.beforeLogin(identity, true, duration, cb),
                     cb => this.switchIdentity(identity, this.params.autoRenewCookie ? duration : 0, cb),
                     cb => this.afterLogin(identity, true, duration, cb)
-                ], cb) : cb();
+                ], cb);
             }
         ], cb);
     }
@@ -229,9 +234,11 @@ module.exports = class User extends Base {
         if (identity && (this.params.authTimeout !== null || this.params.absoluteAuthTimeout !== null)) {
             let now = Math.floor((new Date).getTime() / 1000);
             let expire = this.params.authTimeout !== null
-                ? this.session[this.params.authTimeoutParam] : null;
+                ? this.session[this.params.authTimeoutParam]
+                : null;
             let expireAbsolute = this.params.absoluteAuthTimeout !== null
-                ? this.session[this.params.absoluteAuthTimeoutParam] : null;
+                ? this.session[this.params.absoluteAuthTimeoutParam]
+                : null;
             if (expire !== null && expire < now || expireAbsolute !== null && expireAbsolute < now) {
                 return this.logout(()=> this.renewAuthCookie(cb), false);
             }

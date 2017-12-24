@@ -14,8 +14,7 @@ module.exports = class DbLogStore extends Base {
         }, config));
     }
 
-    init () {
-        super.init();        
+    init () {        
         if (this.observePeriod) {
             this.observe();
         }

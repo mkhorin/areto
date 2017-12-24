@@ -5,7 +5,6 @@ const Base = require('./RateLimitStore');
 module.exports = class MemoryRateLimitStore extends Base {
 
     init () {
-        super.init();
         this._data = {};
     }
 

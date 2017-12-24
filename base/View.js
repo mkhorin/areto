@@ -6,10 +6,13 @@ module.exports = class View extends Base {
 
     static getConstants () {
         return {
-            'ArrayHelper': require('../helpers/ArrayHelper'),
-            'MiscHelper': require('../helpers/MiscHelper'),
-            'StringHelper': require('../helpers/StringHelper'),
-            'ObjectHelper': require('../helpers/ObjectHelper')
+            POS_HEAD: 'head',
+            POS_BODY_END: 'bodyEnd',
+
+            ArrayHelper: require('../helpers/ArrayHelper'),
+            MiscHelper: require('../helpers/MiscHelper'),
+            StringHelper: require('../helpers/StringHelper'),
+            ObjectHelper: require('../helpers/ObjectHelper')
         };
     }
 
@@ -32,19 +35,8 @@ module.exports = class View extends Base {
         return this.theme.getParent(template, this.controller.language);
     }
 
-    render (template, params, cb) {
-        params = Object.assign({
-            _view: this,
-            _controller: this.controller,
-            _format: this.controller.format.bind(this.controller),
-            _t: this.controller.translate.bind(this.controller),
-            _url: this.controller.createUrl.bind(this.controller),
-            _baseUrl: this.controller.module.app.baseUrl
-        }, params);
-        this.layout = params.viewLayout || this.controller.VIEW_LAYOUT || this.controller.module.VIEW_LAYOUT;
-        this.controller.res.app.render(this.get(template), params, (err, content)=> {
-            err ? cb(err) : this.renderWidgets(content, params, cb);
-        });
+    log () {
+        return this.controller.log.apply(this.controller, arguments);
     }
 
     // CUSTOM DATA
@@ -57,7 +49,59 @@ module.exports = class View extends Base {
         this.data[key] = data;
     }
 
-    // WIDGETS
+    // RENDER
+
+    render (template, params, cb) {
+        params = Object.assign({
+            _view: this,
+            _controller: this.controller,
+            _format: this.controller.format.bind(this.controller),
+            _t: this.controller.translate.bind(this.controller),
+            _url: this.controller.createUrl.bind(this.controller),
+            _baseUrl: this.controller.module.app.baseUrl
+        }, params);
+        this.layout = params.viewLayout
+            || this.controller.VIEW_LAYOUT
+            || this.controller.module.VIEW_LAYOUT;
+        this.controller.res.app.render(this.get(template), params, (err, content)=> {
+            err ? cb(err)
+                : this.renderWidgets(content, params, cb);
+        });
+    }
+
+    renderHead () {
+        return this.renderAsset(this.POS_HEAD);
+    }
+
+    renderBodyEnd () {
+        return this.renderAsset(this.POS_BODY_END);
+    }
+
+    // ASSET
+
+    addAsset (data) {
+        let asset = this.getAsset();
+        if (asset) {
+            asset.add(data);
+        }
+    }
+
+    renderAsset (position) {
+        let asset = this.getAsset();
+        return asset ? asset.render(position) : '';
+    }
+
+    getAsset () {
+        if (this._asset === undefined) {
+            if (!this.controller.module.components.asset) {
+                return this.log('error', 'Not found asset manager');
+            }
+            this._asset = this.controller.module.components.asset.createViewAsset();
+        }
+        return this._asset;
+    }
+
+    // WIDGET
 
     getWidgetAnchor (id) {
         return `{${id}-${this.controller.timestamp}}`;
@@ -66,7 +110,7 @@ module.exports = class View extends Base {
     createWidget (params) {
         let anchor = `${params.id}-${this.controller.timestamp}`;
         if (this.widgets[anchor]) {
-            this.controller.log('error', `${View.name}: widget already exists: ${params.id}`);
+            this.log('error', `${View.name}: widget already exists: ${params.id}`);
             return '';
         }
         if (!params.configId) {
@@ -91,23 +135,24 @@ module.exports = class View extends Base {
                 this.widgets[anchor] = widget;
                 widget.execute(cb, renderParams);
             } else {
-                this.controller.log('error', `${View.name}: widget config not found: ${params.configId}`);
+                this.log('error', `${View.name}: widget config not found: ${params.configId}`);
                 delete this.widgets[anchor];
                 cb();
             }
         }, err => {
-            err ? cb(err) : cb(null, this.prepareWidgetContent(content));
+            err ? cb(err)
+                : cb(null, this.prepareWidgetContent(content));
         });
     }
 
     prepareWidgetContent (content) {
         let anchors = Object.keys(this.widgets).join('|');
-        if (anchors.length) {
-            return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> {
-                return this.widgets[anchor].content;
-            });
+        if (anchors.length === 0) {
+            return content;
         }
-        return content;
+        return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> {
+            return this.widgets[anchor].content;
+        });
     }
 };
 module.exports.init();

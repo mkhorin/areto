@@ -30,7 +30,7 @@ module.exports = class Widget extends Base {
         if (this.disabled) {
             return cb();
         }
-        this.view.controller.log('trace', `${Widget.name}: execute: ${this.id}`);
+        this.view.log('trace', `${Widget.name}: execute: ${this.id}`);
         if (this.cache) {
             return this.cache.use(`widget-${this.id}`, this.run.bind(this), (err, data)=> {
                 this.content = data;

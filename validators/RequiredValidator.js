@@ -15,7 +15,8 @@ module.exports = class RequiredValidator extends Base {
         super.init();
         this.skipOnEmpty = false;
         this.createMessage('message', this.requiredValue === null 
-            ? 'Value cannot be blank' : 'Value must be "{requiredValue}"');
+            ? 'Value cannot be blank'
+            : 'Value must be "{requiredValue}"');
     }
 
     validateValue (value, cb) {

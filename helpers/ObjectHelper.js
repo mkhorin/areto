@@ -124,11 +124,11 @@ module.exports = class ObjectHelper {
 
     static _assignProperty (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
-            if (from[prop] !== null && typeof from[prop] === 'object') {
-                if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] !== null && typeof to[prop] === 'object') {
+            if (from[prop] && typeof from[prop] === 'object') {
+                if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] && typeof to[prop] === 'object') {
                     to[prop] = this._assign(to[prop], from[prop]);
                 } else {
-                    to[prop] = from[prop];
+                    to[prop] = this._assign({}, from[prop]);
                 }
             } else {
                 to[prop] = from[prop];
@@ -148,8 +148,8 @@ module.exports = class ObjectHelper {
     static _assignUndefinedProperty (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
             if (Object.prototype.hasOwnProperty.call(to, prop)) {
-                if (from[prop] !== null && typeof from[prop] === 'object'
-                    && to[prop] !== null && typeof to[prop] === 'object') {
+                if (from[prop] && typeof from[prop] === 'object'
+                    && to[prop] && typeof to[prop] === 'object') {
                     this._assignUndefined(to[prop], from[prop])
                 }
             } else {

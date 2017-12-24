@@ -62,7 +62,7 @@ module.exports = class FilterValidator extends Base {
                 return cb();
             }
             if (typeof value[this.filter] !== 'function') {
-                return cb(`Not found inline filter "${this.filter}" of the ${value.constructor.name} class`);
+                return cb(`FilterValidator: Not found inline filter "${this.filter}" of the ${value.constructor.name} class`);
             }
             try {
                 model.set(attr, value[this.filter]());

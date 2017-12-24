@@ -95,13 +95,14 @@ module.exports = class Module extends Base {
     getController (id) {
         try {
             return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
-        } catch (err) {}
+        } catch (err) {
+        }
         return null;
     }
 
-    log (type, message, data) {
+    log () {
         if (this.logger) {
-            return this.logger.log(type, message, data);
+            return this.logger.log.apply(this.logger, arguments);
         }
         console.log.apply(console, arguments);
     }
@@ -289,6 +290,10 @@ module.exports = class Module extends Base {
         return this.hasComponent(name) ? this.components[name] : null;
     }
 
+    getComponentFromParent (name) {
+        return this.parent ? this.parent.getComponent(name) : null;
+    }
+
     setComponents (components, cb) {
         components = components || {};
         this.extendComponentsByDefaults(components);
@@ -339,6 +344,13 @@ module.exports = class Module extends Base {
             }
         }
         this.components[name] = newComponent;
+    }
+
+    setAssetComponent (id, config, cb) {
+        this.createComponent(id, Object.assign({
+            Class: require('../web/asset/AssetManager')
+        }, config));
+        cb();
     }
 
     setBodyParserComponent (id, config, cb) {
