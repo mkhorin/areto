@@ -34,7 +34,7 @@ module.exports = class Theme extends Base {
     }
 
     isEmpty () {
-        return Object.keys(this._files).length === 0;
+        return !Object.values(this._files).length;
     }
 
     get (name, language) {

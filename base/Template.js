@@ -35,7 +35,7 @@ module.exports = class Template extends Base {
             if (err) {
                 return cb(); // ignore not exists theme dir
             }
-            async.series([
+            AsyncHelper.series([
                 cb => this.createThemes(files, cb),
                 cb => {
                     this.setThemeParents();
@@ -46,14 +46,14 @@ module.exports = class Template extends Base {
     }
 
     createThemes (files, cb) {
-        async.eachSeries(files, (name, cb)=> {
+        AsyncHelper.eachSeries(files, (name, cb)=> {
             this.createTheme(name, cb);
         }, cb);
     }
 
     createTheme (name, cb) {
         let baseDir = path.join(this.themeDir, name);
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => fs.stat(baseDir, cb),
             (stat, cb)=> {
                 if (stat.isDirectory()) {
@@ -87,8 +87,8 @@ module.exports = class Template extends Base {
         if (!this.defaultTheme.isEmpty()) {
             return false;
         }
-        for (let name of Object.keys(this.themes)) {
-            if (!this.themes[name].isEmpty()) {
+        for (let theme of Object.values(this.themes)) {
+            if (!theme.isEmpty()) {
                 return false;
             }
         }
@@ -113,6 +113,6 @@ module.exports = class Template extends Base {
     }
 };
 
-const async = require('async');
 const fs = require('fs');
 const path = require('path');
+const AsyncHelper = require('../helpers/AsyncHelper');

@@ -15,8 +15,12 @@ module.exports = class ClassHelper {
         }
         return config && config.Class ? new config.Class(config) : null;
     }
+
+    static normalizeCreationData (config, params) {
+        return Object.assign(typeof config === 'function' ? {Class: config} : config, params);
+    }
    
-    // get value from Class[name] and (new Class)[name]
+    // to get value from Class[name] and (new Class)[name]
     static defineClassProperty (Class, name, value, writable) {
         Object.defineProperty(Class, name, {value, writable});
         Object.defineProperty(Class.prototype, name, {value, writable});
@@ -39,38 +43,44 @@ module.exports = class ClassHelper {
     }
 
     static defineConstantClassProperties (Class, methodName = CONSTANT_METHOD) {
-        let props = this.getClassProperties(Class, methodName, Class);
+        let props = this.getClassProperties(Class, methodName, Class, 'getExtendedProperties');
         for (let name of Object.keys(props)) {
-            this.defineClassProperty(Class, name, props[name]);
+            this.defineClassProperty(Class, name, props[name], false);
         }
     }
 
     static defineStaticClassProperties (Class, methodName = STATIC_METHOD) {
-        let props = this.getClassProperties(Class, methodName, Class);
+        let props = this.getClassProperties(Class, methodName, Class, 'getExtendedProperties');
         for (let name of Object.keys(props)) {
             this.defineClassProperty(Class, name, props[name], true);
         }
     }
 
-    static getClassProperties (Class, methodName, targetClass, childProps = {}) {
-        let parentProps = methodName in targetClass ? targetClass[methodName].call(Class) : {};
-        let props = Object.assign({}, parentProps, childProps);
-        if (Class.getExtendedProperties) {
-            for (let name of Class.getExtendedProperties()) {
-                let prop = this.getExtendedClassProperty(name, childProps[name], parentProps[name]);
+    static getClassProperties (targetClass, methodName, chainClass, extendedMethodName) {
+        let parentClass = Object.getPrototypeOf(chainClass);
+        let chainProps = chainClass[methodName] && chainClass[methodName] !== parentClass[methodName]
+            ? chainClass[methodName].call(targetClass) : {};
+
+        if (!Object.getPrototypeOf(parentClass)) {
+            return chainProps;
+        }
+        let parentProps = this.getClassProperties(targetClass, methodName, parentClass);
+        let props = Object.assign({}, parentProps, chainProps);
+        if (chainClass[extendedMethodName] instanceof Function) {
+            for (let name of chainClass[extendedMethodName]()) {
+                let prop = this.getExtendedClassProperty(name, chainProps[name], parentProps[name]);
                 if (prop) {
                     props[name] = prop;
                 }
             }
         }
-        targetClass = Object.getPrototypeOf(targetClass);
-        return targetClass ? this.getClassProperties(Class, methodName, targetClass, props) : props;
+        return props;
     }
 
     static getExtendedClassProperty (name, childProp, parentProp) {
         if (childProp && parentProp) {
             if (childProp instanceof Array && parentProp instanceof Array) {
-                return childProp.concat(parentProp);
+                return [].concat(parentProp, childProp);
             }
             if (typeof childProp === 'object' && typeof parentProp === 'object') {
                 return Object.assign({}, parentProp, childProp);

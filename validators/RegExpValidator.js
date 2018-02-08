@@ -31,7 +31,10 @@ module.exports = class RegExpValidator extends Base {
         } else if (!(this.pattern instanceof RegExp)) {
             throw new Error(`${this.constructor.name}: Invalid pattern: ${this.pattern}`);
         }
-        this.createMessage('message', 'Invalid value');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid value');
     }
 
     validateValue (value, cb) {
@@ -43,7 +46,7 @@ module.exports = class RegExpValidator extends Base {
         } else {
             valid = !!this.not;
         }
-        cb(null, valid ? null : this.message);
+        cb(null, valid ? null : this.getMessage());
     }
 };
 module.exports.init();

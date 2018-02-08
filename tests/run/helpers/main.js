@@ -1,24 +1,24 @@
 'use strict';
 
 const expect = require('chai').expect;
-const MiscHelper = require('../../../helpers/MiscHelper');
+const CommonHelper = require('../../../helpers/CommonHelper');
 
 describe('helpers.main', ()=> {
 
     describe('date', ()=> {        
         
         it('isValidDate', ()=> {
-            expect(MiscHelper.isValidDate(new Date)).to.true;
-            expect(MiscHelper.isValidDate('12-10-1905')).to.true;
-            expect(MiscHelper.isValidDate('test')).to.false;
-            expect(MiscHelper.isValidDate('12-40-1905')).to.false;
+            expect(CommonHelper.isValidDate(new Date)).to.true;
+            expect(CommonHelper.isValidDate('12-10-1905')).to.true;
+            expect(CommonHelper.isValidDate('test')).to.false;
+            expect(CommonHelper.isValidDate('12-40-1905')).to.false;
         });
         
         it('getValidDate', ()=> {
             let date = new Date;
-            expect(MiscHelper.getValidDate(date)).to.equal(date);
-            expect(MiscHelper.getValidDate('12-10-2015').getTime()).to.equal(new Date('12-10-2015').getTime());
-            expect(MiscHelper.getValidDate('12-40-2015')).to.null;
+            expect(CommonHelper.getValidDate(date)).to.equal(date);
+            expect(CommonHelper.getValidDate('12-10-2015').getTime()).to.equal(new Date('12-10-2015').getTime());
+            expect(CommonHelper.getValidDate('12-40-2015')).to.null;
         });
     });
 
@@ -52,34 +52,29 @@ describe('helpers.main', ()=> {
     });
 
     it('parseJson: return JSON from string', ()=> {
-        let json = MiscHelper.parseJson(JSON.stringify({a: 5}));
+        let json = CommonHelper.parseJson(JSON.stringify({a: 5}));
         expect(json.a).to.equal(5);
     });
 
     it('parseJson: return NULL from invalid JSON string', ()=> {
-        let json = MiscHelper.parseJson('non-json');
+        let json = CommonHelper.parseJson('non-json');
         expect(json).to.equal(null);
     });
 
     it('getRandom', ()=> {
-        let num = MiscHelper.getRandom(5, 10);
+        let num = CommonHelper.getRandom(5, 10);
         expect(num).to.be.within(5,10);
     });
 
     it('escapeRegExp: set special symbols as simple string', ()=> {
-        let result = MiscHelper.escapeRegExp('^test{1}$');
+        let result = CommonHelper.escapeRegExp('^test{1}$');
         result = (new RegExp(result)).test('^test{1}$');
         expect(result).to.true;
     });
 
     it('escapeHtml: set special symbols as simple string', ()=> {
-        let result = MiscHelper.escapeHtml('<div>test</div>');
+        let result = CommonHelper.escapeHtml('<div>test</div>');
         expect(result).to.equal('&lt;div&gt;test&lt;/div&gt;');
-    });
-
-    it('getValues', ()=> {
-        let list = MiscHelper.getValues({a: 1, b: 2, c: 3});
-        expect(list).to.eql([1, 2, 3]);
     });
 
     it('getAllPropertyNames', ()=> {

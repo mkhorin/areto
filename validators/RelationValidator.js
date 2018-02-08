@@ -26,22 +26,31 @@ module.exports = class RelationValidator extends Base {
         if (this.allow && this.deny) {
             throw new Error(`${this.constructor.name}: Allowed only one permission`);
         }
-        if (this.min > 0) {
-            this.createMessage('tooFew', 'Relation should contain at least {min} lnk.', {min: this.min});
-        }
-        if (this.max > 0) {
-            this.createMessage('tooMany', 'Relation should contain at most {max} lnk.', {max: this.max});
-        }
-        this.createMessage('message', 'Invalid relation request');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid relation request');
+    }
+
+    getTooFewMessage () {
+        return this.createMessage(this.tooFew, 'Relation should contain at least {min} lnk.', {
+            min: this.min
+        });
+    }
+
+    getTooManyMessage () {
+        return this.createMessage(this.tooMany, 'Relation should contain at most {max} lnk.', {
+            max: this.max
+        });
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, message, params, changes)=> {
+        this.validateValue(model.get(attr), (err, message, changes)=> {
             if (err) {
                 return cb(err);
             }
             if (message) {
-                this.addError(model, attr, message, params);
+                this.addError(model, attr, message);
                 return cb();
             }
             if (changes) {
@@ -50,7 +59,7 @@ module.exports = class RelationValidator extends Base {
             if (!this.filter || !changes) {
                 return this.checkTotal(changes, model, attr, cb);
             }
-            async.series([
+            AsyncHelper.series([
                 cb => this.filter(changes, model, attr, cb),
                 cb => this.checkTotal(changes, model, attr, cb)
             ], cb);
@@ -59,16 +68,16 @@ module.exports = class RelationValidator extends Base {
 
     validateValue (value, cb) {
         let error = false;
-        value = typeof value === 'string' ? MiscHelper.parseJson(value) : value;
+        value = typeof value === 'string' ? CommonHelper.parseJson(value) : value;
         if (!value || (!value.links && !value.unlinks && !value.removes)) {
             return cb();
         }
         this.filterChanges(value);
         let all = value.links.concat(value.unlinks, value.removes);
         if (ArrayHelper.unique(all).length !== all.length) {
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
-        cb(null, null, null, value);
+        cb(null, null, value);
     }
 
     filterChanges (changes) {
@@ -94,7 +103,10 @@ module.exports = class RelationValidator extends Base {
     }
 
     checkTotal (changes, model, attr, cb) {
-        this.min || this.max ? async.waterfall([
+        if (!this.min && !this.max) {
+            return cb();
+        }
+        AsyncHelper.waterfall([
             cb => model.findRelation(attr, cb),
             (models, cb) => {
                 models = models instanceof Array ? models : models ? [models] : [];
@@ -110,20 +122,20 @@ module.exports = class RelationValidator extends Base {
                         changes.removes.forEach(id => delete map[id]);
                     }
                 }
-                let total = Object.keys(map).length;
+                let total = Object.values(map).length;
                 if (this.min && total < this.min) {
-                    this.addError(model, attr, this.tooFew);
+                    this.addError(model, attr, this.getTooFewMessage());
                 }
                 if (this.max && total > this.max) {
-                    this.addError(model, attr, this.tooMany);
+                    this.addError(model, attr, this.getTooManyMessage());
                 }
                 cb();
             }
-        ], cb) : cb();
+        ], cb);
     }
 };
 module.exports.init();
 
-const async = require('async');
-const MiscHelper = require('../helpers/MiscHelper');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');
+const CommonHelper = require('../helpers/CommonHelper');

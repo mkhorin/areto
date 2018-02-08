@@ -11,4 +11,12 @@ module.exports = class Store extends Base {
     log () {
         this.rbac.log.apply(this.rbac, arguments);
     }
+
+    createItems (items, cb) {
+        cb(`${this.constructor.name}: Need to override`);
+    }
+
+    createRules (rules, cb) {
+        cb(`${this.constructor.name}: Need to override`);
+    }
 };

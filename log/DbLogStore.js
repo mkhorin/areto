@@ -8,7 +8,7 @@ module.exports = class DbLogStore extends Base {
         super(Object.assign({
             db: config.logger.module.getDb(),
             table: 'log',
-            pk: '_id',
+            key: '_id',
             observePeriod: 60, // seconds, null - off
             maxRows: 10000
         }, config));
@@ -52,15 +52,15 @@ module.exports = class DbLogStore extends Base {
     }
 
     truncate (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.find().count(cb),
             (counter, cb)=> {
                 if (counter < this.maxRows + this.maxRows / 2) {
                     return cb();
                 }
-                async.waterfall([
-                    cb => this.find().offset(this.maxRows).order({[this.pk]: -1}).scalar(this.pk, cb),
-                    (id, cb)=> this.find().where(['<', this.pk, id]).remove(cb)
+                AsyncHelper.waterfall([
+                    cb => this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key, cb),
+                    (id, cb)=> this.find().where(['<', this.key, id]).remove(cb)
                 ], cb);
             },
         ], cb);
@@ -71,6 +71,6 @@ module.exports = class DbLogStore extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const Exception = require('../errors/Exception');
 const Query = require('../db/Query');

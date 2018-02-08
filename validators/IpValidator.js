@@ -13,37 +13,39 @@ module.exports = class IpValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Invalid IP address');
-        if (!this.ip4) {
-            this.createMessage('ip4NotAllowed', 'Value must not be an IPv4 address');
-        }
-        if (!this.ip6) {
-            this.createMessage('ip6NotAllowed', 'Value must not be an IPv6 address');
-        }
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid IP address');
+    }
+
+    getIp4NotAllowedMessage () {
+        return this.createMessage(this.ip4NotAllowed, 'Value must not be an IPv4 address');
+    }
+
+    getIp6NotAllowedMessage () {
+        return this.createMessage(this.ip6NotAllowed, 'Value must not be an IPv6 address');
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, msg, params)=> {
-            if (!err) {
-                msg ? this.addError(model, attr, msg, params)
-                    : model.set(attr, model.get(attr).toLowerCase());    
-            } 
-            cb(err);
+        super.validateAttr(model, attr, err => {
+            if (err) {
+                return cb(err);
+            }
+            if (!model.hasError()) {
+                model.set(attr, model.get(attr).toLowerCase());
+            }
+            cb();
         });
     }
 
     validateValue (value, cb) {
-        // make sure string length is limited to avoid DOS attacks
-        if (typeof value !== 'string' || value.length > 128) {
-            return cb(null, this.message);
+        if (typeof value !== 'string' || value.length > 64) {
+            return cb(null, this.getMessage());
         }
         if ((new RegExp(this.ip4Pattern)).test(value)) {
-            return this.ip4 ? cb() : cb(null, this.ip4NotAllowed);
+            return this.ip4 ? cb() : cb(null, this.getIp4NotAllowedMessage());
         }
         if ((new RegExp(this.ip6Pattern)).test(value)) {
-            return this.ip6 ? cb() : cb(null, this.ip6NotAllowed);
+            return this.ip6 ? cb() : cb(null, this.getIp6NotAllowedMessage());
         }
         cb(null, this.message);
     }

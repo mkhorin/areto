@@ -101,8 +101,8 @@ module.exports = class Module extends Base {
     }
 
     log () {
-        if (this.logger) {
-            return this.logger.log.apply(this.logger, arguments);
+        if (this.components.logger) {
+            return this.components.logger.log.apply(this.components.logger, arguments);
         }
         console.log.apply(console, arguments);
     }
@@ -168,8 +168,8 @@ module.exports = class Module extends Base {
     }
 
     assignExpressQueue () {
-        for (let name of Object.keys(this.modules)) {
-            this.modules[name].assignExpressQueue();
+        for (let module of Object.values(this.modules)) {
+            module.assignExpressQueue();
         }
         let fullName = this.getFullName();
         for (let item of this._expressQueue) {
@@ -219,7 +219,7 @@ module.exports = class Module extends Base {
         if (this.config.forwarder) {
             this.setForwarder(this.config.forwarder);
         }
-        async.series([
+        AsyncHelper.series([
             cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
             cb => this.afterSetComponents(cb),
@@ -245,7 +245,7 @@ module.exports = class Module extends Base {
     }
 
     setModules (config, cb) {
-        async.eachOfSeries(config || {}, (config, id, cb)=> {
+        AsyncHelper.eachOfSeries(config || {}, (config, id, cb)=> {
             if (!config) {
                 this.log('info', `Module '${this.getFullName()}.${id}' skipped`);
                 return cb();
@@ -259,7 +259,7 @@ module.exports = class Module extends Base {
                     return cb();
                 }
                 this.log('info', `Module: attached ${module.getFullName()}`);
-                async.eachSeries(this._afterModuleInitHandlers[id], (handler, cb)=> {
+                AsyncHelper.eachSeries(this._afterModuleInitHandlers[id], (handler, cb)=> {
                     handler(cb, module);
                 }, cb);
             });
@@ -297,7 +297,7 @@ module.exports = class Module extends Base {
     setComponents (components, cb) {
         components = components || {};
         this.extendComponentsByDefaults(components);
-        async.eachOfSeries(components, (config, id, cb)=> {
+        AsyncHelper.eachOfSeries(components, (config, id, cb)=> {
             if (!config) {
                 this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
                 return cb();
@@ -306,7 +306,7 @@ module.exports = class Module extends Base {
             config.id = id;
             let name = config.setter || id;
             let method = `set${StringHelper.idToCamel(name)}Component`;
-            async.series([
+            AsyncHelper.series([
                 cb => {
                     if (typeof this[method] === 'function') {
                         return this[method](id, config, cb);
@@ -316,7 +316,7 @@ module.exports = class Module extends Base {
                 },
                 cb => {
                     this.log('trace', `${this.getFullName()}: ${id} ready`);
-                    async.eachSeries(this._afterComponentInitHandlers[id], (handler, cb)=> {
+                    AsyncHelper.eachSeries(this._afterComponentInitHandlers[id], (handler, cb)=> {
                         handler(cb, this.components[id]);
                     }, cb);
                 }
@@ -338,9 +338,9 @@ module.exports = class Module extends Base {
 
     deepAssignComponent (name, newComponent) {
         let currentComponent = this.components[name];
-        for (let id of Object.keys(this.modules)) {
-            if (this.modules[id].components[name] === currentComponent) {
-                this.modules[id].deepAssignComponent(name, newComponent);
+        for (let module of Object.values(this.modules)) {
+            if (module.components[name] === currentComponent) {
+                module.deepAssignComponent(name, newComponent);
             }
         }
         this.components[name] = newComponent;
@@ -402,10 +402,9 @@ module.exports = class Module extends Base {
     }
 
     setLoggerComponent (id, config, cb) {
-        this.logger = this.createComponent(id, Object.assign({
+        this.createComponent(id, Object.assign({
             Class: require('../log/Logger')
-        }, config));
-        this.logger.configure(cb);
+        }, config)).configure(cb);
     }
 
     setRateLimitComponent (id, config, cb) {
@@ -481,10 +480,10 @@ module.exports = class Module extends Base {
 };
 module.exports.init();
 
-const async = require('async');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ClassHelper = require('../helpers/ClassHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');

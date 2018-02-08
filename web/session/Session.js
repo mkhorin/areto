@@ -10,7 +10,7 @@ module.exports = class Session extends Base {
             resave: false,
             saveUninitialized: false,
             name: `${config.module.getFullName()}.sid`,
-            store: require('areto/web/session/MemorySessionStore'),
+            store: require('./MemorySessionStore'),
             lifetime: 3600 // seconds
             //cookie: {maxAge: 3600 * 1000}
         }, config));

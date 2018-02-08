@@ -48,7 +48,7 @@ module.exports = class RateLimitModel extends Base {
     save (cb) {
         this._data.updatedAt = new Date;
         this._data.createdAt = this._data.createdAt || this._data.updatedAt;
-        async.series([
+        AsyncHelper.series([
             cb => this.store.save(this, cb),
             cb => this.store.rateLimit.afterRateUpdate(this, cb)
         ], cb);
@@ -76,4 +76,4 @@ module.exports = class RateLimitModel extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../../helpers/AsyncHelper');

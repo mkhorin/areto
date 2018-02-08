@@ -91,7 +91,7 @@ module.exports = class App extends Base {
         if (!(fileNames instanceof Array)) {
             fileNames = [fileNames];
         }
-        async.eachSeries(fileNames, (fileName, cb)=> {
+        AsyncHelper.eachSeries(fileNames, (fileName, cb)=> {
             this.log('info', `Start to ${action} ${fileName}`);
             this.migrateFile(fileName, action, err => {
                 err ? this.log('error', `${fileName} is failed`, err)
@@ -113,6 +113,6 @@ module.exports = class App extends Base {
 };
 module.exports.init();
 
-const async = require('async');
 const express = require('express');
 const http = require('http');
+const AsyncHelper = require('../helpers/AsyncHelper');

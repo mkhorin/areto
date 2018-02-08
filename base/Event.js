@@ -128,13 +128,13 @@ module.exports = class Event extends Base {
                 }
                 sender = Object.getPrototypeOf(sender); // get parent class
                 id = sender ? sender.CLASS_FILE : null;
-            };
+            }
         }
         (tasks instanceof Array && tasks.length) 
-            ? async.series(tasks.reverse(), cb)
+            ? AsyncHelper.series(tasks.reverse(), cb)
             : cb();
     }
 };
 module.exports._events = {};
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');

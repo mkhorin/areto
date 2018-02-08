@@ -29,7 +29,7 @@ module.exports = class AccessControl extends Base {
     beforeAction (action, cb) {        
         let user = action.controller.user;
         // check rules before the first result - allow or deny
-        async.eachSeries(this.rules, (rule, ruleCallback)=> {
+        AsyncHelper.eachSeries(this.rules, (rule, ruleCallback)=> {
             rule.can(action, user, (err, access)=> {                
                 if (err) {
                     return cb(err);
@@ -54,6 +54,6 @@ module.exports = class AccessControl extends Base {
     }
 };
 
-const async = require('async');
-const MiscHelper = require('../helpers/MiscHelper');
+const AsyncHelper = require('../helpers/AsyncHelper');
+const CommonHelper = require('../helpers/CommonHelper');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');

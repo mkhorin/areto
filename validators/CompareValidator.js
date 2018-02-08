@@ -13,8 +13,7 @@ module.exports = class CompareValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
+    getMessage (params) {
         let message;
         switch (this.operator) {
             case '==': message = 'Value must be repeated exactly'; break;
@@ -25,28 +24,27 @@ module.exports = class CompareValidator extends Base {
             case '>=': message = 'Value must be greater than or equal to "{compareValue}"'; break;
             case '<': message = 'Value must be less than "{compareValue}"'; break;
             case '<=': message = 'Value must be less than or equal to "{compareValue}"'; break;
-            default:
-                throw new Error(`${this.constructor.name}: Unknown operator: ${this.operator}`);
+            default: message = `Unknown operator: ${this.operator}`;
         }
-        this.createMessage('message', message);
-        this.createMessage('invalidValue', 'Invalid value');
+        return this.createMessage(this.message, message, params);
+    }
+
+    getInvalidValueMessage () {
+        return this.createMessage(this.invalidValue, 'Invalid value');
     }
 
     validateAttr (model, attr, cb) {
-        let value = model.get(attr), compareLabel, compareValue;
+        let value = model.get(attr), compareAttr, compareValue;
         if (value instanceof Array) {
-            this.addError(model, attr, this.invalidValue);
+            this.addError(model, attr, this.getInvalidValueMessage());
         } else if (this.compareValue !== null) {
-            compareLabel = compareValue = this.compareValue;
+            compareAttr = compareValue = this.compareValue;
         } else {
             compareValue = model.get(this.compareAttr);
-            compareLabel = model.getLabel(this.compareAttr);
+            compareAttr = model.getLabel(this.compareAttr);
         }
         if (!this.compareValues(this.operator, this.type, value, compareValue)) {
-            this.addError(model, attr, this.message, {
-                compareAttr: compareLabel,
-                compareValue: compareValue
-            });
+            this.addError(model, attr, this.getMessage({compareAttr, compareValue}));
         }
         cb();
     }
@@ -56,10 +54,10 @@ module.exports = class CompareValidator extends Base {
             return cb(`${this.constructor.name}: Value must be set`);
         }
         if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
-            return cb(null, this.message, {
+            return cb(null, this.getMessage({
                 compareAttr: this.compareAttr,
                 compareValue: this.compareValue
-            });
+            }));
         }
         cb();
     }

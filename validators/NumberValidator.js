@@ -12,42 +12,52 @@ module.exports = class NumberValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', this.integerOnly ? 'Number must be a integer' : 'Value must be a number');
-        if (this.min !== null) {
-            this.createMessage('tooSmall', 'Value must be no less than {min}', {min: this.min});
-        }
-        if (this.max !== null) {
-            this.createMessage('tooBig', 'Value must be no greater than {max}', {max: this.max});
-        }
+    getMessage () {
+        return this.createMessage(this.message, 'Value must be a number');
+    }
+
+    getNotIntegerMessage () {
+        return this.createMessage(this.message, 'Number must be a integer');
+    }
+
+    getTooSmallMessage () {
+        return this.createMessage(this.tooSmall, 'Value must be no less than {min}', {
+            min: this.min
+        });
+    }
+
+    getTooBigMessage () {
+        return this.createMessage(this.tooBig, 'Value must be no greater than {max}', {
+            max: this.max
+        });
     }
 
     validateAttr (model, attr, cb) {
-        let value = model.get(attr);
-        this.validateValue(value, (err, msg, params)=> {
+        super.validateAttr(model, attr, err => {
             if (err) {
                 return cb(err);
             }
-            msg ? this.addError(model, attr, msg, params)
-                : model.set(attr, Number(value));
+            if (!model.hasError()) {
+                model.set(attr, Number(model.get(attr)));
+            }
             cb();
         });
     }
 
     validateValue (value, cb) {
-        if (isNaN(Number(value))) {
-            return cb(null, this.message);
-        }
         value = Number(value);
+        if (isNaN(Number(value))) {
+            return cb(null, this.getMessage());
+        }
+        if (this.integerOnly && value !== parseInt(value)) {
+            return cb(null, this.getNotIntegerMessage());
+        }
         if (this.min !== null && value < this.min) {
-            return cb(null, this.tooSmall);
+            return cb(null, this.getTooSmallMessage());
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.tooBig);
+            return cb(null, this.getTooBigMessage());
         }
         cb();
     }
 };
-
-const async = require('async');

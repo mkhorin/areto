@@ -11,9 +11,8 @@ module.exports = class IdValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Invalid ID');
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid ID');
     }
 
     validateAttr (model, attr, cb) {
@@ -24,7 +23,7 @@ module.exports = class IdValidator extends Base {
         }
         value = model.getDb().normalizeId(value);
         if (value === null) {
-            this.addError(model, attr, this.message);
+            this.addError(model, attr, this.getMessage());
         } else if (this.normalize) {
             model.set(attr, value);
         }

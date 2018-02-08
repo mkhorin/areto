@@ -4,16 +4,6 @@ const Base = require('../../base/Base');
 
 module.exports = class ViewAsset extends Base {
 
-    static getConstants () {
-        return {
-        };
-    }
-
-    constructor (config) {
-        super(Object.assign({
-        }, config));
-    }
-
     init () {
         this._bundleMap = {};
         this._bundles = [];

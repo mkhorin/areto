@@ -13,10 +13,10 @@ module.exports = class Message extends Base {
         return this;
     }
 
-    translate (module, language) {
+    translate (i18n, language) {
         return this.category
-            ? module.components.i18n.translate(this.category, this.message, this.params, language || this.language)
-            : module.components.i18n.format(this.message, this.params, language || this.language);
+            ? i18n.translate(this.category, this.message, this.params, language || this.language)
+            : i18n.format(this.message, this.params, language || this.language);
     }
 
     toString () {

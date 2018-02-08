@@ -7,9 +7,12 @@ const StringHelper = require('../helpers/StringHelper');
 module.exports = class Controller extends Base {
 
     static getExtendedProperties () {
-        return ['METHODS', 'ACTIONS'];
+        return [
+            'METHODS',
+            'ACTIONS'
+        ];
     }
-    
+
     static getConstants () {
         return {            
             // class name PostNum -> post-num 
@@ -121,7 +124,7 @@ module.exports = class Controller extends Base {
         if (!this.action) {
             return this.throwError(`${this.constructor.getFullName()}: unable to create action: ${name}`);
         }
-        async.series([
+        AsyncHelper.series([
             this.triggerBeforeAction.bind(this),
             this.action.execute.bind(this.action),
             this.triggerAfterAction.bind(this)
@@ -151,7 +154,7 @@ module.exports = class Controller extends Base {
 
     triggerBeforeAction (cb) {
         // trigger module's beforeAction from root to current
-        async.eachSeries(this.module.getAncestry().slice().reverse(), (module, cb)=> {
+        AsyncHelper.eachSeries(this.module.getAncestry().slice().reverse(), (module, cb)=> {
             module.beforeAction(this.action, cb);
         }, err => {
             err ? cb(err) : this.beforeAction(cb);
@@ -161,7 +164,7 @@ module.exports = class Controller extends Base {
     triggerAfterAction (cb) {
         this.afterAction(err => {
             // trigger module's afterAction from current to root
-            err ? cb(err) : async.eachSeries(this.module.getAncestry(), (module, cb)=> {
+            err ? cb(err) : AsyncHelper.eachSeries(this.module.getAncestry(), (module, cb)=> {
                 module.afterAction(this.action, cb);
             }, cb);
         });
@@ -368,7 +371,7 @@ module.exports = class Controller extends Base {
 
     translate (category, message, params) {
         if (category instanceof Message) {
-            return category.translate(this.module, this.language);
+            return category.translate(this.module.components.i18n, this.language);
         }
         return category 
             ? this.module.components.i18n.translate(category, message, params, this.language)
@@ -387,7 +390,7 @@ module.exports = class Controller extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const FileHelper = require('../helpers/FileHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const ActionEvent = require('./ActionEvent');

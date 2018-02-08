@@ -13,7 +13,6 @@ module.exports = class DateValidator extends Base {
 
     init () {
         super.init();
-        this.createMessage('message', 'Invalid date');
         if (this.min !== null) {
             if (!(this.min instanceof Date)) {
                 this.min = new Date(this.min);
@@ -21,7 +20,6 @@ module.exports = class DateValidator extends Base {
             if (!this.isValidDateObject(this.min)) {
                 throw new Error(`${this.constructor.name}: Invalid min date`);
             }
-            this.createMessage('tooSmall', 'Date must be no less than {min}', {min: this.min});
         }
         if (this.max !== null) {
             if (!(this.max instanceof Date)) {
@@ -30,8 +28,19 @@ module.exports = class DateValidator extends Base {
             if (!this.isValidDateObject(this.max)) {
                 throw new Error(`${this.constructor.name}: Invalid max date`);
             }
-            this.createMessage('tooBig', 'Date must be no greater than {max}', {max: this.max});
         }
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid date');
+    }
+
+    getTooSmallMessage () {
+        return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {min: this.min});
+    }
+
+    getTooBigMessage () {
+        return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {max: this.max});
     }
 
     isValidDateObject (date) {        
@@ -42,8 +51,8 @@ module.exports = class DateValidator extends Base {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
         model.set(attr, value);        
-        this.validateValue(value, (err, message, params)=> {
-            message && this.addError(model, attr, message, params);
+        this.validateValue(value, (err, message)=> {
+            message && this.addError(model, attr, message);
             cb(err);
         });
     }
@@ -51,13 +60,13 @@ module.exports = class DateValidator extends Base {
     validateValue (value, cb) {
         value = value instanceof Date ? value : new Date(value);
         if (!this.isValidDateObject(value)) {            
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
         if (this.min !== null && value < this.min) {
-            return cb(null, this.tooSmall);
+            return cb(null, this.getTooSmallMessage());
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.tooBig);
+            return cb(null, this.getTooBigMessage());
         }
         cb();
     }

@@ -19,10 +19,10 @@ module.exports = class OrderBehavior extends Base {
     }
 
     beforeInsert (cb, event) {
-        if (!MiscHelper.isEmpty(this.owner.get(this.orderAttr))) {
+        if (!CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
             return cb();
         }
-        async.waterfall([
+        AsyncHelper.waterfall([
             this.findNextOrder.bind(this),
             (order, cb)=> {
                 this.owner.set(this.orderAttr, order);
@@ -32,7 +32,7 @@ module.exports = class OrderBehavior extends Base {
     }
 
     findNextOrder (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => {
                 let query = this.owner.constructor.find();
                 if (this.filter instanceof Function) {
@@ -48,7 +48,7 @@ module.exports = class OrderBehavior extends Base {
                 query.scalar(this.orderAttr, cb);
             },
             (last, cb)=> {
-                cb(null, MiscHelper.isEmpty(last)
+                cb(null, CommonHelper.isEmpty(last)
                     ? this.start
                     : (parseInt(last) + this.step));
             }
@@ -57,9 +57,9 @@ module.exports = class OrderBehavior extends Base {
 
     updateAllByIds (ids, cb) {
         let index = 0;
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.owner.findById(ids).index(this.owner.PK).all(cb),
-            (map, cb)=> async.eachSeries(ids, (id, cb)=> {
+            (map, cb)=> AsyncHelper.eachSeries(ids, (id, cb)=> {
                 if (!(map[id] instanceof this.owner.constructor)) {
                     return cb();
                 }
@@ -70,6 +70,6 @@ module.exports = class OrderBehavior extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
+const CommonHelper = require('../helpers/CommonHelper');
 const ActiveRecord = require('../db/ActiveRecord');
-const MiscHelper = require('../helpers/MiscHelper');

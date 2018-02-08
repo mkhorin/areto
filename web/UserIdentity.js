@@ -22,7 +22,7 @@ module.exports = class UserIdentity extends Base {
     }
 
     setAuthKey (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => SecurityHelper.generateRandomString(16, cb),
             (result, cb)=> {
                 this.set('authKey', result);
@@ -32,5 +32,5 @@ module.exports = class UserIdentity extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const SecurityHelper = require('../helpers/SecurityHelper');

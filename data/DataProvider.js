@@ -46,7 +46,7 @@ module.exports = class DataProvider extends Base {
     }
    
     prepare (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.prepareTotalCount(cb),
             (total, cb)=> {
                 this.totalCount = total;
@@ -62,5 +62,5 @@ module.exports = class DataProvider extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ClassHelper = require('../helpers/ClassHelper');

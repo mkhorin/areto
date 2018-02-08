@@ -7,7 +7,7 @@ module.exports = class ActiveRecord extends Base {
     static getConstants () {        
         return {
             TABLE: 'table_name',
-            PK: '_id', // primary key name
+            PK: '_id', // primary key
             QUERY_CLASS: require('./ActiveQuery'),
             EVENT_AFTER_REMOVE: 'afterRemove',
             EVENT_AFTER_FIND: 'afterFind',
@@ -39,7 +39,7 @@ module.exports = class ActiveRecord extends Base {
         return this._isNewRecord;
     }
 
-    isPk (key) {
+    isPrimaryKey (key) {
         return this.PK === key;
     }
 
@@ -70,9 +70,9 @@ module.exports = class ActiveRecord extends Base {
             return rel.get(nestedName);
         }
         if (rel instanceof Array) {
-            return rel.map(item => {
-                return item instanceof ActiveRecord? item.get(nestedName) : item ? item[nestedName] : item;
-            });
+            return rel.map(item => item instanceof ActiveRecord
+                ? item.get(nestedName)
+                : item ? item[nestedName] : item);
         }
         return rel ? rel[nestedName] : rel;
     }
@@ -109,10 +109,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     afterRemove (cb) {
-        if (!(this.UNLINK_ON_REMOVE instanceof Array)) {
-            return this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
-        }
-        async.eachSeries(this.UNLINK_ON_REMOVE, this.unlinkAll.bind(this), ()=> {
+        AsyncHelper.eachSeries(this.UNLINK_ON_REMOVE, this.unlinkAll.bind(this), ()=> {
             this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
         });
     }
@@ -166,9 +163,9 @@ module.exports = class ActiveRecord extends Base {
     }
 
     insert (cb) {
-        async.series([
+        AsyncHelper.series([
             cb => this.beforeSave(true, cb),
-            cb => async.waterfall([
+            cb => AsyncHelper.waterfall([
                 cb => this.constructor.find().insert(this.filterAttrs(), cb),
                 (id, cb)=> {
                     this.set(this.PK, id);
@@ -177,15 +174,15 @@ module.exports = class ActiveRecord extends Base {
                 }
             ], cb),
             cb => this.afterSave(true, cb)
-        ], err => cb(err)); // clear async.series result - cb(err, ...)
+        ], err => cb(err)); // clear AsyncHelper.series result - cb(err, ...)
     }
 
     update (cb) {
-        async.series([
+        AsyncHelper.series([
             cb => this.beforeSave(false, cb),
             cb => this.findById().update(this.filterAttrs(), cb),
             cb => this.afterSave(false, cb)
-        ], err => cb(err)); // clear async.series result - cb(err, ...)
+        ], err => cb(err)); // clear AsyncHelper.series result - cb(err, ...)
     }
 
     /**
@@ -199,7 +196,7 @@ module.exports = class ActiveRecord extends Base {
     // REMOVE
 
     static removeBatch (models, cb) {
-        async.eachSeries(models, (model, cb)=> {
+        AsyncHelper.eachSeries(models, (model, cb)=> {
             model.remove(()=> cb()); // to process all removal requests, ignoring errors
         }, cb);
     }
@@ -211,7 +208,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     remove (cb) {
-        async.series([
+        AsyncHelper.series([
             this.beforeRemove.bind(this),
             cb => this.findById().remove(cb),
             this.afterRemove.bind(this)
@@ -221,11 +218,11 @@ module.exports = class ActiveRecord extends Base {
     // RELATIONS
 
     static findRelation (models, name, cb, renew) {
-        async.mapSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
+        AsyncHelper.mapSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
     }
 
     static findRelations (models, names, cb, renew) {
-        async.mapSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
+        AsyncHelper.mapSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
     }
 
     getAllRelationNames () {
@@ -236,10 +233,6 @@ module.exports = class ActiveRecord extends Base {
             }
         }
         return names;
-    }
-
-    getRelatedRecords () {
-        return this._related;
     }
 
     getRelation (name) {
@@ -281,6 +274,32 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelation (name, cb, renew) {
+        let index = name.indexOf('.');
+        if (index === -1) {
+            return this.findRelationOnly(name, cb, renew);
+        }
+        let nestedName = name.substring(index + 1);
+        AsyncHelper.waterfall([
+            cb => setImmediate(cb),
+            cb => this.findRelationOnly(name.substring(0, index), cb, renew),
+            (result, cb)=> {
+                if (result instanceof ActiveRecord) {
+                    return result.findRelation(nestedName, cb, renew);
+                }
+                if (!(result instanceof Array)) {
+                    return cb(null, result);
+                }
+                result = result.filter(model => model instanceof ActiveRecord);
+                AsyncHelper.mapSeries(result, (model, cb)=> {
+                    return model.findRelation(nestedName, cb, renew);
+                }, (err, result)=> {
+                    cb(err, result instanceof Array ? ArrayHelper.concatValues(result) : result);
+                });
+            }
+        ], cb);
+    }
+
+    findRelationOnly (name, cb, renew) {
         if (Object.prototype.hasOwnProperty.call(this._related, name) && !renew) {
             return cb(null, this._related[name]);
         }
@@ -289,7 +308,7 @@ module.exports = class ActiveRecord extends Base {
             return relation.findFor((err, result)=> {
                 this.populateRelation(name, result);
                 cb(err, this._related[name]);
-            })
+            });
         }
         if (relation === null) {
             return cb(`${this.constructor.name}: Unknown relation: ${name}`);
@@ -298,7 +317,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelations (names, cb, renew) {
-        async.mapSeries(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
+        AsyncHelper.mapSeries(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
     }
 
     unsetRelation (name) {
@@ -307,8 +326,8 @@ module.exports = class ActiveRecord extends Base {
         }
     }
 
-    populateRelation (name, records) {
-        this._related[name] = records;
+    populateRelation (name, data) {
+        this._related[name] = data;
     }
 
     hasOne (ModelClass, link) {
@@ -384,7 +403,7 @@ module.exports = class ActiveRecord extends Base {
         let a = relation._link[0];
         let b = relation._link[1];
         let asBackRef = relation._asBackRef;
-        (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef)
+        (asBackRef === undefined ? (this.isPrimaryKey(b) || !this.STORED_ATTRS.includes(b)) : asBackRef)
             ? this.bindModels(relation._link, model, this, cb, relation)
             : this.bindModels([b, a], this, model, cb, relation);
     }
@@ -407,7 +426,7 @@ module.exports = class ActiveRecord extends Base {
         }
         if (this._related[name] instanceof Array) {
             for (let i = this._related[name].length - 1; i >= 0; --i) {
-                if (MiscHelper.isEqual(model.getId(), this._related[name][i].getId())) {
+                if (CommonHelper.isEqual(model.getId(), this._related[name][i].getId())) {
                     this._related[name].splice(i, 1);
                 }
             }
@@ -449,7 +468,7 @@ module.exports = class ActiveRecord extends Base {
         let a = relation._link[0];
         let b = relation._link[1];
         let asBackRef = relation._asBackRef;
-        if (asBackRef === undefined ? (this.isPk(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
+        if (asBackRef === undefined ? (this.isPrimaryKey(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
             if (model.get(a) instanceof Array) {
                 let index = ArrayHelper.indexOfId(this.get(b), model.get(a));
                 if (index !== -1) {
@@ -514,7 +533,7 @@ module.exports = class ActiveRecord extends Base {
         } else if (remove) {
             viaModel.find(condition).all((err, models)=> {
                 err ? cb(err)
-                    : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
+                    : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
             });
         } else {
             viaModel.find(condition).updateAll(nulls, cb);
@@ -536,7 +555,7 @@ module.exports = class ActiveRecord extends Base {
         }
         if (remove) {
             relation.all((err, models)=> {
-                err ? cb(err) : async.eachSeries(models, (model, cb)=> model.remove(cb), cb);
+                err ? cb(err) : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
             });
         } else if (relation._viaArray) {
             model.getDb().updateAllPull(model.TABLE, {}, condition, cb);
@@ -546,21 +565,21 @@ module.exports = class ActiveRecord extends Base {
     }
 
     bindModels (link, foreignModel, primaryModel, cb, relation) {
-        let fk = link[0];
-        let pk = link[1];
-        let value = primaryModel.get(pk);
+        let foreignKey = link[0];
+        let primaryKey = link[1];
+        let value = primaryModel.get(primaryKey);
         if (!value) {
-            return cb(`${this.constructor.name}: bindModels: PK is null`);
+            return cb(`${this.constructor.name}: bindModels: primary key is null`);
         }
         if (!relation._viaArray) {
-            foreignModel.set(fk, value);
+            foreignModel.set(foreignKey, value);
             return foreignModel.forceSave(cb);
         }
-        if (!(foreignModel.get(fk) instanceof Array)) {
-            foreignModel.set(fk, []);
+        if (!(foreignModel.get(foreignKey) instanceof Array)) {
+            foreignModel.set(foreignKey, []);
         }
-        if (ArrayHelper.indexOfId(value, foreignModel.get(fk)) === -1) {
-            foreignModel.get(fk).push(value);
+        if (ArrayHelper.indexOfId(value, foreignModel.get(foreignKey)) === -1) {
+            foreignModel.get(foreignKey).push(value);
             return foreignModel.forceSave(cb);
         }
         cb(); // value is exists already
@@ -580,8 +599,8 @@ module.exports = class ActiveRecord extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');
-const MiscHelper = require('../helpers/MiscHelper');
+const CommonHelper = require('../helpers/CommonHelper');
 const ObjectHelper = require('../helpers/ObjectHelper');
 const StringHelper = require('../helpers/StringHelper');

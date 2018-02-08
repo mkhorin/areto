@@ -22,9 +22,8 @@ module.exports = class ExistValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Value does not exist');
+    getMessage () {
+        return this.createMessage(this.message, 'Value does not exist');
     }
 
     validateAttr (model, attr, cb) {
@@ -52,7 +51,7 @@ module.exports = class ExistValidator extends Base {
         }
         query.count((err, count)=> {
             if (count === 0) {
-                this.addError(model, attr, this.message);
+                this.addError(model, attr, this.getMessage());
             }
             cb(err);
         });

@@ -17,12 +17,12 @@ module.exports = class DbStore extends Base {
         super(Object.assign({
             db: config.rbac.module.getDb(),
             tablePrefix: 'rbac_',
-            pk: '_id'
+            key: '_id'
         }, config));
     }
     
     load (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.loadData(cb),
             (data, cb)=> {
                 try {
@@ -36,9 +36,9 @@ module.exports = class DbStore extends Base {
     }
 
     loadData (cb) {
-        async.series({
-            itemIndex: cb => this.find(this.TABLE_ITEM).index(this.pk).all(cb),
-            ruleIndex: cb => this.find(this.TABLE_RULE).index(this.pk).all(cb),
+        AsyncHelper.series({
+            itemMap: cb => this.find(this.TABLE_ITEM).index(this.key).all(cb),
+            ruleMap: cb => this.find(this.TABLE_RULE).index(this.key).all(cb),
             links: cb => this.find(this.TABLE_ITEM_CHILD).all(cb),
             assignments: cb => this.find(this.TABLE_ASSIGNMENT).all(cb)
         }, cb);
@@ -50,33 +50,56 @@ module.exports = class DbStore extends Base {
             rules: {},
             assignments: {}
         };
-        for (let id of Object.keys(data.itemIndex)) {
-            let item = data.itemIndex[id];
-            item.children = this.getItemChildren(id, data);
-            item.rule = data.ruleIndex[item.ruleId] ? data.ruleIndex[item.ruleId].name : null;
-            result.items[item.name] = item;
-        }
-        for (let id of Object.keys(data.ruleIndex)) {
-            let rule = data.ruleIndex[id];
+        for (let id of Object.keys(data.ruleMap)) {
+            let rule = this.prepareRule(data.ruleMap[id]);
+            data.ruleMap[id] = rule;
             result.rules[rule.name] = rule;
         }
+        for (let id of Object.keys(data.itemMap)) {
+            let item = data.itemMap[id];
+            item.children = this.getItemChildren(id, data);
+            item.rule = data.ruleMap.hasOwnProperty(item.rule) ? data.ruleMap[item.rule].name : null;
+            result.items[item.name] = item;
+        }
         for (let elem of data.assignments) {
-            let item = data.itemIndex[elem.itemId];
+            let item = data.itemMap[elem.item];
             if (item) {
-                if (!result.assignments[elem.userId]) {
-                    result.assignments[elem.userId] = [];
+                if (!result.assignments[elem.user]) {
+                    result.assignments[elem.user] = [];
                 }
-                result.assignments[elem.userId].push(item.name);
+                result.assignments[elem.user].push(item.name);
             }
         }
         return result;
     }
 
+    prepareRule (data) {
+        let Class = data.ruleClass;
+        try {
+            Class = require(Class);
+        } catch (err) {
+            try {
+                Class = this.rbac.module.app.require(Class);
+            } catch (err) {
+                this.log('error', `Not found rule class: ${data.ruleClass}`);
+                Class = Rule;
+            }
+        }
+        if (!(Class.prototype instanceof Rule) && Class !== Rule) {
+            this.log('error', `Base class of ${data.ruleClass} must be Rule`);
+            Class = Rule;
+        }
+        return Object.assign(data.params || {}, {
+            Class,
+            name: data.name
+        });
+    }
+
     getItemChildren (id, data) {
         let children = [];
         for (let link of data.links) {
-            if (MiscHelper.isEqual(link.parentId, id) && data.itemIndex[link.childId]) {
-                children.push(data.itemIndex[link.childId].name);
+            if (CommonHelper.isEqual(link.parent, id) && data.itemMap[link.child]) {
+                children.push(data.itemMap[link.child].name);
             }
         }
         return children;
@@ -97,14 +120,14 @@ module.exports = class DbStore extends Base {
     // CREATE
 
     createItems (items, cb) {
-        async.series([
-            cb => async.eachOfSeries(items, (data, name, cb)=> {
+        AsyncHelper.series([
+            cb => AsyncHelper.eachOfSeries(items, (data, name, cb)=> {
                 this.createItem(name, data, cb);
             }, cb),
-            cb => async.eachOfSeries(items, (data, name, cb)=> {
+            cb => AsyncHelper.eachOfSeries(items, (data, name, cb)=> {
                 data.children ? this.setItemChildren(name, data, cb) : cb();
             }, cb),
-            cb => async.eachOfSeries(items, (data, name, cb)=> {
+            cb => AsyncHelper.eachOfSeries(items, (data, name, cb)=> {
                 data.parents ? this.setItemParents(name, data, cb) : cb();
             }, cb)
         ], cb);
@@ -114,7 +137,7 @@ module.exports = class DbStore extends Base {
         if (!Item.isValidType(data.type)) {
             return callback(`RBAC: Invalid '${type}' type  for '${name}' item`);
         }
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.findItem().where({name}).one(cb),
             (item, cb)=> {
                 if (item) {
@@ -127,11 +150,8 @@ module.exports = class DbStore extends Base {
                 if (!rule && data.rule) {
                     return cb(`RBAC: Not found '${data.rule}' rule for '${name}' item`);
                 }
-                let doc = Object.assign({
-                    name,
-                    ruleId: rule ? rule[this.pk] : null
-                }, data);
-                delete doc.rule;
+                let doc = Object.assign({name}, data);
+                doc.rule = rule ? rule[this.key] : null;
                 delete doc.chldren;
                 this.findItem().insert(doc, cb);
             }
@@ -139,62 +159,62 @@ module.exports = class DbStore extends Base {
     }
 
     setItemChildren (name, data, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.findItemRelatives(name, data, 'children', cb),
             (ids, cb)=> {
                 data.children = ids;
                 this.find(this.TABLE_ITEM_CHILD).where({
-                    parentId: data.itemId,
-                    childId: data.children
+                    parent: data.itemId,
+                    child: data.children
                 }).remove(cb);
             },
-            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.children.map(child => ({
-                parentId: data.itemId,
-                childId: child
+            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.children.map(id => ({
+                parent: data.itemId,
+                child: id
             })), cb)
         ], cb);
     }
 
     setItemParents (name, data, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.findItemRelatives(name, data, 'parents', cb),
             (ids, cb)=> {
                 data.parents = ids;
                 this.find(this.TABLE_ITEM_CHILD).where({
-                    parentId: data.parents,
-                    childId: data.itemId
+                    parent: data.parents,
+                    child: data.itemId
                 }).remove(cb);
             },
-            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.parents.map(parent => ({
-                parentId: parent,
-                childId: data.itemId
+            cb => this.find(this.TABLE_ITEM_CHILD).insert(data.parents.map(id => ({
+                parent: id,
+                child: data.itemId
             })), cb)
         ], cb);
     }
 
     findItemRelatives (name, data, relName, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.findItem().where({name}).one(cb),
             (item, cb)=> {
-                data.itemId = item[this.pk];
+                data.itemId = item[this.key];
                 this.findItem().where({name: data[relName]}).all(cb);
             },
             (items, cb)=> {
                 items.length !== data[relName].length
                     ? cb(`RBAC: Not found '${data[relName]}' ${relName} for '${name}' item`)
-                    : cb(null, items.map(item => item[this.pk]));
+                    : cb(null, items.map(item => item[this.key]));
             }
         ], cb);
     }
 
     createRules (rules, cb) {
-        async.eachOfSeries(rules, (data, name, cb)=> {
+        AsyncHelper.eachOfSeries(rules, (data, name, cb)=> {
             this.createRule(name, data, cb);
         }, cb);
     }
 
     createRule (name, data, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.find(this.TABLE_RULE).where({name}).one(cb),
             (rule, cb)=> {
                 if (rule) {
@@ -207,7 +227,8 @@ module.exports = class DbStore extends Base {
 };
 module.exports.init();
 
-const async = require('async');
-const MiscHelper = require('../helpers/MiscHelper');
+const AsyncHelper = require('../helpers/AsyncHelper');
+const CommonHelper = require('../helpers/CommonHelper');
 const Query = require('../db/Query');
 const Item = require('./Item');
+const Rule = require('./Rule');

@@ -4,9 +4,12 @@ const Base = require('./Rule');
 
 module.exports = class AuthorRule extends Base {
 
-    execute (user, cb, params) {
-        cb(null, params && MiscHelper.isEqual(user.getId(), params.authorId));
+    execute (cb) {
+        if (!this.params.user) {
+            return cb(null, false);
+        }
+        cb(null, CommonHelper.isEqual(this.params.user.getId(), this.params.authorId));
     }
 };
 
-const MiscHelper = require('../helpers/MiscHelper');
+const CommonHelper = require('../helpers/CommonHelper');

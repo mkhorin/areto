@@ -13,21 +13,28 @@ module.exports = class ImageValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('notImage', 'File is not an image');
-        if (this.maxHeight) {
-            this.createMessage('overHeight', 'The height cannot be larger than {limit} px', {limit: this.maxHeight});
-        }
-        if (this.maxWidth) {
-            this.createMessage('overWidth', 'The width cannot be larger than {limit} px', {limit: this.maxWidth});
-        }
-        if (this.minHeight) {
-            this.createMessage('underHeight', 'The height cannot be smaller than {limit} px', {limit: this.minHeight});
-        }
-        if (this.minWidth) {
-            this.createMessage('underWidth', 'The width cannot be smaller than {limit} px', {limit: this.minWidth});
-        }
+    getOverHeightMessage () {
+        return this.createMessage(this.overHeight, 'The height cannot be larger than {limit} px', {
+            limit: this.maxHeight
+        });
+    }
+
+    getOverWidthMessage () {
+        return this.createMessage(this.overWidth, 'The width cannot be larger than {limit} px', {
+            limit: this.maxWidth
+        });
+    }
+
+    getUnderHeightMessage () {
+        return this.createMessage(this.underHeight, 'The height cannot be smaller than {limit} px', {
+            limit: this.minHeight
+        });
+    }
+
+    getUnderWidthMessage () {
+        return this.createMessage(this.underWidth, 'The width cannot be smaller than {limit} px', {
+            limit: this.minWidth
+        });
     }
 
     validateValue (file, cb) {
@@ -42,19 +49,19 @@ module.exports = class ImageValidator extends Base {
         let image = gm(file.path);
         image.size((err, size)=> {
             if (err) {
-                return cb(null, this.notImage);
+                return cb(null, this.getNotImageMessage());
             } 
             if (this.minHeight && size.height < this.minHeight) {
-                return cb(null, this.underHeight);
+                return cb(null, this.getUnderHeightMessage());
             }
             if (this.minWidth && size.width < this.minWidth) {
-                return cb(null, this.underWidth);
+                return cb(null, this.getUnderWidthMessage());
             }
             if (this.maxHeight && size.height > this.maxHeight) {
-                return cb(null, this.overHeight);
+                return cb(null, this.getOverHeightMessage());
             }
             if (this.maxWidth && size.width > this.maxWidth) {
-                return cb(null, this.overWidth);
+                return cb(null, this.getOverWidthMessage());
             }
             cb();
         });

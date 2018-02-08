@@ -51,7 +51,7 @@ module.exports = class User extends Base {
         if (this.params.enableAutoLogin && !this.params.identityCookieParam) {
             throw new Error(`${this.constructor.name}: identityCookieParam is not set`);
         }
-        this._canCache = {};
+        this._accessCache = {};
     }
 
     getTitle (defaultValue) {
@@ -64,6 +64,10 @@ module.exports = class User extends Base {
         return this.identity === null;
     }
 
+    getLocalModule () {
+        return this.res.locals.module;
+    }
+
     getId () {
         return this.identity ? this.identity.getId() : null;
     }
@@ -74,7 +78,7 @@ module.exports = class User extends Base {
 
     getReturnUrl (url) {
         url = this.session[this.params.returnUrlParam] || url || this.params.returnUrl;
-        return url || this.res.locals.module.getHomeUrl();
+        return url || this.getLocalModule().getHomeUrl();
     }
 
     setReturnUrl (url) {
@@ -87,7 +91,7 @@ module.exports = class User extends Base {
 
     login (identity, duration, cb) {
         duration = duration || 0;
-        async.series([
+        AsyncHelper.series([
             cb => this.beforeLogin(identity, false, duration, cb),
             cb => this.switchIdentity(identity, duration, cb),
             cb => this.afterLogin(identity, false, duration, cb)
@@ -103,13 +107,13 @@ module.exports = class User extends Base {
             return cb();
         }
         let duration = value.duration;
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.params.Identity.findIdentity(value.id).one(cb),
             (identity, cb)=> {
                 if (!identity || !identity.validateAuthKey(value.key)) {
                     return cb();
                 }
-                async.series([
+                AsyncHelper.series([
                     cb => this.beforeLogin(identity, true, duration, cb),
                     cb => this.switchIdentity(identity, this.params.autoRenewCookie ? duration : 0, cb),
                     cb => this.afterLogin(identity, true, duration, cb)
@@ -120,7 +124,7 @@ module.exports = class User extends Base {
 
     logout (cb, destroySession = true) {
         let identity = this.identity;
-        identity ? async.series([
+        identity ? AsyncHelper.series([
             cb => this.beforeLogout(identity, cb),
             cb => this.switchIdentity(null, 0, cb),
             cb => this.afterLogout(identity, cb)
@@ -132,7 +136,7 @@ module.exports = class User extends Base {
             this.setReturnUrl(this.req.originalUrl);
         }
         this.params.loginUrl && !this.req.xhr
-            ? this.res.redirect(Url.create(this.getLoginUrl(), this.res.locals.module))
+            ? this.res.redirect(Url.create(this.getLoginUrl(), this.getLocalModule()))
             : this.next(new ForbiddenHttpException);
     }
 
@@ -223,7 +227,7 @@ module.exports = class User extends Base {
         if (!id) {
             return this.renewAuthExpire(null, cb);
         }
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.params.Identity.findIdentity(id).one(cb),
             this.renewAuthExpire.bind(this)
         ], cb);
@@ -272,7 +276,7 @@ module.exports = class User extends Base {
     // RBAC
 
     setAssignments (cb) {
-        if (!this.res.locals.module.components.rbac) {
+        if (!this.getLocalModule().components.rbac) {
             return cb();
         }
         if (!this.identity) {
@@ -289,23 +293,28 @@ module.exports = class User extends Base {
     }
 
     can (name, cb, params) {
-        Object.prototype.hasOwnProperty.call(this._canCache, name)
-            ? cb(null, this._canCache[name]) : this.forceCan(name, cb, params);
+        Object.prototype.hasOwnProperty.call(this._accessCache, name)
+            ? cb(null, this._accessCache[name])
+            : this.forceCan(name, cb, params);
     }
 
     forceCan (name, cb, params) {
-        this.res.locals.module.components.rbac.can(this.identity, this.assignments, name, (err, access)=> {
+        params = Object.assign({
+            module: this.getLocalModule(),
+            user: this.identity
+        }, params);
+        params.module.components.rbac.can(this.assignments, name, (err, access)=> {
             if (err) {
                 return cb(err);
             }
-            this._canCache[name] = !!access;
+            this._accessCache[name] = !!access;
             cb(null, access);
         }, params);
     }
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const Event = require('../base/Event');
 const ForbiddenHttpException = require('../errors/ForbiddenHttpException');
 const ServerErrorHttpException = require('../errors/ServerErrorHttpException');

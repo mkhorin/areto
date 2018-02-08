@@ -10,7 +10,7 @@ module.exports = class View extends Base {
             POS_BODY_END: 'bodyEnd',
 
             ArrayHelper: require('../helpers/ArrayHelper'),
-            MiscHelper: require('../helpers/MiscHelper'),
+            CommonHelper: require('../helpers/CommonHelper'),
             StringHelper: require('../helpers/StringHelper'),
             ObjectHelper: require('../helpers/ObjectHelper')
         };
@@ -39,20 +39,11 @@ module.exports = class View extends Base {
         return this.controller.log.apply(this.controller, arguments);
     }
 
-    // CUSTOM DATA
-
-    getData (key, defaults) {
-        return Object.prototype.hasOwnProperty.call(this.data, key) ? this.data[key] : defaults;
-    }
-
-    setData (key, data) {
-        this.data[key] = data;
-    }
-
     // RENDER
 
     render (template, params, cb) {
         params = Object.assign({
+            _data: null,
             _view: this,
             _controller: this.controller,
             _format: this.controller.format.bind(this.controller),
@@ -60,6 +51,7 @@ module.exports = class View extends Base {
             _url: this.controller.createUrl.bind(this.controller),
             _baseUrl: this.controller.module.app.baseUrl
         }, params);
+        params._data = new DataMap(params._data);
         this.layout = params.viewLayout
             || this.controller.VIEW_LAYOUT
             || this.controller.module.VIEW_LAYOUT;
@@ -125,7 +117,7 @@ module.exports = class View extends Base {
         if (anchors.length === 0) {
             return cb(null, content);
         }
-        async.each(anchors, (anchor, cb)=> {
+        AsyncHelper.eachSeries(anchors, (anchor, cb)=> {
             let params = this.widgets[anchor];
             let widget = this.controller.module.widgets[params.configId];
             if (widget) {
@@ -157,5 +149,6 @@ module.exports = class View extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ClassHelper = require('../helpers/ClassHelper');
+const DataMap = require('../data/DataMap');

@@ -5,7 +5,7 @@ const Base = require('./Rbac');
 module.exports = class RouteRbac extends Base {
 
     configure (cb) {
-        async.series([
+        AsyncHelper.series([
             cb => setImmediate(cb),
             cb => this.load(cb),
             cb => {
@@ -16,7 +16,7 @@ module.exports = class RouteRbac extends Base {
     }
 
     load (cb) {
-        async.series([
+        AsyncHelper.series([
             cb => super.load(cb),
             cb => {
                 this.indexRoutes();
@@ -26,10 +26,10 @@ module.exports = class RouteRbac extends Base {
     }
 
     indexRoutes () {
-        this.routeIndex = {};
-        for (let name of Object.keys(this.itemIndex)) {
-            if (this.itemIndex[name].isRoute()) {
-                this.routeIndex[name] = this.itemIndex[name];
+        this.routeMap = {};
+        for (let name of Object.keys(this.itemMap)) {
+            if (this.itemMap[name].isRoute()) {
+                this.routeMap[name] = this.itemMap[name];
             }
         }
     }
@@ -53,17 +53,17 @@ module.exports = class RouteRbac extends Base {
 
     getRouteItemByPath (path) {
         path = path.split('?')[0].toLowerCase();
-        while (!Object.prototype.hasOwnProperty.call(this.routeIndex, path)) {
+        while (!Object.prototype.hasOwnProperty.call(this.routeMap, path)) {
             if (path.length < 2) {
                 return null;
             }
             let pos = path.lastIndexOf('/');
             path = path.substring(0, pos > 0 ? pos : 1);
         }
-        return this.routeIndex[path];
+        return this.routeMap[path];
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ServerErrorException = require('../errors/ServerErrorHttpException');
 const ForbiddenException = require('../errors/ForbiddenHttpException');

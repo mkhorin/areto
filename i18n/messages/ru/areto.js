@@ -61,7 +61,7 @@ module.exports = {
     'Value must not be an IPv6 address': 'Значение не должно быть IPv6-адресом',
     'Value should contain at least {min} chr.': 'Значение должно содержать не менее {min} симв.',
     'Value should contain at most {max} chr.': 'Значение должно содержать не более {max} симв.',
-    'Value should contain {length} chrs.': 'Значение должно содержать {length} симв.',
+    'Value should contain {length} chr.': 'Значение должно содержать {length} симв.',
 
     'Yes': 'Да',
 };

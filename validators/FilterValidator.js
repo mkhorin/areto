@@ -14,9 +14,9 @@ module.exports = class FilterValidator extends Base {
                     if (!value || typeof value === 'object') {
                         return cb(null, value);
                     }
-                    value = MiscHelper.parseJson(value);
+                    value = CommonHelper.parseJson(value);
                     value === undefined
-                        ? cb(null, value, this.createMessage('message', 'Invalid JSON'))
+                        ? cb(null, value, this.createMessage(this.message, 'Invalid JSON'))
                         : cb(null, value);
                 },
                 'split': function (value, cb) {
@@ -71,15 +71,16 @@ module.exports = class FilterValidator extends Base {
             }
             return cb();
         }
-        this.filter(value, (err, result, msg)=> {
+        this.filter(value, (err, result, message)=> {
             if (err) {
                 return cb(err);
             }
-            msg ? this.addError(model, attr, msg) : model.set(attr, result);
+            message ? this.addError(model, attr, message)
+                    : model.set(attr, result);
             cb();
         }, model, attr);
     }
 };
 module.exports.init();
 
-const MiscHelper = require('../helpers/MiscHelper');
+const CommonHelper = require('../helpers/CommonHelper');

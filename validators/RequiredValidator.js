@@ -14,9 +14,16 @@ module.exports = class RequiredValidator extends Base {
     init () {
         super.init();
         this.skipOnEmpty = false;
-        this.createMessage('message', this.requiredValue === null 
-            ? 'Value cannot be blank'
-            : 'Value must be "{requiredValue}"');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Value cannot be blank');
+    }
+
+    getRequiredMessage () {
+        return this.createMessage(this.message, 'Value must be "{requiredValue}"', {
+            requiredValue: this.requiredValue
+        });
     }
 
     validateValue (value, cb) {
@@ -25,13 +32,11 @@ module.exports = class RequiredValidator extends Base {
                 && !this.isEmptyValue(typeof value === 'string' ? value.trim() : value)) {
                return cb();
             }
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         } 
         if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
             return cb();
         }
-        cb(null, this.message, {
-            requiredValue: this.requiredValue
-        });
+        cb(null, this.getRequiredMessage());
     }
 };

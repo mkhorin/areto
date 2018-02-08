@@ -46,7 +46,7 @@ module.exports = class ActiveQuery extends Base {
 
     execAfterPrepare (cb) {        
         this._afterPrepareHandlers instanceof Array
-            ? async.eachSeries(this._afterPrepareHandlers, (handler, cb)=> handler(cb, this), cb)
+            ? AsyncHelper.eachSeries(this._afterPrepareHandlers, (handler, cb)=> handler(cb, this), cb)
             : cb();
     }
 
@@ -82,7 +82,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaTable (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this._via.findJunctionRows([this._primaryModel], cb),
             (viaModels, cb)=> {
                 this.prepareFilter(viaModels);
@@ -92,7 +92,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaRelationMultiple (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this._via[1].all(cb),
             (models, cb)=> {
                 this._primaryModel.populateRelation(this._via[0], models);
@@ -103,7 +103,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaRelation (cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this._via[1].one(cb),
             (model, cb)=> {
                 this._primaryModel.populateRelation(this._via[0], model);
@@ -209,7 +209,7 @@ module.exports = class ActiveQuery extends Base {
     findWith (relations, models, cb) {
         let primaryModel = new this.model.constructor;
         relations = this.normalizeRelations(primaryModel, relations);
-        async.eachOfSeries(relations, (relation, name, cb)=> {
+        AsyncHelper.eachOfSeries(relations, (relation, name, cb)=> {
             if (relation._asRaw === null) { // relation is ActiveQuery
                 relation._asRaw = this._asRaw; // inherit from primary query
             }
@@ -255,7 +255,7 @@ module.exports = class ActiveQuery extends Base {
             return super.populate(docs, cb);
         }
         let models = [];
-        async.eachSeries(docs, (doc, cb)=> {
+        AsyncHelper.eachSeries(docs, (doc, cb)=> {
             let model = new this.model.constructor;
             model.populateRecord(doc);
             models.push(model);
@@ -266,7 +266,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     populateWith (models, cb) {
-        if (!models.length || !Object.keys(this._with).length) {
+        if (!models.length || !Object.values(this._with).length) {
             return cb(null, this._index ? this.indexModels(models) : models);
         }
         this.findWith(this._with, models, err => {
@@ -469,5 +469,5 @@ module.exports = class ActiveQuery extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ActiveRecord = require('./ActiveRecord');

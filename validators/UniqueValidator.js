@@ -13,9 +13,8 @@ module.exports = class UniqueValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Value has already been taken');
+    getMessage () {
+        return this.createMessage(this.message, 'Value has already been taken');
     }
 
     validateAttr (model, attr, cb) {
@@ -50,18 +49,18 @@ module.exports = class UniqueValidator extends Base {
                 if (targetClass === model.constructor) {
                     let id1 = model.getId();
                     let id2 = models[0].getId();
-                    exists = !id1 || !MiscHelper.isEqual(id1, id2);
+                    exists = !id1 || !CommonHelper.isEqual(id1, id2);
                 }
             } else if (models.length === 0) {
                 exists = false;
             }
             if (exists) {
-                this.addError(model, attr, this.message);
+                this.addError(model, attr, this.getMessage());
             }
             cb();
         });
     }
 };
 
-const async = require('async');
-const MiscHelper = require('../helpers/MiscHelper');
+const AsyncHelper = require('../helpers/AsyncHelper');
+const CommonHelper = require('../helpers/CommonHelper');

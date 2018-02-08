@@ -12,52 +12,41 @@ module.exports = class StringValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Value must be a string');
-        if (this.min !== null) {
-            this.createMessage('tooShort', 'Value should contain at least {min} chr.', {min: this.min});
-        }
-        if (this.max !== null) {
-            this.createMessage('tooLong', 'Value should contain at most {max} chr.', {max: this.max});
-        }
-        if (this.length !== null) {
-            this.createMessage('notEqual', 'Value should contain {length} chrs.', {length: this.length});
-        }
+    getMessage () {
+        return this.createMessage(this.message, 'Value must be a string');
     }
 
-    validateAttr (model, attr, cb) {
-        let value = model.get(attr);
-        if (typeof value !== 'string') {
-            this.addError(model, attr, this.message);
-            return cb();
-        }
-        let length = value.length;
-        if (this.min !== null && length < this.min) {
-            this.addError(model, attr, this.tooShort);
-        }
-        if (this.max !== null && length > this.max) {
-            this.addError(model, attr, this.tooLong);
-        }
-        if (this.length !== null && length !== this.length) {
-            this.addError(model, attr, this.notEqual);
-        }
-        cb();
+    getTooShortMessage () {
+        return this.createMessage(this.tooShort, 'Value should contain at least {min} chr.', {
+            min: this.min
+        });
+    }
+
+    getTooLongMessage () {
+        return this.createMessage(this.tooLong, 'Value should contain at most {max} chr.', {
+            max: this.max
+        });
+    }
+
+    getNotEqualMessage () {
+        return this.createMessage(this.notEqual, 'Value should contain {length} chr.', {
+            length: this.length
+        });
     }
 
     validateValue (value, cb) {
         if (typeof value !== 'string') {
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
         let length = value.length;
         if (this.min !== null && length < this.min) {
-            return cb(null, this.tooShort);
+            return cb(null, this.getTooShortMessage());
         }
         if (this.max !== null && length > this.max) {
-            return cb(null, this.tooLong);
+            return cb(null, this.getTooLongMessage());
         }
         if (this.length !== null && length !== this.length) {
-            return cb(null, this.notEqual);
+            return cb(null, this.getNotEqualMessage());
         } 
         cb();
     }

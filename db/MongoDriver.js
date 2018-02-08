@@ -51,7 +51,7 @@ module.exports = class MongoDriver extends Base {
     // OPERATIONS
 
     isCollectionExists (table, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.connection.listCollections().get(cb),
             (items, cb)=> {
                 for (let item of items) {
@@ -143,11 +143,11 @@ module.exports = class MongoDriver extends Base {
     }
 
     drop (table, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.isCollectionExists(table, cb),
             (exists, cb)=> {
                 exists ? this.getCollection(table).drop(err => {
-                    this.afterCommand(err, {cmd: 'truncate', table});
+                    this.afterCommand(err, {cmd: 'drop', table});
                     cb && cb(err);
                 }) : cb();
             }
@@ -294,5 +294,5 @@ module.exports = class MongoDriver extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const MongoQueryBuilder = require('./MongoQueryBuilder');

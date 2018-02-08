@@ -13,7 +13,7 @@ module.exports = class DbRateLimitStore extends Base {
 
     find (type, user, cb) {
         let model = this.createModel({type, user});
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => this.getQueryBy(type, user).one(cb),
             (doc, cb)=> {
                 model.setData(doc);
@@ -43,5 +43,5 @@ module.exports = class DbRateLimitStore extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../../helpers/AsyncHelper');
 const Query = require('../../db/Query');

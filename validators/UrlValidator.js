@@ -8,13 +8,13 @@ module.exports = class UrlValidator extends Base {
         super(Object.assign({
             pattern: '^{schemes}:\\/\\/(([A-Z0-9][A-Z0-9_-]*)(\\.[A-Z0-9][A-Z0-9_-]*)+)',
             validSchemes: ['http', 'https'],
-            defaultScheme: null
+            defaultScheme: null,
+            maxLength: 2000
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Invalid url');
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid url');
     }
 
     validateAttr (model, attr, cb) {
@@ -24,7 +24,7 @@ module.exports = class UrlValidator extends Base {
                 return cb(err);
             }
             if (message) {
-                this.addError(model, attr, message, params);
+                this.addError(model, attr, message);
             } else if (this.defaultScheme !== null && value.indexOf('://') === -1) {
                 model.set(attr, `${this.defaultScheme}://${value}`);
             }
@@ -33,9 +33,8 @@ module.exports = class UrlValidator extends Base {
     }
 
     validateValue (value, cb) {
-        // make sure the length is limited to avoid DOS attacks
-        if (typeof value !== 'string' || value.length > 2000) {
-            return cb(null, this.message);
+        if (typeof value !== 'string' || value.length > this.maxLength) {
+            return cb(null, this.getMessage());
         }
         if (this.defaultScheme !== null && value.indexOf('://') === -1) {
             value = `${this.defaultScheme}://${value}`;
@@ -44,6 +43,6 @@ module.exports = class UrlValidator extends Base {
         if (pattern.indexOf('{schemes}') !== -1) {
             pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
         }
-        cb(null, (new RegExp(pattern, 'i')).test(value) ? null : this.message);
+        cb(null, (new RegExp(pattern, 'i')).test(value) ? null : this.getMessage());
     }
 };

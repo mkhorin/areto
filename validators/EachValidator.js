@@ -14,7 +14,10 @@ module.exports = class EachValidator extends Base {
     init () {
         super.init();
         this._validator = null;
-        this.createMessage('message', 'Invalid value');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid value');
     }
 
     getValidator (model) {
@@ -40,7 +43,7 @@ module.exports = class EachValidator extends Base {
         if (validator instanceof FilterValidator && values instanceof Array) {
             let filteredValues = [];
             model.set(attr, filteredValues);
-            async.eachSeries(values, (value, cb)=> {
+            AsyncHelper.eachSeries(values, (value, cb)=> {
                 if (value instanceof Array && validator.skipOnArray) {
                     return cb();
                 }
@@ -57,18 +60,20 @@ module.exports = class EachValidator extends Base {
 
     validateValue (values, cb) {
         if (!(values instanceof Array)) {
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
         let validator = this.getValidator();
-        async.eachSeries(values, (value, cb)=> {
+        AsyncHelper.eachSeries(values, (value, cb)=> {
             validator.validateValue(value, (err, result)=> {
-                err ? cb(err)
-                    : cb(null, result ? (this.allowMessageFromRule ? result : this.message) : null);
+                if (err) {
+                    return cb(err);
+                }
+                cb(null, result ? (this.allowMessageFromRule ? result : this.getMessage()) : null);
             });
         }, cb);
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const Model = require('../base/Model');
 const FilterValidator = require('./FilterValidator');

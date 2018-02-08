@@ -85,7 +85,7 @@ module.exports = class MongoQueryBuilder extends Base {
                 ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
                 : this.buildSimpleCondition(operator, condition.slice(1));
         }
-        // hash format: 'column1': 'value1', 'column2': 'value2'
+        // hash format: {'column1': 'value1'}
         return this.buildHashCondition(condition);
     }
 
@@ -139,7 +139,7 @@ module.exports = class MongoQueryBuilder extends Base {
     buildNotInCondition (operator, operands) {
         if (operands.length !== 2) {
             throw new Error(`${this.constructor.name}: NOT IN requires 2 operands.`);
-        };
+        }
         return {[this.getFieldName(operands[0])]: {$nin: operands[1] instanceof Array ? operands[1] : [operands[1]]}};
     }
 
@@ -156,7 +156,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (value instanceof RegExp) {
             return value;
         }
-        value = MiscHelper.escapeRegExp(value);
+        value = CommonHelper.escapeRegExp(value);
         value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
         value = value.charAt(value.length - 1) === '%' ?  value.substring(0, value.length - 1) : `${value}$`;
         return new RegExp(value, 'i');
@@ -237,4 +237,4 @@ module.exports = class MongoQueryBuilder extends Base {
 };
 
 const mongodb = require('mongodb');
-const MiscHelper = require('../helpers/MiscHelper');
+const CommonHelper = require('../helpers/CommonHelper');

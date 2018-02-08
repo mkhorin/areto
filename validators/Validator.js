@@ -59,17 +59,20 @@ module.exports = class Validator extends Base {
             enableClientValidation: true,
             isEmpty: null, // value => false/true
             when: null, // (model, attr)=> false/true
-            whenClient: null
+            whenClient: null,
+            messageCategory: 'app'
         }, config));
     }
 
-    createMessage (msgAttr, message, params) {
-        if (!(this[msgAttr] instanceof Message)) {
-            this[msgAttr] = this[msgAttr]
-                ? new Message(null, this[msgAttr], params)
-                : new Message('areto', message, params);
+    createMessage (message, defaultMessage, params) {
+        if (message instanceof Message) {
+            return message.addParams(params);
         }
-        return this[msgAttr];
+        if (typeof message === 'string') {
+            return new Message(this.messageCategory, message, params);
+        }
+        let category = ObjectHelper.getValueKey(this.constructor, this.BUILTIN) ? 'areto' : this.messageCategory;
+        return new Message(category, defaultMessage, params);
     }
 
     validateAttrs (model, attrs, cb) {
@@ -80,15 +83,15 @@ module.exports = class Validator extends Base {
                 && (!this.skipOnEmpty || !this.isEmptyValue(model.get(attr)))
                 && (typeof this.when !== 'function' || this.when(model, attr));
         });
-        async.each(attrs, (attr, cb)=>{
+        AsyncHelper.eachSeries(attrs, (attr, cb)=>{
             this.validateAttr(model, attr, cb);
         }, cb);
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, message, params)=> {
+        this.validateValue(model.get(attr), (err, message)=> {
             if (message) {
-                this.addError(model, attr, message, params);
+                this.addError(model, attr, message);
             }
             cb(err);
         });
@@ -110,10 +113,7 @@ module.exports = class Validator extends Base {
             : value === undefined || value === null || value.length === 0;
     }
 
-    addError (model, attr, message, params) {
-        if (params) {
-            message.addParams(params);
-        }
+    addError (model, attr, message) {
         let value = model.get(attr);
         message.addParams({
             attr: model.getLabel(attr),
@@ -124,6 +124,7 @@ module.exports = class Validator extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const Message = require('../i18n/Message');

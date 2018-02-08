@@ -14,6 +14,7 @@ module.exports = class Rbac extends Base {
         super(Object.assign({
             store: require('./FileStore'),
             Inspector: require('./Inspector'),
+            Item: require('./Item')
         }, config));        
     }
     
@@ -25,7 +26,7 @@ module.exports = class Rbac extends Base {
     }
 
     configure (cb) {
-        setImmediate(()=> this.load(cb));
+        setImmediate(this.load.bind(this, cb));
     }
    
     afterLoad () {
@@ -50,35 +51,43 @@ module.exports = class Rbac extends Base {
     }
 
     build (data) {
-        this.ruleIndex = {};
-        for (let id of Object.keys(data.rules)) {
-            this.ruleIndex[id] = ClassHelper.createInstance(data.rules[id], {id});
+        this.ruleMap = {};
+        for (let name of Object.keys(data.rules)) {
+            this.ruleMap[name] = ClassHelper.normalizeCreationData(data.rules[name], {name});
         }
-        this.itemIndex = {};
-        for (let id of Object.keys(data.items)) {
-            let rule = data.items[id].rule;
-            if (rule) {
-                data.items[id].rule = Object.prototype.hasOwnProperty.call(this.ruleIndex, rule)
-                    ? this.ruleIndex[rule] : ClassHelper.createInstance(rule, {id});
-            }
-            this.itemIndex[id] = new Item(data.items[id]);
+        this.resolveItemRules(data.items);
+        this.itemMap = {};
+        for (let name of Object.keys(data.items)) {
+            this.itemMap[name] = new this.Item(Object.assign({
+                rbac: this
+            }, data.items[name]));
         }
         for (let id of Object.keys(data.items)) {
-            this.resolveItemLinks(this.itemIndex[id]);
+            this.resolveItemLinks(this.itemMap[id]);
         }
         this.assignmentIndex = data.assignments;
+    }
+
+    resolveItemRules (itemMap) {
+        for (let item of Object.values(itemMap)) {
+            let rule = item.rule;
+            if (rule) {
+                item.rule = Object.prototype.hasOwnProperty.call(this.ruleMap, rule)
+                    ? this.ruleMap[rule]
+                    : ClassHelper.normalizeCreationData(rule);
+            }
+        }
     }
 
     resolveItemLinks (item) {
         if (item.children instanceof Array) {
             let children = [];
             for (let id of item.children) {
-                if (this.itemIndex[id] instanceof Item) {
-                    children.push(this.itemIndex[id]);
-                    this.itemIndex[id].addParent(item);
-                } else {
+                if (!(this.itemMap[id] instanceof this.Item)) {
                     throw new Error(`${this.constructor.name}: Unknown child: ${id}`);
                 }
+                children.push(this.itemMap[id]);
+                this.itemMap[id].addParent(item);
             }
             item.children = children;
         }
@@ -89,38 +98,33 @@ module.exports = class Rbac extends Base {
             ? this.assignmentIndex[userId] : null;
     }
 
-    can (user, assignments, itemId, callback, params) {
-        if (this.loading || !Object.prototype.hasOwnProperty.call(this.itemIndex, itemId)
+    can (assignments, itemId, cb, params) {
+        if (this.loading || !Object.prototype.hasOwnProperty.call(this.itemMap, itemId)
             || !assignments || assignments.length === 0) {
-            return callback();
+            return cb();
         }
-        let inspector = new this.Inspector({user, params});
-        async.eachSeries(assignments, (assignment, cb)=> {
-            if (!Object.prototype.hasOwnProperty.call(this.itemIndex, assignment)) {
+        let inspector = new this.Inspector({params});
+        AsyncHelper.someSeries(assignments, (assignment, cb)=> {
+            if (!Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
                 return cb();
             }
-            inspector.assignment = this.itemIndex[assignment];
-            inspector.execute(this.itemIndex[itemId], (err, access)=> {
-                err ? cb(err)
-                    : access ? callback(null, true) : cb();
-            });
-        }, callback);
+            inspector.assignment = this.itemMap[assignment];
+            inspector.execute(this.itemMap[itemId], cb);
+        }, cb);
     }
 
-    setDefaults (module, cb) {
-        const defaults = module.config.rbacDefaults;
-        async.series([
+    setDefaults (configName, module, cb) {
+        const defaults = module.config[configName];
+        AsyncHelper.series([
             cb => defaults ? this.store.createRules(defaults.rules, cb) : cb(),
             cb => defaults ? this.store.createItems(defaults.items, cb) : cb(),
-            cb => async.eachOfSeries(module.modules, (module, name, cb)=> {
-                this.setDefaults(module, cb);
+            cb => AsyncHelper.eachOfSeries(module.modules, (module, name, cb)=> {
+                this.setDefaults(configName, module, cb);
             }, cb)
         ], cb);
     }
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ClassHelper = require('../helpers/ClassHelper');
-const Item = require('./Item');
-const Rule = require('./Rule');

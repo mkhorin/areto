@@ -1,13 +1,14 @@
 'use strict';
 
-module.exports = class MiscHelper {
+module.exports = class CommonHelper {
 
     static isEmpty (value) {
         return value === undefined || value === null || value === '';
     }
 
     static isEqual (id1, id2) {
-        return id1 instanceof MongoId ? id1.equals(id2)
+        return id1 instanceof MongoId
+            ? id1.equals(id2)
             : id2 instanceof MongoId ? id2.equals(id1) : id1 === id2;
     }
 

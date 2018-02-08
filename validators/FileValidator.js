@@ -14,58 +14,62 @@ module.exports = class FileValidator extends Base {
         }, config));
     }
 
-    init () {
-        super.init();
-        this.createMessage('message', 'Invalid file');
-        if (this.imageOnly) {
-            this.createMessage('notImage', 'File is not an image');
-        }
-        if (this.minSize) {
-            this.createMessage('tooSmall', 'File size cannot be smaller than {limit}', {
-                limit: [this.minSize, 'bytes']
-            });
-        }
-        if (this.maxSize) {
-            this.createMessage('tooBig', 'File size cannot exceed {limit}', {
-                limit: [this.maxSize, 'bytes']
-            });
-        }
-        if (this.extensions instanceof Array) {
-            this.createMessage('wrongExtension', 'Only these file extensions are allowed: {extensions}', {
-                extensions: this.extensions
-            });
-        }
-        if (this.mimeTypes instanceof Array) {
-            this.createMessage('wrongMimeType', 'Only these file MIME types are allowed: {mimeTypes}', {
-                mimeTypes: this.mimeTypes
-            });
-        }
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid file');
+    }
+
+    getNotImageMessage () {
+        return this.createMessage(this.notImage, 'File is not an image');
+    }
+
+    getTooSmallMessage () {
+        return this.createMessage(this.tooSmall, 'File size cannot be smaller than {limit}', {
+            limit: [this.minSize, 'bytes']
+        });
+    }
+
+    getTooBigMessage () {
+        return this.createMessage(this.tooBig, 'File size cannot exceed {limit}', {
+            limit: [this.maxSize, 'bytes']
+        });
+    }
+
+    getWrongExtensionMessage () {
+        return this.createMessage(this.wrongExtension, 'Only these file extensions are allowed: {extensions}', {
+            extensions: this.extensions
+        });
+    }
+
+    getWrongMimeTypeMessage () {
+        return this.createMessage(this.wrongMimeType, 'Only these file MIME types are allowed: {mimeTypes}', {
+            mimeTypes: this.mimeTypes
+        });
     }
 
     // file {  path, size, extension, mime }
     validateValue (file, cb) {
         if (!file || !file.path) {
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
         if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
-            return cb(null, this.notImage);
+            return cb(null, this.getNotImageMessage());
         }
         fs.stat(file.path, (err, stats)=> {
             if (err || !stats.isFile()) {
-                return cb(null, this.message);
+                return cb(null, this.getMessage());
             }
             if (this.minSize && file.size < this.minSize) {
-                return cb(null, this.tooSmall);
+                return cb(null, this.getTooSmallMessage());
             }
             if (this.maxSize && file.size > this.maxSize) {
-                return cb(null, this.tooBig);
+                return cb(null, this.getTooBigMessage());
             }
             if (this.extensions instanceof Array
                 && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
-                return cb(null, this.wrongExtension);
+                return cb(null, this.getWrongExtensionMessage());
             }
             if (this.mimeTypes instanceof Array && (!file.mime || !this.mimeTypes.includes(file.mime))) {
-                return cb(null, this.wrongMimeType);
+                return cb(null, this.getWrongMimeTypeMessage());
             }
             cb();
         });

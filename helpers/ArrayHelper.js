@@ -52,12 +52,16 @@ module.exports = class ArrayHelper {
         return -1;
     }
 
-    static getValueByKey (key, keyProp, valueProp, objects) {
+    static getValueByKey (key, keyProp, objects, returnProp) {
         for (let object of objects) {
             if (object[keyProp] === key) {
-                return object[valueProp];
+                return returnProp === undefined ? object : object[returnProp];
             }
         }
+    }
+
+    static concatValues (values) {
+        return values.length ? Array.prototype.concat.apply(values[0], values.slice(1)) : values;
     }
 
     static indexObjects (docs, key) {
@@ -134,7 +138,7 @@ module.exports = class ArrayHelper {
     }
 
     // HIERARCHY
-    // sort children after parents
+    // order children after parents
     static sortHierarchy (items, idProp, parentProp) {
         let result = [], map = {};
         for (let item of items) {

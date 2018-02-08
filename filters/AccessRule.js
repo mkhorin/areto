@@ -49,7 +49,7 @@ module.exports = class AccessRule extends Base {
             }
             roles.push(item);
         }
-        async.eachSeries(roles, (item, roleCallback)=> {
+        AsyncHelper.eachSeries(roles, (item, roleCallback)=> {
             user.can(item, (err, access)=> {
                 err ? roleCallback(err)
                     : access ? cb(null, true) : roleCallback();
@@ -58,4 +58,4 @@ module.exports = class AccessRule extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');

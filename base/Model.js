@@ -4,6 +4,15 @@ const Base = require('./Component');
 
 module.exports = class Model extends Base {
 
+    static getExtendedProperties () {
+        return [
+            'BEHAVIORS',
+            'SCENARIOS',
+            'LABELS',
+            'HINTS'
+        ];
+    }
+
     static getConstants () {
         return {
             NAME: this.getName(),
@@ -177,7 +186,7 @@ module.exports = class Model extends Base {
 
     hasError (attr) {
         return attr ? Object.prototype.hasOwnProperty.call(this._errors, attr)
-                    : Object.keys(this._errors).length > 0;
+                    : Object.values(this._errors).length > 0;
     }
 
     getErrors (attr) {
@@ -188,9 +197,9 @@ module.exports = class Model extends Base {
         if (attr) {
             return this.hasError(attr) ? this._errors[attr][0] : '';
         }
-        for (attr of Object.keys(this._errors)) {
-            if (this._errors[attr].length) {
-                return this._errors[attr][0];
+        for (let error of Object.values(this._errors)) {
+            if (error.length) {
+                return error[0];
             }
         }
         return '';
@@ -258,9 +267,9 @@ module.exports = class Model extends Base {
 
     validate (cb, attrNames) {
         attrNames = attrNames || this.getActiveAttrNames();
-        async.series([
+        AsyncHelper.series([
             this.beforeValidate.bind(this),
-            cb => async.eachSeries(this.getActiveValidators(), (validator, cb)=> {
+            cb => AsyncHelper.eachSeries(this.getActiveValidators(), (validator, cb)=> {
                 validator.validateAttrs(this, attrNames, cb);
             }, cb),
             this.afterValidate.bind(this)
@@ -305,7 +314,7 @@ module.exports = class Model extends Base {
     }
 
     setDefaultValues (cb) {
-        async.each(this.getActiveValidatorsByClass(DefaultValueValidator), (validator, cb)=> {
+        AsyncHelper.eachSeries(this.getActiveValidatorsByClass(DefaultValueValidator), (validator, cb)=> {
             validator.validateAttrs(this, null, cb);
         }, cb);
     }
@@ -350,7 +359,7 @@ module.exports = class Model extends Base {
 };
 module.exports.init();
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');
 const StringHelper = require('../helpers/StringHelper');
 const Message = require('../i18n/Message');

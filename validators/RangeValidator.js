@@ -15,14 +15,17 @@ module.exports = class RangeValidator extends Base {
     init () {
         super.init();
         if (!(this.range instanceof Array)) {
-            throw new Error(`${this.constructor.name}: The range property must be set`);
+            throw new Error(`${this.constructor.name}: Range property must be array`);
         }
-        this.createMessage('message', 'Invalid range');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid range');
     }
 
     validateValue (value, cb) {
         if (!this.allowArray && value instanceof Array) {
-            return cb(null, this.message);
+            return cb(null, this.getMessage());
         }
         let inRange = true;
         let values = value instanceof Array ? value : [value];
@@ -32,6 +35,6 @@ module.exports = class RangeValidator extends Base {
                 break;
             }
         }
-        cb(null, this.not !== inRange ? null : this.message);
+        cb(null, this.not !== inRange ? null : this.getMessage());
     }
 };

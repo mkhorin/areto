@@ -9,9 +9,9 @@ module.exports = class FileHelper {
     }
 
     static readDir (dir, handler, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => fs.readdir(dir, cb),
-            (files, cb)=> async.eachSeries(files, handler, cb)
+            (files, cb)=> AsyncHelper.eachSeries(files, handler, cb)
         ], cb);
     }
 
@@ -22,7 +22,7 @@ module.exports = class FileHelper {
     }
 
     static removeDeep (file, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => fs.stat(file, (err, stat)=> cb(null, stat)), // skip if not exists
             (stat, cb)=> {
                 if (!stat) {
@@ -31,7 +31,7 @@ module.exports = class FileHelper {
                 if (stat.isFile()) {
                     return fs.unlink(file, cb);
                 }
-                async.series([
+                AsyncHelper.series([
                     cb => this.readDir(file, (name, cb)=> {
                         this.removeDeep(path.join(file, name), cb);
                     }, cb),
@@ -42,16 +42,16 @@ module.exports = class FileHelper {
     }
 
     static copyDeep (source, target, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => fs.stat(source, cb),
             (stat, cb)=> {
                 if (stat.isFile()) {
-                    return async.series([
+                    return AsyncHelper.series([
                         cb => mkdirp(path.dirname(target), {mode: stat.mode}, cb),
                         cb => fs.copyFile(source, target, cb)
                     ], cb);
                 }
-                async.series([
+                AsyncHelper.series([
                     cb => mkdirp(target, {mode: stat.mode}, cb),
                     cb => this.readDir(source, (name, cb)=> {
                         this.copyDeep(path.join(source, name), path.join(target, name), cb);
@@ -81,7 +81,7 @@ module.exports = class FileHelper {
     }
 
     static readJsonFile (file, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => fs.readFile(file, cb),
             (data, cb)=> {
                 try {
@@ -95,7 +95,7 @@ module.exports = class FileHelper {
     }
 };
 
-const async = require('async');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
+const AsyncHelper = require('./AsyncHelper');

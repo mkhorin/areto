@@ -19,7 +19,7 @@ module.exports = class HistoryBehavior extends Base {
     }
 
     beforeUpdate (cb, event) {
-        async.each(this.getAttrNames(), (attr, cb)=> {
+        AsyncHelper.eachSeries(this.getAttrNames(), (attr, cb)=> {
             this.owner.isAttrChanged(attr) 
                 ? this.createHistory(attr, cb) 
                 : cb();
@@ -29,7 +29,7 @@ module.exports = class HistoryBehavior extends Base {
     createHistory (attr, cb) {
         let model = new this.History;
         model.setTargetData(this.owner, attr);
-        async.series([
+        AsyncHelper.series([
             cb => model.save(cb),
             cb => {
                 if (model.hasError()) {
@@ -58,6 +58,6 @@ module.exports = class HistoryBehavior extends Base {
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ArrayHelper = require('../helpers/ArrayHelper');
 const ActiveRecord = require('../db/ActiveRecord');

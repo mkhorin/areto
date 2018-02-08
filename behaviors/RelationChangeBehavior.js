@@ -24,8 +24,8 @@ module.exports = class RelationChangeBehavior extends Base {
         cb();
     }
 
-    afterSave (insert, cb) {
-        async.eachSeries(this.owner.getActiveRelationNames(), this.changeRelation.bind(this), cb);
+    afterSave (cb, event) {
+        AsyncHelper.eachSeries(this.owner.getActiveRelationNames(), this.changeRelation.bind(this), cb);
     }
 
     changeRelation (name, cb) {
@@ -35,7 +35,7 @@ module.exports = class RelationChangeBehavior extends Base {
         let relation = this.owner.getRelation(name);
         let changes = this._changes[name];
         delete this._changes[name];
-        async.series([
+        AsyncHelper.series([
             cb => changes.removes instanceof Array && changes.removes.length
                 ? relation.model.constructor.removeById(changes.removes, cb)
                 : cb(),
@@ -44,19 +44,20 @@ module.exports = class RelationChangeBehavior extends Base {
                 : cb(),
             cb => changes.links instanceof Array && changes.links.length
                 ? this.changeRelationById(changes.links, relation, name, 'link', cb)
-                : cb()
+                : cb(),
+            cb => setImmediate(cb)
         ], cb);
     }
 
     changeRelationById (id, relation, name, action, cb) {
-        async.waterfall([
+        AsyncHelper.waterfall([
             cb => relation.model.findById(id).all(cb),
-            (targets, cb)=> async.eachSeries(targets, (target, cb)=> {
+            (targets, cb)=> AsyncHelper.eachSeries(targets, (target, cb)=> {
                 relation._primaryModel[action](name, target, cb);
             }, cb)
         ], cb);
     }
 };
 
-const async = require('async');
+const AsyncHelper = require('../helpers/AsyncHelper');
 const ActiveRecord = require('../db/ActiveRecord');
