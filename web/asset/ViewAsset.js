@@ -81,7 +81,7 @@ module.exports = class ViewAsset extends Base {
     }
 
     log (type, message, data) {
-        this.manager.log(type, `${this.constructor.name}: ${message}`, data);
+        this.manager.log(type, this.wrapClassMessage(message), data);
     }
 };
 module.exports.init();

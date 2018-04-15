@@ -44,19 +44,19 @@ module.exports = class DbSessionStore extends Base {
             return cb();
         }
         let expired = new Date((new Date).getTime() - this.session.lifetime);
-        this.find().where(['<', 'updatedAt', expired]).remove(cb);
+        this.find(['<', 'updatedAt', expired]).remove(cb);
     }
 
     removeByUserId (userId, cb) {
-        this.find().where(['ID', 'userId', userId]).remove(cb);
+        this.find(['ID', 'userId', userId]).remove(cb);
     }
 
     findBySid (sid) {
-        return this.find().where({sid});
+        return this.find({sid});
     }
 
-    find () {
-        return (new Query).db(this.db).from(this.table);
+    find (condition) {
+        return (new Query).db(this.db).from(this.table).where(condition);
     }
 };
 

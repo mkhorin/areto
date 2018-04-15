@@ -38,13 +38,9 @@ module.exports = class OrderBehavior extends Base {
                 if (this.filter instanceof Function) {
                     this.filter(query, this.owner);
                 } else if (typeof this.filter === 'string') {
-                    query.where({
-                        [this.filter]: this.owner.get(this.filter)
-                    });
+                    query.and({[this.filter]: this.owner.get(this.filter)});
                 }
-                query.order({
-                    [this.orderAttr]: this.step > 0 ? -1 : 1
-                });
+                query.order({[this.orderAttr]: this.step > 0 ? -1 : 1});
                 query.scalar(this.orderAttr, cb);
             },
             (last, cb)=> {

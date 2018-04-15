@@ -72,7 +72,7 @@ module.exports = class Model extends Base {
 
     isAttrRequired (name) {
         for (let validator of this.getActiveValidators(name)) {
-            if (validator instanceof RequiredValidator && validator.when === null) {
+            if (validator instanceof Validator.BUILTIN.required && validator.when === null) {
                 return true;
             }
         }
@@ -153,7 +153,7 @@ module.exports = class Model extends Base {
     }
 
     setSafeAttrs (values) {
-        if (values && typeof values === 'object') {
+        if (values) {
             for (let name of this.getSafeAttrNames()) {
                 if (Object.prototype.hasOwnProperty.call(values, name)) {
                     this.set(name, values[name]);
@@ -303,18 +303,8 @@ module.exports = class Model extends Base {
         });
     }
 
-    getActiveRelationNames () {
-        let names = [];
-        for (let validator of this.getValidators()) {
-            if (validator instanceof RelationValidator && validator.isActive(this.scenario)) {
-                names = names.concat(validator.attrs);
-            }
-        }
-        return ArrayHelper.unique(names);
-    }
-
     setDefaultValues (cb) {
-        AsyncHelper.eachSeries(this.getActiveValidatorsByClass(DefaultValueValidator), (validator, cb)=> {
+        AsyncHelper.eachSeries(this.getActiveValidatorsByClass(Validator.BUILTIN.default), (validator, cb)=> {
             validator.validateAttrs(this, null, cb);
         }, cb);
     }
@@ -344,7 +334,7 @@ module.exports = class Model extends Base {
         if (rule instanceof Array && rule[0] && rule[1]) {
             return Validator.createValidator(rule[1], this, rule[0], rule[2]);
         }
-        this.log('error', `${this.constructor.name}: Invalid validation rule`, rule);
+        this.log('error', this.wrapClassMessage('Invalid validation rule'), rule);
     }
 
     // MODEL CONTROLLER
@@ -364,6 +354,3 @@ const ArrayHelper = require('../helpers/ArrayHelper');
 const StringHelper = require('../helpers/StringHelper');
 const Message = require('../i18n/Message');
 const Validator = require('../validators/Validator');
-const DefaultValueValidator = require('../validators/DefaultValueValidator');
-const RequiredValidator = require('../validators/RequiredValidator');
-const RelationValidator = require('../validators/RelationValidator');

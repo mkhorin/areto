@@ -16,14 +16,14 @@ module.exports = class EventManager extends Base {
     }
 
     /**
-     * @param data - get only with this handler
+     * data - get only with this handler
      */
     on (name, handler, data, prepend) {
         if (!name) {
-            throw new Error(`${this.constructor.name}: Invalid event name`);
+            throw new Error(this.wrapClassMessage('Invalid event name'));
         }   
         if (typeof handler !== 'function') {
-            throw new Error(`${this.constructor.name}: Invalid event handler`);
+            throw new Error(this.wrapClassMessage('Invalid event handler'));
         }
         this.owner.ensureBehaviors();
         if (!this._events[name]) {

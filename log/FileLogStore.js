@@ -30,7 +30,7 @@ module.exports = class FileLogStore extends Base {
     save (type, message, data) {
         fs.write(this.fd, this.format(type, message, data), err => {
             if (err) {
-                console.error(`${this.constructor.name}: save`, err);
+                console.error(this.wrapClassMessage(`save:`), err);
             }
         });
     }
@@ -56,7 +56,7 @@ module.exports = class FileLogStore extends Base {
         setTimeout(()=> {
             fs.fstat(this.fd, (err, stats)=> {
                 if (err) {
-                    this.log('error', `${this.constructor.name}: observe`, err);
+                    this.log('error', this.wrapClassMessage(`observe:`), err);
                 } else if (stats.size > this.maxFileSize) {
                     this.rotate();
                 }
@@ -78,7 +78,7 @@ module.exports = class FileLogStore extends Base {
             fs.renameSync(files[i], this.getFile(files.length - i));
         }
         this.fd = fs.openSync(this.file, 'a');
-        this.log('info', `${this.constructor.name}: rotate success: ${this.fileName}`);
+        this.log('info', this.wrapClassMessage(`rotate success: ${this.fileName}`));
     }
 
     getFile (index) {

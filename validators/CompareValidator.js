@@ -51,7 +51,7 @@ module.exports = class CompareValidator extends Base {
 
     validateValue (value, cb) {
         if (this.compareValue === null) {
-            return cb(`${this.constructor.name}: Value must be set`);
+            return cb(this.wrapClassMessage('Value must be set'));
         }
         if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
             return cb(null, this.getMessage({

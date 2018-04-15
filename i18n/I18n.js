@@ -48,6 +48,10 @@ module.exports = class I18n extends Base {
         });
     }
 
+    format (message, params, language) {
+        return params ? this.messageFormatter.format(message, params, language) : message;
+    }
+
     translate (category, message, params, language) {
         let source = this.getMessageSource(category);
         if (!source) {
@@ -60,8 +64,13 @@ module.exports = class I18n extends Base {
             : this.format(result, params, language);
     }
 
-    format (message, params, language) {
-        return params ? this.messageFormatter.format(message, params, language) : message;
+    translateMessageMap (map) {
+        for (let key of Object.keys(map)) {
+            if (map[key] instanceof Message) {
+                map[key] = map[key].translate(this);
+            }
+        }
+        return map;
     }
 
     getActiveNotSourceLanguage () {
@@ -92,7 +101,7 @@ module.exports = class I18n extends Base {
             }
             return sources[this.ASTERISK];
         }
-        this.log('error', `${this.constructor.name}: Unable to find message source for "${category}"`);
+        this.log('error', this.wrapClassMessage(`Unable to find message source for '${category}'`));
         return null;
     }
 
@@ -118,3 +127,4 @@ const ClassHelper = require('../helpers/ClassHelper');
 const MessageSource = require('./MessageSource');
 const JsMessageSource = require('./JsMessageSource');
 const MessageFormatter = require('./MessageFormatter');
+const Message = require('./Message');

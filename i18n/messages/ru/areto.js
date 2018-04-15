@@ -2,6 +2,8 @@
 
 module.exports = {
 
+    '<span class="not-set">[not set]</span>': '<span class="not-set">[не задано]</span>',
+
     'B': 'Б',
     'KiB': 'Кб',
     'MiB': 'Мб',
@@ -20,21 +22,21 @@ module.exports = {
     'Invalid email': 'Неверный адрес электронной почты',
     'Invalid file': 'Неверный файл',
     'Invalid JSON': 'Неверный JSON',
-    'Invalid IP address': 'Недопустимый IP-адрес',
-    'Invalid MongoId': 'Неверный MongoID',
+    'Invalid IP address': 'Неправильный IP-адрес',
+    'Invalid MongoId': 'Неправильный MongoID',
     'Invalid range': 'Недопустимый диапазон',
-    'Invalid relation request': 'Недопустимый запрос связи',
+    'Invalid relation request': 'Неправильный запрос связи',
     'Invalid value': 'Неверное значение',
     'Invalid url': 'Неверная ссылка',
 
     'No': 'Нет',
     'Number must be a integer': 'Число должно быть целым',
 
-    'Only these file extensions are allowed: {extensions}': 'Разрешены только эти расширения файлов: {extensions}',
-    'Only these file MIME types are allowed: {mimeTypes}': 'Разрешены только эти MIME-типы файлов: {mimeTypes}',
+    'Only these file extensions are allowed: {extensions}': 'Допустимы только эти расширения файлов: {extensions}',
+    'Only these file MIME types are allowed: {mimeTypes}': 'Допустимы только эти MIME-типы файлов: {mimeTypes}',
 
-    'Relation should contain at least {min} lnk.': 'Связей в отношение должно содержать не менее {min}',
-    'Relation should contain at most {max} lnk.': 'Связей в отношение должно содержать не более {max}',
+    'Relation should contain at least {min} lnk.': 'Связанных значений должно быть не менее {min}',
+    'Relation should contain at most {max} lnk.': 'Связанных значений должно быть не более {max}',
 
     'The height cannot be larger than {limit} px': 'Высота не может быть более {limit} пк',
     'The height cannot be smaller than {limit} px': 'Высота не может быть менее {limit} пк',

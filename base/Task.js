@@ -50,7 +50,7 @@ module.exports = class Task extends Base {
     //
 
     run (cb) {
-        cb(`${this.constructor.name}: ${this.id}: Run task here`);
+        cb(this.wrapClassMessage(`${this.id}: Run task here`));
     }
 
     restart () {

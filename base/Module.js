@@ -95,9 +95,7 @@ module.exports = class Module extends Base {
     getController (id) {
         try {
             return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
-        } catch (err) {
-        }
-        return null;
+        } catch (e) {}
     }
 
     log () {
@@ -154,11 +152,11 @@ module.exports = class Module extends Base {
     }
 
     onAfterComponentInit (id, handler) {
-        ObjectHelper.addValueToMap(handler, id, this._afterComponentInitHandlers);
+        ObjectHelper.push(handler, id, this._afterComponentInitHandlers);
     }
 
     onAfterModuleInit (id, cb) {
-        ObjectHelper.addValueToMap(handler, id, this._afterModuleInitHandlers);
+        ObjectHelper.push(handler, id, this._afterModuleInitHandlers);
     }
 
     // EXPRESS SETUP QUEUES
@@ -258,7 +256,7 @@ module.exports = class Module extends Base {
                     this.log('error', `Module: ${module.getFullName()}:`, err);
                     return cb();
                 }
-                this.log('info', `Module: attached ${module.getFullName()}`);
+                this.log('info', `Attached module: ${module.getFullName()}`);
                 AsyncHelper.eachSeries(this._afterModuleInitHandlers[id], (handler, cb)=> {
                     handler(cb, module);
                 }, cb);
@@ -299,7 +297,7 @@ module.exports = class Module extends Base {
         this.extendComponentsByDefaults(components);
         AsyncHelper.eachOfSeries(components, (config, id, cb)=> {
             if (!config) {
-                this.log('info', `${this.getFullName()}: Component '${id}' skipped`);
+                this.log('info', `${this.getFullName()}: Component skipped: ${id}`);
                 return cb();
             }
             config.module = config.module || this;
@@ -315,7 +313,7 @@ module.exports = class Module extends Base {
                     cb();
                 },
                 cb => {
-                    this.log('trace', `${this.getFullName()}: ${id} ready`);
+                    this.log('trace', `${this.getFullName()}: Component ready: ${id}`);
                     AsyncHelper.eachSeries(this._afterComponentInitHandlers[id], (handler, cb)=> {
                         handler(cb, this.components[id]);
                     }, cb);
@@ -374,7 +372,6 @@ module.exports = class Module extends Base {
         this.createComponent(id, Object.assign({
             Class: require('../db/Connection')
         }, config));
-        let y = this.getDb();
         this.getDb().open(cb);
     }
 
@@ -453,8 +450,9 @@ module.exports = class Module extends Base {
     }    
 
     setUserComponent (id, config, cb) {
-        let User = config.User || require('../web/User');
-        this.components.userConfig = Object.assign({User}, User.DEFAULTS, config);
+        this.createComponent(id, Object.assign({
+            Class: require('../web/User')
+        }, config));
         this.appendToExpress('use', this.handleUser);
         cb();
     }
@@ -471,10 +469,8 @@ module.exports = class Module extends Base {
 
     handleUser (req, res, next) {
         let module = res.locals.module;
-        let config = module.components.userConfig;
-        res.locals.user = new config.User(req, res, next, config);
-        module.attachUserEvents && module.attachUserEvents(res.locals.user);
-        // try to identify the user immediately, otherwise have to do a callback for isAnonymous
+        res.locals.user = module.components.user.createWebUser(req, res, next);
+        // try to identify the user immediately, otherwise have to do a callback for isAnonymous and etc
         res.locals.user.ensureIdentity(next);
     }
 };

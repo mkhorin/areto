@@ -41,14 +41,14 @@ module.exports = class FilterValidator extends Base {
     init () {
         super.init();
         if (this.filter === null) {
-            throw new Error(`${this.constructor.name}: The filter property must be set`);
+            throw new Error(this.wrapClassMessage('The filter property must be set'));
         }
         if (typeof this.filter === 'string') {
             if (Object.prototype.hasOwnProperty.call(this.BUILTIN, this.filter)) {
                 this.filter = this.BUILTIN[this.filter];
             }
         } else if (typeof this.filter !== 'function') {
-            throw new Error(`${this.constructor.name}: The filter must be function`);
+            throw new Error(this.wrapClassMessage('The filter must be function'));
         }
     }
 
@@ -62,7 +62,7 @@ module.exports = class FilterValidator extends Base {
                 return cb();
             }
             if (typeof value[this.filter] !== 'function') {
-                return cb(`FilterValidator: Not found inline filter "${this.filter}" of the ${value.constructor.name} class`);
+                return cb(this.wrapClassMessage(`Not found inline filter '${this.filter}' of '${value.constructor.name}'`));
             }
             try {
                 model.set(attr, value[this.filter]());

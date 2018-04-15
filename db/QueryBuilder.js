@@ -7,6 +7,6 @@ module.exports = class QueryBuilder {
     }
 
     build (query) {
-        throw new Error(`${this.constructor.name}: Need to override`);
+        throw new Error(this.wrapClassMessage('Need to override'));
     }
 };

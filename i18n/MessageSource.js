@@ -40,7 +40,7 @@ module.exports = class MessageSource extends Base {
     }
 
     loadMessages (category, language) {
-        throw new Error(`${this.constructor.name}: Load message translation from the store`);
+        throw new Error(this.wrapClassMessage('Load message translation from the store'));
     }
 
     clearCache () {

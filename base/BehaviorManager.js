@@ -6,9 +6,7 @@ module.exports = class BehaviorManager extends Base {
 
     get (name) {
         this.ensure();
-        return Object.prototype.hasOwnProperty.call(this._behaviors, name) 
-            ? this._behaviors[name] 
-            : null;
+        return this._behaviors[name] instanceof Behavior ? this._behaviors[name] : null;
     }
 
     attach (name, data) {
@@ -16,13 +14,16 @@ module.exports = class BehaviorManager extends Base {
         return this.attachInternal(name, data);
     }
 
+    attachOnce (name, data) {
+        return this.get(name) || this.attachInternal(name, data);
+    }
+
     detach (name) {
         let behavior = this.get(name);
-        if (!behavior) {
-            return null;    
+        if (behavior) {
+            delete this._behaviors[name];
+            behavior.detach();
         }
-        delete this._behaviors[name];
-        behavior.detach();
         return behavior;        
     }
 
@@ -58,7 +59,7 @@ module.exports = class BehaviorManager extends Base {
 
     attachInternal (name, behavior) {
         if (!behavior) {
-            throw new Error(`${this.constructor.name}: Attach undefined behavior: ${name}`);
+            throw new Error(this.wrapClassMessage(`Attach undefined behavior: ${name}`));
         } 
         if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
@@ -66,9 +67,9 @@ module.exports = class BehaviorManager extends Base {
             behavior.name = behavior.name || name;
             behavior = new behavior.Class(behavior);
         } else if (!(behavior instanceof Behavior)) {
-            throw new Error(`${this.constructor.name}: Attach invalid behavior: ${name}`);
+            throw new Error(this.wrapClassMessage(`Attach invalid behavior: ${name}`));
         }
-        if (Object.prototype.hasOwnProperty.call(this._behaviors, name)) {
+        if (this._behaviors[name] instanceof Behavior) {
             this._behaviors[name].detach();
         }
         behavior.attach(this.owner);

@@ -45,8 +45,8 @@ module.exports = class NumberValidator extends Base {
     }
 
     validateValue (value, cb) {
-        value = Number(value);
-        if (isNaN(Number(value))) {
+        value = parseFloat(value);
+        if (isNaN(value)) {
             return cb(null, this.getMessage());
         }
         if (this.integerOnly && value !== parseInt(value)) {

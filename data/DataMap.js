@@ -21,4 +21,16 @@ module.exports = class DataMap {
     unset (key) {
         delete this._data[key];
     }
+
+    keys () {
+        return this._data.keys();
+    }
+
+    values () {
+        return this._data.values();
+    }
+
+    size () {
+        return this._data.values().length;
+    }
 };

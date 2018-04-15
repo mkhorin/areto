@@ -4,32 +4,41 @@ const Base = require('./Validator');
 
 module.exports = class RelationValidator extends Base {
 
-    static getConstants () {
-        return {
-            CHANGES: ['links', 'unlinks', 'removes']
-        };
-    }
-
     constructor (config) {
         super(Object.assign({
+            required: false,
+            min: null,
+            max: null,
+            unique: null,
             allow: null, // allow changes ['unlinks', ...]
             deny: null,
             filter: null, // handler (value, model, attr, cb),
-            min: null,
-            max: null,
-            skipOnEmpty: false
+            behavior: 'relationChange'
         }, config));
     }
 
     init () {
         super.init();
         if (this.allow && this.deny) {
-            throw new Error(`${this.constructor.name}: Allowed only one permission`);
+            throw new Error(this.wrapClassMessage('Allowed only one permission'));
         }
+        this.skipOnEmpty = false;
     }
 
     getMessage () {
         return this.createMessage(this.message, 'Invalid relation request');
+    }
+
+    getRequiredMessage () {
+        return this.createMessage(this.requiredMessage, 'Value cannot be blank');
+    }
+
+    getExistMessage () {
+        return this.createMessage(this.existMessage, 'Value does not exist');
+    }
+
+    getUniqueMessage () {
+        return this.createMessage(this.uniqueMessage, 'Value has already been taken');
     }
 
     getTooFewMessage () {
@@ -45,97 +54,77 @@ module.exports = class RelationValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, message, changes)=> {
-            if (err) {
-                return cb(err);
-            }
-            if (message) {
-                this.addError(model, attr, message);
-                return cb();
-            }
-            if (changes) {
-                model.set(attr, changes);
-            }
-            if (!this.filter || !changes) {
-                return this.checkTotal(changes, model, attr, cb);
-            }
-            AsyncHelper.series([
-                cb => this.filter(changes, model, attr, cb),
-                cb => this.checkTotal(changes, model, attr, cb)
-            ], cb);
-        });
-    }
-
-    validateValue (value, cb) {
-        let error = false;
-        value = typeof value === 'string' ? CommonHelper.parseJson(value) : value;
-        if (!value || (!value.links && !value.unlinks && !value.removes)) {
+        let behavior = model.getBehavior(this.behavior);
+        if (!behavior) {
+            return cb(this.wrapClassMessage('Not found relation behavior'));
+        }
+        let data = behavior.getChanges(attr);
+        if (data === false) {
+            this.addError(model, attr, this.getMessage());
             return cb();
         }
-        this.filterChanges(value);
-        let all = value.links.concat(value.unlinks, value.removes);
-        if (ArrayHelper.unique(all).length !== all.length) {
-            return cb(null, this.getMessage());
+        if (data) {
+            this.filterChanges(data);
         }
-        cb(null, null, value);
+        AsyncHelper.series([
+            cb => data && this.filter ? this.filter(data, model, attr, cb) : cb(),
+            cb => this.checkCounter(behavior, model, attr, cb),
+            cb => this.unique !== null ? this.checkUnique(behavior, model, attr, cb) : cb()
+        ], cb);
     }
 
-    filterChanges (changes) {
-        for (let type of this.CHANGES) {
-            if (!(changes[type] instanceof Array)) {
-                changes[type] = [];
-            }
-        }
-        if (this.allow) {
-            for (let type of this.CHANGES) {
-                if (!this.allow.includes(type)) {
-                    changes[type] = [];
+    filterChanges (data) {
+        if (this.allow instanceof Array) {
+            for (let key of Object.keys(data)) {
+                if (!this.allow.includes(key)) {
+                    data[key] = [];
                 }
             }
         }
-        if (this.deny) {
-            for (let type of this.CHANGES) {
-                if (this.deny.includes(type)) {
-                    changes[type] = [];
+        if (this.deny instanceof Array) {
+            for (let key of Object.keys(data)) {
+                if (this.deny.includes(key)) {
+                    data[key] = [];
                 }
             }
         }
     }
 
-    checkTotal (changes, model, attr, cb) {
-        if (!this.min && !this.max) {
+    checkCounter (behavior, model, attr, cb) {
+        if (!this.required && !this.min && !this.max) {
             return cb();
         }
         AsyncHelper.waterfall([
-            cb => model.findRelation(attr, cb),
-            (models, cb) => {
-                models = models instanceof Array ? models : models ? [models] : [];
-                let map = models.length ? ArrayHelper.indexModels(models, models[0].PK) : {};
-                if (changes) {
-                    if (changes.links instanceof Array) {
-                        changes.links.forEach(id => map[id] = true);
-                    }
-                    if (changes.unlinks instanceof Array) {
-                        changes.unlinks.forEach(id => delete map[id]);
-                    }
-                    if (changes.removes instanceof Array) {
-                        changes.removes.forEach(id => delete map[id]);
-                    }
+            cb => behavior.getLinkedDocs(attr, cb),
+            (docs, cb) => {
+                if (this.required && docs.length < 1) {
+                    this.addError(model, attr, this.getRequiredMessage());
                 }
-                let total = Object.values(map).length;
-                if (this.min && total < this.min) {
+                if (this.min && docs.length < this.min) {
                     this.addError(model, attr, this.getTooFewMessage());
                 }
-                if (this.max && total > this.max) {
+                if (this.max && docs.length > this.max) {
                     this.addError(model, attr, this.getTooManyMessage());
                 }
                 cb();
             }
         ], cb);
     }
+
+    checkUnique (behavior, model, attr, cb) {
+        AsyncHelper.waterfall([
+            cb => behavior.checkExist(attr, cb),
+            (exist, cb)=> {
+                if (this.unique === true && exist === true) {
+                    this.addError(model, attr, this.getUniqueMessage());
+                }
+                if (this.unique === false && exist === false) {
+                    this.addError(model, attr, this.getExistMessage());
+                }
+                cb();
+            }
+        ], cb);
+    }
 };
-module.exports.init();
 
 const AsyncHelper = require('../helpers/AsyncHelper');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const CommonHelper = require('../helpers/CommonHelper');

@@ -73,7 +73,7 @@ module.exports = class MongoDriver extends Base {
 
     getCollections (cb) {
         this.connection.collections((err, results)=> {
-            err && this.afterError(`${this.constructor.name}: get collections failed`);
+            err && this.afterError(this.wrapClassMessage('get collections failed'));
             cb(err, results);
         });
     }
@@ -208,7 +208,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     queryDistinct (query, key, cb) {
-        this.queryBuild(query, (err, cmd)=> {
+        this.buildQuery(query, (err, cmd)=> {
             err ? cb(err) : this.distinct(cmd.from, key, cmd.where, {}, cb);
         });
     }

@@ -5,10 +5,11 @@ const Base = require('./Rule');
 module.exports = class AuthorRule extends Base {
 
     execute (cb) {
-        if (!this.params.user) {
+        if (this.params.user.isAnonymous()) {
             return cb(null, false);
         }
-        cb(null, CommonHelper.isEqual(this.params.user.getId(), this.params.authorId));
+        let passed = CommonHelper.isEqual(this.params.user.getId(), this.params.authorId);
+        cb(null, passed);
     }
 };
 

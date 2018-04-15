@@ -57,6 +57,10 @@ module.exports = class Component extends Base {
         return this.behaviors.attach.apply(this.behaviors, arguments);
     }
 
+    attachBehaviorOnce () {
+        return this.behaviors.attachOnce.apply(this.behaviors, arguments);
+    }
+
     detachBehavior () {
         return this.behaviors.detach.apply(this.behaviors, arguments);
     }

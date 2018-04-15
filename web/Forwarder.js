@@ -26,7 +26,7 @@ module.exports = class Forwarder extends Base {
                 this.log('trace', `${this.module.getFullName()}: forward ${item.source} to ${item.target}`);
             }    
         } catch (err) {
-            this.log('error', `${this.constructor.name}: setItems`, err);
+            this.log('error', this.wrapClassMessage('setItems'), err);
         }        
     }
 

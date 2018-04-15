@@ -2,6 +2,18 @@
 
 module.exports = class ArrayHelper {
 
+    static indexOfId (id, ids) {
+        if (!(id instanceof MongoId)) {
+            return ids.indexOf(id);
+        }
+        for (let i = 0; i < ids.length; ++i) {
+            if (id.equals(ids[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
     static diff (target, excluded, indexOf) {
         let result = [];
         for (let item of target) {
@@ -10,6 +22,10 @@ module.exports = class ArrayHelper {
             }
         }
         return result;
+    }
+
+    static diffById (target, excluded) {
+        return this.diff(target, excluded, this.indexOfId);
     }
 
     static intersect (source, target, indexOf) {
@@ -22,7 +38,15 @@ module.exports = class ArrayHelper {
         return result;
     }
 
-    static unique (values, indexOf) {
+    static intersectById (target, excluded) {
+        return this.intersect(target, excluded, this.indexOfId);
+    }
+
+    static unique (values) {
+        return Object.keys(this.flip(values));
+    }
+
+    static uniqueStrict (values, indexOf) {
         let result = [];
         for (let i = 0; i < values.length; ++i) {
             if ((indexOf ? indexOf(values[i], values) : values.indexOf(values[i])) === i) {
@@ -30,6 +54,10 @@ module.exports = class ArrayHelper {
             }
         }
         return result;
+    }
+
+    static uniqueStrictById (target, excluded) {
+        return this.uniqueStrict(target, excluded, this.indexOfId);
     }
 
     static flip (values) {
@@ -40,16 +68,13 @@ module.exports = class ArrayHelper {
         return object;
     }
 
-    static indexOfId (id, ids) {
-        if (!(id instanceof MongoId)) {
-            return ids.indexOf(id);
+    static removeValue (value, values) {
+        value = values.indexOf(value);
+        if (value === -1) {
+            return false;
         }
-        for (let i = 0; i < ids.length; ++i) {
-            if (id.equals(ids[i])) {
-                return i;
-            }
-        }
-        return -1;
+        values.splice(value, 1);
+        return true;
     }
 
     static getValueByKey (key, keyProp, objects, returnProp) {
@@ -61,7 +86,7 @@ module.exports = class ArrayHelper {
     }
 
     static concatValues (values) {
-        return values.length ? Array.prototype.concat.apply(values[0], values.slice(1)) : values;
+        return values.length < 2 ? values : Array.prototype.concat.apply(values[0], values.slice(1));
     }
 
     static indexObjects (docs, key) {
@@ -127,7 +152,7 @@ module.exports = class ArrayHelper {
         return values;
     }
 
-    static searchObject (items, searchProp, searchValue, returnProp) {
+    static searchObject (searchValue, items, searchProp, returnProp) {
         if (items instanceof Array) {
             for (let item of items) {
                 if (item && item[searchProp] === searchValue) {

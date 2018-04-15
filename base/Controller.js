@@ -228,7 +228,7 @@ module.exports = class Controller extends Base {
     setFlash (key, msg) {
         typeof this.req.flash === 'function'
             ? this.req.flash(key, msg)
-            : this.log('error', `${this.constructor.name}: Session flash not found:`, msg);
+            : this.log('error', this.wrapClassMessage('Session flash not found'), msg);
     }
 
     getFlash (key) {
@@ -378,14 +378,13 @@ module.exports = class Controller extends Base {
             : this.module.components.i18n.format(message, params, this.language);
     }
 
-    translateMessages (messages) {
-        let keys = Object.keys(messages);
-        for (let key of keys) {
-            if (messages[key] instanceof Message) {
-                messages[key] =  this.translate(messages[key]);
+    translateMessages (map) {
+        for (let key of Object.keys(map)) {
+            if (map[key] instanceof Message) {
+                map[key] = this.translate(map[key]);
             }
         }
-        return messages;
+        return map;
     }
 };
 module.exports.init();

@@ -93,7 +93,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     updateAll (table, condition, data, cb) {
-        cb(`${this.constructor.name}: updateAll: TODO...`);
+        cb(this.wrapClassMessage('updateAll: TODO...'));
     }
 
     remove (table, condition, cb) {

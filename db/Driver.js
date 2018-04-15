@@ -37,16 +37,16 @@ module.exports = class Driver extends Base {
     }
 
     openClient (cb) {
-        cb(`${this.constructor.name}: open client`);
+        cb(this.wrapClassMessage('Open client'));
     }
 
     closeClient (cb) {
-        cb(`${this.constructor.name}: close client`);
+        cb(this.wrapClassMessage('Close client'));
     }
 
     open (cb) {
         if (this.connection) {
-            return cb(`${this.constructor.name}: Connection is already opened: ${this.getUri()}`);
+            return cb(this.wrapClassMessage(`Connection is already opened: ${this.getUri()}`));
         }
         AsyncHelper.waterfall([
             this.openClient.bind(this),
@@ -61,7 +61,7 @@ module.exports = class Driver extends Base {
 
     close (cb) {
         if (!this.connection) {
-            return cb(`${this.constructor.name}: Connection is already closed: ${this.getUri()}`);
+            return cb(this.wrapClassMessage(`Connection is already closed: ${this.getUri()}`));
         }
         AsyncHelper.series([
             this.closeClient.bind(this),

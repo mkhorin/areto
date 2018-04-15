@@ -16,7 +16,7 @@ module.exports = class ExistValidator extends Base {
     constructor (config) {
         super(Object.assign({
             targetClass: null,
-            targetAttr: null,
+            targetAttr: null, // can be array
             filter: null,
             ignoreCase: false
         }, config));
@@ -27,33 +27,46 @@ module.exports = class ExistValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        let targetClass = this.targetClass ? this.targetClass : model.constructor;
-        let attrs = this.targetAttr ? this.targetAttr : attr;
-        let query = targetClass.find();
-        if (!(attrs instanceof Array)){
-            attrs = [attrs];
-        }
-        if (this.ignoreCase) {
-            for (let name of attrs) {
-                query.and(['LIKE', name, model.get(attr)]);
+        AsyncHelper.waterfall([
+            cb => this.resolveValues(model, attr, cb),
+            (values, cb)=> this.createQuery(values, model, attr, cb),
+            (query, cb)=> query.count(cb),
+            (counter, cb)=> {
+                !counter && this.addError(model, attr, this.getMessage());
+                cb();
+            }
+        ], cb);
+    }
+
+    resolveValues (model, attr, cb) {
+        let values = {};
+        let targetAttr = this.targetAttr || attr;
+        if (targetAttr instanceof Array) {
+            for (let name of targetAttr) {
+                values[targetAttr] = model.get(attr);
             }
         } else {
-            let params = {};
-            for (let name of attrs) {
-                params[name] = model.get(attr);
+            values[targetAttr] = model.get(attr);
+        }
+        cb(null, values);
+    }
+
+    createQuery (values, model, attr, cb) {
+        let query = (this.targetClass || model.constructor).find();
+        if (this.ignoreCase) {
+            for (let name of Object.keys(values)) {
+                query.and(['LIKE', name, values[name]]);
             }
-            query.and(params);
+        } else {
+            query.and(values);
         }
         if (typeof this.filter === 'function') {
             this.filter(query, model, attr);
         } else if (this.filter) {
             query.and(this.filter);
         }
-        query.count((err, count)=> {
-            if (count === 0) {
-                this.addError(model, attr, this.getMessage());
-            }
-            cb(err);
-        });
+        cb(null, query);
     }
 };
+
+const AsyncHelper = require('../helpers/AsyncHelper');

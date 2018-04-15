@@ -29,7 +29,8 @@ module.exports = class Validator extends Base {
                 'string': require('./StringValidator'),
                 'unique': require('./UniqueValidator'),
                 'url': require('./UrlValidator')
-            }
+            },
+            DEFAULT_MESSAGE_CATEGORY: 'areto'
         };
     }
 
@@ -71,7 +72,9 @@ module.exports = class Validator extends Base {
         if (typeof message === 'string') {
             return new Message(this.messageCategory, message, params);
         }
-        let category = ObjectHelper.getValueKey(this.constructor, this.BUILTIN) ? 'areto' : this.messageCategory;
+        let category = ObjectHelper.getValueKey(this.constructor, this.BUILTIN)
+            ? this.DEFAULT_MESSAGE_CATEGORY
+            : this.messageCategory;
         return new Message(category, defaultMessage, params);
     }
 
@@ -98,7 +101,7 @@ module.exports = class Validator extends Base {
     }
 
     validateValue (value, cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 
     isActive (scenario) {

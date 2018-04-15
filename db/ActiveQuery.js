@@ -4,15 +4,11 @@ const Base = require('./Query');
 
 module.exports = class ActiveQuery extends Base {
 
-    constructor (model) {
-        super({model});
-    }
-
     init () {
         super.init();
         this._asRaw = null;
         this._with = {};
-        if (this.model) { // for clone
+        if (this.model) {
             this._db = this.model.getDb();
             this._from = this.model.TABLE;
         }
@@ -29,7 +25,7 @@ module.exports = class ActiveQuery extends Base {
                 ? this.and(['!=', model.PK, model.getId()])
                 : this;
         }
-        this.model.log('error', `ActiveQuery: exceptModel: ${this.model.constructor.name}: Invalid target model`);
+        this.model.log('error', this.wrapClassMessage(`exceptModel: ${this.model.constructor.name}: Invalid model`));
         return this;
     }
 
@@ -37,10 +33,7 @@ module.exports = class ActiveQuery extends Base {
 
     // add condition after creating relation conditions
     addAfterPrepare (handler) {
-        if (!this._afterPrepareHandlers) {
-            this._afterPrepareHandlers = [];
-        }
-        this._afterPrepareHandlers.push(handler);
+        ObjectHelper.push(handler, '_afterPrepareHandlers', this);
         return this;
     }
 
@@ -51,39 +44,39 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepare (cb) {
-        if (!this._primaryModel) {
+        if (!this.primaryModel) {
             this.execAfterPrepare(cb);
         } else if (this._viaArray) { // lazy loading of a relation
             this.prepareViaArray(cb);
-        } else if (this._via instanceof ActiveQuery) {
+        } else if (this._viaTable) {
             this.prepareViaTable(cb); // via junction table
-        } else if (this._via instanceof Array) {
-            this._via[1]._multiple
+        } else if (this._viaRelation) {
+            this._viaRelation._multiple
                 ? this.prepareViaRelationMultiple(cb)
                 : this.prepareViaRelation(cb);
         } else {
-            this.prepareFilter([this._primaryModel]);
+            this.prepareFilter([this.primaryModel]);
             this.execAfterPrepare(cb);
         }
     }
 
     prepareViaArray (cb) {
-        let val = this._primaryModel.get(this._link[1]);
+        let val = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
         if (val === undefined || val === null || val instanceof Array) {
             if (this._orderByIn) {
                 this._orderByIn = val;
             }
-            this.and(['IN', this._link[0], val]);
+            this.and(['IN', this.refKey, val]);
         } else { // back ref to array
-            this.and({[this._link[0]]: val});
+            this.and({[this.refKey]: val});
         }
         this.execAfterPrepare(cb);
     }
 
     prepareViaTable (cb) {
         AsyncHelper.waterfall([
-            cb => this._via.findJunctionRows([this._primaryModel], cb),
+            cb => this._viaTable.findJunctionRows([this.primaryModel], cb),
             (viaModels, cb)=> {
                 this.prepareFilter(viaModels);
                 this.execAfterPrepare(cb);
@@ -93,9 +86,9 @@ module.exports = class ActiveQuery extends Base {
 
     prepareViaRelationMultiple (cb) {
         AsyncHelper.waterfall([
-            cb => this._via[1].all(cb),
+            cb => this._viaRelation.all(cb),
             (models, cb)=> {
-                this._primaryModel.populateRelation(this._via[0], models);
+                this.primaryModel.populateRelation(this._viaRelationName, models);
                 this.prepareFilter(models);
                 this.execAfterPrepare(cb);
             }
@@ -104,9 +97,9 @@ module.exports = class ActiveQuery extends Base {
 
     prepareViaRelation (cb) {
         AsyncHelper.waterfall([
-            cb => this._via[1].one(cb),
+            cb => this._viaRelation.one(cb),
             (model, cb)=> {
-                this._primaryModel.populateRelation(this._via[0], model);
+                this.primaryModel.populateRelation(this._viaRelationName, model);
                 this.prepareFilter(model ? [model] : []);
                 this.execAfterPrepare(cb);
             }
@@ -120,30 +113,34 @@ module.exports = class ActiveQuery extends Base {
 
     // RELATIONS
 
-    getPrimaryModel () {
-        return this._primaryModel;
-    }
-
     isMultiple () {
         return this._multiple;
     }
 
-    hasOne (primaryModel, link) {
-        this._multiple = false;
-        this._primaryModel = primaryModel;
-        this._link = link;
-        return this;
-    }
-
-    hasMany (primaryModel, link) {
-        this._multiple = true;
-        this._primaryModel = primaryModel;
-        this._link = link;
-        return this;
-    }
-
     isBackRef () {
-        return this._asBackRef;
+        return this._asBackRef === undefined
+            ? (this.primaryModel.PK === this.linkKey || !this.primaryModel.STORED_ATTRS.includes(this.linkKey))
+            : this._asBackRef;
+    }
+
+    isInlineArray () {
+        return this._viaArray && !this.isBackRef();
+    }
+
+    hasOne (primaryModel, refKey, linkKey) {
+        this.primaryModel = primaryModel;
+        this.refKey = refKey;
+        this.linkKey = linkKey;
+        this._multiple = false;
+        return this;
+    }
+
+    hasMany (primaryModel, refKey, linkKey) {
+        this.primaryModel = primaryModel;
+        this.refKey = refKey;
+        this.linkKey = linkKey;
+        this._multiple = true;
+        return this;
     }
 
     asBackRef (value = true) {
@@ -171,25 +168,35 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    via (name, callable) {
-        let relation = this._primaryModel.getRelation(name);
-        if (relation) {
-            this._via = [name, relation];
-            callable && callable(relation);
+    via (name, filter) {
+        this._viaRelation = this.primaryModel.getRelation(name);
+        if (this._viaRelation) {
+            this._viaRelationName = name;
+            if (typeof filter === 'function') {
+                filter(this._viaRelation);
+            } else if (filter) { // as condition
+                this._viaRelation.and(filter);
+            }
         } else {
-            this._primaryModel.log('error', `ActiveQuery: via: not found relation: ${name}`);
+            this.primaryModel.log('error', this.wrapClassMessage(`via: not found relation: ${name}`));
         }
         return this;
     }
 
-    viaTable (tableName, link, callable) {
-        let relation = new ActiveQuery(this._primaryModel);
-        relation._from = tableName;
-        relation._link = link;
-        relation._multiple = true;
-        relation._asRaw = true;
-        callable && callable(relation);
-        this._via = relation;
+    viaTable (tableName, refKey, linkKey, filter) {
+        this._viaTable = new ActiveQuery({
+            refKey,
+            linkKey,
+            model: this.primaryModel
+        });
+        this._viaTable._from = tableName;
+        this._viaTable._multiple = true;
+        this._viaTable._asRaw = true;
+        if (typeof filter === 'function') {
+            filter(this._viaTable);
+        } else if (filter) { // as condition
+            this._viaTable.and(filter);
+        }
         return this;
     }
 
@@ -234,7 +241,7 @@ module.exports = class ActiveQuery extends Base {
                 }
                 let relation = model.getRelation(name);
                 if (relation) {
-                    relation._primaryModel = null;
+                    relation.primaryModel = null;
                     result[name] = relation;
                     // sub-relations -> orders.customer.address...
                     if (childName) {
@@ -299,8 +306,8 @@ module.exports = class ActiveQuery extends Base {
                 }
                 let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
                 this._index = index;
-                let link = viaQuery ? viaQuery._link[1] : this._link[1];
-                this.populateMultipleRelation(name, primaryModels, buckets, link);
+                let key = viaQuery ? viaQuery.linkKey : this.linkKey;
+                this.populateMultipleRelation(name, primaryModels, buckets, key);
                 cb(null, models);
             });
         });
@@ -316,9 +323,9 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    populateMultipleRelation (name, primaryModels, buckets, link) {
+    populateMultipleRelation (name, primaryModels, buckets, linkKey) {
         for (let pm of primaryModels) {
-            let key = this.getModelKey(pm, link);
+            let key = this.getModelAttr(pm, linkKey);
             let value = this._multiple ? [] : null;
             if (key instanceof Array) {
                 for (let k of key) {
@@ -341,24 +348,19 @@ module.exports = class ActiveQuery extends Base {
     }
 
     populateViaRelation (primaryModels, cb) {
-        if (this._via instanceof ActiveQuery) {
-            // via junction table
-            let viaQuery = this._via;
-            this._via.findJunctionRows(primaryModels, (err, viaModels)=> {
+        if (this._viaTable) {
+            this._viaTable.findJunctionRows(primaryModels, (err, viaModels)=> {
                 this.prepareFilter(viaModels);
-                cb(err, viaModels, viaQuery);
+                cb(err, viaModels, this._viaTable);
             });
-        } else if (this._via instanceof Array) {
-            // via relation
-            let viaName = this._via[0];
-            let viaQuery = this._via[1];
-            if (viaQuery._asRaw === null) {
-                viaQuery._asRaw = this._asRaw; // inherit from primary query
+        } else if (this._viaRelation) {
+            if (this._viaRelation._asRaw === null) {
+                this._viaRelation._asRaw = this._asRaw; // inherit from primary query
             }
-            viaQuery._primaryModel = null;
-            viaQuery.populateRelation(viaName, primaryModels, (err, viaModels)=> {
+            this._viaRelation.primaryModel = null;
+            this._viaRelation.populateRelation(this._viaRelationName, primaryModels, (err, viaModels)=> {
                 this.prepareFilter(viaModels);
-                cb(err, viaModels, viaQuery);
+                cb(err, viaModels, this._viaRelation);
             });
         } else {
             this.prepareFilter(primaryModels);
@@ -370,8 +372,8 @@ module.exports = class ActiveQuery extends Base {
 
     getRelationBuckets (models, viaModels, viaQuery) {
         let buckets = (viaModels && viaQuery)
-            ? this.buildViaBuckets(models, this._link, viaModels, viaQuery._link)
-            : this.buildBuckets(models, this._link);
+            ? this.buildViaBuckets(models, viaModels, viaQuery.refKey)
+            : this.buildBuckets(models);
         if (!this._multiple) {
             for (let name of Object.keys(buckets)) {
                 buckets[name] = buckets[name][0];
@@ -380,24 +382,20 @@ module.exports = class ActiveQuery extends Base {
         return buckets;
     }
 
-    buildViaBuckets (models, link, viaModels, viaLink) {
-        let buckets = {};
-        let linkKey = link[0];
-        let viaLinkKey = viaLink[0];
-        let linkValue = link[1];
-        let map = {};
+    buildViaBuckets (models, viaModels, viaRefKey) {
+        let buckets = {}, map = {};
         for (let vm of viaModels) {
-            let key1 = this.getModelKey(vm, viaLinkKey);
-            let key2 = this.getModelKey(vm, linkValue);
-            if (!Object.prototype.hasOwnProperty.call(map, key2)) {
-                map[key2] = {};
+            let ref = this.getModelAttr(vm, viaRefKey);
+            let link = this.getModelAttr(vm, this.linkKey);
+            if (!Object.prototype.hasOwnProperty.call(map, link)) {
+                map[link] = {};
             }
-            map[key2][key1] = true;
+            map[link][ref] = true;
         }
         for (let model of models) {
-            let key = this.getModelKey(model, linkKey);
-            if (Object.prototype.hasOwnProperty.call(map, key)) {
-                for (let k of Object.keys(map[key])) {
+            let ref = this.getModelAttr(model, this.refKey);
+            if (map[ref]) {
+                for (let k of Object.keys(map[ref])) {
                     if (buckets[k] instanceof Array) {
                         buckets[k].push(model);
                     } else {
@@ -409,11 +407,10 @@ module.exports = class ActiveQuery extends Base {
         return buckets;
     }
 
-    buildBuckets (models, link) {
+    buildBuckets (models) {
         let buckets = {};
-        let linkKey = link[0];
         for (let model of models) {
-            let key = this.getModelKey(model, linkKey);
+            let key = this.getModelAttr(model, this.refKey);
             if (buckets[key] instanceof Array) {
                 buckets[key].push(model);
             } else {
@@ -425,17 +422,16 @@ module.exports = class ActiveQuery extends Base {
 
     //
 
-    getModelKey (model, attr) {
-        return model instanceof ActiveRecord ? model.get(attr) : model[attr];
+    getModelAttr (model, name) {
+        return model instanceof ActiveRecord ? model.get(name) : model[name];
     }
 
     filterByModels (models) {
         if (!(models instanceof Array)) {
             return;
         }    
-        let attr = this._link[1];
+        let attr = this.linkKey, values = [], value;
         let isActiveRecord = models[0] instanceof ActiveRecord;
-        let value, values = [];
         for (let model of models) {
             value = isActiveRecord ? model.get(attr) : model[attr];
             if (value instanceof Array) {
@@ -447,7 +443,7 @@ module.exports = class ActiveQuery extends Base {
         if (this._orderByIn) {
             this._orderByIn = values;
         }
-        this.and(['IN', this._link[0], values]);
+        this.and(['IN', this.refKey, values]);
     }
 
     indexModels (models) {
@@ -470,4 +466,5 @@ module.exports = class ActiveQuery extends Base {
 };
 
 const AsyncHelper = require('../helpers/AsyncHelper');
+const ObjectHelper = require('../helpers/ObjectHelper');
 const ActiveRecord = require('./ActiveRecord');

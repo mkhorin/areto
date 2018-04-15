@@ -7,7 +7,8 @@ module.exports = class RequiredValidator extends Base {
     constructor (config) {
         super(Object.assign({
             requiredValue: null,
-            strict: false
+            strict: false,
+            skip: false // skip validation
         }, config));
     }
 
@@ -27,6 +28,9 @@ module.exports = class RequiredValidator extends Base {
     }
 
     validateValue (value, cb) {
+        if (this.skip) {
+            return cb();
+        }
         if (this.requiredValue === null) {
             if (this.strict && value !== null || !this.strict 
                 && !this.isEmptyValue(typeof value === 'string' ? value.trim() : value)) {
@@ -40,3 +44,5 @@ module.exports = class RequiredValidator extends Base {
         cb(null, this.getRequiredMessage());
     }
 };
+
+const AsyncHelper = require('../helpers/AsyncHelper');

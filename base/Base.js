@@ -20,4 +20,8 @@ module.exports = class Base {
 
     init () {
     }
+
+    wrapClassMessage (message) {
+        return `${this.constructor.name}: ${message}`;
+    }
 };

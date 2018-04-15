@@ -33,7 +33,7 @@ module.exports = class Formatter extends Base {
         if (typeof this[methodName] === 'function') {
             return this[methodName](value, params);
         }
-        this.log('error', `${this.constructor.name}: Unknown type '${type}' for value '${value}'`);
+        this.log('error', this.wrapClassMessage(`Unknown type '${type}' for value '${value}'`));
         return value;
     }
 
@@ -42,19 +42,21 @@ module.exports = class Formatter extends Base {
     }
 
     asRaw (value, params = {}) {
-        return value === undefined ? '' : value === null ? this.nullFormat : value;
+        return value === undefined ? '' : value === null
+            ? this.translate('areto', this.nullFormat, params.language)
+            : value;
     }
 
     asBoolean (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.nullFormat;
+            return this.translate('areto', this.nullFormat, params.language);
         }
-        return this.translate(this.booleanFormat[value ? 1 : 0], params.language);
+        return this.translate('areto', this.booleanFormat[value ? 1 : 0], params.language);
     }
 
     asBytes (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.nullFormat;
+            return this.translate('areto', this.nullFormat, params.language);
         }
         let unit;
         if (value < this.KiB) {
@@ -73,19 +75,21 @@ module.exports = class Formatter extends Base {
             value /= this.TiB;
         }
         value = Math.round(value * this.byteFractionalPart) / this.byteFractionalPart;
-        unit = this.translate(unit, params.language);
+        unit = this.translate('areto', unit, params.language);
         return `${value} ${unit}`;
     }
 
     // DATE
 
     asDuration (value, params = {}) {
-        return value ? moment.duration(value, params.units).locale(params.language || this.language).humanize()
+        return value
+            ? moment.duration(value, params.units).locale(params.language || this.language).humanize()
             : this.asRaw(value, params);
     }
 
     asDate (value, params = {}) {
-        return value ? moment(value).locale(params.language || this.language).format(params.format || this.dateFormat)
+        return value
+            ? moment(value).locale(params.language || this.language).format(params.format || this.dateFormat)
             : this.asRaw(value, params);
     }
 
@@ -120,22 +124,26 @@ module.exports = class Formatter extends Base {
     }
 
     asFromNow (value, params = {}) {
-        return value ? moment(value).locale(params.language || this.language).fromNow()
+        return value
+            ? moment(value).locale(params.language || this.language).fromNow()
             : this.asRaw(value, params);
     }
 
     asToNow (value, params = {}) {
-        return value ? moment(value).locale(params.language || this.language).toNow()
+        return value
+            ? moment(value).locale(params.language || this.language).toNow()
             : this.asRaw(value, params);
     }
 
     asFromDate (value, params = {}) {
-        return value && params.date ? moment(value).locale(params.language || this.language).from(params.date)
+        return value && params.date
+            ? moment(value).locale(params.language || this.language).from(params.date)
             : this.asRaw(value, params);
     }
 
     asToDate (value, params = {}) {
-        return value && params.date ? moment(value).locale(params.language || this.language).to(params.date)
+        return value && params.date
+            ? moment(value).locale(params.language || this.language).to(params.date)
             : this.asRaw(value, params);
     }
 
@@ -144,8 +152,8 @@ module.exports = class Formatter extends Base {
             : this.asRaw(value, params);
     }
 
-    translate (msg, language) {
-        return this.i18n ? this.i18n.translate('areto', msg, null, language || this.language) : msg;
+    translate (category, msg, language, ) {
+        return this.i18n ? this.i18n.translate(category, msg, null, language || this.language) : msg;
     }
 };
 module.exports.init();

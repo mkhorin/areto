@@ -80,7 +80,7 @@ module.exports = class Logger extends Base {
 
     setTypeShortcut (name) {
         if (name in this) {
-            return this.log('error', `${this.constructor.name}: setTypeShortcut: already taken: ${name}`);
+            return this.log('error', this.wrapClassMessage(`setTypeShortcut: already taken: ${name}`));
         }
         this[name] = (message, data)=> this.log(name, message, data);
     }
@@ -99,12 +99,12 @@ module.exports = class Logger extends Base {
 
     log (type, message, data) {
         if (this.types.hasOwnProperty(type)) {
-            this.types[type].log(message, data);
-        } else if (this.types.error) {
-            this.types.error.log(`${this.constructor.name}: Unknown type: ${type}`, {message, data});
-        } else {
-            console.error(`${this.constructor.name}: Unknown type:`, type, message, data);
+            return this.types[type].log(message, data);
         }
+        if (this.types.error) {
+            return this.types.error.log(this.wrapClassMessage(`Unknown type: ${type}`), {message, data});
+        }
+        console.error(this.wrapClassMessage('Unknown type'), type, message, data);
     }
 
     traceProcessingTime () {

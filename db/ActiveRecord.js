@@ -8,7 +8,7 @@ module.exports = class ActiveRecord extends Base {
         return {
             TABLE: 'table_name',
             PK: '_id', // primary key
-            QUERY_CLASS: require('./ActiveQuery'),
+            QUERY: require('./ActiveQuery'),
             EVENT_AFTER_REMOVE: 'afterRemove',
             EVENT_AFTER_FIND: 'afterFind',
             EVENT_AFTER_INSERT: 'afterInsert',
@@ -82,30 +82,30 @@ module.exports = class ActiveRecord extends Base {
     }
     
     getOldAttr (name) {
-        return this._oldAttrs[name];
+        return Object.prototype.hasOwnProperty.call(this._oldAttrs, name) ? this._oldAttrs[name] : undefined;
     }       
     
-    setOldAttrs () {
+    assignOldAttrs () {
         this._oldAttrs = Object.assign({}, this._attrs);            
     }
 
     // EVENTS
 
-    beforeRemove (cb) {
-        this.triggerCallback(this.EVENT_BEFORE_REMOVE, cb);
+    afterFind (cb) {
+        this.triggerCallback(this.EVENT_AFTER_FIND, cb);
     }
 
     beforeSave (insert, cb) {
         this.triggerCallback(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE, cb);
     }
 
-    afterFind (cb) {
-        this.triggerCallback(this.EVENT_AFTER_FIND, cb);
+    afterSave (insert, cb) {
+        this.assignOldAttrs();
+        this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
     }
 
-    afterSave (insert, cb) {
-        this.setOldAttrs();
-        this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
+    beforeRemove (cb) {
+        this.triggerCallback(this.EVENT_BEFORE_REMOVE, cb);
     }
 
     afterRemove (cb) {
@@ -119,7 +119,7 @@ module.exports = class ActiveRecord extends Base {
     populateRecord (doc) {
         this._isNewRecord = false;
         Object.assign(this._attrs, doc);
-        this.setOldAttrs();
+        this.assignOldAttrs();
     }
 
     filterAttrs () {
@@ -135,7 +135,7 @@ module.exports = class ActiveRecord extends Base {
     // FIND
 
     static find (condition) {
-        return (new this.QUERY_CLASS(new this)).where(condition);
+        return (new this.QUERY({model: new this})).and(condition);
     }
 
     static findById (id) {
@@ -196,9 +196,8 @@ module.exports = class ActiveRecord extends Base {
     // REMOVE
 
     static removeBatch (models, cb) {
-        AsyncHelper.eachSeries(models, (model, cb)=> {
-            model.remove(()=> cb()); // to process all removal requests, ignoring errors
-        }, cb);
+        // to process all removal models, ignoring errors
+        AsyncHelper.eachSeries(models, (model, cb)=> model.remove(()=> cb()), cb);
     }
 
     static removeById (id, cb) {
@@ -248,11 +247,11 @@ module.exports = class ActiveRecord extends Base {
     }
     
     getPopulatedRelation (name) {
-        return this._related[name];
+        return this.isRelationPopulated(name) ? this._related[name] : null;
     }
 
     rel (name) {
-        if (Object.prototype.hasOwnProperty.call(this._related, name)) {
+        if (this.isRelationPopulated(name)) {
             return this._related[name];
         }
         if (typeof name !== 'string') {
@@ -300,7 +299,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     findRelationOnly (name, cb, renew) {
-        if (Object.prototype.hasOwnProperty.call(this._related, name) && !renew) {
+        if (this.isRelationPopulated(name) && !renew) {
             return cb(null, this._related[name]);
         }
         let relation = this.getRelation(name);
@@ -310,18 +309,24 @@ module.exports = class ActiveRecord extends Base {
                 cb(err, this._related[name]);
             });
         }
-        if (relation === null) {
-            return cb(`${this.constructor.name}: Unknown relation: ${name}`);
-        }
-        cb(null, null);
+        relation === null
+            ? cb(this.wrapClassMessage(`Unknown relation: ${name}`))
+            : cb(null, null);
     }
 
     findRelations (names, cb, renew) {
         AsyncHelper.mapSeries(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
     }
 
+    handleEachRelationModel (names, handler, cb) {
+        AsyncHelper.waterfall([
+            cb => this.findRelations(names, cb),
+            (rels, cb)=> AsyncHelper.eachSeries(ArrayHelper.concatValues(rels), handler, cb)
+        ], cb);
+    }
+
     unsetRelation (name) {
-        if (Object.prototype.hasOwnProperty.call(this._related, name)) {
+        if (this.isRelationPopulated(name)) {
             delete this._related[name];
         }
     }
@@ -330,39 +335,38 @@ module.exports = class ActiveRecord extends Base {
         this._related[name] = data;
     }
 
-    hasOne (ModelClass, link) {
-        return ModelClass.find().hasOne(this, link);
+    hasOne (RefClass, refKey, linkKey) {
+        return RefClass.find().hasOne(this, refKey, linkKey);
     }
 
-    hasMany (ModelClass, link) {
-        return ModelClass.find().hasMany(this, link);
+    hasMany (RefClass, refKey, linkKey) {
+        return RefClass.find().hasMany(this, refKey, linkKey);
     }
 
     // LINK
 
-    linkViaModel (relation, targets, cb, linkModel) {
-        let viaRelation = relation._via[1];
-        if (!linkModel) {
-            linkModel = new viaRelation.model.constructor;
-        } else if (!(linkModel instanceof viaRelation.model.constructor)) {
-            return cb(`${this.constructor.name}: linkViaModel: Invalid link model`);
+    linkViaModel (rel, targets, cb, model) {
+        if (!model) {
+            model = new rel._viaRelation.model.constructor;
+        } else if (!(model instanceof rel._viaRelation.model.constructor)) {
+            return cb(this.wrapClassMessage('linkViaModel: Invalid link model'));
         }
-        linkModel.set(relation._link[1], this.get(relation._link[0]));
-        linkModel.set(viaRelation._link[0], this.get(viaRelation._link[1]));
-        linkModel.save(err => cb(err, linkModel));
+        model.set(rel.linkKey, this.get(rel.refKey));
+        model.set(rel._viaRelation.refKey, this.get(rel._viaRelation.linkKey));
+        model.save(err => cb(err, model));
     }
 
     link (name, model, cb, extraColumns) {
-        let relation = this.getRelation(name);
-        let link = relation._via ? this.linkVia : this.linkInline;
-        link.call(this, relation, model, extraColumns, err => {
+        let rel = this.getRelation(name);
+        let link = (rel._viaRelation || rel._viaTable) ? this.linkVia : this.linkInline;
+        link.call(this, rel, model, extraColumns, err => {
             if (err) {
                 return cb(err);
             }
-            if (!relation._multiple) {
+            if (!rel._multiple) {
                 this._related[name] = model; // update lazily loaded related objects
             } else if (this.isRelationPopulated(name)) {
-                if (relation._index) {
+                if (rel._index) {
                     this._related[name][model._index] = model;
                 } else {
                     this._related[name].push(model);
@@ -372,56 +376,45 @@ module.exports = class ActiveRecord extends Base {
         });
     }
 
-    linkVia (relation, model, extraColumns, cb) {
-        let viaName, viaRelation, viaModel, viaTable;
-        if (relation._via instanceof Array) {
-            viaName = relation._via[0];
-            viaRelation = relation._via[1]; // @var viaRelation ActiveQuery
-            viaModel = viaRelation.model;
-            this.unsetRelation(viaName); // unset $viaName so that it can be reloaded to reflect the change
-        } else {
-            viaRelation = relation._via;
-            viaTable = viaRelation._from;
-        }
+    linkVia (rel, model, extraColumns, cb) {
+        let via = rel._viaTable || rel._viaRelation;
         let columns = {
-            [viaRelation._link[0]]: this.get(viaRelation._link[1]),
-            [relation._link[1]]: model.get(relation._link[0])                
+            [via.refKey]: this.get(via.linkKey),
+            [rel.linkKey]: model.get(rel.refKey)                
         };        
         if (extraColumns) {
             Object.assign(columns, extraColumns);
         }
-        if (relation._via instanceof Array) {
-            let record = new viaModel.constructor;
-            record._attrs = columns;
-            record.insert(cb);
-        } else {
-            this.getDb().insert(viaTable, columns, cb);
+        if (rel._viaTable) {
+            return this.getDb().insert(via._from, columns, cb);
         }
+        // unset rel so that it can be reloaded to reflect the change
+        this.unsetRelation(rel._viaRelationName);
+        let viaModel = new via.model.constructor;
+        viaModel.assignAttrs(columns);
+        viaModel.insert(cb);
     }
 
-    linkInline (relation, model, extraColumns, cb) {
-        let a = relation._link[0];
-        let b = relation._link[1];
-        let asBackRef = relation._asBackRef;
-        (asBackRef === undefined ? (this.isPrimaryKey(b) || !this.STORED_ATTRS.includes(b)) : asBackRef)
-            ? this.bindModels(relation._link, model, this, cb, relation)
-            : this.bindModels([b, a], this, model, cb, relation);
+    linkInline (rel, model, extraColumns, cb) {
+        rel.isBackRef()
+            ? this.bindModels(rel.refKey, rel.linkKey, model, this, cb, rel)
+            : this.bindModels(rel.linkKey, rel.refKey, this, model, cb, rel);
     }
 
     unlink (name, model, cb, remove) {
-        let relation = this.getRelation(name);
+        let rel = this.getRelation(name);
         if (remove === undefined) {
-            remove = relation._removeOnUnlink;
+            remove = rel._removeOnUnlink;
         }
-        let unlink = relation._via ? this.unlinkVia : this.unlinkInline;
-        unlink.call(this, relation, model, remove, ()=> {
-            this.unsetUnlinked(name, model, relation);
+        let unlink = (rel._viaTable || rel._viaRelation) ? this.unlinkVia : this.unlinkInline;
+        unlink.call(this, rel, model, remove, ()=> {
+            this.unsetUnlinked(name, model, rel);
             cb();
         });
     }
 
-    unsetUnlinked (name, model, relation) {
-        if (!relation.isMultiple()) {
+    unsetUnlinked (name, model, rel) {
+        if (!rel.isMultiple()) {
             return this.unsetRelation(name);
         }
         if (this._related[name] instanceof Array) {
@@ -433,145 +426,120 @@ module.exports = class ActiveRecord extends Base {
         }
     }
 
-    unlinkVia (relation, model, remove, cb) {
-        let viaName, viaRelation, viaModel, viaTable;
-        if (relation._via instanceof Array) {
-            viaName = relation._via[0];
-            viaRelation = relation._via[1]; // @var viaRelation ActiveQuery
-            viaModel = viaRelation.model;
-            this.unsetRelation(viaName);
-        } else {
-            viaRelation = relation._via;
-            viaTable = viaRelation._from;
-        }
+    unlinkVia (rel, model, remove, cb) {
+        let via = rel._viaTable || rel._viaRelation;
         let condition = {
-            [viaRelation._link[0]]: this.get(viaRelation._link[1]),
-            [relation._link[1]]: model.get(relation._link[0])
+            [via.refKey]: this.get(via.linkKey),
+            [rel.linkKey]: model.get(rel.refKey)
         };
         let nulls = {
-            [viaRelation._link[0]]: null,
-            [relation._link[1]]: null
+            [via.refKey]: null,
+            [rel.linkKey]: null
         };
         if (remove === undefined) {
-            remove = viaRelation._removeOnUnlink;
+            remove = via._removeOnUnlink;
         }
-        if (relation._via instanceof Array) {
-            remove ? viaModel.find(condition).remove(cb)
-                   : viaModel.find(condition).updateAll(nulls, cb);
+        if (rel._viaTable) {
+            remove ? this.getDb().remove(via._from, condition, cb)
+                   : this.getDb().update(via._from, condition, nulls, cb);
         } else {
-            remove ? this.getDb().remove(viaTable, condition, cb)
-                   : this.getDb().update(viaTable, condition, nulls, cb);
+            this.unsetRelation(rel._viaRelationName);
+            remove ? via.model.find(condition).remove(cb)
+                   : via.model.find(condition).updateAll(nulls, cb);
         }
     }
 
-    unlinkInline (relation, model, remove, cb) {
-        let a = relation._link[0];
-        let b = relation._link[1];
-        let asBackRef = relation._asBackRef;
-        if (asBackRef === undefined ? (this.isPrimaryKey(b) || !this.STORED_ATTRS.includes(b)) : asBackRef) {
-            if (model.get(a) instanceof Array) {
-                let index = ArrayHelper.indexOfId(this.get(b), model.get(a));
+    unlinkInline (rel, model, remove, cb) {
+        let ref = model.get(rel.refKey);
+        let link = this.get(rel.linkKey);
+        if (rel.isBackRef()) {             
+            if (ref instanceof Array) {
+                let index = ArrayHelper.indexOfId(link, ref);
                 if (index !== -1) {
-                    model.get(a).splice(index, 1);
+                    ref.splice(index, 1);
                 }
             } else {
-                model.set(a, null);
+                model.set(rel.refKey, null);
             }
-            remove ? model.remove(cb) : model.forceSave(cb);
-        } else {
-            if (this.get(b) instanceof Array) {
-                let index = ArrayHelper.indexOfId(model.get(a), this.get(b));
-                if (index !== -1) {
-                    this.get(b).splice(index, 1);
-                }
-            } else {
-                this.set(b, null);
-            }
-            remove ? this.remove(cb) : this.forceSave(cb);
+            return remove ? model.remove(cb) : model.forceSave(cb);
         }
+        if (link instanceof Array) {
+            let index = ArrayHelper.indexOfId(ref, link);
+            if (index !== -1) {
+                link.splice(index, 1);
+            }
+        } else {
+            this.set(rel.linkKey, null);
+        }
+        remove ? this.remove(cb) : this.forceSave(cb);
     }
 
     unlinkAll (name, cb, remove) {
-        let relation = this.getRelation(name);
-        if (!relation) {
+        let rel = this.getRelation(name);
+        if (!rel) {
             return cb();
         }
         if (remove === undefined) {
-            remove = relation._removeOnUnlink;
+            remove = rel._removeOnUnlink;
         }
-        let unlink = relation._via ? this.unlinkViaAll : this.unlinkInlineAll;
-        unlink.call(this, relation, remove, err => {
+        let unlink = (rel._viaRelation || rel._viaTable) ? this.unlinkViaAll : this.unlinkInlineAll;
+        unlink.call(this, rel, remove, err => {
             this.unsetRelation(name);
             cb(err);
         });
     }
 
-    unlinkViaAll (relation, remove, cb) {
-        let viaName, viaRelation, viaModel, viaTable;
-        if (relation._via instanceof Array) {
-            viaName = relation._via[0];
-            viaRelation = relation._via[1]; // @var viaRelation ActiveQuery
-            viaModel = viaRelation.model;
-            this.unsetRelation(viaName);
-        } else {
-            viaRelation = relation._via;
-            viaTable = viaRelation._from;
+    unlinkViaAll (rel, remove, cb) {
+        let via = rel._viaTable || rel._viaRelation;
+        if (rel._viaRelation) {
+            this.unsetRelation(rel._viaRelationName);
         }
-        let condition = {
-            [viaRelation._link[0]]: this.get(viaRelation._link[1])
-        };
-        let nulls = {
-            [viaRelation._link[0]]: null
-        };
-        if (viaRelation._where) {
-            condition = ['AND', condition, viaRelation._where];
+        let condition = {[via.refKey]: this.get(via.linkKey)};
+        let nulls = {[via.refKey]: null};
+        if (via._where) {
+            condition = ['AND', condition, via._where];
         }
-        if (!(relation.remove instanceof Array)) {
+        if (!(rel.remove instanceof Array)) {
             condition = this.getDb().buildCondition(condition);
-            remove ? this.getDb().remove(viaTable, condition, cb)
-                   : this.getDb().update(viaTable, condition, nulls, cb);
+            remove ? this.getDb().remove(via._from, condition, cb)
+                   : this.getDb().update(via._from, condition, nulls, cb);
         } else if (remove) {
-            viaModel.find(condition).all((err, models)=> {
-                err ? cb(err)
-                    : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
-            });
-        } else {
-            viaModel.find(condition).updateAll(nulls, cb);
-        }
-    }
-
-    unlinkInlineAll (relation, remove, cb) {
-        let model = relation.model;
-        let a = relation._link[0];
-        let b = relation._link[1];
-        if (!remove && this.get(b) instanceof Array) { // relation via array valued attr
-            this.set(b, []);
-            return this.forceSave(cb);
-        }
-        let nulls = {[a]: null};
-        let condition = {[a]: this.get(b)};
-        if (relation._where) {
-            condition = ['AND', condition, relation._where];
-        }
-        if (remove) {
-            relation.all((err, models)=> {
+            via.model.find(condition).all((err, models)=> {
                 err ? cb(err) : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
             });
-        } else if (relation._viaArray) {
-            model.getDb().updateAllPull(model.TABLE, {}, condition, cb);
         } else {
-            model.find(condition).updateAll(nulls, cb);
+            via.model.find(condition).updateAll(nulls, cb);
         }
     }
 
-    bindModels (link, foreignModel, primaryModel, cb, relation) {
-        let foreignKey = link[0];
-        let primaryKey = link[1];
+    unlinkInlineAll (rel, remove, cb) {
+        // rel via array valued attr
+        if (!remove && this.get(rel.linkKey) instanceof Array) { 
+            this.set(rel.linkKey, []);
+            return this.forceSave(cb);
+        }
+        let nulls = {[rel.refKey]: null};
+        let condition = {[rel.refKey]: this.get(rel.linkKey)};
+        if (rel._where) {
+            condition = ['AND', condition, rel._where];
+        }
+        if (remove) {
+            rel.all((err, models)=> {
+                err ? cb(err) : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
+            });
+        } else if (rel._viaArray) {
+            rel.model.getDb().updateAllPull(rel.model.TABLE, {}, condition, cb);
+        } else {
+            rel.model.find(condition).updateAll(nulls, cb);
+        }
+    }
+
+    bindModels (foreignKey, primaryKey, foreignModel, primaryModel, cb, rel) {
         let value = primaryModel.get(primaryKey);
         if (!value) {
-            return cb(`${this.constructor.name}: bindModels: primary key is null`);
+            return cb(this.wrapClassMessage('bindModels: primary key is null'));
         }
-        if (!relation._viaArray) {
+        if (!rel._viaArray) {
             foreignModel.set(foreignKey, value);
             return foreignModel.forceSave(cb);
         }

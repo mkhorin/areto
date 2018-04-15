@@ -5,7 +5,7 @@ const Base = require('../base/Base');
 module.exports = class Store extends Base {
 
     load (cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 
     log () {
@@ -13,10 +13,10 @@ module.exports = class Store extends Base {
     }
 
     createItems (items, cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 
     createRules (rules, cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 };

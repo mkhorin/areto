@@ -23,7 +23,7 @@ module.exports = class DbLogStore extends Base {
     save (type, message, data) {
         this.find().insert(this.format(type, message, data), err => {
             if (err) {
-                console.error(`${this.constructor.name}: save`, err);
+                console.error(this.wrapClassMessage('save:'), err);
             }
         });
     }
@@ -45,7 +45,7 @@ module.exports = class DbLogStore extends Base {
     observe () {
         setTimeout(()=> {
             this.truncate(err => {
-                err ? this.log('error', `${this.constructor.name}: truncate`, err)
+                err ? this.log('error', this.wrapClassMessage('truncate'), err)
                     : this.observe();
             });
         }, this.observePeriod * 1000);
@@ -60,7 +60,7 @@ module.exports = class DbLogStore extends Base {
                 }
                 AsyncHelper.waterfall([
                     cb => this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key, cb),
-                    (id, cb)=> this.find().where(['<', this.key, id]).remove(cb)
+                    (id, cb)=> this.find(['<', this.key, id]).remove(cb)
                 ], cb);
             },
         ], cb);

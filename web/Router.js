@@ -42,7 +42,7 @@ module.exports = class Router extends Base {
         try {
             this.attach(require(file));
         } catch (err) {
-            this.log('error', `${this.constructor.name}: ${file}`, err);
+            this.log('error', this.wrapClassMessage(file), err);
         }
     }
 

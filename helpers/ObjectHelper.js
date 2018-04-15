@@ -2,6 +2,14 @@
 
 module.exports = class ObjectHelper {
 
+    static push (value, key, object) {
+        if (object[key] instanceof Array) {
+            object[key].push(value);
+        } else {
+            object[key] = [value];
+        }
+    }
+
     static deepAssign (target, ...args) {
         for (let arg of args) {
             this._assign(target, arg);
@@ -108,13 +116,6 @@ module.exports = class ObjectHelper {
             }
         }
         return defaults;
-    }
-
-    static addValueToMap (value, key, map, prepend) {
-        if (!(map[key] instanceof Array)) {
-            map[key] = [];
-        }
-        prepend ? map.unshift(value) : map.push(value);
     }
 
     // INTERNAL

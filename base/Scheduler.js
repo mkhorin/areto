@@ -20,7 +20,7 @@ module.exports = class Scheduler extends Base {
 
     init () {
         super.init();
-        for (let id in this.tasks) {
+        for (let id of Object.keys(this.tasks)) {
             let task = ClassHelper.createInstance(this.tasks[id], {
                 id,
                 scheduler: this
@@ -42,7 +42,7 @@ module.exports = class Scheduler extends Base {
     }
     
     taskFail (event) {
-        this.log('error', `${this.constructor.name}: ${event.sender.id}`, event.err);
+        this.log('error', this.wrapClassMessage(event.sender.id), event.err);
         this.trigger(this.EVENT_TASK_FAIL, event);
     }
 };

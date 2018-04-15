@@ -44,13 +44,13 @@ module.exports = class Event extends Base {
     static on (target, name, handler, data, prepend) {
         let id = target.CLASS_FILE;
         if (!id) {
-            throw new Error(`${this.constructor.name}: Invalid event target`);
+            throw new Error(this.wrapClassMessage('Invalid event target'));
         }
         if (typeof name !== 'string') {
-            throw new Error(`${this.constructor.name}: Invalid event name`);
+            throw new Error(this.wrapClassMessage('Invalid event name'));
         }
         if (typeof handler !== 'function') {
-            throw new Error(`${this.constructor.name}: Invalid event handler`);
+            throw new Error(this.wrapClassMessage('Invalid event handler'));
         }
         let event = this._events[name];
         if (!event) {
@@ -115,7 +115,7 @@ module.exports = class Event extends Base {
             }
             let id = sender.CLASS_FILE;
             if (!id) {
-                return cb(`${this.constructor.name}: Invalid event sender`);
+                return cb(this.wrapClassMessage('Invalid event sender'));
             }
             tasks = tasks || [];
             while (id) {

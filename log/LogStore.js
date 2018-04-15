@@ -5,7 +5,7 @@ const Base = require('../base/Base');
 module.exports = class LogStore extends Base {
 
     save (type, message, data) {
-        throw new Error(`${this.constructor.name}: Need to override`);
+        throw new Error(this.wrapClassMessage('Need to override'));
     }
 
     log () {

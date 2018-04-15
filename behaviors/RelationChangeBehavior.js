@@ -6,58 +6,181 @@ module.exports = class RelationChangeBehavior extends Base {
 
     init () {
         super.init();
-        this.assign(ActiveRecord.EVENT_AFTER_VALIDATE, this.afterValidate);
-        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.afterSave);
+        this._changes = {};
+        this._relations = {};
+        this._removes = [];
+        this.assign(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
+        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
+        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);
+        this.assign(ActiveRecord.EVENT_AFTER_INSERT, this.afterSave);
+        this.assign(ActiveRecord.EVENT_AFTER_UPDATE, this.afterSave);
     }
 
-    afterValidate (cb, event) {
-        this._changes = {};
-        for (let name of this.owner.getActiveRelationNames()) {
-            this._changes[name] = this.owner.get(name);
-            let relation = this.owner.getRelation(name);
-            let value = this.owner.getOldAttr(name);
-            if (!value && relation._viaArray && !relation._asBackRef) {
-                value = [];
-            }
-            this.owner.set(name, value);
-        }
-        cb();
+    beforeValidate (cb) {
+        this.resolveChanges(cb);
+    }
+
+    beforeSave (cb) {
+        this.resolveChanges(cb);
     }
 
     afterSave (cb, event) {
-        AsyncHelper.eachSeries(this.owner.getActiveRelationNames(), this.changeRelation.bind(this), cb);
+        AsyncHelper.eachOfSeries(this._changes, this.changeRelations.bind(this), cb);
     }
 
-    changeRelation (name, cb) {
-        if (!this._changes || !this._changes[name]) {
+    getChanges (name) {
+        return this._changes.hasOwnProperty(name) ? this._changes[name] : null;
+    }
+
+    getRelation (name) {
+        if (!this._relations.hasOwnProperty(name)) {
+            this._relations[name] = this.owner.getRelation(name);
+        }
+        return this._relations[name];
+    }
+
+    resolveChanges (cb) {
+        if (this._resolved) {
             return cb();
         }
-        let relation = this.owner.getRelation(name);
-        let changes = this._changes[name];
+        this._resolved = true;
+        AsyncHelper.eachSeries(this.getActiveRelationNames(), (name, cb)=> {
+            this._changes[name] = CommonHelper.parseRelationChanges(this.owner.get(name));
+            this.restoreValue(name);
+            this._changes[name] ? AsyncHelper.series([
+                this.resolveTypeChanges.bind(this, 'links', name),
+                this.resolveTypeChanges.bind(this, 'unlinks', name),
+                this.resolveTypeChanges.bind(this, 'removes', name)
+            ], cb) : cb();
+        }, cb);
+    }
+
+    getActiveRelationNames () {
+        let names = [];
+        for (let item of this.owner.getValidators()) {
+            if (item instanceof Validator.BUILTIN.relation && item.isActive(this.owner.scenario)) {
+                names = names.concat(item.attrs);
+            }
+        }
+        return ArrayHelper.unique(names);
+    }
+
+    restoreValue (name) {
+        let value = this.owner.getOldAttr(name);
+        if (value !== undefined) {
+            return this.owner.set(name, value);
+        }
+        let rel = this.getRelation(name);
+        this.owner.set(name, rel.isInlineArray() ? [] : null);
+    }
+
+    resolveTypeChanges (type, attr, cb) {
+        if (!this._changes[attr][type].length) {
+            return cb();
+        }
+        let rel = this.getRelation(attr);
+        rel.model.findById(this._changes[attr][type]).all((err, models)=> {
+            if (!err) {
+                models.forEach(model => model.controller = this.owner.controller);
+                this._changes[attr][type] = models;
+            }
+            cb(err);
+        });
+    }
+
+    changeRelations (data, name, cb) {
+        if (!data) {
+            return cb();
+        }
         delete this._changes[name];
+        if (data.removes.length) {
+            this._removes[name] = data.removes;
+        }
         AsyncHelper.series([
-            cb => changes.removes instanceof Array && changes.removes.length
-                ? relation.model.constructor.removeById(changes.removes, cb)
-                : cb(),
-            cb => changes.unlinks instanceof Array && changes.unlinks.length
-                ? this.changeRelationById(changes.unlinks, relation, name, 'unlink', cb)
-                : cb(),
-            cb => changes.links instanceof Array && changes.links.length
-                ? this.changeRelationById(changes.links, relation, name, 'link', cb)
-                : cb(),
+            cb => AsyncHelper.eachSeries(data.unlinks, (model, cb)=> {
+                this.owner.unlink(name, model, cb);
+            }, cb),
+            cb => AsyncHelper.eachSeries(data.links, (model, cb)=> {
+                this.owner.link(name, model, cb);
+            }, cb),
             cb => setImmediate(cb)
         ], cb);
     }
 
-    changeRelationById (id, relation, name, action, cb) {
+    getLinkedDocs (name, cb) {
+        if (this._linkedDocs !== undefined) {
+            return cb(null, this._linkedDocs);
+        }
+        let relation = this.getRelation(name);
         AsyncHelper.waterfall([
-            cb => relation.model.findById(id).all(cb),
-            (targets, cb)=> AsyncHelper.eachSeries(targets, (target, cb)=> {
-                relation._primaryModel[action](name, target, cb);
-            }, cb)
+            cb => relation.asRaw().all(cb),
+            (docs, cb) => {
+                let data = this._changes[name], map = {};
+                docs.forEach(doc => map[doc[relation.model.PK]] = doc);
+                if (data) {
+                    data.links.forEach(model => map[model.getId()] = model.getAttrs());
+                    data.unlinks.concat(data.removes).forEach(model => delete map[model.getId()]);
+                }
+                cb(null, this._linkedDocs = Object.values(map));
+            }
         ], cb);
+    }
+
+    getRemovalData (cb) {
+        let result = [];
+        for (let name of Object.keys(this._removes)) {
+            let model = this.getRelation(name).model;
+            for (let id of this._removes[name]) {
+                result.push({id, model});
+            }
+        }
+        return result;
+    }
+
+    // EXIST
+
+    checkExist (name, cb) {
+        let rel = this.getRelation(name);
+        if (rel.isMultiple()) {
+            return cb(this.wrapClassMessage(`Multiple relation to exist: ${name}`))
+        }
+        AsyncHelper.waterfall([
+            cb => this.getLinkedDocs(name, cb),
+            (docs, cb)=> {
+                if (docs.length === 0) {
+                    return cb(null, null);
+                }
+                if (docs.length !== 1) {
+                    return cb(this.wrapClassMessage('Invalid relation changes'));
+                }
+                rel.isBackRef()
+                    ? this.checkBackRefExist(rel, docs[0], cb)
+                    : this.checkRefExist(rel, docs[0], cb);
+            }
+        ], cb);
+    }
+
+    checkRefExist (rel, doc, cb) {
+        AsyncHelper.waterfall([
+            cb => this.owner.find({[rel.linkKey]: doc[rel.refKey]}).limit(2).column(this.owner.PK, cb),
+            (ids, cb)=> cb(null, this.checkExistId(this.owner.getId(), ids))
+        ], cb);
+    }
+
+    checkBackRefExist (rel, doc, cb) {
+        AsyncHelper.waterfall([
+            cb => rel.model.find({[rel.refKey]: this.owner.get(rel.linkAttr)}).limit(2).column(rel.model.PK, cb),
+            (ids, cb)=> cb(null, this.checkExistId(doc[rel.model.PK], ids))
+        ], cb);
+    }
+
+    checkExistId (id, ids) {
+        return ids.length === 0 ? false : ids.length === 1 ? !CommonHelper.isEqual(id, ids[0]) : true;
     }
 };
 
 const AsyncHelper = require('../helpers/AsyncHelper');
+const ArrayHelper = require('../helpers/ArrayHelper');
+const CommonHelper = require('../helpers/CommonHelper');
 const ActiveRecord = require('../db/ActiveRecord');
+const Validator = require('../validators/Validator');

@@ -82,10 +82,10 @@ module.exports = class Url extends Base {
             
         // target params must be a subset of the source's params
         if (ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
-            throw new Error(`${this.constructor.name}: Invalid params: source: ${this.source}: target: ${this.target}`);
+            throw new Error(this.wrapClassMessage(`Invalid params: source: ${this.source}: target: ${this.target}`));
         }
         if (this.methods && !(this.methods instanceof Array)) {
-            throw new Error(`${this.constructor.name}: Invalid methods: ${this.methods}`);
+            throw new Error(this.wrapClassMessage(`Invalid methods: ${this.methods}`));
         }
     }
 

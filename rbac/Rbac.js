@@ -35,13 +35,13 @@ module.exports = class Rbac extends Base {
 
     load (cb) {
         if (this.loading) {
-            return cb(null, `${this.constructor.name}: Loading in progress`);
+            return cb(null, this.wrapClassMessage('Loading in progress'));
         }
         this.loading = true;
         this.store.load((err, data)=> {
             this.loading = false;
             if (err) {
-                this.log('error', `${this.constructor.name}: load`, err);
+                this.log('error', this.wrapClassMessage('load:'), err);
                 return cb(err);
             }
             this.build(data);
@@ -84,13 +84,17 @@ module.exports = class Rbac extends Base {
             let children = [];
             for (let id of item.children) {
                 if (!(this.itemMap[id] instanceof this.Item)) {
-                    throw new Error(`${this.constructor.name}: Unknown child: ${id}`);
+                    throw new Error(this.wrapClassMessage(`Unknown child: ${id}`));
                 }
                 children.push(this.itemMap[id]);
                 this.itemMap[id].addParent(item);
             }
             item.children = children;
         }
+    }
+
+    findUser (name) {
+        return this.module.components.user.Identity.find({name});
     }
 
     getUserAssignments (userId) {
@@ -113,15 +117,17 @@ module.exports = class Rbac extends Base {
         }, cb);
     }
 
-    setDefaults (configName, module, cb) {
-        const defaults = module.config[configName];
-        AsyncHelper.series([
-            cb => defaults ? this.store.createRules(defaults.rules, cb) : cb(),
-            cb => defaults ? this.store.createItems(defaults.items, cb) : cb(),
-            cb => AsyncHelper.eachOfSeries(module.modules, (module, name, cb)=> {
-                this.setDefaults(configName, module, cb);
-            }, cb)
-        ], cb);
+    // CREATE
+
+    createByData (data, cb) {
+        data ? AsyncHelper.series([
+            cb => this.store.createRules(data.rules, cb),
+            cb => this.store.createItems(data.items, cb),
+            cb => this.store.createPermissionItems(data.permissions, cb),
+            cb => this.store.createRoleItems(data.roles, cb),
+            cb => this.store.createRouteItems(data.routes, cb),
+            cb => this.store.createAssignments(data.assignments, cb)
+        ], cb) : cb();
     }
 };
 module.exports.init();

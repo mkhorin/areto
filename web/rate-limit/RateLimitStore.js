@@ -9,11 +9,11 @@ module.exports = class RateLimitStore extends Base {
     }
 
     find (type, user, cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 
     save (model, cb) {
-        cb(`${this.constructor.name}: Need to override`);
+        cb(this.wrapClassMessage('Need to override'));
     }
 
     createModel (config) {

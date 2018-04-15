@@ -28,20 +28,23 @@ module.exports = class Inspector extends Base {
     }
 
     checkRule (rule, cb) {
-        if (rule.name && Object.prototype.hasOwnProperty.call(this._ruleCache, rule.name)) {
+        if (Object.prototype.hasOwnProperty.call(this._ruleCache, rule.name)) {
             return cb(null, this._ruleCache[rule.name]);
         }
-        rule.inspector = this;
-        (new rule.Class(rule)).execute((err, allowed)=> {
-            if (err) {
-                return cb(err);
-            }
+        let model = new rule.Class(rule);
+        model.params = rule.params ? Object.assign({}, rule.params, this.params) : this.params;
+        model.execute((err, passed)=> {
             if (rule.name) {
-                this._ruleCache[rule.name] = !!allowed;
+                this._ruleCache[rule.name] = !!passed;
             }
-            cb(null, allowed);
+            cb(err, passed);
         });
+    }
+
+    getCachedRule (name) {
+        return this._ruleCache[name] instanceof Rule ? this._ruleCache[name] : null;
     }
 };
 
 const AsyncHelper = require('../helpers/AsyncHelper');
+const Rule = require('./Rule');

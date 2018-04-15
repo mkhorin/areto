@@ -18,7 +18,7 @@ module.exports = class DateValidator extends Base {
                 this.min = new Date(this.min);
             }
             if (!this.isValidDateObject(this.min)) {
-                throw new Error(`${this.constructor.name}: Invalid min date`);
+                throw new Error(this.wrapClassMessage('Invalid min date'));
             }
         }
         if (this.max !== null) {
@@ -26,7 +26,7 @@ module.exports = class DateValidator extends Base {
                 this.max = new Date(this.max);
             }
             if (!this.isValidDateObject(this.max)) {
-                throw new Error(`${this.constructor.name}: Invalid max date`);
+                throw new Error(this.wrapClassMessage('Invalid max date'));
             }
         }
     }
@@ -36,15 +36,21 @@ module.exports = class DateValidator extends Base {
     }
 
     getTooSmallMessage () {
-        return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {min: this.min});
+        return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {
+            min: this.min
+        });
     }
 
     getTooBigMessage () {
-        return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {max: this.max});
+        return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {
+            max: this.max
+        });
     }
 
     isValidDateObject (date) {        
-        return Object.prototype.toString.call(date) !== '[object Date]' ? false : !isNaN(date.getTime());
+        return Object.prototype.toString.call(date) !== '[object Date]'
+            ? false
+            : !isNaN(date.getTime());
     }
 
     validateAttr (model, attr, cb) {

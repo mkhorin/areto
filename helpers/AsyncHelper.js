@@ -41,6 +41,13 @@ module.exports = class AsyncHelper {
         (new this({items, handler, callback, result: []})).mapSeries();
     }
 
+    static filterSeries (items, handler, callback) {
+        if (!(items instanceof Array) || !items.length) {
+            return callback(null, []);
+        }
+        (new this({items, handler, callback, result: []})).filterSeries();
+    }
+
     static someSeries (items, handler, callback) {
         if (!(items instanceof Array) || !items.length) {
             return callback(null, false);
@@ -140,6 +147,21 @@ module.exports = class AsyncHelper {
                 return this.callback(null, this.result);
             }
             this.mapSeries(pos);
+        });
+    }
+
+    filterSeries (pos = 0) {
+        this.handler(this.items[pos], (err, value)=> {
+            if (err) {
+                return this.callback(err);
+            }
+            if (value) {
+                this.result.push(value);
+            }
+            if (++pos === this.items.length) {
+                return this.callback(null, this.result);
+            }
+            this.filterSeries(pos);
         });
     }
 

@@ -8,8 +8,34 @@ module.exports = class UserIdentity extends Base {
         return this.findById(id);
     }
 
+    static findSame (data) {
+        return this.find({name: data.name});
+    }
+
+    static create (data, cb) {
+        let model = new this({scenario: 'create'});
+        AsyncHelper.waterfall([
+            cb => this.findSame(data).one(cb),
+            (found, cb)=> {
+                if (!found) {
+                    model.setSafeAttrs(data);
+                    return model.save(cb);
+                }
+                this.module.log('warn', `User already exists: ${JSON.stringify(data)}`);
+                cb();
+            },
+            cb => {
+                if (model.hasError()) {
+                    let error = this.module.components.i18n.translateMessageMap(model.getFirstErrors());
+                    this.module.log('error', `${this.name}: ${JSON.stringify(error)}: ${JSON.stringify(data)}`);
+                }
+                cb();
+            }
+        ], cb);
+    }
+
     getAssignments (cb) {
-        // get user's assigned roles - []
+        // get user's assigned roles []
         cb(null, this.module.components.rbac.getUserAssignments(this.getId()));
     }
 

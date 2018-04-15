@@ -86,7 +86,7 @@ module.exports = class AssetBundle extends Base {
     }
 
     log (type, message, data) {
-        this.manager.log(type, `${this.constructor.name}: ${message}: ${JSON.stringify([this.js, this.css])}`, data);
+        this.manager.log(type, this.wrapClassMessage(`${message}: ${JSON.stringify([this.js, this.css])}`), data);
     }
 };
 

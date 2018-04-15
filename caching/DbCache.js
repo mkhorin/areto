@@ -16,7 +16,7 @@ module.exports = class DbCache extends Base {
     }
 
     getValue (key, cb) {        
-        this.getQuery().where({key}).one((err, doc)=> {
+        this.getQuery().and({key}).one((err, doc)=> {
             if (err || !doc) {
                 cb(err);
             } else if (!doc.expiredAt || doc.expiredAt > parseInt((new Date).getTime() / 1000)) {
@@ -31,7 +31,7 @@ module.exports = class DbCache extends Base {
         let expiredAt = duration
             ? (parseInt((new Date).getTime() / 1000) + duration)
             : 0;
-        let query = this.getQuery().where({key});        
+        let query = this.getQuery().and({key});
         query.one((err, stored)=> {
             err ? cb(err)
                 : query.upsert({key, value, expiredAt}, cb);
@@ -39,7 +39,7 @@ module.exports = class DbCache extends Base {
     }
 
     removeValue (key, cb) {
-        this.getQuery().where({key}).remove(cb);
+        this.getQuery().and({key}).remove(cb);
     }
 
     flushValues (cb) {

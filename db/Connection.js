@@ -16,7 +16,7 @@ module.exports = class Connection extends Base {
     initDriver () {
         this.driver = this.driver || this.drivers[this.schema];
         if (!this.driver) {
-            throw new Error(`${this.constructor.name}: Unknown driver: ${this.schema}`);
+            throw new Error(this.wrapClassMessage(`Unknown driver: ${this.schema}`));
         }
         this.driver = ClassHelper.createInstance(this.driver, {
             module: this.module,

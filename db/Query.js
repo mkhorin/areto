@@ -65,21 +65,15 @@ module.exports = class Query extends Base {
     }
 
     filter (condition) {
-        condition = this.filterCondition(condition);
-        condition.length && this.where(condition);
-        return this;
+        return this.where(this.filterCondition(condition));
     }
 
     andFilter (condition) {
-        condition = this.filterCondition(condition);
-        condition.length && this.and(condition);
-        return this;
+        return this.and(this.filterCondition(condition));
     }
 
     orFilter (condition) {
-        condition = this.filterCondition(condition);
-        condition.length && this.or(condition);
-        return this;
+        return this.or(this.filterCondition(condition));
     }
 
     andNotIn (key, value) {
@@ -200,52 +194,44 @@ module.exports = class Query extends Base {
         return result;
     }
 
-    filterCondition (cond) {
-        return cond instanceof Array ? this.filterSimpleCondition(cond) : this.filterHashCondition(cond);
+    filterCondition (data) {
+        return data instanceof Array
+            ? this.filterOperatorCondition(data)
+            : data ? this.filterHashCondition(data) : null;
     }
 
-    // operator format: operator, operand 1, operand 2, ...
-    filterSimpleCondition (cond) {
-        let operator = cond[0];
-        switch (operator.toLowerCase()) {
+    // operator format: [operator, operand 1, operand 2, ...]
+    filterOperatorCondition (data) {
+        switch (data[0]) {
             case 'NOT':
             case 'AND':
             case 'OR':
-                for (let i = cond.length - 1; i > 0; --i) {
-                    let child = this.filterCondition(cond[i]);
-                    if (this.isEmpty(child)) {
-                        cond.splice(i, 1);
+                for (let i = data.length - 1; i > 0; --i) {
+                    let item = this.filterCondition(data[i]);
+                    if (this.isEmpty(item)) {
+                        data.splice(i, 1);
                     } else {
-                        cond[i] = child;
+                        data[i] = item;
                     }
                 }
-                if (!cond.length) {
-                    return [];
-                }
-                break;
+                return data.length > 1 ? data : null;
 
             case 'BETWEEN':
             case 'NOT BETWEEN':
-                if (cond.length === 3 && (this.isEmpty(cond[1]) || this.isEmpty(cond[2]))) {
-                    return [];
-                }
-                break;
-
-            default:
-                if (cond.length > 1 && this.isEmpty(cond[1])) {
-                    return [];
-                }
+                return !this.isEmpty(data[1]) && !this.isEmpty(data[2]) ? data : null;
         }
+        return this.isEmpty(data[1]) ? null : data;
     }
 
-    // hash format: { 'column1': 'value1', 'column2': 'value2', ... }
-    filterHashCondition (condition) {
-        for (let name in Object.keys(condition)) {
-            if (this.isEmpty(condition[name])) {
-                delete condition[name];
+    // hash format: { column1: value1, column2: value2, ... }
+    filterHashCondition (data) {
+        let result = {};
+        for (let key of Object.keys(data)) {
+            if (!this.isEmpty(data[key])) {
+                result[key] = data[key];
             }
         }
-        return condition;
+        return Object.values(result).length ? result : null;
     }
 
     // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
@@ -255,7 +241,7 @@ module.exports = class Query extends Base {
             return docs;
         }
         // docs can be with equals key
-        let map = ArrayHelper.indexObjects(docs, this._link[0]);
+        let map = ArrayHelper.indexObjects(docs, this.refKey);
         let result = [];
         for (let key of keys) {
             if (Object.prototype.hasOwnProperty.call(map, key)) {
