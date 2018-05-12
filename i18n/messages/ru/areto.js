@@ -14,6 +14,8 @@ module.exports = {
     'Date must be no less than {min}': 'Дата должна быть не ранее {min}',
     'Date must be no greater than {max}': 'Дата должна быть не позднее {max}',
 
+    'Email': 'Электронный алрес',
+
     'File is not an image': 'Файл не является изображением',
     'File size cannot be smaller than {limit}': 'Размер файла не может быть менее {limit}',
     'File size cannot exceed {limit}': 'Размер файла не может превышать {limit}',
@@ -34,6 +36,9 @@ module.exports = {
 
     'Only these file extensions are allowed: {extensions}': 'Допустимы только эти расширения файлов: {extensions}',
     'Only these file MIME types are allowed: {mimeTypes}': 'Допустимы только эти MIME-типы файлов: {mimeTypes}',
+
+    'Password': 'Пароль',
+    'Password Repeat': 'Повтор пароля',
 
     'Relation should contain at least {min} lnk.': 'Связанных значений должно быть не менее {min}',
     'Relation should contain at most {max} lnk.': 'Связанных значений должно быть не более {max}',
@@ -64,6 +69,7 @@ module.exports = {
     'Value should contain at least {min} chr.': 'Значение должно содержать не менее {min} симв.',
     'Value should contain at most {max} chr.': 'Значение должно содержать не более {max} симв.',
     'Value should contain {length} chr.': 'Значение должно содержать {length} симв.',
+    'Verification code': 'Проверочный код',
 
-    'Yes': 'Да',
+    'Yes': 'Да'
 };

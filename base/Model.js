@@ -88,11 +88,15 @@ module.exports = class Model extends Base {
     }
 
     getLabel (name) {
-        return Object.prototype.hasOwnProperty.call(this.LABELS, name) ? this.LABELS[name] : this.generateLabel(name);
+        return Object.prototype.hasOwnProperty.call(this.LABELS, name)
+            ? this.LABELS[name]
+            : this.generateLabel(name);
     }
 
     getHint (name) {
-        return Object.prototype.hasOwnProperty.call(this.HINTS, name) ? this.HINTS[name] : '';
+        return Object.prototype.hasOwnProperty.call(this.HINTS, name)
+            ? this.HINTS[name]
+            : '';
     }
 
     getFormAttrId (name, prefix) {
@@ -122,8 +126,10 @@ module.exports = class Model extends Base {
     }
 
     getScenarioAttrNames (scenario) {
-        let names = {};
-        let only = this.SCENARIOS && this.SCENARIOS[scenario] instanceof Array ? this.SCENARIOS[scenario] : null;
+        let names = {}, only;
+        if (this.SCENARIOS && this.SCENARIOS[scenario] instanceof Array) {
+            only = this.SCENARIOS[scenario];
+        }
         for (let validator of this.getValidators()) {
             if (validator.isActive(scenario)) {
                 for (let name of validator.attrs) {

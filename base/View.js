@@ -42,6 +42,18 @@ module.exports = class View extends Base {
     // RENDER
 
     render (template, params, cb) {
+        params = this.getRenderParams(params);
+        this.layout = params.viewLayout
+            || this.controller.VIEW_LAYOUT
+            || this.controller.module.VIEW_LAYOUT;
+        AsyncHelper.waterfall([
+            cb => this.controller.res.app.render(this.get(template), params, cb),
+            (content, cb)=> this.renderWidgets(content, params, cb),
+            (content, cb)=> cb(null, this._asset ? this._asset.render(content) : content)
+        ], cb);
+    }
+
+    getRenderParams (params) {
         params = Object.assign({
             _data: null,
             _view: this,
@@ -52,41 +64,33 @@ module.exports = class View extends Base {
             _baseUrl: this.controller.module.app.baseUrl
         }, params);
         params._data = new DataMap(params._data);
-        this.layout = params.viewLayout
-            || this.controller.VIEW_LAYOUT
-            || this.controller.module.VIEW_LAYOUT;
-        this.controller.res.app.render(this.get(template), params, (err, content)=> {
-            err ? cb(err)
-                : this.renderWidgets(content, params, cb);
-        });
+        return params;
     }
 
-    renderHead () {
-        return this.renderAsset(this.POS_HEAD);
+    createHead () {
+        return this.createAssetPosition(this.POS_HEAD);
     }
 
-    renderBodyEnd () {
-        return this.renderAsset(this.POS_BODY_END);
+    createBodyEnd () {
+        return this.createAssetPosition(this.POS_BODY_END);
     }
 
     // ASSET
 
     addAsset (data) {
-        let asset = this.getAsset();
-        if (asset) {
-            asset.add(data);
+        if (this.getAsset()) {
+            this._asset.add(data);
         }
     }
 
-    renderAsset (position) {
-        let asset = this.getAsset();
-        return asset ? asset.render(position) : '';
+    createAssetPosition (pos) {
+        return this.getAsset() ? this._asset.createPosition(pos) : '';
     }
 
     getAsset () {
         if (this._asset === undefined) {
             if (!this.controller.module.components.asset) {
-                return this.log('error', 'Not found asset manager');
+                return this.log('error', 'Not found asset component');
             }
             this._asset = this.controller.module.components.asset.createViewAsset();
         }
@@ -95,12 +99,8 @@ module.exports = class View extends Base {
 
     // WIDGET
 
-    getWidgetAnchor (id) {
-        return `{${id}-${this.controller.timestamp}}`;
-    }
-
     createWidget (params) {
-        let anchor = `${params.id}-${this.controller.timestamp}`;
+        let anchor = params.id;
         if (this.widgets[anchor]) {
             this.log('error', `${View.name}: widget already exists: ${params.id}`);
             return '';
@@ -109,7 +109,7 @@ module.exports = class View extends Base {
             params.configId = params.id;
         }
         this.widgets[anchor] = params;
-        return `{${anchor}}`;
+        return `#{${anchor}}`;
     }
 
     renderWidgets (content, renderParams, cb) {
@@ -120,29 +120,28 @@ module.exports = class View extends Base {
         AsyncHelper.eachSeries(anchors, (anchor, cb)=> {
             let params = this.widgets[anchor];
             let widget = this.controller.module.widgets[params.configId];
-            if (widget) {
-                widget = ClassHelper.createInstance(Object.assign({
-                    view: this
-                }, widget, params));
-                this.widgets[anchor] = widget;
-                widget.execute(cb, renderParams);
-            } else {
-                this.log('error', `${View.name}: widget config not found: ${params.configId}`);
+            if (!widget) {
                 delete this.widgets[anchor];
-                cb();
+                this.log('error', `${View.name}: widget config not found: ${params.configId}`);
+                return cb();
             }
+            widget = ClassHelper.createInstance(Object.assign({
+                view: this
+            }, widget, params));
+            this.widgets[anchor] = widget;
+            widget.execute(cb, renderParams);
         }, err => {
             err ? cb(err)
-                : cb(null, this.prepareWidgetContent(content));
+                : cb(null, this.insertWidgetContent(content));
         });
     }
 
-    prepareWidgetContent (content) {
+    insertWidgetContent (content) {
         let anchors = Object.keys(this.widgets).join('|');
         if (anchors.length === 0) {
             return content;
         }
-        return content.replace(new RegExp(`{(${anchors})}`, 'g'), (match, anchor)=> {
+        return content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> {
             return this.widgets[anchor].content;
         });
     }

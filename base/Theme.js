@@ -38,12 +38,16 @@ module.exports = class Theme extends Base {
     }
 
     get (name, language) {
-        return this.getOnly(name, language) || (this.parent && this.parent.get(name, language)) || name;
+        return this.getOnly(name, language)
+            || (this.parent && this.parent.get(name, language))
+            || name;
     }
 
     getInner (name, language) {
         return this.getOnly(name, language)
-            || (this.parent && this.parent.template === this.template && this.parent.getInner(name, language));
+            || (this.parent
+                && this.parent.template === this.template
+                && this.parent.getInner(name, language));
     }
 
     getParent (name, language) {

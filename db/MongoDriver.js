@@ -41,7 +41,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     openClient (cb) {
-        this.client.connect(this.getUri(true), this.settings.options, cb);
+        return this.client.connect(this.getUri(true), this.settings.options, cb);
     }
 
     closeClient (cb) {
@@ -258,7 +258,7 @@ module.exports = class MongoDriver extends Base {
     // INDEXES
 
     getIndexes (table, cb) {
-        this.getCollection(table).indexInformation({full: true}, cb);
+        return this.getCollection(table).indexInformation({full: true}, cb);
     }
 
     /**

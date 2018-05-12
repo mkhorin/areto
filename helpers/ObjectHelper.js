@@ -118,6 +118,16 @@ module.exports = class ObjectHelper {
         return defaults;
     }
 
+    static addKeyToValue (map, prop) {
+        if (map) {
+            for (let key of Object.keys(map)) {
+                if (map[key]) {
+                    map[key][prop] = key;
+                }
+            }
+        }
+    }
+
     // INTERNAL
 
     static _assign (to, from) {

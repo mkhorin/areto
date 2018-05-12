@@ -32,7 +32,7 @@ module.exports = class EachValidator extends Base {
             return this.rule;
         }
         if (!(model instanceof Model)) {
-            model = new Model; // mockup context model
+            model = new Model; // mock up context model
         }
         return this.constructor.createValidator(this.rule, model, this.attrs, this.params);
     }

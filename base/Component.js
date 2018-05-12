@@ -6,6 +6,7 @@ module.exports = class Component extends Base {
 
     static getConstants () {
         return {
+            EVENT_AFTER_LOAD: 'afterLoad'
             // BEHAVIORS: { // auto-attached behaviors
                 // behavior1: require('./UserBehavior1'),
                 // behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
@@ -31,6 +32,11 @@ module.exports = class Component extends Base {
                 owner: this,
                 autoAttachedItems: this.BEHAVIORS
             });
+    }
+
+    afterLoad (cb) {
+        this.trigger(this.EVENT_AFTER_LOAD);
+        cb && cb();
     }
 
     on () {

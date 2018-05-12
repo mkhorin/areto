@@ -14,14 +14,15 @@ module.exports = class ModelFormatter extends Base {
     }
 
     create (key, options, dir) {
-        if (options && typeof options.name === 'string') {
-            try {
-                let Formatter = require(path.join(dir, `${StringHelper.toFirstUpperCase(options.name)}Formatter`));
-                return new Formatter(key, options);
-            } catch (err) {                          
-            }
+        if (!options || typeof options.name !== 'string') {
+            return null;
         }
-        return null;
+        try {
+            let file = path.join(dir, `${StringHelper.toFirstUpperCase(options.name)}Formatter`);
+            let Formatter = require(file);
+            return new Formatter(key, options);
+        } catch (err) {
+        }
     }
 };
 

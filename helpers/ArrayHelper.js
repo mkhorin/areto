@@ -42,7 +42,7 @@ module.exports = class ArrayHelper {
         return this.intersect(target, excluded, this.indexOfId);
     }
 
-    static unique (values) {
+    static unique (values) {  // cast value to object key
         return Object.keys(this.flip(values));
     }
 
@@ -61,11 +61,11 @@ module.exports = class ArrayHelper {
     }
 
     static flip (values) {
-        let object = {};
-        for (let value of values) {
-            object[value] = null;
+        let map = {};
+        for (let i = 0; i < values.length; ++i) {
+            map[values[i]] = i;
         }
-        return object;
+        return map;
     }
 
     static removeValue (value, values) {
@@ -92,17 +92,18 @@ module.exports = class ArrayHelper {
     static indexObjects (docs, key) {
         let map = {};
         for (let doc of docs) {
-            if (doc !== null) {
-                let value = doc[key];
-                if (Object.prototype.hasOwnProperty.call(map, value)) {
-                    if (map[value] instanceof Array) {
-                        map[value].push(doc);
-                    } else {
-                        map[value] = [map[value], doc];
-                    }
+            if (doc === null) {
+                continue;
+            }
+            let value = doc[key];
+            if (Object.prototype.hasOwnProperty.call(map, value)) {
+                if (map[value] instanceof Array) {
+                    map[value].push(doc);
                 } else {
-                    map[value] = doc;
+                    map[value] = [map[value], doc];
                 }
+            } else {
+                map[value] = doc;
             }
         }
         return map;

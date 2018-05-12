@@ -220,20 +220,20 @@ module.exports = class DbStore extends Base {
                     return cb(`RBAC: Not found assignment item: ${items}`);
                 }
                 items = result;
-                this.rbac.findUser(user).one(cb);
+                this.rbac.findUserModel(user).one(cb);
             },
-            (result, cb)=> {
-                if (!result) {
+            (model, cb)=> {
+                if (!model) {
                     return cb(`RBAC: Not found user: ${user}`);
                 }
-                user = result.getId();
+                user = model.getId();
                 AsyncHelper.eachSeries(items, (item, cb)=> {
                     AsyncHelper.waterfall([
                         cb => this.findAssignment().and({user, item}).one(cb),
                         (found, cb)=> {
                             found ? cb() : this.findAssignment().insert({user, item}, cb);
                         }
-                    ], cb)
+                    ], cb);
                 }, cb);
             }
         ], cb);

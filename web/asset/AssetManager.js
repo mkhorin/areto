@@ -46,7 +46,5 @@ module.exports = class AssetManager extends Base {
     }
 };
 
-const AsyncHelper = require('../../helpers/AsyncHelper');
-const ClassHelper = require('../../helpers/ClassHelper');
 const ViewAsset = require('./ViewAsset');
 const AssetBundle = require('./AssetBundle');

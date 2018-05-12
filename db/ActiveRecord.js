@@ -48,7 +48,11 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getTitle () {
-        return this.get(this.PK);
+        return this.getId();
+    }
+
+    toString () {
+        return `${this.constructor.name}: ${this.getId()}`;
     }
 
     // ATTRIBUTES
@@ -321,7 +325,7 @@ module.exports = class ActiveRecord extends Base {
     handleEachRelationModel (names, handler, cb) {
         AsyncHelper.waterfall([
             cb => this.findRelations(names, cb),
-            (rels, cb)=> AsyncHelper.eachSeries(ArrayHelper.concatValues(rels), handler, cb)
+            (relations, cb)=> AsyncHelper.eachSeries(ArrayHelper.concatValues(relations), handler, cb)
         ], cb);
     }
 

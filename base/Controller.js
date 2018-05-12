@@ -266,12 +266,19 @@ module.exports = class Controller extends Base {
     }
 
     render (template, params, cb, view) {
-        view = view || this.createView();
+        view = view || this.getView();
         view.render(this.getTemplateName(template), params, (err, content)=> {
             cb ? cb(err, content)
                : err ? this.action.complete(err)
                      : this.send(content);
         });
+    }
+
+    getView () {
+        if (!this.view) {
+            this.view = this.createView();
+        }
+        return this.view;
     }
 
     createView (params) {

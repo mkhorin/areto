@@ -157,6 +157,18 @@ module.exports = class Query extends Base {
         this._db.queryCount(this, cb);
     }
 
+    max (key, cb) {
+        this._order = {[key]: -1};
+        this._limit = 1;
+        this.scalar(key, cb);
+    }
+
+    min (key, cb) {
+        this._order = {[key]: 1};
+        this._limit = 1;
+        this.scalar(key, cb);
+    }
+
     //
 
     isEmpty (value) {
@@ -276,11 +288,4 @@ const ArrayHelper = require('../helpers/ArrayHelper');
 sum (q) {
     return this.queryScalar('SUM('+ q +')');
 };
-
-min (q) {
-    return this.queryScalar('MIN('+ q +')');
-};
-
-max (q) {
-    return this.queryScalar('MAX('+ q +')');
-};*/
+*/

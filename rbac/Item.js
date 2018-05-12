@@ -68,8 +68,14 @@ module.exports = class Item extends Base {
             return cb();
         }
         this.store.findRuleByName(this.data.rule).scalar(this.store.key, (err, id)=>{
+            if (err) {
+                return cb(err);
+            }
+            if (!id) {
+                return cb(`RBAC: Not found rule for item: ${this.name}`);
+            }
             result.rule = id;
-            cb(err || (!id && `RBAC: Not found rule for item: ${this.name}`));
+            cb();
         });
     }
 

@@ -17,7 +17,10 @@ module.exports = class CaptchaValidator extends Base {
         if (!this.CaptchaController) {
             throw new Error(this.wrapClassMessage('Controller class must be set'));
         }
-        this.createMessage('message', 'The verification code is incorrect');
+    }
+
+    getMessage () {
+        return this.createMessage(this.message, 'The verification code is incorrect');
     }
 
     validateAttr (model, attr, cb) {
@@ -28,7 +31,7 @@ module.exports = class CaptchaValidator extends Base {
         controller.assignFrom(model.controller);
         let action = controller.createAction(this.captchaActionId);
         if (!action.validate(model.get(attr))) {
-            this.addError(model, attr, this.message);
+            this.addError(model, attr, this.getMessage());
         }
         cb();
     }

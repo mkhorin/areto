@@ -6,8 +6,8 @@ module.exports = class User extends Base {
 
     constructor (config) {
         super(Object.assign({
+            UserModel: null,
             WebUser: require('./WebUser'),
-            Identity: null,
             enableSession: true,
             loginUrl: '',
             enableAutoLogin: false,
@@ -30,24 +30,22 @@ module.exports = class User extends Base {
 
     init () {
         super.init();                                                     
-        if (!this.Identity) {
-            throw new Error(this.wrapClassMessage('Identity is not set'));
-        }
-        if (this.enableAutoLogin && !this.identityCookieParam) {
-            throw new Error(this.wrapClassMessage('identityCookieParam is not set'));
+        if (!this.UserModel) {
+            throw new Error(this.wrapClassMessage('User model is not set'));
         }
     }
 
     createWebUser (req, res, next) {
-        return new this.WebUser({req, res, next, owner: this});
+        return new this.WebUser({
+            req,
+            res,
+            next,
+            owner: this
+        });
     }
 
-    createByData (data, cb) {
-        AsyncHelper.eachSeries(data, (data, cb)=> {
-            this.Identity.create(data, cb);
-        }, cb);
+    findUserModel (id) {
+        return this.UserModel.findIdentity(id);
     }
 };
 module.exports.init();
-
-const AsyncHelper = require('../helpers/AsyncHelper');

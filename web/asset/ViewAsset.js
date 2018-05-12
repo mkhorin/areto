@@ -26,13 +26,28 @@ module.exports = class ViewAsset extends Base {
         }
     }
 
-    render (position) {
-        if (!this._resolvedBundles) {
-            this.resolveBundles();
+    createPosition (pos) {
+        if (this._positions) {
+            this._positions[pos] = true;
+        } else {
+            this._positions = {[pos]: true};
         }
+        return `#asset{${pos}}`;
+    }
+
+    render (content) {
+        if (!this._positions) {
+            return content;
+        }
+        this.resolveBundles();
+        let anchors = Object.keys(this._positions).join('|');
+        return content.replace(new RegExp(`#asset{(${anchors})}`, 'g'), this.renderPosition.bind(this));
+    }
+
+    renderPosition (match, pos) {
         let result = '';
         for (let bundle of this._resolvedBundles) {
-            result += bundle.render(position);
+            result += bundle.render(pos);
         }
         return result;
     }
@@ -84,6 +99,5 @@ module.exports = class ViewAsset extends Base {
         this.manager.log(type, this.wrapClassMessage(message), data);
     }
 };
-module.exports.init();
 
 const AssetBundle = require('./AssetBundle');

@@ -6,6 +6,7 @@ module.exports = class Widget extends Base {
 
     constructor (config) {
         super(Object.assign({
+            controller: config.view.controller,
             module: config.view.controller.module,
             // disabled: true,
             // caching: true,
@@ -44,7 +45,7 @@ module.exports = class Widget extends Base {
     }
 
     render (template, cb, params) {
-        this.view.controller.res.app.render(this.view.get(template), Object.assign({
+        this.controller.res.app.render(this.view.get(template), Object.assign({
             _widget: this
         }, this.renderParams, params), cb);
     }

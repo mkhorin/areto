@@ -4,12 +4,6 @@ const Base = require('../base/Component');
 
 module.exports = class Rbac extends Base {
 
-    static getConstants () {
-        return {
-            EVENT_AFTER_LOAD: 'afterLoad'
-        };
-    }
-    
     constructor (config) {
         super(Object.assign({
             store: require('./FileStore'),
@@ -28,10 +22,6 @@ module.exports = class Rbac extends Base {
     configure (cb) {
         setImmediate(this.load.bind(this, cb));
     }
-   
-    afterLoad () {
-        this.trigger(this.EVENT_AFTER_LOAD);
-    }
 
     load (cb) {
         if (this.loading) {
@@ -45,8 +35,7 @@ module.exports = class Rbac extends Base {
                 return cb(err);
             }
             this.build(data);
-            this.afterLoad();
-            cb();
+            this.afterLoad(cb);
         });
     }
 
@@ -93,8 +82,8 @@ module.exports = class Rbac extends Base {
         }
     }
 
-    findUser (name) {
-        return this.module.components.user.Identity.find({name});
+    findUserModel (name) {
+        return this.module.components.user.UserModel.find({name});
     }
 
     getUserAssignments (userId) {
@@ -130,7 +119,6 @@ module.exports = class Rbac extends Base {
         ], cb) : cb();
     }
 };
-module.exports.init();
 
 const AsyncHelper = require('../helpers/AsyncHelper');
 const ClassHelper = require('../helpers/ClassHelper');

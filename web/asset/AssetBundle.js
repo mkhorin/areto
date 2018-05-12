@@ -75,7 +75,7 @@ module.exports = class AssetBundle extends Base {
     }
 
     renderCssItem (src, options) {
-        let media = options.media ? ` media="${options.media}"` : '';
+        let media = options.media ? `media="${options.media}"` : '';
         let version = options.version ? `?v=${options.version}` : '';
         return `<link href="${src}${version}" ${media} rel="stylesheet">\n`;
     }

@@ -12,8 +12,8 @@ module.exports = class Module extends Base {
                 'template': {}
             },
             EVENT_BEFORE_INIT: 'beforeInit',
-            EVENT_AFTER_SET_COMPONENTS: 'afterSetComponents',
-            EVENT_AFTER_SET_MODULES: 'afterSetModules',
+            EVENT_AFTER_COMPONENT_SET: 'afterComponentSet',
+            EVENT_AFTER_MODULE_SET: 'afterModuleSet',
             EVENT_AFTER_INIT: 'afterInit',
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction',
@@ -92,6 +92,23 @@ module.exports = class Module extends Base {
         return require(this.getPath.apply(this, args));
     }
 
+    getModule (name) {
+        if (typeof name !== 'string') {
+            return null;
+        }
+        if (this.modules[name] instanceof Module) {
+            return this.modules[name];
+        }
+        let pos = name.indexOf('.');
+        if (pos === -1) {
+            return null;
+        }
+        let module = this.modules[name.substring(0, pos)];
+        return module instanceof Module
+            ? module.getModule(name.substring(pos + 1))
+            : null;
+    }
+
     getController (id) {
         try {
             return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
@@ -131,12 +148,12 @@ module.exports = class Module extends Base {
         this.triggerCallback(this.EVENT_BEFORE_INIT, cb);
     }
 
-    afterSetComponents (cb) {
-        this.triggerCallback(this.EVENT_AFTER_SET_COMPONENTS, cb);
+    afterComponentSet (cb) {
+        this.triggerCallback(this.EVENT_AFTER_COMPONENT_SET, cb);
     }
 
-    afterSetModules (cb) {
-        this.triggerCallback(this.EVENT_AFTER_SET_MODULES, cb);
+    afterModuleSet (cb) {
+        this.triggerCallback(this.EVENT_AFTER_MODULE_SET, cb);
     }
 
     afterInit (cb) {
@@ -178,7 +195,7 @@ module.exports = class Module extends Base {
 
     // CONFIG
 
-    getConfigValue (key, defaults) {
+    getConfig (key, defaults) {
         return ObjectHelper.getNestedValue(this.config, key, defaults);
     }
 
@@ -220,9 +237,9 @@ module.exports = class Module extends Base {
         AsyncHelper.series([
             cb => this.beforeInit(cb),
             cb => this.setComponents(this.config.components, cb),
-            cb => this.afterSetComponents(cb),
+            cb => this.afterComponentSet(cb),
             cb => this.setModules(this.config.modules, cb),
-            cb => this.afterSetModules(cb),
+            cb => this.afterModuleSet(cb),
             cb => {
                 this.setRouter(this.config.router);
                 this.setExpress();

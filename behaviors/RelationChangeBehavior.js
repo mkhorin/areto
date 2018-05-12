@@ -8,7 +8,6 @@ module.exports = class RelationChangeBehavior extends Base {
         super.init();
         this._changes = {};
         this._relations = {};
-        this._removes = [];
         this.assign(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);
@@ -79,13 +78,14 @@ module.exports = class RelationChangeBehavior extends Base {
             return cb();
         }
         let rel = this.getRelation(attr);
-        rel.model.findById(this._changes[attr][type]).all((err, models)=> {
-            if (!err) {
+        AsyncHelper.waterfall([
+            cb => rel.model.findById(this._changes[attr][type]).all(cb),
+            (models, cb)=> {
                 models.forEach(model => model.controller = this.owner.controller);
                 this._changes[attr][type] = models;
+                cb();
             }
-            cb(err);
-        });
+        ], cb);
     }
 
     changeRelations (data, name, cb) {
@@ -93,10 +93,10 @@ module.exports = class RelationChangeBehavior extends Base {
             return cb();
         }
         delete this._changes[name];
-        if (data.removes.length) {
-            this._removes[name] = data.removes;
-        }
         AsyncHelper.series([
+            cb => AsyncHelper.eachSeries(data.removes, (model, cb)=> {
+                model.remove(cb);
+            }, cb),
             cb => AsyncHelper.eachSeries(data.unlinks, (model, cb)=> {
                 this.owner.unlink(name, model, cb);
             }, cb),
@@ -124,17 +124,6 @@ module.exports = class RelationChangeBehavior extends Base {
                 cb(null, this._linkedDocs = Object.values(map));
             }
         ], cb);
-    }
-
-    getRemovalData (cb) {
-        let result = [];
-        for (let name of Object.keys(this._removes)) {
-            let model = this.getRelation(name).model;
-            for (let id of this._removes[name]) {
-                result.push({id, model});
-            }
-        }
-        return result;
     }
 
     // EXIST
