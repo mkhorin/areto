@@ -7,12 +7,7 @@ const Base = require('./Action');
  */
 module.exports = class InlineAction extends Base {
 
-    execute (cb) {
-        try {
-            this.callback = cb;
-            this.method.call(this.controller);
-        } catch (err) {
-            cb(err);
-        }
+    run () {
+        this.method.call(this.controller);
     }
 };

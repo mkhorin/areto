@@ -49,7 +49,7 @@ module.exports = class Driver extends Base {
             return cb(this.wrapClassMessage(`Connection is already opened: ${this.getUri()}`));
         }
         AsyncHelper.waterfall([
-            this.openClient.bind(this),
+            cb => this.openClient(cb),
             (connection, cb)=> {
                 this.connection = connection;
                 this.log('info', `Connection is opened: ${this.getUri()}`);
@@ -64,7 +64,7 @@ module.exports = class Driver extends Base {
             return cb(this.wrapClassMessage(`Connection is already closed: ${this.getUri()}`));
         }
         AsyncHelper.series([
-            this.closeClient.bind(this),
+            cb => this.closeClient(cb),
             cb => {
                 this.connection = null;
                 this.log('info', `Connection is closed: ${this.getUri()}`);
@@ -112,4 +112,4 @@ module.exports = class Driver extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');

@@ -96,8 +96,8 @@ module.exports = class ViewAsset extends Base {
     }
 
     log (type, message, data) {
-        this.manager.log(type, this.wrapClassMessage(message), data);
+        CommonHelper.log(type, message, data, this.constructor.name, this.manager);
     }
 };
 
-const AssetBundle = require('./AssetBundle');
+const CommonHelper = require('../../helper/CommonHelper');

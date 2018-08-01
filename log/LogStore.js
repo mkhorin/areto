@@ -8,7 +8,9 @@ module.exports = class LogStore extends Base {
         throw new Error(this.wrapClassMessage('Need to override'));
     }
 
-    log () {
-        this.logger.module.log.apply(this.logger.module, arguments);
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.logger.module);
     }
 };
+
+const CommonHelper = require('../helper/CommonHelper');

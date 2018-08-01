@@ -4,6 +4,12 @@ const Base = require('../base/Component');
 
 module.exports = class Rbac extends Base {
 
+    static getConstants () {
+        return {
+            EVENT_AFTER_LOAD: 'afterLoad'
+        };
+    }
+
     constructor (config) {
         super(Object.assign({
             store: require('./FileStore'),
@@ -35,14 +41,19 @@ module.exports = class Rbac extends Base {
                 return cb(err);
             }
             this.build(data);
-            this.afterLoad(cb);
+            this.afterLoad();
+            setImmediate(cb);
         });
+    }
+
+    afterLoad () {
+        this.trigger(this.EVENT_AFTER_LOAD);
     }
 
     build (data) {
         this.ruleMap = {};
         for (let name of Object.keys(data.rules)) {
-            this.ruleMap[name] = ClassHelper.normalizeCreationData(data.rules[name], {name});
+            this.ruleMap[name] = ClassHelper.normalizeInstanceConfig(data.rules[name], {name});
         }
         this.resolveItemRules(data.items);
         this.itemMap = {};
@@ -63,7 +74,7 @@ module.exports = class Rbac extends Base {
             if (rule) {
                 item.rule = Object.prototype.hasOwnProperty.call(this.ruleMap, rule)
                     ? this.ruleMap[rule]
-                    : ClassHelper.normalizeCreationData(rule);
+                    : ClassHelper.normalizeInstanceConfig(rule);
             }
         }
     }
@@ -88,7 +99,8 @@ module.exports = class Rbac extends Base {
 
     getUserAssignments (userId) {
         return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId)
-            ? this.assignmentIndex[userId] : null;
+            ? this.assignmentIndex[userId]
+            : null;
     }
 
     can (assignments, itemId, cb, params) {
@@ -119,6 +131,7 @@ module.exports = class Rbac extends Base {
         ], cb) : cb();
     }
 };
+module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const ClassHelper = require('../helpers/ClassHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const ClassHelper = require('../helper/ClassHelper');

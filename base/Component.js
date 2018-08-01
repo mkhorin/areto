@@ -6,7 +6,6 @@ module.exports = class Component extends Base {
 
     static getConstants () {
         return {
-            EVENT_AFTER_LOAD: 'afterLoad'
             // BEHAVIORS: { // auto-attached behaviors
                 // behavior1: require('./UserBehavior1'),
                 // behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
@@ -16,27 +15,13 @@ module.exports = class Component extends Base {
     }
 
     init () {
-        this.events = this.eventManager
-            ? ClassHelper.createInstance(this.eventManager, {
-                owner: this
-            })
-            : new EventManager({
-                owner: this
-            });
-
-        this.behaviors = this.behaviorManager
-            ? ClassHelper.createInstance(this.behaviorManager, {
-                owner: this
-            })
-            : new BehaviorManager({
-                owner: this,
-                autoAttachedItems: this.BEHAVIORS
-            });
-    }
-
-    afterLoad (cb) {
-        this.trigger(this.EVENT_AFTER_LOAD);
-        cb && cb();
+        this.events = ClassHelper.createInstance(this.eventManager || EventManager, {
+            owner: this
+        });
+        this.behaviors = ClassHelper.createInstance(this.behaviorManager || BehaviorManager, {
+            owner: this,
+            autoAttachedItems: this.BEHAVIORS
+        });
     }
 
     on () {
@@ -87,11 +72,12 @@ module.exports = class Component extends Base {
         this.behaviors.ensure.call(this.behaviors);
     }
 
-    log () {
-        this.module.log.apply(this.module, arguments);
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.module);
     }
 };
 
-const ClassHelper = require('../helpers/ClassHelper');
+const ClassHelper = require('../helper/ClassHelper');
+const CommonHelper = require('../helper/CommonHelper');
 const EventManager = require('./EventManager');
 const BehaviorManager = require('./BehaviorManager');

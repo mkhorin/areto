@@ -58,7 +58,9 @@ module.exports = class DbStore extends Base {
         for (let id of Object.keys(data.itemMap)) {
             let item = data.itemMap[id];
             item.children = this.getItemChildren(id, data);
-            item.rule = data.ruleMap.hasOwnProperty(item.rule) ? data.ruleMap[item.rule].name : null;
+            item.rule = data.ruleMap.hasOwnProperty(item.rule)
+                ? data.ruleMap[item.rule].name
+                : null;
             result.items[item.name] = item;
         }
         for (let doc of data.assignments) {
@@ -81,7 +83,7 @@ module.exports = class DbStore extends Base {
             try {
                 Class = this.rbac.module.app.require(Class);
             } catch (err) {
-                this.log('error', this.wrapClassMessage(`Not found rule class: ${Class}`));
+                this.log('error', `Not found rule class: ${Class}`);
                 Class = Rule;
             }
         }
@@ -98,7 +100,7 @@ module.exports = class DbStore extends Base {
     getItemChildren (id, data) {
         let children = [];
         for (let link of data.links) {
-            if (CommonHelper.isEqual(link.parent, id) && data.itemMap[link.child]) {
+            if (MongoHelper.isEqual(link.parent, id) && data.itemMap[link.child]) {
                 children.push(data.itemMap[link.child].name);
             }
         }
@@ -200,7 +202,7 @@ module.exports = class DbStore extends Base {
             cb => this.findRuleByName(name).one(cb),
             (rule, cb)=> {
                 if (rule) {
-                    this.log('warn', `RBAC: Rule already exists: ${name}`);
+                    this.log('warn', `Rule already exists: ${name}`);
                     return cb();
                 }
                 this.findRule().insert(Object.assign({name}, data), cb);
@@ -241,7 +243,7 @@ module.exports = class DbStore extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const CommonHelper = require('../helpers/CommonHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const MongoHelper = require('../helper/MongoHelper');
 const Query = require('../db/Query');
 const Rule = require('./Rule');

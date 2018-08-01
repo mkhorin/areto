@@ -23,6 +23,10 @@ module.exports = class Connection extends Base {
             settings: this.settings
         });
     }
+
+    configure (cb) {
+        this.driver.open(cb);
+    }
 };
 
-const ClassHelper = require('../helpers/ClassHelper');
+const ClassHelper = require('../helper/ClassHelper');

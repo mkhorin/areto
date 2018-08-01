@@ -23,7 +23,7 @@ module.exports = class DbLogStore extends Base {
     save (type, message, data) {
         this.find().insert(this.format(type, message, data), err => {
             if (err) {
-                console.error(this.wrapClassMessage('save:'), err);
+                console.error(this.wrapClassMessage('save'), err);
             }
         });
     }
@@ -45,7 +45,7 @@ module.exports = class DbLogStore extends Base {
     observe () {
         setTimeout(()=> {
             this.truncate(err => {
-                err ? this.log('error', this.wrapClassMessage('truncate'), err)
+                err ? this.log('error', 'truncate', err)
                     : this.observe();
             });
         }, this.observePeriod * 1000);
@@ -71,6 +71,6 @@ module.exports = class DbLogStore extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const Exception = require('../errors/Exception');
+const AsyncHelper = require('../helper/AsyncHelper');
+const Exception = require('../error/Exception');
 const Query = require('../db/Query');

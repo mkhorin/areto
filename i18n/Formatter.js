@@ -33,7 +33,7 @@ module.exports = class Formatter extends Base {
         if (typeof this[methodName] === 'function') {
             return this[methodName](value, params);
         }
-        this.log('error', this.wrapClassMessage(`Unknown type '${type}' for value '${value}'`));
+        this.log('error', `Unknown type '${type}' for value '${value}'`);
         return value;
     }
 
@@ -42,21 +42,22 @@ module.exports = class Formatter extends Base {
     }
 
     asRaw (value, params = {}) {
-        return value === undefined ? '' : value === null
-            ? this.translate('areto', this.nullFormat, params.language)
+        return value === null || value === undefined
+            ? this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language)
             : value;
     }
 
     asBoolean (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.translate('areto', this.nullFormat, params.language);
+            return this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language);
         }
-        return this.translate('areto', this.booleanFormat[value ? 1 : 0], params.language);
+        value = this.booleanFormat[value ? 1 : 0];
+        return this.translate(value, I18n.CORE_CATEGORY, params.language);
     }
 
     asBytes (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.translate('areto', this.nullFormat, params.language);
+            return this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language);
         }
         let unit;
         if (value < this.KiB) {
@@ -75,7 +76,7 @@ module.exports = class Formatter extends Base {
             value /= this.TiB;
         }
         value = Math.round(value * this.byteFractionalPart) / this.byteFractionalPart;
-        unit = this.translate('areto', unit, params.language);
+        unit = this.translate(unit, I18n.CORE_CATEGORY, params.language);
         return `${value} ${unit}`;
     }
 
@@ -152,11 +153,14 @@ module.exports = class Formatter extends Base {
             : this.asRaw(value, params);
     }
 
-    translate (category, msg, language, ) {
-        return this.i18n ? this.i18n.translate(category, msg, null, language || this.language) : msg;
+    translate (message, category, language) {
+        return this.i18n 
+            ? this.i18n.translate(message, category, null, language || this.language) 
+            : message;
     }
 };
 module.exports.init();
 
 const moment = require('moment');
-const StringHelper = require('../helpers/StringHelper');
+const I18n = require('./I18n');
+const StringHelper = require('../helper/StringHelper');

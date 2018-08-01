@@ -62,5 +62,5 @@ module.exports = class DataProvider extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const ClassHelper = require('../helpers/ClassHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const ClassHelper = require('../helper/ClassHelper');

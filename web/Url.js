@@ -35,19 +35,22 @@ module.exports = class Url extends Base {
             params = this.serializeParams(params);
         }
         if (params) {
-            url = `${url}?${params}`;
+            url = url +'?'+ params;
         }
         if (anchor !== undefined) {
-            url = `${url}#${anchor}`;
+            url = url +'#'+ anchor;
         }
         return url;
     }
 
     static serializeParams (params) {
+        if (!params) {
+            return '';
+        }
         let result = [];
-        for (let id in params) {
-            if (params[id] !== undefined && params[id] !== null) {
-                result.push(`${id}=${params[id]}`);
+        for (let key of Object.keys(params)) {
+            if (params[key] !== undefined && params[key] !== null) {
+                result.push(key +'='+ params[key]);
             }
         }
         return result.join('&');
@@ -81,8 +84,9 @@ module.exports = class Url extends Base {
         this.createTarget = pathToRegexp.tokensToFunction(targets);
             
         // target params must be a subset of the source's params
-        if (ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames).length !== this.targetParamNames.length) {
-            throw new Error(this.wrapClassMessage(`Invalid params: source: ${this.source}: target: ${this.target}`));
+        let names = ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames);
+        if (names.length !== this.targetParamNames.length) {
+            throw new Error(this.wrapClassMessage(`Invalid params: Source: ${this.source}: Target: ${this.target}`));
         }
         if (this.methods && !(this.methods instanceof Array)) {
             throw new Error(this.wrapClassMessage(`Invalid methods: ${this.methods}`));
@@ -117,7 +121,7 @@ module.exports = class Url extends Base {
             // data.params = { id: 123, test: '456'};
             // data.anchor = 'anchor';
             let url = this.createSource(Object.assign(params, data.params));
-            ObjectHelper.deleteProperties(params, this.sourceParamNames);
+            ObjectHelper.deleteProps(this.sourceParamNames, params);
             params = this.constructor.serializeParams(params);
             if (params) {
                 url = `${url}?${params}`;
@@ -152,5 +156,5 @@ module.exports = class Url extends Base {
 
 const pathToRegexp = require('path-to-regexp');
 const ActiveRecord = require('../db/ActiveRecord');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
+const ArrayHelper = require('../helper/ArrayHelper');
+const ObjectHelper = require('../helper/ObjectHelper');

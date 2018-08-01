@@ -61,5 +61,5 @@ module.exports = class RateLimit extends Base {
 };
 module.exports.init();
 
-const ClassHelper = require('../../helpers/ClassHelper');
+const ClassHelper = require('../../helper/ClassHelper');
 const Event = require('../../base/Event');

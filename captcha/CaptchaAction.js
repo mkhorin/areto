@@ -20,24 +20,28 @@ module.exports = class Captcha extends Base {
         }, config));
     }
 
-    run (cb) {
-        this.renderImage(this.getVerifyCode(true), cb);
+    run () {
+        this.renderImage(this.getVerifyCode(true), err => this.complete(err));
     }
 
-    getSessionKey () {
-        return `__captcha/${this.getUniqueName()}`;
+    validate (value) {
+        return value.toLowerCase() === this.getVerifyCode();
     }
 
-    getVerifyCode (generate) {
+    getVerifyCode (renew) {
         if (this.fixedVerifyCode !== null) {
             return this.fixedVerifyCode;
         }
         let session = this.controller.req.session;
         let name = this.getSessionKey();
-        if (!session[name] || generate) {
+        if (!session[name] || renew) {
             session[name] = this.generateVerifyCode();
         }
         return session[name];
+    }
+
+    getSessionKey () {
+        return `__captcha/${this.getUniqueName()}`;
     }
 
     generateVerifyCode () {
@@ -47,11 +51,6 @@ module.exports = class Captcha extends Base {
             buffer.push(this.symbolPool.charAt(CommonHelper.getRandom(0, this.symbolPool.length - 1)));
         }
         return buffer.join('');
-    }
-
-    validate (value) {
-        let code = this.getVerifyCode();
-        return value.toLowerCase() === code;
     }
 
     renderImage (code, cb) {
@@ -76,10 +75,10 @@ module.exports = class Captcha extends Base {
             step = CommonHelper.getRandom(downB, topB);
         }
         //image.noise(1);
-        image.setFormat('jpg').quality(this.quality).toBuffer((err, buffer)=> {
-            err ? cb(err)
-                : this.controller.sendData(buffer, "binary");
-        });
+        AsyncHelper.waterfall([
+            cb => image.setFormat('jpg').quality(this.quality).toBuffer(cb),
+            buffer => this.controller.sendData(buffer, "binary")
+        ], cb);
     }
 
     drawText (image, x, y, text, angle) {
@@ -89,4 +88,5 @@ module.exports = class Captcha extends Base {
 
 const gm = require('gm');
 const path = require('path');
-const CommonHelper = require('../helpers/CommonHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const CommonHelper = require('../helper/CommonHelper');

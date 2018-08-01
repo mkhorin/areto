@@ -15,8 +15,7 @@ module.exports = class MongoDriver extends Base {
     static normalizeId (id) {
         if (!(id instanceof Array)) {
             return id instanceof this.MongoId
-                ? id
-                : this.MongoId.isValid(id) ? this.MongoId(id) : null;
+                ? id : this.MongoId.isValid(id) ? this.MongoId(id) : null;
         }
         let result = [];
         for (let item of id) {
@@ -41,11 +40,23 @@ module.exports = class MongoDriver extends Base {
     }
 
     openClient (cb) {
-        return this.client.connect(this.getUri(true), this.settings.options, cb);
+        AsyncHelper.waterfall([
+            cb => this.client.connect(this.getUri(true), this.settings.options, cb),
+            client => {
+                this._client = client;
+                cb(null, client.db());
+            }
+        ], cb);
     }
 
     closeClient (cb) {
-        this.client.close(true, cb);
+        AsyncHelper.series([
+            cb => this._client ? this._client.close(true, cb) : cb(),
+            cb => {
+                this._client = null;
+                cb();
+            }
+        ],cb);
     }
 
     // OPERATIONS
@@ -53,14 +64,7 @@ module.exports = class MongoDriver extends Base {
     isCollectionExists (table, cb) {
         AsyncHelper.waterfall([
             cb => this.connection.listCollections().get(cb),
-            (items, cb)=> {
-                for (let item of items) {
-                    if (item.name === table) {
-                        return cb(null, true);
-                    }
-                }
-                cb(null, false);
-            }
+            (items, cb)=> cb(null, !!ArrayHelper.searchByProperty(table, items, 'name'))
         ], cb);
     }
 
@@ -95,7 +99,8 @@ module.exports = class MongoDriver extends Base {
     insert (table, data, cb) {
         this.getCollection(table).insert(data, {}, (err, result)=> {
             this.afterCommand(err, {cmd: 'insert', table, data});
-            err ? cb(err) : cb(null, result.insertedIds[0]);
+            err ? cb(err)
+                : cb(null, result.insertedIds[0]);
         });
     }
 
@@ -161,7 +166,7 @@ module.exports = class MongoDriver extends Base {
     // AGGREGATE
 
     count (table, condition, cb) {
-        this.getCollection(table).count(condition, (err, counter)=> {
+        this.getCollection(table).countDocuments(condition, {}, (err, counter)=> {
             this.afterCommand(err, {cmd: 'count', table, query: condition});
             cb(err, counter);
         });
@@ -197,25 +202,29 @@ module.exports = class MongoDriver extends Base {
 
     queryOne (query, cb) {
         this.queryAll(query.limit(1), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.length ? docs[0] : null);
+            err ? cb(err)
+                : cb(null, docs.length ? docs[0] : null);
         });
     }
 
     queryColumn (query, key, cb) {
         this.queryAll(query.asRaw().select({[key]: 1}), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.map(doc => doc[key]));
+            err ? cb(err)
+                : cb(null, docs.map(doc => doc[key]));
         });
     }
 
     queryDistinct (query, key, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.distinct(cmd.from, key, cmd.where, {}, cb);
+            err ? cb(err)
+                : this.distinct(cmd.from, key, cmd.where, {}, cb);
         });
     }
 
     queryScalar (query, key, cb) {
         this.queryAll(query.asRaw().select({[key]: 1}).limit(1), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.length ? docs[0][key] : null);
+            err ? cb(err)
+                : cb(null, docs.length ? docs[0][key] : null);
         });
     }
 
@@ -227,31 +236,36 @@ module.exports = class MongoDriver extends Base {
 
     queryUpdate (query, data, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.update(cmd.from, cmd.where, data, cb);
+            err ? cb(err)
+                : this.update(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpdateAll (query, data, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.updateAll(cmd.from, cmd.where, data, cb);
+            err ? cb(err)
+                : this.updateAll(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryUpsert (query, data, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.upsert(cmd.from, cmd.where, data, cb);
+            err ? cb(err)
+                : this.upsert(cmd.from, cmd.where, data, cb);
         });
     }
 
     queryRemove (query, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.remove(cmd.from, cmd.where, cb);
+            err ? cb(err)
+                : this.remove(cmd.from, cmd.where, cb);
         });
     }
 
     queryCount (query, cb) {
         this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.count(cmd.from, cmd.where, cb);
+            err ? cb(err)
+                : this.count(cmd.from, cmd.where, cb);
         });
     }
 
@@ -294,5 +308,5 @@ module.exports = class MongoDriver extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
 const MongoQueryBuilder = require('./MongoQueryBuilder');

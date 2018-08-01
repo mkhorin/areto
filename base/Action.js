@@ -4,8 +4,8 @@ const Base = require('./Base');
 
 module.exports = class Action extends Base {
 
-    run (cb) {
-        cb(this.wrapClassMessage('Need to override'));
+    run () {
+        this.complete(this.wrapClassMessage('Need to override'));
     }
 
     getRelativeModuleName () {
@@ -17,19 +17,41 @@ module.exports = class Action extends Base {
     }
 
     execute (cb) {
+        if (this.isCompleted()) {
+            return cb();
+        }
         try {
-            this.callback = cb;
-            this.run(cb);
+            this._completeCallback = cb;
+            this.run();
         } catch (err) {
-            cb(err);
+            this.complete(err);
         }
     }
 
+    isCompleted () {
+        return this._completed;
+    }
+
     complete (err) {
-        if (this.callback) {
-            this.callback(err);
+        if (this.isCompleted()) {
+            return false;
+        }
+        this._completed = true;
+        if (this._completeCallback) {
+            this._completeCallback(err);
         }
     }
+
+    render (name, params, cb) {
+        this.controller.render(name, params, (err, content)=> {
+            if (!err) {
+                this.controller.send(content);
+            }
+            cb(err);
+        });
+    }
+
+    // THROW
 
     throwError () {
         return this.controller.throwError.apply(this.controller, arguments);

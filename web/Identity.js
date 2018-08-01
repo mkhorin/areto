@@ -28,5 +28,5 @@ module.exports = class Identity extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const SecurityHelper = require('../helpers/SecurityHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const SecurityHelper = require('../helper/SecurityHelper');

@@ -246,4 +246,4 @@ module.exports = class MongoQueryBuilder extends Base {
 };
 
 const mongodb = require('mongodb');
-const CommonHelper = require('../helpers/CommonHelper');
+const CommonHelper = require('../helper/CommonHelper');

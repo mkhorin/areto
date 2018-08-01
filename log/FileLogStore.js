@@ -1,5 +1,6 @@
 'use strict';
 
+const MEGABYTE_SIZE = 1024 * 1024;
 const Base = require('./LogStore');
 
 module.exports = class FileLogStore extends Base {
@@ -7,22 +8,22 @@ module.exports = class FileLogStore extends Base {
     constructor (config) {
         super(Object.assign({
             baseDir: config.logger.module.getPath(),
-            dir: 'logs',
+            dir: 'log',
             fileName: config.logType ? config.logType.name : 'common',
-            observeInterval: 60, // seconds, 0 - off
+            observePeriod: 60, // seconds, 0 - off
             maxFileSize: 2, // megabytes
-            maxFiles: 2
+            maxFiles: 1
         }, config));
     }
 
     init () {
         this.baseDir = path.join(this.baseDir, this.dir);
         mkdirp.sync(this.baseDir);
-        this.maxFileSize *= 1024 * 1024;
+        this.maxFileSize *= MEGABYTE_SIZE;
         this.file = this.getFile();
         this.fd = fs.openSync(this.file, 'a');
-        if (this.observeInterval) {
-            this.observeInterval *= 1000;
+        if (this.observePeriod) {
+            this.observePeriod *= 1000;
             this.observe();
         }
     }
@@ -30,7 +31,7 @@ module.exports = class FileLogStore extends Base {
     save (type, message, data) {
         fs.write(this.fd, this.format(type, message, data), err => {
             if (err) {
-                console.error(this.wrapClassMessage(`save:`), err);
+                console.error(this.wrapClassMessage(`save`), err);
             }
         });
     }
@@ -44,10 +45,8 @@ module.exports = class FileLogStore extends Base {
         msg = `${new Date().toISOString()} ${type.toUpperCase()} ${msg}`;
         if (data instanceof Error) {
             msg = `${msg} ${data.stack}`;
-        } else if (data instanceof Object) {
-            msg = `${msg} ${JSON.stringify(data)}`;
         } else if (data) {
-            msg = `${msg} ${data}`;
+            msg = `${msg} ${util.inspect(data)}`;
         }
         return msg + os.EOL;
     }
@@ -56,13 +55,13 @@ module.exports = class FileLogStore extends Base {
         setTimeout(()=> {
             fs.fstat(this.fd, (err, stats)=> {
                 if (err) {
-                    this.log('error', this.wrapClassMessage(`observe:`), err);
+                    this.log('error', `observe`, err);
                 } else if (stats.size > this.maxFileSize) {
                     this.rotate();
                 }
                 this.observe();
             });
-        }, this.observeInterval);
+        }, this.observePeriod);
     }
 
     rotate () {
@@ -78,7 +77,7 @@ module.exports = class FileLogStore extends Base {
             fs.renameSync(files[i], this.getFile(files.length - i));
         }
         this.fd = fs.openSync(this.file, 'a');
-        this.log('info', this.wrapClassMessage(`rotate success: ${this.fileName}`));
+        this.log('info', `Rotate success: ${this.fileName}`);
     }
 
     getFile (index) {
@@ -103,4 +102,5 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
-const Exception = require('../errors/Exception');
+const util = require('util');
+const Exception = require('../error/Exception');

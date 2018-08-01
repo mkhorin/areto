@@ -37,7 +37,7 @@ module.exports = class Event extends Base {
             }
             sender = Object.getPrototypeOf(sender);
             id = sender ? sender.CLASS_FILE : null;
-        };
+        }
         return false;
     }
    
@@ -137,4 +137,4 @@ module.exports = class Event extends Base {
 };
 module.exports._events = {};
 
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');

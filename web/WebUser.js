@@ -19,7 +19,7 @@ module.exports = class WebUser extends Base {
         this._accessCache = {};
     }
 
-    isAnonymous () {
+    isGuest () {
         return !this.model;
     }
 
@@ -153,7 +153,7 @@ module.exports = class WebUser extends Base {
             this.session = this.req.session;
             this.setReturnUrl(returnUrl);
             if (model) {
-                let now = Math.floor((new Date).getTime() / 1000);
+                let now = Math.floor(Date.now() / 1000);
                 this.session[this.owner.idParam] = this.getId();
                 if (this.owner.authTimeout !== null) {
                     this.session[this.owner.authTimeoutParam] = now + this.owner.authTimeout;
@@ -170,7 +170,7 @@ module.exports = class WebUser extends Base {
             } else if (this.owner.enableAutoLogin) {
                 this.res.clearCookie(this.owner.identityCookieParam, this.owner.identityCookie);
             }
-            cb();
+            setImmediate(cb);
         });
     }
 
@@ -199,7 +199,7 @@ module.exports = class WebUser extends Base {
     renewAuthExpire (model, cb) {
         this.setIdentity(model);
         if (model && (this.owner.authTimeout !== null || this.owner.absoluteAuthTimeout !== null)) {
-            let now = Math.floor((new Date).getTime() / 1000);
+            let now = Math.floor(Date.now() / 1000);
             let expire = this.owner.authTimeout !== null
                 ? this.session[this.owner.authTimeoutParam]
                 : null;
@@ -218,14 +218,14 @@ module.exports = class WebUser extends Base {
 
     renewAuthCookie (cb) {
         if (this.owner.enableAutoLogin) {
-            if (this.isAnonymous()) {
+            if (this.isGuest()) {
                 return this.loginByCookie(cb);
             }
             if (this.owner.autoRenewCookie) {
                 this.renewIdentityCookie();
             }
         }
-        cb();
+        setImmediate(cb);
     }
 
     renewIdentityCookie () {
@@ -243,7 +243,7 @@ module.exports = class WebUser extends Base {
             return cb();
         }
         if (!this.model) {
-            this.assignments = this.owner.anonymousAssignments || [];
+            this.assignments = this.owner.guestAssignments || [];
             return cb();
         }
         this.model.getAssignments((err, result)=> {
@@ -276,7 +276,7 @@ module.exports = class WebUser extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
 const Event = require('../base/Event');
-const ForbiddenHttpException = require('../errors/ForbiddenHttpException');
+const ForbiddenHttpException = require('../error/ForbiddenHttpException');
 const Url = require('./Url');

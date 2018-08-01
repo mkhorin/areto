@@ -14,7 +14,7 @@ module.exports = class JsMessageSource extends Base {
         try {
             return require(path.join(this.basePath, language, category));
         } catch (err) {
-            this.log('warn', this.wrapClassMessage('loadMessages:'), err);
+            this.log('warn', 'loadMessages', err);
             return {};
         }
     }

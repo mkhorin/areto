@@ -19,9 +19,9 @@ module.exports = class DbSessionStore extends Base {
 
     set (sid, session, cb) {
         this.findBySid(sid).upsert({
-            data: session,
-            userId: session[this.userIdParam],
-            updatedAt: new Date
+            'data': session,
+            'userId': session[this.userIdParam],
+            'updatedAt': new Date
         }, cb);
     }
 
@@ -43,7 +43,7 @@ module.exports = class DbSessionStore extends Base {
         if (!this.session.lifetime) {
             return cb();
         }
-        let expired = new Date((new Date).getTime() - this.session.lifetime);
+        let expired = new Date(Date.now() - this.session.lifetime);
         this.find(['<', 'updatedAt', expired]).remove(cb);
     }
 

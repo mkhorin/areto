@@ -127,4 +127,4 @@ module.exports = class Sort extends Base {
 };
 module.exports.init();
 
-const StringHelper = require('../helpers/StringHelper');
+const StringHelper = require('../helper/StringHelper');

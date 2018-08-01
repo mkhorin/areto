@@ -12,6 +12,10 @@ module.exports = class Query extends Base {
         this._where = null;
     }
 
+    getDb () {
+        return this._db;
+    }
+
     db (db) {
         this._db = db;
         return this;
@@ -39,7 +43,9 @@ module.exports = class Query extends Base {
     }
 
     addSelect (attrs) {
-        this._select ? Object.assign(this._select, attrs) : this.select(attrs);
+        this._select
+            ? Object.assign(this._select, attrs)
+            : this.select(attrs);
         return this;
     }
 
@@ -52,14 +58,18 @@ module.exports = class Query extends Base {
 
     and (condition) {
         if (condition) {
-            this._where = this._where ? ['AND', this._where, condition] : condition;
+            this._where = this._where
+                ? ['AND', this._where, condition]
+                : condition;
         }
         return this;
     }
 
     or (condition) {
         if (condition) {
-            this._where = this._where ? ['OR', this._where, condition] : condition;
+            this._where = this._where
+                ? ['OR', this._where, condition]
+                : condition;
         }
         return this;
     }
@@ -78,6 +88,16 @@ module.exports = class Query extends Base {
 
     andNotIn (key, value) {
         return this.and(['NOT IN', key, value]);
+    }
+
+    andJoinByOr (conditions) {
+        if (conditions.length === 1) {
+            return this.and(conditions[0]);
+        }
+        if (conditions.length > 1) {
+            return this.query.and(['OR'].concat(conditions));
+        }
+        return this;
     }
 
     // ORDER
@@ -171,7 +191,7 @@ module.exports = class Query extends Base {
 
     //
 
-    isEmpty (value) {
+    isEmptyValue (value) {
         return value === undefined || value === null || value === ''
             || (typeof value === 'string' && value.trim() === '')
             || (typeof value === 'object' && !Object.values(value).length);
@@ -191,25 +211,16 @@ module.exports = class Query extends Base {
 
     populate (docs, cb) {
         if (this._index) {
-            docs = this.indexObjects(docs);
+            docs = QueryHelper.indexObjects(docs, this._index);
         }
         cb(null, docs);
-    }
-
-    indexObjects (docs) {
-        let result = {};
-        let index = this._index;
-        for (let doc of docs) {
-            let key = typeof index === 'function' ? index(doc, this) : doc[index];
-            result[key] = doc;
-        }
-        return result;
     }
 
     filterCondition (data) {
         return data instanceof Array
             ? this.filterOperatorCondition(data)
-            : data ? this.filterHashCondition(data) : null;
+            : data ? this.filterHashCondition(data)
+                   : null;
     }
 
     // operator format: [operator, operand 1, operand 2, ...]
@@ -218,28 +229,32 @@ module.exports = class Query extends Base {
             case 'NOT':
             case 'AND':
             case 'OR':
-                for (let i = data.length - 1; i > 0; --i) {
-                    let item = this.filterCondition(data[i]);
-                    if (this.isEmpty(item)) {
-                        data.splice(i, 1);
-                    } else {
-                        data[i] = item;
-                    }
-                }
-                return data.length > 1 ? data : null;
-
+                return this.filterSerialCondition();
             case 'BETWEEN':
             case 'NOT BETWEEN':
-                return !this.isEmpty(data[1]) && !this.isEmpty(data[2]) ? data : null;
+                return !this.isEmptyValue(data[1]) && !this.isEmptyValue(data[2])
+                    ? data : null;
         }
-        return this.isEmpty(data[1]) ? null : data;
+        return this.isEmptyValue(data[1]) ? null : data;
+    }
+
+    filterSerialCondition (data) { // OR AND NOT
+        for (let i = data.length - 1; i > 0; --i) {
+            let item = this.filterCondition(data[i]);
+            if (this.isEmptyValue(item)) {
+                data.splice(i, 1);
+            } else {
+                data[i] = item;
+            }
+        }
+        return data.length > 1 ? data : null;
     }
 
     // hash format: { column1: value1, column2: value2, ... }
     filterHashCondition (data) {
         let result = {};
         for (let key of Object.keys(data)) {
-            if (!this.isEmpty(data[key])) {
+            if (!this.isEmptyValue(data[key])) {
                 result[key] = data[key];
             }
         }
@@ -282,7 +297,8 @@ module.exports = class Query extends Base {
     }
 };
 
-const ArrayHelper = require('../helpers/ArrayHelper');
+const ArrayHelper = require('../helper/ArrayHelper');
+const QueryHelper = require('../helper/QueryHelper');
 
 /*
 sum (q) {

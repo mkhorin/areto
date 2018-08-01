@@ -4,12 +4,13 @@ const Base = require('./Component');
 
 module.exports = class Model extends Base {
 
-    static getExtendedProperties () {
+    static getExtendedClassProps () {
         return [
             'BEHAVIORS',
             'SCENARIOS',
-            'LABELS',
-            'HINTS'
+            'ATTR_HINTS',
+            'ATTR_LABELS',
+            'ATTR_VALUE_LABELS'
         ];
     }
 
@@ -22,21 +23,31 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], {validator class} ]
                 // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
                 // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
-                // [['!attr1'], '{type}' ] - attr1 unsafe to load
+                // [['attr1'], 'unsafe'] - skip to load
             ],
+            DEFAULT_SCENARIO: 'default',
             SCENARIOS: {
-                // scenario1: ['attr1', '!attr2'] - attr2 unsafe to load
-                // scenario2: ['attr2', 'attr3']
+                // default: ['attr1', 'attr2']
+                // scenario1: ['attr2']
             },
-            LABELS: {},
-            HINTS: {},
             EVENT_BEFORE_VALIDATE: 'beforeValidate',
-            EVENT_AFTER_VALIDATE: 'afterValidate'
+            EVENT_AFTER_VALIDATE: 'afterValidate',
+            ATTR_HINTS: {},
+            ATTR_LABELS: {},
+            ATTR_VALUE_LABELS: {}
         }   
     }
 
     static getName () {
         return this.name;
+    }
+
+    static getAttrValueLabels (name) {
+        return this.ATTR_VALUE_LABELS[name];
+    }
+
+    static getAttrValueLabel (name, value) {
+        return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
     init () {
@@ -48,8 +59,14 @@ module.exports = class Model extends Base {
 
     // ATTRIBUTES
 
+    has (name) {
+        return Object.prototype.hasOwnProperty.call(this._attrs, name);
+    }
+
     get (name) {
-        return this._attrs[name];
+        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
+            return this._attrs[name];
+        }
     }
 
     set (name, value) {
@@ -57,17 +74,15 @@ module.exports = class Model extends Base {
     }
 
     unset (name) {
-        return delete this._attrs[name];
+        delete this._attrs[name];
     }
 
-    unsetAttrs (names) {
-        for (let name of names) {
-            this.unset(name);
-        }
+    isAttrActive (name) {
+        return this.getActiveAttrNames().includes(name);
     }
 
-    hasAttr (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrs, name);
+    isAttrSafe (name) {
+        return this.getSafeAttrNames().includes(name);
     }
 
     isAttrRequired (name) {
@@ -79,24 +94,14 @@ module.exports = class Model extends Base {
         return false;
     }
 
-    isAttrSafe (name) {
-        return this.getSafeAttrNames().includes(name);
+    getAttrLabel (name) {
+        return Object.prototype.hasOwnProperty.call(this.ATTR_LABELS, name)
+            ? this.ATTR_LABELS[name]
+            : this.generateAttrLabel(name);
     }
 
-    isAttrActive (name) {
-        return this.getActiveAttrNames().includes(name);
-    }
-
-    getLabel (name) {
-        return Object.prototype.hasOwnProperty.call(this.LABELS, name)
-            ? this.LABELS[name]
-            : this.generateLabel(name);
-    }
-
-    getHint (name) {
-        return Object.prototype.hasOwnProperty.call(this.HINTS, name)
-            ? this.HINTS[name]
-            : '';
+    getAttrHint (name) {
+        return ObjectHelper.getValue(name, this.ATTR_HINTS, '');
     }
 
     getFormAttrId (name, prefix) {
@@ -107,33 +112,34 @@ module.exports = class Model extends Base {
         return `${this.NAME}[${name}]`;
     }
 
-    getAttrNames () {
-        return Object.keys(this._attrs);
+    getSafeAttrNames () {
+        let map = this.getUnsafeAttrMap();
+        return this.getActiveAttrNames().filter(name => !Object.prototype.hasOwnProperty.call(map, name));
     }
 
-    getSafeAttrNames () {
-        return this.getScenarioAttrNames(this.scenario).filter(name => name.charAt(0) !== '!');
+    getUnsafeAttrMap () {
+        let map = {};
+        for (let validator of this.getActiveValidatorsByClass(Validator.BUILTIN.unsafe)) {
+            for (let attr of validator.attrs) {
+                map[attr] = true;
+            }
+        }
+        return map;
     }
 
     getActiveAttrNames () {
-        let names = this.getScenarioAttrNames(this.scenario);
-        for (let i = 0; i < names.length; ++i) {
-            if (names[i].charAt(0) === '!') {
-                names[i] = names[i].substring(1);
-            }
-        }
-        return names;
+        return this.getScenarioAttrNames(this.scenario);
     }
 
     getScenarioAttrNames (scenario) {
-        let names = {}, only;
-        if (this.SCENARIOS && this.SCENARIOS[scenario] instanceof Array) {
-            only = this.SCENARIOS[scenario];
-        }
+        let names = {};
+        let only = this.SCENARIOS[scenario] instanceof Array
+            ? this.SCENARIOS[scenario]
+            : this.SCENARIOS[this.DEFAULT_SCENARIO];
         for (let validator of this.getValidators()) {
             if (validator.isActive(scenario)) {
                 for (let name of validator.attrs) {
-                    if (!only || only.includes(name)) {
+                    if (!(only instanceof Array) || only.includes(name)) {
                         names[name] = true;
                     }
                 }
@@ -142,50 +148,54 @@ module.exports = class Model extends Base {
         return Object.keys(names);
     }
 
-    getAttrs (names, except) {
+    getAttrs () {
+        return Object.assign({}, this._attrs);
+    }
+
+    getAttrsByNames (names) {
         let values = {};
-        if (!names) {
-            names = this.getAttrNames();
-        }
         for (let name of names) {
             values[name] = this._attrs[name];
-        }
-        if (except instanceof Array) {
-            for (let name of except) {
-                delete values[name];
-            }
         }
         return values;
     }
 
-    setSafeAttrs (values) {
-        if (values) {
+    setSafeAttrs (data) {
+        if (data) {
             for (let name of this.getSafeAttrNames()) {
-                if (Object.prototype.hasOwnProperty.call(values, name)) {
-                    this.set(name, values[name]);
-                }
-            }    
-        }
-    }
-
-    setAttrs (values, except) {
-        values = values instanceof Model ? values._attrs : values;
-        if (values) {
-            for (let key of Object.keys(values)) {
-                if (except instanceof Array ? !except.includes(key) : (except !== key)) {
-                    this._attrs[key] = values[key];
+                if (data && Object.prototype.hasOwnProperty.call(data, name)) {
+                    this.set(name, data[name]);
                 }
             }
         }
     }
 
-    assignAttrs (values) {
-        Object.assign(this._attrs, values instanceof Model ? values._attrs : values);
+    setAttrs (data, except) {
+        data = data instanceof Model ? data._attrs : data;
+        if (data) {
+            for (let key of Object.keys(data)) {
+                if (except instanceof Array ? !except.includes(key) : (except !== key)) {
+                    this._attrs[key] = data[key];
+                }
+            }
+        }
     }
 
-    generateLabel (name) {
-        this.LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
-        return this.LABELS[name];
+    assignAttrs (data) {
+        Object.assign(this._attrs, data instanceof Model ? data._attrs : data);
+    }
+
+    generateAttrLabel (name) {
+        this.ATTR_LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
+        return this.ATTR_LABELS[name];
+    }
+
+    getAttrValueLabel (name, data) {
+        return ObjectHelper.getValueOrKey(this.get(name), data || this.ATTR_VALUE_LABELS[name]);
+    }
+
+    setAttrValueLabel (name, data) {
+        this.set(name, this.getAttrValueLabel(name, data));
     }
 
     // ERRORS
@@ -212,38 +222,43 @@ module.exports = class Model extends Base {
     }
 
     getFirstErrors () {
-        let errors = {};
+        let result = {};
         for (let attr of Object.keys(this._errors)) {
             if (this._errors[attr].length) {
-                errors[attr] = this._errors[attr][0];
+                result[attr] = this._errors[attr][0];
             }
         }
-        return errors;
+        return result;
     }
 
     addError (attr, error) {
+        if (!error) {
+            return false;
+        }
         if (!this.hasError(attr)) {
             this._errors[attr] = [];
         }
-        this._errors[attr].push(error instanceof Message ? error : new Message(null, error));
+        this._errors[attr].push(error);
     }
 
-    addErrors (items) {
-        for (let attr of Object.keys(items)) {
-            if (items[attr] instanceof Array) {
-                for (let error of items[attr]) {
-                    this.addError(attr, error);
+    addErrors (data) {
+        if (data) {
+            for (let attr of Object.keys(data)) {
+                if (data[attr] instanceof Array) {
+                    for (let value of data[attr]) {
+                        this.addError(attr, value);
+                    }
+                } else {
+                    this.addError(attr, data[attr]);
                 }
-            } else {
-                this.addError(attr, items[attr]);
             }
         }
     }
 
     clearErrors (attr) {
-        attr ? delete this._errors[attr] : this._errors = {};
+        attr ? delete this._errors[attr]
+             : this._errors = {};
     }
-
     // LOAD
 
     static loadMultiple (models, data) {
@@ -260,12 +275,12 @@ module.exports = class Model extends Base {
     // EVENTS
 
     beforeValidate (cb) {
-        // if override this method then call super.beforeValidate(cb)
+        // call super.beforeValidate(cb) if override this method
         this.triggerCallback(this.EVENT_BEFORE_VALIDATE, cb);
     }
 
     afterValidate (cb) {
-        // if override this method then call super.afterValidate(cb);
+        // call super.afterValidate(cb) if override this method
         this.triggerCallback(this.EVENT_AFTER_VALIDATE, cb);
     }
 
@@ -274,12 +289,12 @@ module.exports = class Model extends Base {
     validate (cb, attrNames) {
         attrNames = attrNames || this.getActiveAttrNames();
         AsyncHelper.series([
-            this.beforeValidate.bind(this),
+            cb => this.beforeValidate(cb),
             cb => AsyncHelper.eachSeries(this.getActiveValidators(), (validator, cb)=> {
                 validator.validateAttrs(this, attrNames, cb);
             }, cb),
-            this.afterValidate.bind(this)
-        ], cb);
+            cb => this.afterValidate(cb)
+        ], err => cb(err, this));
     }
 
     getValidators () {
@@ -340,23 +355,22 @@ module.exports = class Model extends Base {
         if (rule instanceof Array && rule[0] && rule[1]) {
             return Validator.createValidator(rule[1], this, rule[0], rule[2]);
         }
-        this.log('error', this.wrapClassMessage('Invalid validation rule'), rule);
+        this.log('error', 'Invalid validation rule', rule);
     }
 
     // MODEL CONTROLLER
 
-    getController () {
-        return require(this.module.getPath('controllers', `${this.NAME}Controller`));
+    getControllerClass () {
+        return require(this.module.getPath('controller', `${this.NAME}Controller`));
     }
 
     createController (params) {
-        return new (this.getController())(params);
+        return new (this.getControllerClass())(params);
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const ArrayHelper = require('../helpers/ArrayHelper');
-const StringHelper = require('../helpers/StringHelper');
-const Message = require('../i18n/Message');
-const Validator = require('../validators/Validator');
+const AsyncHelper = require('../helper/AsyncHelper');
+const ObjectHelper = require('../helper/ObjectHelper');
+const StringHelper = require('../helper/StringHelper');
+const Validator = require('../validator/Validator');

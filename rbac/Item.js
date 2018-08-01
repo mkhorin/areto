@@ -37,13 +37,13 @@ module.exports = class Item extends Base {
 
     create (callback) {
         if (!this.constructor.isType(this.data.type)) {
-            return callback(`RBAC: Invalid '${this.data.type}' type  for '${this.name}' item`);
+            return callback(`Invalid '${this.data.type}' type  for RBAC item: ${this.name}`);
         }
         AsyncHelper.waterfall([
             cb => this.store.findItemByName(this.name).one(cb),
             (item, cb)=> {
                 if (item) {
-                    this.store.log('warn', `RBAC: Item already exists: ${this.name}`);
+                    this.store.log('warn', `RBAC item already exists: ${this.name}`);
                     return callback();
                 }
                 this.resolveRelations(cb);
@@ -51,7 +51,7 @@ module.exports = class Item extends Base {
             (relations, cb)=> {
                 relations.name = this.name;
                 let doc = Object.assign({}, this.data, relations);
-                ObjectHelper.deleteProperties(doc, ['children', 'parents']);
+                ObjectHelper.deleteProps(['children', 'parents'], doc);
                 this.store.findItem().insert(doc, cb);
             }
         ], callback);
@@ -72,7 +72,7 @@ module.exports = class Item extends Base {
                 return cb(err);
             }
             if (!id) {
-                return cb(`RBAC: Not found rule for item: ${this.name}`);
+                return cb(`Not found rule for RBAC item: ${this.name}`);
             }
             result.rule = id;
             cb();
@@ -88,13 +88,13 @@ module.exports = class Item extends Base {
             (ids, cb)=> {
                 this.data.children = ids;
                 this.store.findItemChild().and({
-                    parent: this.data.itemId,
-                    child: this.data.children
+                    'parent': this.data.itemId,
+                    'child': this.data.children
                 }).remove(cb);
             },
             cb => this.store.findItemChild().insert(this.data.children.map(id => ({
-                parent: this.data.itemId,
-                child: id
+                'parent': this.data.itemId,
+                'child': id
             })), cb)
         ], cb);
     }
@@ -108,13 +108,13 @@ module.exports = class Item extends Base {
             (ids, cb)=> {
                 this.data.parents = ids;
                 this.store.findItemChild().and({
-                    parent: this.data.parents,
-                    child: this.data.itemId
+                    'parent': this.data.parents,
+                    'child': this.data.itemId
                 }).remove(cb);
             },
             cb => this.store.findItemChild().insert(this.data.parents.map(id => ({
-                parent: id,
-                child: this.data.itemId
+                'parent': id,
+                'child': this.data.itemId
             })), cb)
         ], cb);
     }
@@ -128,7 +128,7 @@ module.exports = class Item extends Base {
             },
             (items, cb)=> {
                 items.length !== this.data[relKey].length
-                    ? cb(`RBAC: Not found '${this.data[relKey]}' ${relKey} for item: ${this.name}`)
+                    ? cb(`Not found '${this.data[relKey]}' ${relKey} for RBAC item: ${this.name}`)
                     : cb(null, items.map(item => item[this.store.key]));
             }
         ], cb);
@@ -136,5 +136,5 @@ module.exports = class Item extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const ObjectHelper = require('../helpers/ObjectHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
+const ObjectHelper = require('../helper/ObjectHelper');

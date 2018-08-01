@@ -39,7 +39,7 @@ module.exports = class AssetBundle extends Base {
     render (pos) {
         if (!this._result.hasOwnProperty(pos)) {
             this._result[pos] = '';
-            if (this.css && pos === View.POS_HEAD) {
+            if (this.css && pos === ActionView.POS_HEAD) {
                 this._result[pos] += this.renderCss();
             }
             if (this.js) {
@@ -67,7 +67,7 @@ module.exports = class AssetBundle extends Base {
                 options = Object.assign({}, this.jsOptions, item[1]);
                 item = item[0];
             }
-            if (options.position ? (pos === options.position) : (pos === View.POS_BODY_END)) {
+            if (options.position ? (pos === options.position) : (pos === ActionView.POS_BODY_END)) {
                 result += this.renderJsItem(item, options);
             }
         }
@@ -86,9 +86,12 @@ module.exports = class AssetBundle extends Base {
     }
 
     log (type, message, data) {
-        this.manager.log(type, this.wrapClassMessage(`${message}: ${JSON.stringify([this.js, this.css])}`), data);
+        data = util.inspect([this.js, this.css]);
+        CommonHelper.log(type, message, data, this.constructor.name, this.manager);
     }
 };
 
-const View = require('../../base/View');
+const util = require('util');
+const CommonHelper = require('../../helper/CommonHelper');
+const ActionView = require('../../view/ActionView');
 

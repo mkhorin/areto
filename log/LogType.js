@@ -12,12 +12,14 @@ module.exports = class LogType extends Base {
     }
 
     init () {
-        this.store = this.store
-            ? ClassHelper.createInstance(this.store, {
+        if (!this.store) {
+            this.store = this.commonStore;
+        } else if (!(this.store instanceof LogStore)) {
+            this.store = ClassHelper.createInstance(this.store, {
                 logger: this.logger,
                 logType: this
-            })
-            : this.commonStore;
+            });
+        }
         if (this.exclusive || this.store === this.commonStore) {
             this.commonStore = null;
         }
@@ -45,4 +47,4 @@ module.exports = class LogType extends Base {
 };
 
 const LogStore = require('./LogStore');
-const ClassHelper = require('../helpers/ClassHelper');
+const ClassHelper = require('../helper/ClassHelper');

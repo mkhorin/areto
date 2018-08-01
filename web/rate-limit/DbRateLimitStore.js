@@ -28,7 +28,7 @@ module.exports = class DbRateLimitStore extends Base {
 
     getQueryBy (type, user) {
         let query = this.getQuery().and({type});
-        return user.isAnonymous()
+        return user.isGuest()
             ? query.and({
                 ip: user.getIp(),
                 userId: null
@@ -43,5 +43,5 @@ module.exports = class DbRateLimitStore extends Base {
     }
 };
 
-const AsyncHelper = require('../../helpers/AsyncHelper');
+const AsyncHelper = require('../../helper/AsyncHelper');
 const Query = require('../../db/Query');

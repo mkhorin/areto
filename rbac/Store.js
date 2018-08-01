@@ -8,10 +8,6 @@ module.exports = class Store extends Base {
         cb(this.wrapClassMessage('Need to override'));
     }
 
-    log () {
-        this.rbac.log.apply(this.rbac, arguments);
-    }
-
     createItems (items, cb) {
         cb(this.wrapClassMessage('Need to override'));
     }
@@ -19,4 +15,10 @@ module.exports = class Store extends Base {
     createRules (rules, cb) {
         cb(this.wrapClassMessage('Need to override'));
     }
+
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.rbac);
+    }
 };
+
+const CommonHelper = require('../helper/CommonHelper');

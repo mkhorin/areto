@@ -46,5 +46,5 @@ module.exports = class Inspector extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
 const Rule = require('./Rule');

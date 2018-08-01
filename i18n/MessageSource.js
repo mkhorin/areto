@@ -16,13 +16,13 @@ module.exports = class MessageSource extends Base {
         this.clearCache();
     }
 
-    translate (category, message, language) {
+    translate (message, category, language) {
         return this.forceTranslation || language !== this.sourceLanguage
-            ? this.translateMessage(category, message, language)
+            ? this.translateMessage(message, category, language)
             : message;
     }
 
-    translateMessage (category, message, language) {
+    translateMessage (message, category, language) {
         if (!category) {
             return message;
         }
@@ -34,7 +34,7 @@ module.exports = class MessageSource extends Base {
             return this._messages[key][message];
         }
         if (this.parent instanceof MessageSource) {
-            return this.parent.translateMessage(category, message, language);
+            return this.parent.translateMessage(message, category, language);
         }
         return message;
     }
@@ -47,7 +47,9 @@ module.exports = class MessageSource extends Base {
         this._messages = {};
     }
 
-    log () {
-        this.i18n.log.apply(this.i18n, arguments);
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.i18n);
     }
 };
+
+const CommonHelper = require('../helper/CommonHelper');

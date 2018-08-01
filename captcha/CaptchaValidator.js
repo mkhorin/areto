@@ -1,22 +1,18 @@
 'use strict';
 
-const Base = require('../validators/Validator');
+const Base = require('../validator/Validator');
 
 module.exports = class CaptchaValidator extends Base {
 
     constructor (config) {
         super(Object.assign({
-            CaptchaController: null, 
-            captchaActionId: 'captcha'
+            captchaActionProp: 'captchaAction'
         }, config));
     }
 
     init () {
         super.init();
         this.skipOnEmpty = false;
-        if (!this.CaptchaController) {
-            throw new Error(this.wrapClassMessage('Controller class must be set'));
-        }
     }
 
     getMessage () {
@@ -24,17 +20,14 @@ module.exports = class CaptchaValidator extends Base {
     }
 
     validateAttr (model, attr, cb) {
-        if (!(model.controller instanceof Controller)) {
-            return cb(this.wrapClassMessage('Model must have a controller property'));
+        if (!(model[this.captchaActionProp] instanceof CaptchaAction)) {
+            return cb(this.wrapClassMessage(`Not found model captcha action property: ${this.captchaActionProp}`));
         }
-        let controller = new this.CaptchaController;
-        controller.assignFrom(model.controller);
-        let action = controller.createAction(this.captchaActionId);
-        if (!action.validate(model.get(attr))) {
+        if (!model[this.captchaActionProp].validate(model.get(attr))) {
             this.addError(model, attr, this.getMessage());
         }
         cb();
     }
 };
 
-const Controller = require('../base/Controller');
+const CaptchaAction = require('../captcha/CaptchaAction');

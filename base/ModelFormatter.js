@@ -27,4 +27,4 @@ module.exports = class ModelFormatter extends Base {
 };
 
 const path = require('path');
-const StringHelper = require('../helpers/StringHelper');
+const StringHelper = require('../helper/StringHelper');

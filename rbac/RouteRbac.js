@@ -41,7 +41,7 @@ module.exports = class RouteRbac extends Base {
             if (!item || !user) {
                 return next();
             }
-            if (user.isAnonymous()) {
+            if (user.isGuest()) {
                 return user.loginRequired();
             }
             user.can(item.name, (err, access)=> {
@@ -64,6 +64,6 @@ module.exports = class RouteRbac extends Base {
     }
 };
 
-const AsyncHelper = require('../helpers/AsyncHelper');
-const ServerErrorException = require('../errors/ServerErrorHttpException');
-const ForbiddenException = require('../errors/ForbiddenHttpException');
+const AsyncHelper = require('../helper/AsyncHelper');
+const ServerErrorException = require('../error/ServerErrorHttpException');
+const ForbiddenException = require('../error/ForbiddenHttpException');

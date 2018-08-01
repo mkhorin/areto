@@ -42,7 +42,7 @@ module.exports = class Router extends Base {
         try {
             this.attach(require(file));
         } catch (err) {
-            this.log('error', this.wrapClassMessage(file), err);
+            this.log('error', file, err);
         }
     }
 
@@ -87,6 +87,6 @@ module.exports = class Router extends Base {
 
 const fs = require('fs');
 const path = require('path');
-const HttpException = require('../errors/HttpException');
-const ServerErrorHttpException = require('../errors/ServerErrorHttpException');
-const NotFoundHttpException = require('../errors/NotFoundHttpException');
+const HttpException = require('../error/HttpException');
+const ServerErrorHttpException = require('../error/ServerErrorHttpException');
+const NotFoundHttpException = require('../error/NotFoundHttpException');

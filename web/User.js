@@ -18,8 +18,8 @@ module.exports = class User extends Base {
             returnUrlParam: '__returnUrl',
             identityCookieParam: '__identity',
             assignmentsParam: '__assignments',
-            defaultAssignments: ['guest'],
-            anonymousAssignments: ['anonymous'],
+            defaultAssignments: ['user'],
+            guestAssignments: ['guest'],
             identityCookie: {
                 httpOnly: true
             },

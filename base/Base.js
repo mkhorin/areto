@@ -1,14 +1,18 @@
 'use strict';
 
-const ClassHelper = require('../helpers/ClassHelper');
+const ClassHelper = require('../helper/ClassHelper');
 
 module.exports = class Base {
 
     static init (nodeModule) {
-        ClassHelper.defineModuleClassProperty(this, nodeModule);
-        ClassHelper.defineConstantClassProperties(this);
-        ClassHelper.defineStaticClassProperties(this);
+        ClassHelper.defineModuleClassProp(this, nodeModule);
+        ClassHelper.defineConstantClassProps(this);
+        ClassHelper.defineStaticClassProps(this);
         return this;
+    }
+
+    static wrapClassMessage (message) {
+        return `${this.name}: ${message}`;
     }
 
     constructor (config) {
@@ -22,6 +26,6 @@ module.exports = class Base {
     }
 
     wrapClassMessage (message) {
-        return `${this.constructor.name}: ${message}`;
+        return this.constructor.wrapClassMessage(message);
     }
 };

@@ -40,4 +40,4 @@ module.exports = class Session extends Base {
 
 const flash = require('connect-flash');
 const session = require('express-session');
-const ClassHelper = require('../../helpers/ClassHelper');
+const ClassHelper = require('../../helper/ClassHelper');

@@ -253,7 +253,8 @@ module.exports = class MysqlDriver extends Base {
 };
 module.exports.init();
 
-const mysql = require('mysql');
 const moment = require('moment');
+const mysql = require('mysql');
+const AsyncHelper = require('../helper/AsyncHelper');
 const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');

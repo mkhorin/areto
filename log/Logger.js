@@ -15,7 +15,7 @@ module.exports = class Logger extends Base {
             level: 'info', // and right types
             typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
             types: {},
-            LogType,
+            LogType: LogType,
             store: require('./FileLogStore'), // common store
             consoleOutput: true,
             processingTimeThreshold: 0, // ms
@@ -50,16 +50,17 @@ module.exports = class Logger extends Base {
     createType (name, config) {
         let type = this.types[name];
         config = Object.assign({
-            Class: this.LogType,
-            name,
-            logger: this,
-            commonStore: this.store,
-            store: this.store,
-            active: this.isActiveTypeName(name),
-            consoleOutput: this.consoleOutput,
-            exclusive: this.exclusive, // not copy to commonStore
-            eventFire: this.eventFire
+            'Class': this.LogType,
+            'name': name,
+            'logger': this,
+            'commonStore': this.store,
+            'store': this.store,
+            'active': this.isActiveTypeName(name),
+            'consoleOutput': this.consoleOutput,
+            'exclusive': this.exclusive, // not copy to commonStore
+            'eventFire': this.eventFire
         }, config);
+
         if (type instanceof LogType) {
             Object.assign(config, type);
             Object.assign(type, config);
@@ -80,7 +81,7 @@ module.exports = class Logger extends Base {
 
     setTypeShortcut (name) {
         if (name in this) {
-            return this.log('error', this.wrapClassMessage(`setTypeShortcut: already taken: ${name}`));
+            return this.log('error', this.wrapClassMessage(`Type shortcut already taken: ${name}`));
         }
         this[name] = (message, data)=> this.log(name, message, data);
     }
@@ -98,13 +99,13 @@ module.exports = class Logger extends Base {
     }
 
     log (type, message, data) {
-        if (this.types.hasOwnProperty(type)) {
+        if (Object.prototype.hasOwnProperty.call(this.types, type)) {
             return this.types[type].log(message, data);
         }
-        if (this.types.error) {
-            return this.types.error.log(this.wrapClassMessage(`Unknown type: ${type}`), {message, data});
-        }
-        console.error(this.wrapClassMessage('Unknown type'), type, message, data);
+        type = this.wrapClassMessage(`Unknown type: ${type}`);
+        this.types.error
+            ? this.types.error.log(type, {message, data})
+            : console.error(type, message, data);
     }
 
     traceProcessingTime () {
@@ -113,13 +114,13 @@ module.exports = class Logger extends Base {
     }
 
     startProcessingTime (req, res, next) {
-        res.locals.startProcessingTime = (new Date).getTime();
+        res.locals.startProcessingTime = Date.now();
         next();
     }
 
     endProcessingTime (cb, event) {
         let controller = event.action.controller;
-        let time = (new Date).getTime() - controller.res.locals.startProcessingTime;
+        let time = Date.now() - controller.res.locals.startProcessingTime;
         if (time >= this.processingTimeThreshold) {
             this.log('trace', this.formatProcessingTime(time, controller));
         }
@@ -128,7 +129,7 @@ module.exports = class Logger extends Base {
 
     formatProcessingTime (time, controller) {
         let req = controller.req;  
-        return `${controller.res.statusCode} ${req.method} ~${time} ms ${req.originalUrl}`;
+        return `${controller.res.statusCode} ${req.method} ${time} ms ${req.originalUrl}`;
     }
 
     traceDb (db) {
@@ -160,5 +161,5 @@ module.exports = class Logger extends Base {
 };
 module.exports.init();
 
-const ClassHelper = require('../helpers/ClassHelper');
+const ClassHelper = require('../helper/ClassHelper');
 const LogType = require('./LogType');

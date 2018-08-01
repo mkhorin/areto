@@ -22,19 +22,20 @@ module.exports = class Response extends Base {
     }
 
     end (controller) {
-        if (controller.res.headersSent) {
-            return controller.log('error',
-                `Headers already sent ${controller.req.method} ${controller.req.originalUrl}`);
+        let res = this.controller.res;
+        if (res.headersSent) {
+            let req = this.controller.req;
+            return controller.log('error', `Headers already sent: ${req.method}: ${req.originalUrl}`);
         }
         if (this.code) {
-            controller.res.status(this.code);
+            res.status(this.code);
         }
         switch (this.method) {
             case 'end':
-                controller.res.end(this.data, this.encoding);
+                res.end(this.data, this.encoding);
                 break;
             default:
-                controller.res[this.method](this.data);
+                res[this.method](this.data);
         }
     }
 };

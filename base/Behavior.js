@@ -43,4 +43,11 @@ module.exports = class Behavior extends Base {
             this.owner.off(eventName, this._handlers[eventName]);
         }
     }
+
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.owner);
+    }
 };
+
+const CommonHelper = require('../helper/CommonHelper');
+

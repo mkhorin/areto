@@ -10,7 +10,7 @@ module.exports = class App extends Base {
         return {
             DEFAULT_COMPONENTS: {
                 'formatter': {},
-                'template': {},
+                'view': {},
                 'bodyParser': {}
             },
             EVENT_AFTER_START: 'afterStart'
@@ -21,6 +21,7 @@ module.exports = class App extends Base {
         super.init();
         this._urlCache = {};
         this._baseExpress = express();
+
     }
 
     configure (configName, cb) {
@@ -30,7 +31,7 @@ module.exports = class App extends Base {
                 return cb(err);
             }
             this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
-            cb();
+            setImmediate(cb);
         });
     }
 
@@ -60,8 +61,8 @@ module.exports = class App extends Base {
             this.log('error', 'Server error', err);
             cb(err);
         }).listen(this.config.port, ()=> {
-            this.log('info', `${this.NAME} mounted as ${this.mountPath}`);
-            this.log('info', `${this.NAME} started as ${this.configName}`, this.server.address());
+            this.log('info', `Mounted as ${this.mountPath}`);
+            this.log('info', `Started as ${this.configName}`, this.server.address());
             this.afterStart(cb);
         });
     }
@@ -94,8 +95,8 @@ module.exports = class App extends Base {
         AsyncHelper.eachSeries(fileNames, (fileName, cb)=> {
             this.log('info', `Start to ${action} ${fileName}`);
             this.migrateFile(fileName, action, err => {
-                err ? this.log('error', `${fileName} is failed`, err)
-                    : this.log('info', `${fileName} is done`);
+                err ? this.log('error', `Failed: ${fileName}`, err)
+                    : this.log('info', `Done: ${fileName}`);
                 cb(err);
             });
         }, cb);
@@ -115,4 +116,4 @@ module.exports.init();
 
 const express = require('express');
 const http = require('http');
-const AsyncHelper = require('../helpers/AsyncHelper');
+const AsyncHelper = require('../helper/AsyncHelper');
