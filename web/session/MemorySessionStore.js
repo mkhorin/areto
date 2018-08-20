@@ -4,8 +4,8 @@ const Base = require('./SessionStore');
 
 module.exports = class MemorySessionStore extends Base {
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._sessions = {};
         this._users = {};
     }

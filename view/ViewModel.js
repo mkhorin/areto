@@ -20,26 +20,28 @@ module.exports = class ViewModel extends Base {
         }   
     }
 
-    init () {
+    static getAttrValueLabels (name) {
+        return this.ATTR_VALUE_LABELS[name];
+    }
+
+    static getAttrValueLabel (name, value) {
+        return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
+    }
+
+    constructor (config) {
+        super(config);
+        this.controller = this.view.controller;
+        this.data = this.data || {};
+        this.data._viewModel = this;
         this._attrs = {};
     }
 
-    has (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrs, name);
+    resolve (cb) {
+        cb(null, {});
     }
 
-    get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
-            return this._attrs[name];
-        }
-    }
-
-    set (name, value) {
-        this._attrs[name] = value;
-    }
-
-    unset (name) {
-        delete this._attrs[name];
+    prepare (cb) {
+        this.resolve((err, data)=> cb(err, Object.assign(this.data, data)));
     }
 
     getAttrLabel (name) {
@@ -57,16 +59,19 @@ module.exports = class ViewModel extends Base {
         return this.ATTR_LABELS[name];
     }
 
-    getAttrValueLabel (name, data) {
-        return ObjectHelper.getValueOrKey(this.get(name), data || this.ATTR_VALUE_LABELS[name]);
+    format () {
+        return this.controller.format.apply(this.controller, arguments);
     }
 
-    setAttrValueLabel (name, data) {
-        this.set(name, this.getAttrValueLabel(name, data));
+    translate () {
+        return this.controller.translate.apply(this.controller, arguments);
+    }
+
+    translateMessageMap () {
+        return this.controller.translateMessageMap.apply(this.controller, arguments);
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');

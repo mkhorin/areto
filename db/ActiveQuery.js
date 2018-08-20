@@ -4,8 +4,8 @@ const Base = require('./Query');
 
 module.exports = class ActiveQuery extends Base {
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._asRaw = null;
         this._with = {};
         if (this.model) {

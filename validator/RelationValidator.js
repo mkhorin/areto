@@ -15,10 +15,7 @@ module.exports = class RelationValidator extends Base {
             filter: null, // handler (value, model, attr, cb),
             behavior: 'relationChange'
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         if (this.allow && this.deny) {
             throw new Error(this.wrapClassMessage('Allowed only one permission'));
         }

@@ -17,8 +17,8 @@ module.exports = class Driver extends Base {
         return id;
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this.connection = null;
         this.builder = new this.QueryBuilder(this);
         if (this.module.components.logger) {
@@ -74,14 +74,11 @@ module.exports = class Driver extends Base {
         ], cb);
     }
 
-    afterCommand (err, data) {
-        if (err) {
-            return this.afterError(`db: ${this.settings.database}`, Object.assign({err}, data));
-        }
-        this.trigger(this.EVENT_COMMAND, {
-            message: `db: ${this.settings.database}`,
-            data
-        });
+    afterCommand (err, cmd, data = {}) {
+        let message = `db: ${this.settings.database}`;
+        data.cmd = cmd;
+        err ? this.afterError(message, Object.assign({err}, data))
+            : this.trigger(this.EVENT_COMMAND, {message, data});
     }
 
     afterError (message, data) {

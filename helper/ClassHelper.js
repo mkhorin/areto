@@ -6,6 +6,12 @@ const STATIC_METHOD = 'getStatics';
 
 module.exports = class ClassHelper {
 
+    static normalizeInstanceConfig (config, params) {
+        return Object.assign(typeof config === 'function'
+            ? {Class: config}
+            : config, params);
+    }
+
     static createInstance (config, params) {
         if (typeof config === 'function') {
             return new config(params);
@@ -19,10 +25,12 @@ module.exports = class ClassHelper {
         throw new Error(`Invalid class config: ${util.inspect(config)}`);
     }
 
-    static normalizeInstanceConfig (config, params) {
-        return Object.assign(typeof config === 'function' ? {Class: config} : config, params);
+    static resolveConfigClass (config, module) {
+        if (config && typeof config.Class === 'string') {
+            config.Class = module.require(config.Class);
+        }
     }
-   
+
     // to get value from Class[name] and (new Class)[name]
     static defineClassProp (Class, name, value, writable) {
         Object.defineProperty(Class, name, {value, writable});
@@ -42,7 +50,19 @@ module.exports = class ClassHelper {
         let dir = FileHelper.getClosestDir(file, moduleFileName);
         let Module = require('../base/Module');
         let module = require(path.join(dir, moduleFileName));
-        return module instanceof Module ? module : this.getClosestModule(dir, moduleFileName);
+        return module instanceof Module
+            ? module
+            : this.getClosestModule(dir, moduleFileName);
+    }
+
+    static getParentModule (module, moduleFileName = MODULE_FILENAME) {
+        try {
+            let parent = require(path.join(module.CLASS_FILE, '../../../', moduleFileName));
+            let Module = require('../base/Module');
+            return parent instanceof Module && parent !== module ? parent : null;
+        } catch (err) {
+            return null;
+        }
     }
 
     static defineConstantClassProps (Class, methodName = CONSTANT_METHOD) {

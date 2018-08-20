@@ -21,10 +21,7 @@ module.exports = class Logger extends Base {
             processingTimeThreshold: 0, // ms
             dbTraced: true
         }, config));
-    }
 
-    init () {
-        super.init();
         this.store = ClassHelper.createInstance(this.store, {
             logger: this
         });

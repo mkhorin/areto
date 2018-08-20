@@ -9,24 +9,18 @@ module.exports = class DateValidator extends Base {
             min: null,
             max: null
         }, config));
+
+        this.initDate('min');
+        this.initDate('max');
     }
 
-    init () {
-        super.init();
-        if (this.min !== null) {
-            if (!(this.min instanceof Date)) {
-                this.min = new Date(this.min);
+    initDate (key) {
+        if (this[key] !== null) {
+            if (!(this[key] instanceof Date)) {
+                this[key] = new Date(this[key]);
             }
-            if (!this.isValidDateObject(this.min)) {
-                throw new Error(this.wrapClassMessage('Invalid min date'));
-            }
-        }
-        if (this.max !== null) {
-            if (!(this.max instanceof Date)) {
-                this.max = new Date(this.max);
-            }
-            if (!this.isValidDateObject(this.max)) {
-                throw new Error(this.wrapClassMessage('Invalid max date'));
+            if (!this.isValidDateObject(this[key])) {
+                throw new Error(this.wrapClassMessage(`Invalid ${key} date`));
             }
         }
     }

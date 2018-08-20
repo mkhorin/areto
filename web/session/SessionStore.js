@@ -8,12 +8,10 @@ module.exports = class SessionStore extends Base {
         super(Object.assign({
             userIdParam: '__id'
         }, config));
-    }
 
-    init () {
         Store.call(this);
     }
-   
+
     createSession (...args) {
         return Store.prototype.createSession.apply(this, args);
     }

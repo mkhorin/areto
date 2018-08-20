@@ -4,7 +4,8 @@ const Base = require('./Base');
 
 module.exports = class EventManager extends Base {
 
-    init () {
+    constructor (config) {
+        super(config);
         this._events = {};
     }
 

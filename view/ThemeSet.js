@@ -14,11 +14,10 @@ module.exports = class ThemeSet extends Base {
             modulePriority: false,
             Theme: require('./Theme')
         }, config));
-    }
-
-    init () {
+        
         this.defaultThemeDir = path.join(this.dir, this.defaultThemeDir);
         this.themeDir = path.join(this.dir, this.themeDir);
+        
         this.createDefault();
         this.createThemes();
         this.setParents();

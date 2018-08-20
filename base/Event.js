@@ -86,7 +86,7 @@ module.exports = class Event extends Base {
         if (!this._events[name]) {
             return;
         }
-        event = this.initEvent(event, sender, name);
+        event = this.create(event, sender, name);
         if (typeof sender !== 'function') {
             sender = sender.constructor;
         }
@@ -109,7 +109,7 @@ module.exports = class Event extends Base {
 
     static triggerCallback (sender, name, cb, event, tasks) {
         if (this._events[name]) {
-            event = this.initEvent(event, sender, name);
+            event = this.create(event, sender, name);
             if (typeof sender !== 'function') {
                 sender = sender.constructor;
             }

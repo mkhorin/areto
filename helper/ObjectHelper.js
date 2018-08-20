@@ -89,7 +89,7 @@ module.exports = class ObjectHelper {
         }
     }
 
-    static deletePropsExceptIn (names, map) {
+    static deletePropsExcept (names, map) {
         if (map && names instanceof Array) {
             for (let key of Object.keys(map)) {
                 if (!names.includes(key)) {

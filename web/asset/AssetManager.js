@@ -11,10 +11,7 @@ module.exports = class AssetManager extends Base {
             ViewAsset,
             AssetBundle
         }, config));
-    }
 
-    init () {
-        super.init();
         this.parent = this.module.getComponentFromParent(this.parentName);
         this.createBundles();
     }

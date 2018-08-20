@@ -17,10 +17,7 @@ module.exports = class RateLimit extends Base {
             types: {}, // separate config for types
             store: require('./MemoryRateLimitStore')
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this.store = ClassHelper.createInstance(this.store, {
             rateLimit: this
         });

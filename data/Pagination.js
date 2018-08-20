@@ -28,9 +28,7 @@ module.exports = class Pagination extends Base {
             // route:
             // params: {}
         }, config));
-    }
-
-    init () {
+        
         if (!this.route) {
             this.route = this.controller.getCurrentRoute();
         }
@@ -40,7 +38,7 @@ module.exports = class Pagination extends Base {
         this.setPageSize(this.pageSize);
         if (this.page === null) {
             this.page = parseInt(this.getQueryParam(this.pageParam, 1)) - 1;
-        }        
+        }
         this.setPage(this.page);
     }
 

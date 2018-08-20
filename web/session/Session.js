@@ -14,9 +14,7 @@ module.exports = class Session extends Base {
             lifetime: 3600 // seconds
             //cookie: {maxAge: 3600 * 1000}
         }, config));
-    }
 
-    init () {
         this.lifetime *= 1000;
         this.store = ClassHelper.createInstance(this.store, {
             session: this

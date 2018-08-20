@@ -8,7 +8,9 @@ module.exports = class AssetBundle extends Base {
     // js: ['js/script1.js', ['js/script2.js', {position: _view.POS_HEAD}]]
     // version: '1.2.3' // ?v=1.2.3
 
-    init () {
+    constructor (config) {
+        super(config);
+
         if (this.css && !(this.css instanceof Array)) {
             this.css = [this.css];
         }

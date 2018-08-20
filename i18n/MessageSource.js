@@ -10,9 +10,7 @@ module.exports = class MessageSource extends Base {
             sourceLanguage: config.i18n.sourceLanguage,
             parent: null
         }, config));
-    }
 
-    init () {
         this.clearCache();
     }
 

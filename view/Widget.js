@@ -11,9 +11,7 @@ module.exports = class Widget extends Base {
             cacheComponentId: 'cache',
             // cacheDuration: 60 // seconds
         }, config));
-    }
 
-    init () {
         this.controller = this.view.controller;
         this.module = this.controller.module;
         if (this.caching && !this.cache) {

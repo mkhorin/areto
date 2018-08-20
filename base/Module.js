@@ -36,14 +36,13 @@ module.exports = class Module extends Base {
             params: {}, // inherited
             widgets: {} // inherited
         }, config));        
-    }
-    
-    init () {
-        super.init();
+
+        this.parent = ClassHelper.getParentModule(this);
+        this.app = this.parent ? this.parent.app : this;
         this._express = express();
         this._expressQueue = []; // for deferred assign
     }
-
+    
     getFullName (separator = '.') { // eg - app.admin.post
         return this.parent
             ? `${this.parent.getFullName(separator)}${separator}${this.NAME}`
@@ -214,16 +213,14 @@ module.exports = class Module extends Base {
         return require(file);
     }
 
-    configure (parent, configName, cb) {
-        this.parent = parent;
-        this.app = parent ? parent.app : this;
+    configure (configName, cb) {
         this.setConfig(configName);
         Object.assign(this.params, this.config.params);
         Object.assign(this.widgets, this.config.widgets);
-        if (parent) {
-            Object.assign(this.components, parent.components);
-            AssignHelper.deepAssignUndefined(this.params, parent.params);
-            AssignHelper.deepAssignUndefined(this.widgets, parent.widgets);
+        if (this.parent) {
+            Object.assign(this.components, this.parent.components);
+            AssignHelper.deepAssignUndefined(this.params, this.parent.params);
+            AssignHelper.deepAssignUndefined(this.widgets, this.parent.widgets);
         }
         this.setMountPath();
         if (this.config.forwarder) {
@@ -263,7 +260,7 @@ module.exports = class Module extends Base {
             let configName = config.configName || this.configName;
             let module = require(this.getPath('module', id, 'module'));
             this.modules[id] = module;
-            module.configure(this, configName, err => {
+            module.configure(configName, err => {
                 err ? this.log('error', `Module failed: ${id}`, err)
                     : this.log('info', `Module ready: ${id}`);
                 setImmediate(cb);

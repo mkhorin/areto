@@ -19,10 +19,8 @@ module.exports = class I18n extends Base {
             'sources': {},
             'basePath': config.module.getPath('message'),
             'MessageFormatter': MessageFormatter
-        }, config));
-    }
-
-    init () {
+        }, config)); 
+        
         this.createSources();
         this.createMessageFormatter();
     }

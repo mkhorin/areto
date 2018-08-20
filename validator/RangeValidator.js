@@ -10,10 +10,7 @@ module.exports = class RangeValidator extends Base {
             not: false,
             allowArray: false
         }, config));
-    }
 
-    init () {
-        super.init();
         if (!(this.range instanceof Array)) {
             throw new Error(this.wrapClassMessage('Range property must be array'));
         }

@@ -99,9 +99,7 @@ module.exports = class Validator extends Base {
 
     validateAttr (model, attr, cb) {
         this.validateValue(model.get(attr), (err, message)=> {
-            if (message) {
-                this.addError(model, attr, message);
-            }
+            this.addError(model, attr, message);
             cb(err);
         });
     }
@@ -123,12 +121,14 @@ module.exports = class Validator extends Base {
     }
 
     addError (model, attr, message) {
-        let value = model.get(attr);
-        message.addParams({
-            attr: model.getAttrLabel(attr),
-            value: value instanceof Array ? value.join() : value
-        });
-        model.addError(attr, message);
+        if (message) {
+            let value = model.get(attr);
+            message.addParams({
+                'attr': model.getAttrLabel(attr),
+                'value': value instanceof Array ? value.join() : value
+            });
+            model.addError(attr, message);
+        }
     }
 };
 module.exports.init();

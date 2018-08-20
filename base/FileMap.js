@@ -7,10 +7,9 @@ module.exports = class FileMap extends Base {
     constructor (config) {
         super(Object.assign({
             // dir: path
+            required: false // require files
         }, config));
-    }
-
-    init () {
+        
         this.indexFiles();
     }
 
@@ -18,6 +17,9 @@ module.exports = class FileMap extends Base {
         try {
             this._files = {};
             this.indexDirFiles(this.dir);
+            if (this.required) {
+                this.requireFiles();
+            }
         } catch (err) {}
     }
 
@@ -40,6 +42,17 @@ module.exports = class FileMap extends Base {
         last = FileHelper.removeExtension(last);
         parts.push(last);
         return parts.join('/'); // normalize separator
+    }
+
+    requireFiles () {
+        for (let key of Object.keys(this._files)) {
+            try {
+                this._files[key] = require(this._files[key]);
+            } catch (err) {
+                console.error(err);
+                delete this._files[key];
+            }
+        }
     }
 
     get (name) {

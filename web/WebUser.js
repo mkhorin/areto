@@ -13,8 +13,8 @@ module.exports = class WebUser extends Base {
         };
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this.session = this.req.session;
         this._accessCache = {};
     }

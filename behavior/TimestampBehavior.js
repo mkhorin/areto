@@ -10,10 +10,7 @@ module.exports = class TimestampBehavior extends Base {
             createdAttr: 'createdAt', // or false
             updatedAttr: 'updatedAt'
         }, config));
-    }
 
-    init () {
-        super.init();
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }

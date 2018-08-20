@@ -87,8 +87,8 @@ module.exports = class Controller extends Base {
         return this._VIEW_DIR;
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this.response = new Response;
         this.response.controller = this;
         this.i18n = this.module.components.i18n;
@@ -277,13 +277,37 @@ module.exports = class Controller extends Base {
         this.res.set(name, value);
     }
 
-    render (template, params, cb, view) {
-        view = view || this.getView();
-        view.render(this.getViewFileName(template), params, (err, content)=> {
-            cb ? cb(err, content)
-               : err ? this.action.complete(err)
-                     : this.send(content);
+    // RENDER
+
+    render (template, data, cb) {
+        let model = this.createViewModel(template, {data});
+        model ? this.renderViewModel(model, template, cb)
+              : this.renderTemplate(template, data, cb);
+    }
+
+    renderViewModel (model, template, cb) {
+        model.prepare((err, data)=> {
+            err ? this.action.complete(err)
+                : this.renderTemplate(template, data, cb)
         });
+    }
+
+    renderTemplate (template, data, cb) {
+        this.getView().render(this.getViewFileName(template), data, this.completeRender.bind(this, cb));
+    }
+
+    completeRender (callback, err, content) {
+        if (callback) {
+            callback(err, content);
+        } else if (err) {
+            this.action.complete(err);
+        } else {
+            this.send(content);
+        }
+    }
+
+    createViewModel (name, config = {}) {
+        return this.getView().createViewModel(this.getViewFileName(name), config);
     }
 
     getView () {

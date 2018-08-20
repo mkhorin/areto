@@ -9,10 +9,7 @@ module.exports = class EachValidator extends Base {
             rule: null,
             allowMessageFromRule: true
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this._validator = null;
     }
 

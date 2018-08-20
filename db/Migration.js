@@ -4,8 +4,8 @@ const Base = require('../base/Component');
 
 module.exports = class Migration extends Base {
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this.db = this.db || this.module.getDb();
     }
 

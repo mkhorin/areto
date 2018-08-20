@@ -9,10 +9,7 @@ module.exports = class MysqlDriver extends Base {
             schema: 'mysql',
             QueryBuilder: MysqlQueryBuilder
         }, config));
-    }
 
-    init () {
-        super.init();
         this.client = mysql.createPool(this.settings);
     }
 
@@ -255,6 +252,5 @@ module.exports.init();
 
 const moment = require('moment');
 const mysql = require('mysql');
-const AsyncHelper = require('../helper/AsyncHelper');
 const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');

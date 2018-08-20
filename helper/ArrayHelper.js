@@ -2,18 +2,6 @@
 
 module.exports = class ArrayHelper {
 
-    static indexOfId (id, ids) {
-        if (!(id instanceof MongoId)) {
-            return ids.indexOf(id);
-        }
-        for (let i = 0; i < ids.length; ++i) {
-            if (id.equals(ids[i])) {
-                return i;
-            }
-        }
-        return -1;
-    }
-    
     static diff (target, excluded, indexOf) {
         let result = [];
         for (let item of target) {
@@ -24,10 +12,6 @@ module.exports = class ArrayHelper {
         return result;
     }
 
-    static diffById (target, excluded) {
-        return this.diff(target, excluded, this.indexOfId);
-    }
-
     static intersect (source, target, indexOf) {
         let result = [];
         for (let item of source) {
@@ -36,10 +20,6 @@ module.exports = class ArrayHelper {
             }
         }
         return result;
-    }
-
-    static intersectById (target, excluded) {
-        return this.intersect(target, excluded, this.indexOfId);
     }
 
     static unique (values) {  // cast value to object key
@@ -54,10 +34,6 @@ module.exports = class ArrayHelper {
             }
         }
         return result;
-    }
-
-    static uniqueStrictById (target, excluded) {
-        return this.uniqueStrict(target, excluded, this.indexOfId);
     }
 
     static flip (values) {
@@ -211,5 +187,3 @@ module.exports = class ArrayHelper {
         return result;
     }
 };
-
-const MongoId = require('mongodb').ObjectID;

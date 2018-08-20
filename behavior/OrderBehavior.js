@@ -10,11 +10,8 @@ module.exports = class OrderBehavior extends Base {
             start: 10,
             step: 10,
             filter: null
-        }, config));
-    }
-
-    init () {
-        super.init();
+        }, config)); 
+        
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 

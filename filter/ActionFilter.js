@@ -9,10 +9,7 @@ module.exports = class ActionFilter extends Base {
             only: null,
             except: []
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this.assign(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
     }
 

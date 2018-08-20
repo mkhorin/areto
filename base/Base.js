@@ -19,10 +19,6 @@ module.exports = class Base {
         if (config) {
             Object.assign(this, config);
         }
-        this.init();
-    }
-
-    init () {
     }
 
     wrapClassMessage (message) {

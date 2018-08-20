@@ -11,8 +11,9 @@ module.exports = class ActionView extends Base {
 
             ArrayHelper: require('../helper/ArrayHelper'),
             CommonHelper: require('../helper/CommonHelper'),
-            StringHelper: require('../helper/StringHelper'),
-            ObjectHelper: require('../helper/ObjectHelper')
+            MongoHelper: require('../helper/MongoHelper'),
+            ObjectHelper: require('../helper/ObjectHelper'),
+            StringHelper: require('../helper/StringHelper')
         };
     }
 
@@ -23,16 +24,26 @@ module.exports = class ActionView extends Base {
         }, config));
     }
 
-    get (template) {
-        return this.theme.getTemplate(template, this.controller.language);
+    get (name) {
+        return this.theme.getTemplate(name, this.controller.language);
     }
 
-    getInnerTemplate (template) {
-        return this.get(this.controller.getViewFileName(template));
+    getInnerTemplate (name) {
+        return this.get(this.controller.getViewFileName(name));
     }
 
-    getParentTemplate (template) {
-        return this.theme.getParentTemplate(template, this.controller.language);
+    getParentTemplate (name) {
+        return this.theme.getParentTemplate(name, this.controller.language);
+    }
+
+    getViewModelClass (name) {
+        return this.theme.getModel(name, this.controller.language);
+    }
+
+    createViewModel (name, config = {}) {
+        config.view = this;
+        let Class = this.getViewModelClass(name);
+        return Class ? new Class(config) : null;
     }
 
     // RENDER
@@ -117,7 +128,7 @@ module.exports = class ActionView extends Base {
         }
         AsyncHelper.eachSeries(anchors, (anchor, cb)=> {
             this.renderWidget(anchor, renderParams, cb);
-        }, err => cb(err, err || this.insertWidgetContent(content)));
+        }, err => err ? cb(err) : cb(null, this.insertWidgetContent(content)));
     }
 
     renderWidget (anchor, renderParams, cb) {

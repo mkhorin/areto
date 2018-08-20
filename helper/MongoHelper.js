@@ -2,6 +2,10 @@
 
 module.exports = class MongoHelper {
 
+    static isObjectId (id) {
+        return id instanceof ObjectID;
+    }
+
     static isValidId (id) {
         return ObjectID.isValid(id);
     }
@@ -14,6 +18,33 @@ module.exports = class MongoHelper {
             return id2.equals(id1);
         }
         return id1 === id2;
+    }
+
+    static indexOf (id, values) {
+        if (!(values instanceof Array)) {
+            return -1;
+        }
+        if (!(id instanceof ObjectId)) {
+            return values.indexOf(id);
+        }
+        for (let i = 0; i < values.length; ++i) {
+            if (id.equals(values[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static diff (target, excluded) {
+        return ArrayHelper.diff(target, excluded, this.indexOf);
+    }
+
+    static intersect (target, excluded) {
+        return ArrayHelper.intersect(target, excluded, this.indexOf);
+    }
+
+    static uniqueStrict (target, excluded) {
+        return ArrayHelper.uniqueStrict(target, excluded, this.indexOf);
     }
     
     static replaceMongoDataToJson (data) {
@@ -50,4 +81,5 @@ module.exports = class MongoHelper {
 };
 
 const ObjectID = require('mongodb').ObjectID;
+const ArrayHelper = require('./ArrayHelper');
 const CommonHelper = require('./CommonHelper');

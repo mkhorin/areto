@@ -4,11 +4,11 @@ const Base = require('../base/Component');
 
 module.exports = class Connection extends Base {
     
-    init () {
-        super.init(this);
+    constructor (config) {
+        super(config);
         this.drivers = Object.assign({
-            mongodb: require('./MongoDriver'),
-            mysql: require('./MysqlDriver')
+            'mongodb': require('./MongoDriver'),
+            'mysql': require('./MysqlDriver')
         }, this.drivers);
         this.initDriver();
     }
@@ -19,8 +19,8 @@ module.exports = class Connection extends Base {
             throw new Error(this.wrapClassMessage(`Unknown driver: ${this.schema}`));
         }
         this.driver = ClassHelper.createInstance(this.driver, {
-            module: this.module,
-            settings: this.settings
+            'module': this.module,
+            'settings': this.settings
         });
     }
 

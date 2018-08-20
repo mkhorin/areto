@@ -17,18 +17,16 @@ module.exports = class Scheduler extends Base {
             tasks: {},
             refreshInterval: 60 // sec
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this._taskMap = {};
         this._taskBeforeRunHandler = this.taskBeforeRun.bind(this);
         this._taskDoneHandler = this.taskDone.bind(this);
         this._taskFailHandler = this.taskFail.bind(this);
+        
         this.addTasks(this.tasks);
         this.module.app.on(this.module.app.EVENT_AFTER_START, this.refresh.bind(this));
     }
-
+    
     getTask (name) {
         return this._taskMap[name] instanceof Task ? this._taskMap[name] : null;
     }
@@ -79,6 +77,11 @@ module.exports = class Scheduler extends Base {
         }
     }
 
+    executeTask (name) {
+        let task = this.getTask(name);
+        task && !task.isRunning() && task.execute();
+    }
+
     isActive () {
         return !!this._timer;
     }
@@ -112,7 +115,7 @@ module.exports = class Scheduler extends Base {
     }
     
     taskFail (event) {
-        this.log('error', `Task fail: ${event.sender.name}:`, event.error);
+        this.log('error', `Task failed: ${event.sender.name}:`, event.error);
         this.trigger(this.EVENT_TASK_FAIL, event);
     }
 };

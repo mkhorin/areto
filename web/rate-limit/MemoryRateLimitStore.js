@@ -8,7 +8,8 @@ module.exports = class MemoryRateLimitStore extends Base {
         return user.getId() || user.getIp();
     }
 
-    init () {
+    constructor (config) {
+        super(config);
         this._data = {};
     }
 

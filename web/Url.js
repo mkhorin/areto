@@ -71,7 +71,9 @@ module.exports = class Url extends Base {
         return {segments, params, anchor};
     }
 
-    init () {
+    constructor (config) {
+        super(config);
+
         let sources = pathToRegexp.parse(this.source);
         let targets = pathToRegexp.parse(this.target);
         

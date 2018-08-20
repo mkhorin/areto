@@ -14,13 +14,11 @@ module.exports = class FileLogStore extends Base {
             maxFileSize: 2, // megabytes
             maxFiles: 1
         }, config));
-    }
 
-    init () {
         this.baseDir = path.join(this.baseDir, this.dir);
-        mkdirp.sync(this.baseDir);
-        this.maxFileSize *= MEGABYTE_SIZE;
         this.file = this.getFile();
+        this.maxFileSize *= MEGABYTE_SIZE;
+        mkdirp.sync(this.baseDir);
         this.fd = fs.openSync(this.file, 'a');
         if (this.observePeriod) {
             this.observePeriod *= 1000;

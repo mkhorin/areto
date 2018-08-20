@@ -4,10 +4,10 @@ const Base = require('../base/Behavior');
 
 module.exports = class RelationChangeBehavior extends Base {
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);        
         this._changes = {};
-        this._relations = {};
+        this._relations = {};        
         this.assign(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);

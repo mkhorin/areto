@@ -14,7 +14,8 @@ module.exports = class Component extends Base {
         };
     }
 
-    init () {
+    constructor (config) {
+        super(config);
         this.events = ClassHelper.createInstance(this.eventManager || EventManager, {
             owner: this
         });

@@ -18,14 +18,11 @@ module.exports = class Task extends Base {
             active: true,
             startDate: null, // new Date
             startTime: null, // 00:00:00
-            period: 0, //seconds
-            repeats: 0,
+            period: 0, // seconds
+            repeats: 0, // 0 - endless
             stopOnFail: true
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this._counter = 0;
         this.module = this.scheduler.module;
         if (this.active) {
@@ -129,9 +126,7 @@ module.exports = class Task extends Base {
     }
 
     createJob () {
-        return ClassHelper.createInstance(this.job, {
-            task: this
-        });
+        return ClassHelper.createInstance(this.job);
     }
 
     cancelJob () {
@@ -150,7 +145,7 @@ module.exports = class Task extends Base {
             return false;
         }
         try {
-            this.log('debug', `Job start: ${this._job.CLASS_FILE}`);
+            this.log('info', `Job start: ${this._job.CLASS_FILE}`);
             this._lastStartDate = new Date;
             this._job.execute((err, result)=> {
                 if (err) {

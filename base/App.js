@@ -17,15 +17,15 @@ module.exports = class App extends Base {
         };
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._urlCache = {};
         this._baseExpress = express();
 
     }
 
     configure (configName, cb) {
-        super.configure(null, configName, err => {
+        super.configure(configName, err => {
             if (err) {
                 console.error(`App: ${this.NAME}:`, err);
                 return cb(err);

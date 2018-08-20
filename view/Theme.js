@@ -10,26 +10,25 @@ module.exports = class Theme extends Base {
             // dir: theme dir
             // parent: new Theme
             // view: new View
-            LocalFileMap: require('./LocalFileMap')
-        }, config));
-    }
-
-    init () {
+            L10nFileMap: require('./L10nFileMap')
+        }, config)); 
+        
         this.createTemplateMap();
         this.createModelMap();
     }
 
     createTemplateMap () {
-        this._templates = ClassHelper.createInstance(this.LocalFileMap, {
+        this._templates = ClassHelper.createInstance(this.L10nFileMap, {
             baseDir: path.join(this.dir, 'template'),
             localDir: path.join(this.dir, 'localization/template')
         });
     }
 
     createModelMap () {
-        this._models = ClassHelper.createInstance(this.LocalFileMap, {
+        this._models = ClassHelper.createInstance(this.L10nFileMap, {
             baseDir: path.join(this.dir, 'model'),
-            localDir: path.join(this.dir, 'localization/model')
+            localDir: path.join(this.dir, 'localization/model'),
+            required: true
         });
     }
 
@@ -64,7 +63,7 @@ module.exports = class Theme extends Base {
     // MODEL
 
     getModel (name, language) {
-        return this.getOwnModel(name, language) || this.getParentModel(name, language) || name;
+        return this.getOwnModel(name, language) || this.getParentModel(name, language);
     }
 
     getOwnModel (name, language) {

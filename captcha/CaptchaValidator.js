@@ -8,10 +8,7 @@ module.exports = class CaptchaValidator extends Base {
         super(Object.assign({
             captchaActionProp: 'captchaAction'
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this.skipOnEmpty = false;
     }
 

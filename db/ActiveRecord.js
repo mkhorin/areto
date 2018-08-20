@@ -24,8 +24,8 @@ module.exports = class ActiveRecord extends Base {
         return this.module.getDb();
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._isNewRecord = true;
         this._oldAttrs = {};
         this._related = {};
@@ -324,7 +324,7 @@ module.exports = class ActiveRecord extends Base {
             });
         }
         relation === null
-            ? cb(this.wrapClassMessage(`Unknown relation: ${name}`))
+            ? cb(this.wrapMessage(`Unknown relation: ${name}`))
             : cb(null, null);
     }
 
@@ -363,7 +363,7 @@ module.exports = class ActiveRecord extends Base {
         if (!model) {
             model = new rel._viaRelation.model.constructor;
         } else if (!(model instanceof rel._viaRelation.model.constructor)) {
-            return cb(this.wrapClassMessage('linkViaModel: Invalid link model'));
+            return cb(this.wrapMessage('linkViaModel: Invalid link model'));
         }
         model.set(rel.linkKey, this.get(rel.refKey));
         model.set(rel._viaRelation.refKey, this.get(rel._viaRelation.linkKey));
@@ -468,7 +468,7 @@ module.exports = class ActiveRecord extends Base {
         let link = this.get(rel.linkKey);
         if (rel.isBackRef()) {             
             if (ref instanceof Array) {
-                let index = ArrayHelper.indexOfId(link, ref);
+                let index = MongoHelper.indexOf(link, ref);
                 if (index !== -1) {
                     ref.splice(index, 1);
                 }
@@ -478,7 +478,7 @@ module.exports = class ActiveRecord extends Base {
             return remove ? model.remove(cb) : model.forceSave(cb);
         }
         if (link instanceof Array) {
-            let index = ArrayHelper.indexOfId(ref, link);
+            let index = MongoHelper.indexOf(ref, link);
             if (index !== -1) {
                 link.splice(index, 1);
             }
@@ -551,7 +551,7 @@ module.exports = class ActiveRecord extends Base {
     bindModels (foreignKey, primaryKey, foreignModel, primaryModel, cb, rel) {
         let value = primaryModel.get(primaryKey);
         if (!value) {
-            return cb(this.wrapClassMessage('bindModels: primary key is null'));
+            return cb(this.wrapMessage('bindModels: primary key is null'));
         }
         if (!rel._viaArray) {
             foreignModel.set(foreignKey, value);
@@ -560,14 +560,12 @@ module.exports = class ActiveRecord extends Base {
         if (!(foreignModel.get(foreignKey) instanceof Array)) {
             foreignModel.set(foreignKey, []);
         }
-        if (ArrayHelper.indexOfId(value, foreignModel.get(foreignKey)) === -1) {
+        if (MongoHelper.indexOf(value, foreignModel.get(foreignKey)) === -1) {
             foreignModel.get(foreignKey).push(value);
             return foreignModel.forceSave(cb);
         }
-        cb(); // value is exists already
+        cb(); // value is already exists
     }
-
-    // HANDLER
 
     getHandler (name) {
         if (typeof name === 'string') {
@@ -578,11 +576,20 @@ module.exports = class ActiveRecord extends Base {
         }
         return null;
     }
+
+    wrapMessage (message) {
+        return `${this.constructor.name}: ID: ${this.getId()}: ${message}`;
+    }
+
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, `${this.constructor.name}: ID: ${this.getId()}`, this.module);
+    }
 };
 module.exports.init();
 
 const AsyncHelper = require('../helper/AsyncHelper');
 const ArrayHelper = require('../helper/ArrayHelper');
+const CommonHelper = require('../helper/CommonHelper');
 const MongoHelper = require('../helper/MongoHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');

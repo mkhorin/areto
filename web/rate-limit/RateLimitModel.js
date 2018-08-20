@@ -4,7 +4,8 @@ const Base = require('../../base/Base');
 
 module.exports = class RateLimitModel extends Base {
 
-    init () {
+    constructor (config) {
+        super(config);
         this._data = {
             'type': this.type,
             'ip': this.user.getIp(),

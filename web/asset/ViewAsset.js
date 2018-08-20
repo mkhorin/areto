@@ -4,7 +4,8 @@ const Base = require('../../base/Base');
 
 module.exports = class ViewAsset extends Base {
 
-    init () {
+    constructor (config) {
+        super(config);
         this._bundleMap = {};
         this._bundles = [];
     }

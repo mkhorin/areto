@@ -12,9 +12,7 @@ module.exports = class DbLogStore extends Base {
             observePeriod: 60, // seconds, null - off
             maxRows: 10000
         }, config));
-    }
 
-    init () {        
         if (this.observePeriod) {
             this.observe();
         }

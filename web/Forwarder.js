@@ -9,9 +9,7 @@ module.exports = class Forwarder extends Base {
             Url: require('./Url'),
             items: {}
         }, config));
-    }
 
-    init () {        
         this.setItems();
     }
 

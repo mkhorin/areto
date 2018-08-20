@@ -21,23 +21,23 @@ module.exports = class ArrayDataProvider extends Base {
             }
         }        
         cb(null, models);
-    }    
+    }
 
     sortModels (models, sort) {
         let Sort = require('./Sort');
-        let orders = sort.getOrders();        
+        let orders = sort.getOrders();
         if (orders) {
             let directions = {};
-            for (let attr in orders) {
+            for (let attr of Object.keys(orders)) {
                 directions[attr] = orders[attr] === Sort.ASC ? 1 : -1;
             }
-            models.sort(this.compareModels.bind(this, orders));
+            models.sort(this.compareModels.bind(this, orders, directions));
         }
         return models;
     }
 
-    compareModels (orders, a, b) {
-        for (let attr in orders) {
+    compareModels (orders, directions, a, b) {
+        for (let attr of Object.keys(orders)) {
             let result = a[attr].toString().localeCompare(b[attr].toString());
             if (result !== 0) {
                 return result * directions[attr];

@@ -10,10 +10,7 @@ module.exports = class RequiredValidator extends Base {
             strict: false,
             skip: false // skip validation
         }, config));
-    }
 
-    init () {
-        super.init();
         this.skipOnEmpty = false;
     }
 

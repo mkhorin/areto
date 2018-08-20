@@ -10,10 +10,7 @@ module.exports = class AccessControl extends Base {
             // denyCallback: function (action, user, cb)
             AccessRule
         }, config));
-    }
-
-    init () {
-        super.init();
+        
         this.createRules();
     }
 

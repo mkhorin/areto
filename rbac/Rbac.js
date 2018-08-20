@@ -15,11 +15,8 @@ module.exports = class Rbac extends Base {
             store: require('./FileStore'),
             Inspector: require('./Inspector'),
             Item: require('./Item')
-        }, config));        
-    }
-    
-    init () {
-        super.init();
+        }, config));
+
         this.store = ClassHelper.createInstance(this.store, {
             rbac: this
         });

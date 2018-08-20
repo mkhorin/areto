@@ -4,7 +4,9 @@ const Base = require('../base/Base');
 
 module.exports = class Query extends Base {
 
-    init () {
+
+    constructor (config) {
+        super(config);
         this._index = null;
         this._limit = null;
         this._offset = null;

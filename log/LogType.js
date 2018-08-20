@@ -9,9 +9,12 @@ module.exports = class LogType extends Base {
             exclusive: false, 
             consoleOutputMethod: 'log'
         }, config));
+
+        this.counter = 0;
+        this.initStore();
     }
 
-    init () {
+    initStore () {
         if (!this.store) {
             this.store = this.commonStore;
         } else if (!(this.store instanceof LogStore)) {
@@ -23,7 +26,6 @@ module.exports = class LogType extends Base {
         if (this.exclusive || this.store === this.commonStore) {
             this.commonStore = null;
         }
-        this.counter = 0;
     }
 
     log (message, data) {

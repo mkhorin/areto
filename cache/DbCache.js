@@ -8,10 +8,7 @@ module.exports = class DbCache extends Base {
         super(Object.assign({
             table: 'cache'
         }, config));
-    }
 
-    init () {
-        super.init();
         this._cache = {};
     }
 

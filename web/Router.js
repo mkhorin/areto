@@ -4,8 +4,8 @@ const Base = require('../base/Component');
 
 module.exports = class Router extends Base {
 
-    init () {
-        super.init();        
+    constructor (config) {
+        super(config);
         this.attachDefault();
         this.attachDir(this.module.getControllerDir());
         if (this.errors) {

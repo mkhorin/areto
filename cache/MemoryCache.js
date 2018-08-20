@@ -4,8 +4,8 @@ const Base = require('./Cache');
 
 module.exports = class MemoryCache extends Base {
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._cache = {};
     }
 

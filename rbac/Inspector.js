@@ -4,7 +4,8 @@ const Base = require('../base/Base');
 
 module.exports = class Inspector extends Base {
 
-    init () {
+    constructor (config) {
+        super(config);
         this._ruleCache = {};
     }
 

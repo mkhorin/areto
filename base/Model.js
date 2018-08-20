@@ -50,9 +50,10 @@ module.exports = class Model extends Base {
         return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
-    init () {
-        super.init();
+    constructor (config) {
+        super(config);
         this._attrs = {};
+        this._viewAttrs = {};
         this._errors = {};
         this._validators = null;
     }
@@ -185,6 +186,20 @@ module.exports = class Model extends Base {
         Object.assign(this._attrs, data instanceof Model ? data._attrs : data);
     }
 
+    // VIEW ATTRIBUTES
+
+    getViewAttr (name) {
+        return Object.prototype.hasOwnProperty.call(this._viewAttrs, name)
+            ? this._viewAttrs[name]
+            : this.get(name);
+    }
+
+    setViewAttr (name, value) {
+        this._viewAttrs[name] = value;
+    }
+
+    // LABELS
+
     generateAttrLabel (name) {
         this.ATTR_LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
         return this.ATTR_LABELS[name];
@@ -195,7 +210,7 @@ module.exports = class Model extends Base {
     }
 
     setAttrValueLabel (name, data) {
-        this.set(name, this.getAttrValueLabel(name, data));
+        this.setViewAttr(name, this.getAttrValueLabel(name, data));
     }
 
     // ERRORS

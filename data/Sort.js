@@ -21,9 +21,11 @@ module.exports = class Sort extends Base {
             // route
             // params: 'attrName1,-attrName2'
         }, config));
+        
+        this.initAttrs();
     }
 
-    init () {        
+    initAttrs () {        
         for (let name of Object.keys(this.attrs)) {
             let attr = this.attrs[name];
             if (typeof attr !== 'object') {

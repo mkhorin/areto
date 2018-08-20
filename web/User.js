@@ -26,10 +26,7 @@ module.exports = class User extends Base {
             authTimeout: null, // in seconds (depends on last user activity)
             absoluteAuthTimeout: null // in seconds (depends on last login)
         }, config));
-    }
 
-    init () {
-        super.init();                                                     
         if (!this.UserModel) {
             throw new Error(this.wrapClassMessage('User model is not set'));
         }

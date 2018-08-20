@@ -36,10 +36,7 @@ module.exports = class FilterValidator extends Base {
             skipOnArray: false,
             separator: ','
         }, config));
-    }
 
-    init () {
-        super.init();
         if (this.filter === null) {
             throw new Error(this.wrapClassMessage('Filter property must be set'));
         }

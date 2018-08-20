@@ -47,6 +47,6 @@ module.exports = class IpValidator extends Base {
         if ((new RegExp(this.ip6Pattern)).test(value)) {
             return this.ip6 ? cb() : cb(null, this.getIp6NotAllowedMessage());
         }
-        cb(null, this.message);
+        cb(null, this.getMessage());
     }
 };

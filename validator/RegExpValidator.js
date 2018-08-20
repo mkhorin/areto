@@ -16,10 +16,7 @@ module.exports = class RegExpValidator extends Base {
             pattern: null,
             not: false // not match pattern
         }, config));
-    }
 
-    init () {
-        super.init();
         if (!this.pattern) {
             throw new Error(this.wrapClassMessage('Not set pattern'));
         }

@@ -4,7 +4,8 @@ const Base = require('./Base');
 
 module.exports = class Behavior extends Base {
 
-    init () {
+    constructor (config) {
+        super(config);
         this._handlers = {};
     }
 
