@@ -11,14 +11,13 @@ module.exports = class DefaultValueValidator extends Base {
         }, config));
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         if (!this.isEmptyValue(model.get(attr))) {
-            return cb();
+            return;
         }
         if (typeof this.value === 'function') {
-            return this.value.call(this, model, attr, cb);
+            return this.value.call(this, model, attr);
         }
         model.set(attr, this.value);
-        cb();
     }
 };

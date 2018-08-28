@@ -68,18 +68,18 @@ module.exports = class Event extends Base {
         if (!id || !event || !event[id]) {
             return false;
         }
-        if (handler) {
-            let removed = false;
-            for (let i = event[id].length - 1; i >= 0; --i) {
-                if (event[id][i][0] === handler) {
-                    event[id].splice(i, 1);
-                    removed = true;
-                }
-            }
-            return removed;
+        if (!handler) {
+            delete event[id];
+            return true;
         }
-        delete event[id];
-        return true;
+        let removed = false;
+        for (let i = event[id].length - 1; i >= 0; --i) {
+            if (event[id][i][0] === handler) {
+                event[id].splice(i, 1);
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     static trigger (sender, name, event) {
@@ -94,7 +94,7 @@ module.exports = class Event extends Base {
         while (id) {
             let handlers = this._events[name][id];
             if (handlers) {
-                // trigger can be deleted inside the handler, array will change this._events[name]
+                // trigger can be deleted inside the handler, array will change _events[name]
                 for (let i = handlers.length - 1; i >= 0; --i) {
                     handlers[i][0](event, handlers[i][1]);
                     if (event.handled) {
@@ -107,34 +107,36 @@ module.exports = class Event extends Base {
         }
     }
 
-    static triggerCallback (sender, name, cb, event, tasks) {
+    static async triggerWait (sender, name, event, tasks) {
         if (this._events[name]) {
-            event = this.create(event, sender, name);
-            if (typeof sender !== 'function') {
-                sender = sender.constructor;
-            }
-            let id = sender.CLASS_FILE;
-            if (!id) {
-                return cb(this.wrapClassMessage('Invalid event sender'));
-            }
-            tasks = tasks || [];
-            while (id) {
-                if (this._events[name][id] instanceof Array) {
-                    this._events[name][id].forEach(function (handler) {
-                        tasks.push(function (cb) {
-                            handler[0](cb, event, handler[1]);
-                        });
-                    });
-                }
-                sender = Object.getPrototypeOf(sender); // get parent class
-                id = sender ? sender.CLASS_FILE : null;
+            this.resolveTasks(sender, name, event, tasks);
+        }
+        if (tasks instanceof Array) {
+            for (let task of tasks.reverse()) {
+                await task();
             }
         }
-        (tasks instanceof Array && tasks.length) 
-            ? AsyncHelper.series(tasks.reverse(), cb)
-            : cb();
+    }
+
+    static resolveTasks (sender, name, event, tasks) {
+        event = this.create(event, sender, name);
+        if (typeof sender !== 'function') {
+            sender = sender.constructor;
+        }
+        let id = sender.CLASS_FILE;
+        if (!id) {
+            throw new Error(this.wrapClassMessage('Invalid event sender'));
+        }
+        tasks = tasks || [];
+        while (id) {
+            if (this._events[name][id] instanceof Array) {
+                this._events[name][id].forEach(handler => {
+                    tasks.push(()=> handler[0](event, handler[1]));
+                });
+            }
+            sender = Object.getPrototypeOf(sender); // get parent class
+            id = sender ? sender.CLASS_FILE : null;
+        }
     }
 };
 module.exports._events = {};
-
-const AsyncHelper = require('../helper/AsyncHelper');

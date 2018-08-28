@@ -17,24 +17,19 @@ module.exports = class UrlValidator extends Base {
         return this.createMessage(this.message, 'Invalid url');
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr);
-        this.validateValue(value, (err, message, params)=> {
-            if (err) {
-                return cb(err);
-            }
-            if (message) {
-                this.addError(model, attr, message);
-            } else if (this.defaultScheme !== null && value.indexOf('://') === -1) {
-                model.set(attr, `${this.defaultScheme}://${value}`);
-            }
-            cb();
-        });
+        let message = await this.validateValue(value);
+        if (message) {
+            this.addError(model, attr, message);
+        } else if (this.defaultScheme !== null && value.indexOf('://') === -1) {
+            model.set(attr, `${this.defaultScheme}://${value}`);
+        }
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (typeof value !== 'string' || value.length > this.maxLength) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if (this.defaultScheme !== null && value.indexOf('://') === -1) {
             value = `${this.defaultScheme}://${value}`;
@@ -43,6 +38,7 @@ module.exports = class UrlValidator extends Base {
         if (pattern.indexOf('{schemes}') !== -1) {
             pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
         }
-        cb(null, (new RegExp(pattern, 'i')).test(value) ? null : this.getMessage());
+        return (new RegExp(pattern, 'i')).test(value)
+            ? null : this.getMessage();
     }
 };

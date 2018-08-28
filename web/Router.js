@@ -15,7 +15,9 @@ module.exports = class Router extends Base {
 
     attachDefault (Controller) {
         if (Controller === undefined) {
-            Controller = this.module.getDefaultController();
+            try {
+                Controller = this.module.getDefaultController();
+            } catch (err) {}
         }
         if (Controller && Controller.DEFAULT_ACTION) {
             let controller = new Controller;
@@ -27,11 +29,14 @@ module.exports = class Router extends Base {
     }
 
     attachDir (dir) {
+        let files = [];
         try {
-            fs.readdirSync(dir).forEach(file => {
-                this.attachFile(path.join(dir, file));
-            });
-        } catch (err) {}
+            files = fs.readdirSync(dir);
+        } catch (err) {
+        }
+        for (let file of files) {
+            this.attachFile(path.join(dir, file));
+        }
     }
 
     attachFile (file) {
@@ -39,11 +44,7 @@ module.exports = class Router extends Base {
         if (stat.isDirectory()) {
             return this.attachDir(file);
         }
-        try {
-            this.attach(require(file));
-        } catch (err) {
-            this.log('error', file, err);
-        }
+        this.attach(require(file));
     }
 
     attach (Controller) {
@@ -59,8 +60,8 @@ module.exports = class Router extends Base {
 
     attachAction (id, controller, route) {       
         let action = function (req, res, next) {
-            (new controller.constructor).assign(req, res, next).execute(id);
-        };        
+            (new controller.constructor).assign(req, res).execute(id).catch(next);
+        };
         let methods = controller.METHODS[id] || ['all'];
         if (!(methods instanceof Array)) {
             methods = [methods];
@@ -75,12 +76,16 @@ module.exports = class Router extends Base {
             next(new NotFoundHttpException());
         });
         let Controller = config.Controller || this.module.getDefaultController();
-        this.module.appendToExpress('use', function handleError (err, req, res, next) {
-            err = err instanceof HttpException ? err : new ServerErrorHttpException(err);
+        this.module.appendToExpress('use', function (err, req, res, next) {
+            if (!(err instanceof HttpException)) {
+                err =  new ServerErrorHttpException(err);
+            }
             err.setParams(req, res);
-            Controller 
-                ? (new Controller).assign(req, res, next, err).execute(config.action || 'error')
-                : next(err);
+            if (!Controller) {
+                return next(err);
+            }
+            let action = config.action || 'error';
+            (new Controller).assign(req, res, err).execute(action).catch(next);
         });
     }
 };

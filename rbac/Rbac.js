@@ -22,29 +22,30 @@ module.exports = class Rbac extends Base {
         });
     }
 
-    configure (cb) {
-        setImmediate(this.load.bind(this, cb));
+    async init () {
+        await PromiseHelper.setImmediate();
+        await this.load();
     }
 
-    load (cb) {
-        if (this.loading) {
-            return cb(null, this.wrapClassMessage('Loading in progress'));
+    async load () {
+        if (this._loading) {
+            throw new Error(this.wrapClassMessage('Loading in progress'));
         }
-        this.loading = true;
-        this.store.load((err, data)=> {
-            this.loading = false;
-            if (err) {
-                this.log('error', this.wrapClassMessage('load:'), err);
-                return cb(err);
-            }
+        try {
+            this._loading = true;
+            let data = await this.store.load();
+            this._loading = false;
             this.build(data);
-            this.afterLoad();
-            setImmediate(cb);
-        });
+            await this.afterLoad();
+            await PromiseHelper.setImmediate();
+        } catch (err) {
+            this._loading = false;
+            throw err;
+        }
     }
 
     afterLoad () {
-        this.trigger(this.EVENT_AFTER_LOAD);
+        return this.triggerWait(this.EVENT_AFTER_LOAD);
     }
 
     build (data) {
@@ -77,17 +78,18 @@ module.exports = class Rbac extends Base {
     }
 
     resolveItemLinks (item) {
-        if (item.children instanceof Array) {
-            let children = [];
-            for (let id of item.children) {
-                if (!(this.itemMap[id] instanceof this.Item)) {
-                    throw new Error(this.wrapClassMessage(`Unknown child: ${id}`));
-                }
-                children.push(this.itemMap[id]);
-                this.itemMap[id].addParent(item);
-            }
-            item.children = children;
+        if (!(item.children instanceof Array)) {
+            return;
         }
+        let children = [];
+        for (let id of item.children) {
+            if (!(this.itemMap[id] instanceof this.Item)) {
+                throw new Error(this.wrapClassMessage(`Unknown child: ${id}`));
+            }
+            children.push(this.itemMap[id]);
+            this.itemMap[id].addParent(item);
+        }
+        item.children = children;
     }
 
     findUserModel (name) {
@@ -100,35 +102,38 @@ module.exports = class Rbac extends Base {
             : null;
     }
 
-    can (assignments, itemId, cb, params) {
-        if (this.loading || !Object.prototype.hasOwnProperty.call(this.itemMap, itemId)
-            || !assignments || assignments.length === 0) {
-            return cb();
+    async can (assignments, itemId, params) {
+        if (this._loading
+            || !Object.prototype.hasOwnProperty.call(this.itemMap, itemId)
+            || !assignments
+            || !assignments.length) {
+            return false;
         }
         let inspector = new this.Inspector({params});
-        AsyncHelper.someSeries(assignments, (assignment, cb)=> {
-            if (!Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
-                return cb();
+        for (let assignment of assignments) {
+            if (Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
+                inspector.assignment = this.itemMap[assignment];
+                if (await inspector.execute(this.itemMap[itemId])) {
+                    return true;
+                }
             }
-            inspector.assignment = this.itemMap[assignment];
-            inspector.execute(this.itemMap[itemId], cb);
-        }, cb);
+        }
     }
 
     // CREATE
 
-    createByData (data, cb) {
-        data ? AsyncHelper.series([
-            cb => this.store.createRules(data.rules, cb),
-            cb => this.store.createItems(data.items, cb),
-            cb => this.store.createPermissionItems(data.permissions, cb),
-            cb => this.store.createRoleItems(data.roles, cb),
-            cb => this.store.createRouteItems(data.routes, cb),
-            cb => this.store.createAssignments(data.assignments, cb)
-        ], cb) : cb();
+    async createByData (data) {
+        if (data) {
+            await this.store.createRules(data.rules);
+            await this.store.createItems(data.items);
+            await this.store.createPermissionItems(data.permissions);
+            await this.store.createRoleItems(data.roles);
+            await this.store.createRouteItems(data.routes);
+            await this.store.createAssignments(data.assignments);
+        }
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ClassHelper = require('../helper/ClassHelper');
+const PromiseHelper = require('../helper/PromiseHelper');

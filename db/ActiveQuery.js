@@ -37,28 +37,34 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    execAfterPrepare (cb) {        
-        AsyncHelper.eachSeries(this._afterPrepareHandlers, (handler, cb)=> handler(cb, this), cb);
-    }
-
-    prepare (cb) {
-        if (!this.primaryModel) {
-            this.execAfterPrepare(cb);
-        } else if (this._viaArray) { // lazy loading of a relation
-            this.prepareViaArray(cb);
-        } else if (this._viaTable) {
-            this.prepareViaTable(cb); // via junction table
-        } else if (this._viaRelation) {
-            this._viaRelation._multiple
-                ? this.prepareViaRelationMultiple(cb)
-                : this.prepareViaRelation(cb);
-        } else {
-            this.prepareFilter([this.primaryModel]);
-            this.execAfterPrepare(cb);
+    async execAfterPrepare () {
+        if (this._afterPrepareHandlers instanceof Array) {
+            for (let handler of this._afterPrepareHandlers) {
+                await handler(this);
+            }
         }
     }
 
-    prepareViaArray (cb) {
+    prepare () {
+        if (!this.primaryModel) {
+            return this.execAfterPrepare();
+        }
+        if (this._viaArray) { // lazy loading of a relation
+            return this.prepareViaArray();
+        }
+        if (this._viaTable) {
+            return this.prepareViaTable(); // via junction table
+        }
+        if (this._viaRelation) {
+            return this._viaRelation._multiple
+                ? this.prepareViaRelationMultiple()
+                : this.prepareViaRelation();
+        }
+        this.prepareFilter([this.primaryModel]);
+        return this.execAfterPrepare();
+    }
+
+    prepareViaArray () {
         let val = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
         if (val === undefined || val === null || val instanceof Array) {
@@ -69,39 +75,27 @@ module.exports = class ActiveQuery extends Base {
         } else { // back ref to array
             this.and({[this.refKey]: val});
         }
-        this.execAfterPrepare(cb);
+        return this.execAfterPrepare();
     }
 
-    prepareViaTable (cb) {
-        AsyncHelper.waterfall([
-            cb => this._viaTable.findJunctionRows([this.primaryModel], cb),
-            (viaModels, cb)=> {
-                this.prepareFilter(viaModels);
-                this.execAfterPrepare(cb);
-            }
-        ], cb);
+    async prepareViaTable () {
+        let viaModels = await this._viaTable.findJunctionRows([this.primaryModel]);
+        this.prepareFilter(viaModels);
+        await this.execAfterPrepare();
     }
 
-    prepareViaRelationMultiple (cb) {
-        AsyncHelper.waterfall([
-            cb => this._viaRelation.all(cb),
-            (models, cb)=> {
-                this.primaryModel.populateRelation(this._viaRelationName, models);
-                this.prepareFilter(models);
-                this.execAfterPrepare(cb);
-            }
-        ], cb);
+    async prepareViaRelationMultiple () {
+        let models = await this._viaRelation.all();
+        this.primaryModel.populateRelation(this._viaRelationName, models);
+        this.prepareFilter(models);
+        await this.execAfterPrepare();
     }
 
-    prepareViaRelation (cb) {
-        AsyncHelper.waterfall([
-            cb => this._viaRelation.one(cb),
-            (model, cb)=> {
-                this.primaryModel.populateRelation(this._viaRelationName, model);
-                this.prepareFilter(model ? [model] : []);
-                this.execAfterPrepare(cb);
-            }
-        ], cb);
+    async prepareViaRelation () {
+        let model = await this._viaRelation.one();
+        this.primaryModel.populateRelation(this._viaRelationName, model);
+        this.prepareFilter(model ? [model] : []);
+        await this.execAfterPrepare();
     }
 
     prepareFilter (models) {
@@ -210,79 +204,66 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    findWith (relations, models, cb) {
+    async findWith (relations, models) {
         let primaryModel = new this.model.constructor;
         relations = QueryHelper.normalizeRelations(primaryModel, relations);
-        AsyncHelper.eachOfSeries(relations, (relation, name, cb)=> {
+        for (let name of Object.keys(relations)) {
+            let relation = relations[name];
             if (relation._asRaw === null) { // relation is ActiveQuery
                 relation._asRaw = this._asRaw; // inherit from primary query
             }
-            relation.populateRelation(name, models, cb);
-        }, err => cb(err, models));
+            await relation.populateRelation(name, models);
+        }
+        return models;
     }
 
-    findFor (cb) {
-        this._multiple ? this.all(cb) : this.one(cb);
+    findFor () {
+        return this._multiple ? this.all() : this.one();
     }
 
     // POPULATE
 
-    populate (docs, cb) {
+    async populate (docs) {
         if (this._asRaw) {
-            return super.populate(docs, cb);
+            return super.populate(docs);
         }
         let models = [];
-        AsyncHelper.eachSeries(docs, (doc, cb)=> {
+        for (let doc of docs) {
             let model = new this.model.constructor;
             model.populateRecord(doc);
             models.push(model);
-            model.afterFind(cb);
-        }, err => {
-            err ? cb(err) : this.populateWith(models, cb);
-        });
-    }
-
-    populateWith (models, cb) {
-        if (!models.length || !Object.values(this._with).length) {
-            models = this._index ? QueryHelper.indexModels(models, this._index) : models;
-            return cb(null, models);
+            await model.afterFind();
         }
-        this.findWith(this._with, models, err => {
-            models = this._index ? QueryHelper.indexModels(models, this._index) : models;
-            cb(err, models);
-        });
+        return this.populateWith(models);
     }
 
-    populateRelation (name, primaryModels, cb) {
-        this.populateViaRelation(primaryModels, (err, viaModels, viaQuery)=> {
-            if (err) {
-                return cb(err);
-            } 
-            if (!this._multiple && primaryModels.length === 1) {
-                return this.one((err, model)=> {
-                    if (err) {
-                        cb(err);
-                    } else if (model) {
-                        this.populateOneRelation(name, model, primaryModels);
-                        cb(null, [model]);
-                    } else {
-                        cb(null, []);
-                    }
-                });
+    async populateWith (models) {
+        if (models.length && Object.values(this._with).length) {
+            await this.findWith(this._with, models);
+        }
+        return this._index
+            ? QueryHelper.indexModels(models, this._index)
+            : models;
+    }
+
+    async populateRelation (name, primaryModels) {
+        let [viaModels, viaQuery] = await this.populateViaRelation(primaryModels);
+        if (!this._multiple && primaryModels.length === 1) {
+            let model = await this.one();
+            if (!model) {
+                return [];
             }
-            let index = this._index;
-            this._index = null;
-            this.all((err, models)=> {
-                if (err) {
-                    return cb(err);
-                }
-                let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
-                this._index = index;
-                let key = viaQuery ? viaQuery.linkKey : this.linkKey;
-                this.populateMultipleRelation(name, primaryModels, buckets, key);
-                cb(null, models);
-            });
-        });
+            this.populateOneRelation(name, model, primaryModels);
+            return [model];
+        }
+        let index = this._index;
+        this._index = null;
+        let models = await this.all();
+        let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
+        this._index = index;
+        let key = viaQuery ? viaQuery.linkKey : this.linkKey;
+        this.populateMultipleRelation(name, primaryModels, buckets, key);
+        return models;
     }
 
     populateOneRelation (name, model, primaryModels) {
@@ -321,25 +302,22 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    populateViaRelation (primaryModels, cb) {
+    async populateViaRelation (viaModels) {
+        let viaQuery;
         if (this._viaTable) {
-            this._viaTable.findJunctionRows(primaryModels, (err, viaModels)=> {
-                this.prepareFilter(viaModels);
-                cb(err, viaModels, this._viaTable);
-            });
-        } else if (this._viaRelation) {
+            viaQuery = this._viaTable;
+            viaModels = await viaQuery.findJunctionRows(viaModels);
+        }
+        if (this._viaRelation) {
             if (this._viaRelation._asRaw === null) {
                 this._viaRelation._asRaw = this._asRaw; // inherit from primary query
             }
             this._viaRelation.primaryModel = null;
-            this._viaRelation.populateRelation(this._viaRelationName, primaryModels, (err, viaModels)=> {
-                this.prepareFilter(viaModels);
-                cb(err, viaModels, this._viaRelation);
-            });
-        } else {
-            this.prepareFilter(primaryModels);
-            setImmediate(cb);
+            viaQuery = this._viaRelation;
+            viaModels = await viaQuery.populateRelation(this._viaRelationName, viaModels);
         }
+        this.prepareFilter(viaModels);
+        return [viaModels, viaQuery];
     }
 
     // BUCKETS
@@ -416,16 +394,15 @@ module.exports = class ActiveQuery extends Base {
         this.and(['IN', this.refKey, values]);
     }
 
-    findJunctionRows (primaryModels, cb) {
+    findJunctionRows (primaryModels) {
         if (!primaryModels.length) {
-            return cb(null, []);
+            return [];
         }
         this.filterByModels(primaryModels);
-        this.asRaw().all(cb);
+        return this.asRaw().all();
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const QueryHelper = require('../helper/QueryHelper');
 const ActiveRecord = require('./ActiveRecord');

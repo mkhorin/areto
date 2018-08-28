@@ -26,19 +26,15 @@ module.exports = class ExistValidator extends Base {
         return this.createMessage(this.message, 'Value does not exist');
     }
 
-    validateAttr (model, attr, cb) {
-        AsyncHelper.waterfall([
-            cb => this.resolveValues(model, attr, cb),
-            (values, cb)=> this.createQuery(values, model, attr, cb),
-            (query, cb)=> query.count(cb),
-            (counter, cb)=> {
-                !counter && this.addError(model, attr, this.getMessage());
-                cb();
-            }
-        ], cb);
+    async validateAttr (model, attr) {
+        let values = this.resolveValues(model, attr);
+        let query = this.createQuery(values, model, attr);
+        if (!await query.count()) {
+            this.addError(model, attr, this.getMessage());
+        }
     }
 
-    resolveValues (model, attr, cb) {
+    resolveValues (model, attr) {
         let values = {};
         let targetAttr = this.targetAttr || attr;
         if (targetAttr instanceof Array) {
@@ -48,10 +44,10 @@ module.exports = class ExistValidator extends Base {
         } else {
             values[targetAttr] = model.get(attr);
         }
-        cb(null, values);
+        return values;
     }
 
-    createQuery (values, model, attr, cb) {
+    createQuery (values, model, attr) {
         let query = (this.targetClass || model.constructor).find();
         if (this.ignoreCase) {
             for (let name of Object.keys(values)) {
@@ -65,8 +61,6 @@ module.exports = class ExistValidator extends Base {
         } else if (this.filter) {
             query.and(this.filter);
         }
-        cb(null, query);
+        return query;
     }
 };
-
-const AsyncHelper = require('../helper/AsyncHelper');

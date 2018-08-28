@@ -15,54 +15,42 @@ module.exports = class OrderBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 
-    beforeInsert (cb, event) {
-        if (!CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
-            return cb();
+    async beforeInsert (event) {
+        if (CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
+            this.owner.set(this.orderAttr, await this.findNextOrder());
         }
-        AsyncHelper.waterfall([
-            this.findNextOrder.bind(this),
-            (order, cb)=> {
-                this.owner.set(this.orderAttr, order);
-                cb();
-            }
-        ], cb);
     }
 
-    findNextOrder (cb) {
-        AsyncHelper.waterfall([
-            cb => {
-                let query = this.owner.constructor.find();
-                if (this.filter instanceof Function) {
-                    this.filter(query, this.owner);
-                } else if (typeof this.filter === 'string') {
-                    query.and({[this.filter]: this.owner.get(this.filter)});
-                }
-                query.order({[this.orderAttr]: this.step > 0 ? -1 : 1});
-                query.scalar(this.orderAttr, cb);
-            },
-            (last, cb)=> {
-                cb(null, CommonHelper.isEmpty(last)
-                    ? this.start
-                    : (parseInt(last) + this.step));
-            }
-        ], cb);
+    async findNextOrder () {
+        let query = this.owner.constructor.find();
+        if (this.filter instanceof Function) {
+            this.filter(query, this.owner);
+        } else if (typeof this.filter === 'string') {
+            query.and({[this.filter]: this.owner.get(this.filter)});
+        }
+        query.order({
+            [this.orderAttr]: this.step > 0 ? -1 : 1
+        });
+        let last = await query.scalar(this.orderAttr);
+        return CommonHelper.isEmpty(last)
+            ? this.start
+            : (parseInt(last) + this.step);
     }
 
-    updateAllByIds (ids, cb) {
+    async updateAllByIds (ids) {
+        if (!(ids instanceof Array)) {
+            return;
+        }
+        let map = await this.owner.findById(ids).index(this.owner.PK).all();
         let index = 0;
-        AsyncHelper.waterfall([
-            cb => this.owner.findById(ids).index(this.owner.PK).all(cb),
-            (map, cb)=> AsyncHelper.eachSeries(ids, (id, cb)=> {
-                if (!(map[id] instanceof this.owner.constructor)) {
-                    return cb();
-                }
+        for (let id of ids) {
+            if (map[id] instanceof this.owner.constructor) {
                 map[id].set(this.orderAttr, ++index * this.step);
-                map[id].forceSave(cb);
-            }, cb)
-        ], cb);
+                await map[id].forceSave();
+            }
+        }
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const ActiveRecord = require('../db/ActiveRecord');

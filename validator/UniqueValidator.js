@@ -8,19 +8,14 @@ module.exports = class UniqueValidator extends Base {
         return this.createMessage(this.message, 'Value has already been taken');
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let targetClass = this.targetClass || model.constructor;
-        AsyncHelper.waterfall([
-            cb => this.resolveValues(model, attr, cb),
-            (values, cb)=> this.createQuery(values, model, attr, cb),
-            (query, cb)=> query.limit(2).column(targetClass.PK, cb),
-            (ids, cb)=> {
-                if (this.checkExist(ids, model, targetClass)) {
-                    this.addError(model, attr, this.getMessage());
-                }
-                cb();
-            }
-        ], cb);
+        let values = this.resolveValues(model, attr);
+        let query = this.createQuery(values, model, attr);
+        let ids = await query.limit(2).column(targetClass.PK);
+        if (this.checkExist(ids, model, targetClass)) {
+            this.addError(model, attr, this.getMessage());
+        }
     }
 
     checkExist (ids, model, targetClass) {
@@ -35,5 +30,4 @@ module.exports = class UniqueValidator extends Base {
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const MongoHelper = require('../helper/MongoHelper');

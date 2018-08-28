@@ -9,6 +9,10 @@ module.exports = class MongoHelper {
     static isValidId (id) {
         return ObjectID.isValid(id);
     }
+
+    static createObjectId () {
+        return new ObjectID;
+    }
     
     static isEqual (id1, id2) {
         if (id1 instanceof ObjectID) {
@@ -24,7 +28,7 @@ module.exports = class MongoHelper {
         if (!(values instanceof Array)) {
             return -1;
         }
-        if (!(id instanceof ObjectId)) {
+        if (!(id instanceof ObjectID)) {
             return values.indexOf(id);
         }
         for (let i = 0; i < values.length; ++i) {
@@ -46,7 +50,7 @@ module.exports = class MongoHelper {
     static uniqueStrict (target, excluded) {
         return ArrayHelper.uniqueStrict(target, excluded, this.indexOf);
     }
-    
+
     static replaceMongoDataToJson (data) {
         data = data || {};
         for (let key of Object.keys(data)) {

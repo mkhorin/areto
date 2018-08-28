@@ -19,10 +19,8 @@ module.exports = class DbLogStore extends Base {
     }
 
     save (type, message, data) {
-        this.find().insert(this.format(type, message, data), err => {
-            if (err) {
-                console.error(this.wrapClassMessage('save'), err);
-            }
+        this.find().insert(this.format(type, message, data)).catch(err => {    
+            console.error(this.wrapClassMessage('save'), err);
         });
     }
 
@@ -41,27 +39,22 @@ module.exports = class DbLogStore extends Base {
     }
 
     observe () {
-        setTimeout(()=> {
-            this.truncate(err => {
-                err ? this.log('error', 'truncate', err)
-                    : this.observe();
-            });
+        setTimeout(async ()=> {            
+            try {
+                await this.truncate();
+                this.observe();
+            } catch (err) {
+                this.log('error', 'truncate', err);
+            }
         }, this.observePeriod * 1000);
     }
 
-    truncate (cb) {
-        AsyncHelper.waterfall([
-            cb => this.find().count(cb),
-            (counter, cb)=> {
-                if (counter < this.maxRows + this.maxRows / 2) {
-                    return cb();
-                }
-                AsyncHelper.waterfall([
-                    cb => this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key, cb),
-                    (id, cb)=> this.find(['<', this.key, id]).remove(cb)
-                ], cb);
-            },
-        ], cb);
+    async truncate () {
+        let counter = await this.find().count();
+        if (counter >= this.maxRows + this.maxRows / 2) {
+            let id = await this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
+            await this.find(['<', this.key, id]).remove();
+        }                    
     }
 
     find () {
@@ -69,6 +62,5 @@ module.exports = class DbLogStore extends Base {
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const Exception = require('../error/Exception');
 const Query = require('../db/Query');

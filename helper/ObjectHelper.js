@@ -36,20 +36,20 @@ module.exports = class ObjectHelper {
             return map[key];
         }
         let index = key.indexOf('.');
-        if (index > 0) {
-            let targetKey = key.substring(0, index);
-            if (Object.prototype.hasOwnProperty.call(map, targetKey)) {
-                key = key.substring(index + 1);
-                map = map[targetKey];
-                if (map instanceof Array) {
-                    return map.map(item => this.getNestedValue(key, item, defaults));
-                }
-                if (map) {
-                    return this.getNestedValue(key, map, defaults);
-                }
-            }
+        if (index < 1) {
+            return defaults;
         }
-        return defaults;
+        let targetKey = key.substring(0, index);
+        if (!Object.prototype.hasOwnProperty.call(map, targetKey)) {
+            return defaults;
+        }
+        key = key.substring(index + 1);
+        map = map[targetKey];
+        if (map instanceof Array) {
+            return map.map(item => this.getNestedValue(key, item, defaults));
+        }
+        return map ? this.getNestedValue(key, map, defaults)
+                   : defaults;
     }
 
     static getAllPropNames (map) {

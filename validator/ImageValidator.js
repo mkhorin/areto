@@ -37,50 +37,46 @@ module.exports = class ImageValidator extends Base {
         });
     }
 
-    validateValue (file, cb) {
-       super.validateValue(file, (err, message, params)=> {
-           err ? cb(err) 
-               : message ? cb(err, message, params) 
-                         : this.validateImage(file, cb);
-       });
+    async validateValue (file) {
+        return await super.validateValue(file) || await this.validateImage(file);
     }
 
-    validateImage (file, cb) {
+    async validateImage (file) {
         let image = gm(file.path);
-        image.size((err, size)=> {
-            if (err) {
-                return cb(null, this.getNotImageMessage());
-            } 
+        try {
+            let size = await PromiseHelper.promise(image.size.bind(image));
             if (this.minHeight && size.height < this.minHeight) {
-                return cb(null, this.getUnderHeightMessage());
+                return this.getUnderHeightMessage();
             }
             if (this.minWidth && size.width < this.minWidth) {
-                return cb(null, this.getUnderWidthMessage());
+                return this.getUnderWidthMessage();
             }
             if (this.maxHeight && size.height > this.maxHeight) {
-                return cb(null, this.getOverHeightMessage());
+                return this.getOverHeightMessage();
             }
             if (this.maxWidth && size.width > this.maxWidth) {
-                return cb(null, this.getOverWidthMessage());
+                return this.getOverWidthMessage();
             }
-            cb();
-        });
+        } catch (err) {
+            return this.getNotImageMessage();
+        }
     }
 
     getParams () {
         return Object.assign(super.getParams(), {
-            imageOnly: true,
-            maxHeight: this.maxHeight,
-            maxWidth: this.maxWidth,
-            minHeight: this.minHeight,
-            minWidth: this.minWidth,
-            notImage: this.notImage,
-            overHeight: this.overHeight,
-            overWidth: this.overWidth,
-            underHeight: this.underHeight,
-            underWidth: this.underWidth
+            'imageOnly': true,
+            'maxHeight': this.maxHeight,
+            'maxWidth': this.maxWidth,
+            'minHeight': this.minHeight,
+            'minWidth': this.minWidth,
+            'notImage': this.notImage,
+            'overHeight': this.overHeight,
+            'overWidth': this.overWidth,
+            'underHeight': this.underHeight,
+            'underWidth': this.underWidth
         });
     }
 };
 
 const gm = require('gm');
+const PromiseHelper = require('../helper/PromiseHelper');

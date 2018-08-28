@@ -9,37 +9,38 @@ module.exports = class Inspector extends Base {
         this._ruleCache = {};
     }
 
-    execute (item, cb) {
-        if (!item.rule) {
-            return this.checkItem(item, cb);
+    async execute (item) {
+        if (!item.rule || await this.checkRule(item.rule)) {
+            return this.checkItem(item);
         }
-        this.checkRule(item.rule, (err, allowed)=> {
-            err ? cb(err) : allowed ? this.checkItem(item, cb) : cb();
-        });
     }
 
-    checkItem (item, cb) {
+    async checkItem (item) {
         if (item === this.assignment) {
-            return cb(null, true);
+            return true;
         }
-        if (!item.parents || !item.parents.length) {
-            return cb();
+        if (item.parents && item.parents.length) {
+            for (let parentItem of item.parents) {
+                if (await this.execute(parentItem)) {
+                    return true;
+                }
+            }
         }
-        AsyncHelper.someSeries(item.parents, this.execute.bind(this), cb);
     }
 
-    checkRule (rule, cb) {
+    async checkRule (rule) {
         if (Object.prototype.hasOwnProperty.call(this._ruleCache, rule.name)) {
-            return cb(null, this._ruleCache[rule.name]);
+            return this._ruleCache[rule.name];
         }
         let model = new rule.Class(rule);
-        model.params = rule.params ? Object.assign({}, rule.params, this.params) : this.params;
-        model.execute((err, passed)=> {
-            if (rule.name) {
-                this._ruleCache[rule.name] = !!passed;
-            }
-            cb(err, passed);
-        });
+        model.params = rule.params
+            ? Object.assign({}, rule.params, this.params)
+            : this.params;
+        let passed = await model.execute();
+        if (rule.name) {
+            this._ruleCache[rule.name] = !!passed;
+        }
+        return passed;
     }
 
     getCachedRule (name) {
@@ -47,5 +48,4 @@ module.exports = class Inspector extends Base {
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const Rule = require('./Rule');

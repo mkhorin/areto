@@ -15,18 +15,17 @@ module.exports = class TimestampBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
-    beforeInsert (cb, event) {
+    beforeInsert (event) {
         if (this.createdAttr) {
             this.owner.set(this.createdAttr, this.formatDate());
         }
-        this.beforeUpdate(cb, event);
+        this.beforeUpdate(event);
     }
 
-    beforeUpdate (cb, event) {
+    beforeUpdate (event) {
         if (this.updatedAttr) {
             this.owner.set(this.updatedAttr, this.formatDate());
         }
-        cb();
     }
 
     formatDate () {

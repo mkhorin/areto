@@ -9,11 +9,11 @@ module.exports = class Migration extends Base {
         this.db = this.db || this.module.getDb();
     }
 
-    apply (cb) {
-        cb(); // apply this migration
+    apply () {
+        throw new Error('Need to override');
     }
 
-    revert (cb) {
-        cb(null, false); // false - migration cant be reverted
+    revert () {
+        throw new Error('Need to override');
     }
 };

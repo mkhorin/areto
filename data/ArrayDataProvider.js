@@ -4,11 +4,11 @@ const Base = require('./DataProvider');
 
 module.exports = class ArrayDataProvider extends Base {
 
-    prepareTotalCount (cb) {        
-        cb(null, this.allModels ? this.allModels.length : 0);
+    prepareTotalCount () {
+        return this.allModels ? this.allModels.length : 0;
     }
     
-    prepareModels (cb) {
+    prepareModels () {
         let models = this.allModels || [];
         if (this.sort) {
             models = this.sortModels(models, this.sort);
@@ -20,12 +20,12 @@ module.exports = class ArrayDataProvider extends Base {
                 models = models.slice(offset, offset + this.pagination.getLimit());
             }
         }        
-        cb(null, models);
-    }
+        return models;
+    }    
 
     sortModels (models, sort) {
         let Sort = require('./Sort');
-        let orders = sort.getOrders();
+        let orders = sort.getOrders();        
         if (orders) {
             let directions = {};
             for (let attr of Object.keys(orders)) {

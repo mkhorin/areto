@@ -4,25 +4,15 @@ const Base = require('./Rbac');
 
 module.exports = class RouteRbac extends Base {
 
-    configure (cb) {
-        AsyncHelper.series([
-            cb => setImmediate(cb),
-            cb => this.load(cb),
-            cb => {
-                this.useHandler();
-                cb();
-            }
-        ], cb);
+    async init () {
+        await PromiseHelper.setImmediate();
+        await this.load();
+        this.module.appendToExpress('use', this.handleRoute.bind(this));
     }
 
-    load (cb) {
-        AsyncHelper.series([
-            cb => super.load(cb),
-            cb => {
-                this.indexRoutes();
-                cb();
-            }
-        ], cb);
+    async load () {
+        await super.load();
+        this.indexRoutes();
     }
 
     indexRoutes () {
@@ -34,20 +24,19 @@ module.exports = class RouteRbac extends Base {
         }
     }
 
-    useHandler (module) {
-        module.appendToExpress('use', (req, res, next)=> {
-            let user = res.locals.user;
-            let item = this.getRouteItemByPath(req.path);
-            if (!item || !user) {
-                return next();
-            }
-            if (user.isGuest()) {
-                return user.loginRequired();
-            }
-            user.can(item.name, (err, access)=> {
-                err ? next(new ServerErrorException(err))
-                    : access ? next() : next(new ForbiddenException);
-            }, req.query);
+    handleRoute (req, res, next) {
+        let user = res.locals.user;
+        let item = this.getRouteItemByPath(req.path);
+        if (!item || !user) {
+            return next();
+        }
+        if (user.isGuest()) {
+            return user.loginRequired();
+        }        
+        user.can(item.name, req.query).then(access => {
+            access ? next() : next(new ForbiddenException)
+        }).catch(err => {
+            next(new ServerErrorException(err));
         });
     }
 
@@ -64,6 +53,6 @@ module.exports = class RouteRbac extends Base {
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
+const PromiseHelper = require('../helper/PromiseHelper');
 const ServerErrorException = require('../error/ServerErrorHttpException');
 const ForbiddenException = require('../error/ForbiddenHttpException');

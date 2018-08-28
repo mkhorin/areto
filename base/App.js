@@ -21,18 +21,15 @@ module.exports = class App extends Base {
         super(config);
         this._urlCache = {};
         this._baseExpress = express();
-
     }
 
-    configure (configName, cb) {
-        super.configure(configName, err => {
-            if (err) {
-                console.error(`App: ${this.NAME}:`, err);
-                return cb(err);
-            }
-            this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
-            setImmediate(cb);
-        });
+    setParent () {
+        this.app = this;
+    }
+
+    async init (configName) {
+        await super.init(configName);
+        this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
     }
 
     getRoute (url) {
@@ -42,9 +39,9 @@ module.exports = class App extends Base {
         return url ? `${this._route}/${url}` : this._route;
     }
 
-    start (cb) {
+    start () {
         this.assignExpressQueue();
-        this.createServer(cb);
+        return this.createServer();
     }
 
     useBaseExpressHandler () {
@@ -56,14 +53,16 @@ module.exports = class App extends Base {
         this._baseExpress.use(this.mountPath, this._express);
     }
 
-    createServer (cb) {
-        this.server = http.createServer(this._baseExpress).on('error', err => {
-            this.log('error', 'Server error', err);
-            cb(err);
-        }).listen(this.config.port, ()=> {
-            this.log('info', `Mounted as ${this.mountPath}`);
-            this.log('info', `Started as ${this.configName}`, this.server.address());
-            this.afterStart(cb);
+    createServer () {
+        return new Promise((resolve, reject)=> {
+            this.server = http.createServer(this._baseExpress).on('error', err => {
+                this.log('error', 'Server error', err);
+                reject(err);
+            }).listen(this.config.port, ()=> {
+                this.log('info', `Mounted as ${this.mountPath}`);
+                this.log('info', `Started as ${this.configName}`, this.server.address());
+                this.afterStart().then(resolve);
+            });
         });
     }
 
@@ -77,43 +76,34 @@ module.exports = class App extends Base {
 
     // EVENTS
 
-    afterStart (cb) {
-        this.triggerCallback(this.EVENT_AFTER_START, cb);
+    afterStart () {
+        return this.triggerWait(this.EVENT_AFTER_START);
     }
 
     // MIGRATION
-    // node bin/migrate.js --action apply --classes migrations/MigrationClass
+    // node bin/migrate.js --action apply --file migrations/MigrationClass
 
-    migrate (action, fileNames, cb) {
+    async migrate (action, files) {
         if (action !== 'apply' && action !== 'revert') {
-            this.log('error', `Migration action (apply or revert) is not set: ${action}`);
-            return cb(true);
+            throw new Error(`Migration action (apply or revert) is not set: ${action}`);
         }
-        if (!(fileNames instanceof Array)) {
-            fileNames = [fileNames];
+        if (!(files instanceof Array)) {
+            return this.createMigration(files, action);
         }
-        AsyncHelper.eachSeries(fileNames, (fileName, cb)=> {
-            this.log('info', `Start to ${action} ${fileName}`);
-            this.migrateFile(fileName, action, err => {
-                err ? this.log('error', `Failed: ${fileName}`, err)
-                    : this.log('info', `Done: ${fileName}`);
-                cb(err);
-            });
-        }, cb);
+        for (let file of files) {
+            await this.createMigration(file, action);
+        }
     }
 
-    migrateFile (fileName, action, cb) {
-        try {
-            let Migration = require(this.getPath(fileName));
-            let migration = new Migration;
-            migration[action](cb);
-        } catch (err) {
-            cb(err);
-        }
+    async createMigration (file, action) {
+        this.log('info', `Start to ${action} ${file}`);
+        let Migration = require(this.getPath(file));
+        let migration = new Migration;
+        await migration[action]();
+        this.log('info', `Done: ${file}`);
     }
 };
 module.exports.init();
 
 const express = require('express');
 const http = require('http');
-const AsyncHelper = require('../helper/AsyncHelper');

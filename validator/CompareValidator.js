@@ -33,7 +33,7 @@ module.exports = class CompareValidator extends Base {
         return this.createMessage(this.invalidValue, 'Invalid value');
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr), compareAttr, compareValue;
         if (value instanceof Array) {
             this.addError(model, attr, this.getInvalidValueMessage());
@@ -46,20 +46,18 @@ module.exports = class CompareValidator extends Base {
         if (!this.compareValues(this.operator, this.type, value, compareValue)) {
             this.addError(model, attr, this.getMessage({compareAttr, compareValue}));
         }
-        cb();
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (this.compareValue === null) {
-            return cb(this.wrapClassMessage('Value must be set'));
+            throw new Error('Value must be set');
         }
         if (this.compareValues(this.operator, this.type, value, this.compareValue)) {
-            return cb(null, this.getMessage({
+            return this.getMessage({
                 compareAttr: this.compareAttr,
                 compareValue: this.compareValue
-            }));
+            });
         }
-        cb();
     }
 
     compareValues (operator, type, value, compareValue) {

@@ -21,7 +21,7 @@ module.exports = class ThemeSet extends Base {
         this.createDefault();
         this.createThemes();
         this.setParents();
-        this.configure();
+        this.init();
     }
 
     has (name) {
@@ -86,10 +86,10 @@ module.exports = class ThemeSet extends Base {
         }
     }
 
-    configure () {
-        this._defaultTheme.configure();
+    init () {
+        this._defaultTheme.init();
         for (let theme of Object.values(this._themes)) {
-            theme.configure();
+            theme.init();
         }
     }
 

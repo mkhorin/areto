@@ -5,37 +5,30 @@ module.exports = {
     components: {
         'logger': {
             level: 'info',
-            //store: null,
             types: {
-                'error': [require('areto/log/LogType'), {
-                    //exclusive: true,
-                    store: [require('areto/log/FileLogStore'), {
-                        baseName: 'skeleton.error'
-                    }]
-                }]
+                'error': {
+                    store: require('areto/log/FileLogStore')
+                }
             }
         },
         'connection': {
             schema: 'mongodb',
             settings: {
+                host: 'localhost',
+                port: 27017,
+                user: '',
+                password: '',
                 options: {
-                    db: { bufferMaxEntries: 0 },
-                    server: {
-                        socketOptions: {
-                            keepAlive: 1
-                        }
-                    }
-                },
-                connectionLimit: 10
+                    bufferMaxEntries: 0,
+                    keepAlive: true,
+                    useNewUrlParser: true
+                }
             }
         },
         'bodyParser': {
-            limit: '128mb'
+            limit: '10mb'
         }
     },
-    modules: {
-        'cp': {},
-        'export-db': {},
-        'mysql': {}
+    modules: {        
     }
 };

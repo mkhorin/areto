@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const CommonHelper = require('../../../helper/CommonHelper');
 
 describe('helpers.main', ()=> {
-
+/*
     describe('date', ()=> {        
         
         it('isValidDate', ()=> {
@@ -108,12 +108,5 @@ describe('helpers.main', ()=> {
         expect(list).to.include('test2');
         expect(list).to.include('test3');
     });
-  
-    describe('createUrl', ()=> {
-        it('simple', ()=> {
-            let result = 1;
-            expect(result).to.equal(1);
-        });
-    });
-
+*/
 });

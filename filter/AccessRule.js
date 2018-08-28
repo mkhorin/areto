@@ -11,51 +11,44 @@ module.exports = class AccessRule extends Base {
             // controllers: ['article'],
             // roles: ['?', '@', 'reader'], // RBAC items
             // verbs: ['GET', 'POST'],
-            // denyCallback: function (action, user, cb)
+            // denyPromise: async (action, user)
         }, config));
     }
 
-    can (action, user, cb) {
+    async can (action, user) {
         if ((this.actions && !this.actions.includes(action.name))
             || (this.verbs && !this.verbs.includes(action.controller.req.method))
             || (this.controllers && !this.controllers.includes(action.controller.NAME))) {
-            return cb(); // skip rule
+            return; // skip rule
         }
-        this.match(user, (err, access)=> {
-            if (err) {
-                return cb(err);
-            }
-            if (access === true) {
-                return cb(null, this.allow);
-            }
-            if (access === false) {
-                return cb(null, !this.allow);
-            }
-            cb(); // skip rule
-        });
+        let access = await this.match(user);
+        if (access === true) {
+            return this.allow;
+        }
+        if (access === false) {
+            return !this.allow;
+        }
     }
 
-    match (user, cb) {
+    async match (user) {
         if (!(this.roles instanceof Array)) {
-            return cb();
+            return;
         }
         let roles = [];
         for (let item of this.roles) {
             if (item === '?') {
-                return cb(null, user.isGuest());
+                return user.isGuest();
             }
             if (item === '@') {
-                return cb(null, !user.isGuest());
+                return !user.isGuest();
             }
             roles.push(item);
         }
-        AsyncHelper.eachSeries(roles, (item, roleCallback)=> {
-            user.can(item, (err, access)=> {
-                err ? roleCallback(err)
-                    : access ? cb(null, true) : roleCallback();
-            });
-        }, err => cb(err, false));
+        for (let item of roles) {
+            if (await user.can(item)) {
+                return true;
+            }
+        }
+        return false;
     }
 };
-
-const AsyncHelper = require('../helper/AsyncHelper');

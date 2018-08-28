@@ -45,22 +45,12 @@ module.exports = class DataProvider extends Base {
         return ClassHelper.createInstance(Object.assign(defaults, config));
     }
    
-    prepare (cb) {
-        AsyncHelper.waterfall([
-            cb => this.prepareTotalCount(cb),
-            (total, cb)=> {
-                this.totalCount = total;
-                this.pagination = this.createPagination(this.pagination);
-                this.sort = this.createSort(this.sort);
-                this.prepareModels(cb);
-            },
-            (models, cb)=> {
-                this.models = models;
-                cb();
-            }
-        ], cb);
+    async prepare () {
+        this.totalCount = await this.prepareTotalCount();
+        this.pagination = this.createPagination(this.pagination);
+        this.sort = this.createSort(this.sort);
+        this.models = await this.prepareModels();
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ClassHelper = require('../helper/ClassHelper');

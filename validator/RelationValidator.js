@@ -12,7 +12,7 @@ module.exports = class RelationValidator extends Base {
             unique: null,
             allow: null, // allow changes ['unlinks', ...]
             deny: null,
-            filter: null, // handler (value, model, attr, cb),
+            filter: null, // async handler(value, model, attr)
             behavior: 'relationChange'
         }, config));
         
@@ -50,24 +50,25 @@ module.exports = class RelationValidator extends Base {
         });
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let behavior = model.getBehavior(this.behavior);
         if (!behavior) {
-            return cb(this.wrapClassMessage('Not found relation behavior'));
+            throw new Error(this.wrapClassMessage('Not found relation behavior'));
         }
         let data = behavior.getChanges(attr);
         if (data === false) {
-            this.addError(model, attr, this.getMessage());
-            return cb();
+            return this.addError(model, attr, this.getMessage());
         }
         if (data) {
             this.filterChanges(data);
         }
-        AsyncHelper.series([
-            cb => data && this.filter ? this.filter(data, model, attr, cb) : cb(),
-            cb => this.checkCounter(behavior, model, attr, cb),
-            cb => this.unique !== null ? this.checkUnique(behavior, model, attr, cb) : cb()
-        ], cb);
+        if (data && this.filter) {
+            await this.filter(data, model, attr);
+        }
+        await this.checkCounter(behavior, model, attr);
+        if (this.unique !== null) {
+            this.checkUnique(behavior, model, attr);
+        }
     }
 
     filterChanges (data) {
@@ -87,41 +88,29 @@ module.exports = class RelationValidator extends Base {
         }
     }
 
-    checkCounter (behavior, model, attr, cb) {
+    async checkCounter (behavior, model, attr) {
         if (!this.required && !this.min && !this.max) {
-            return cb();
+            return;
         }
-        AsyncHelper.waterfall([
-            cb => behavior.getLinkedDocs(attr, cb),
-            (docs, cb) => {
-                if (this.required && docs.length < 1) {
-                    this.addError(model, attr, this.getRequiredMessage());
-                }
-                if (this.min && docs.length < this.min) {
-                    this.addError(model, attr, this.getTooFewMessage());
-                }
-                if (this.max && docs.length > this.max) {
-                    this.addError(model, attr, this.getTooManyMessage());
-                }
-                cb();
-            }
-        ], cb);
+        let docs = await behavior.getLinkedDocs(attr);
+        if (this.required && docs.length < 1) {
+            this.addError(model, attr, this.getRequiredMessage());
+        }
+        if (this.min && docs.length < this.min) {
+            this.addError(model, attr, this.getTooFewMessage());
+        }
+        if (this.max && docs.length > this.max) {
+            this.addError(model, attr, this.getTooManyMessage());
+        }
     }
 
-    checkUnique (behavior, model, attr, cb) {
-        AsyncHelper.waterfall([
-            cb => behavior.checkExist(attr, cb),
-            (exist, cb)=> {
-                if (this.unique === true && exist === true) {
-                    this.addError(model, attr, this.getUniqueMessage());
-                }
-                if (this.unique === false && exist === false) {
-                    this.addError(model, attr, this.getExistMessage());
-                }
-                cb();
-            }
-        ], cb);
+    async checkUnique (behavior, model, attr) {
+        let exist = await behavior.checkExist(attr);
+        if (this.unique === true && exist === true) {
+            this.addError(model, attr, this.getUniqueMessage());
+        }
+        if (this.unique === false && exist === false) {
+            this.addError(model, attr, this.getExistMessage());
+        }
     }
 };
-
-const AsyncHelper = require('../helper/AsyncHelper');

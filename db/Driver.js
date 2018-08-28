@@ -36,49 +36,36 @@ module.exports = class Driver extends Base {
         return `${this.schema}://${auth}${opt.host}:${opt.port}/${opt.database}`;
     }
 
-    openClient (cb) {
-        cb(this.wrapClassMessage('Open client'));
+    async openClient () {
+        throw new Error(this.wrapClassMessage('Need to open client'));
     }
 
-    closeClient (cb) {
-        cb(this.wrapClassMessage('Close client'));
+    async closeClient () {
+        throw new Error(this.wrapClassMessage('Need to close client'));
     }
 
-    open (cb) {
+    async open () {
         if (this.connection) {
-            return cb(this.wrapClassMessage(`Connection is already opened: ${this.getUri()}`));
+            throw new Error(this.wrapClassMessage(`Connection is already opened: ${this.getUri()}`));
         }
-        AsyncHelper.waterfall([
-            cb => this.openClient(cb),
-            (connection, cb)=> {
-                this.connection = connection;
-                this.log('info', `Connection is opened: ${this.getUri()}`);
-                this.trigger(this.EVENT_OPEN_CONNECTION);
-                cb();
-            }    
-        ], cb);
+        this.connection = await this.openClient();
+        this.log('info', `Connection is opened: ${this.getUri()}`);
+        this.trigger(this.EVENT_OPEN_CONNECTION);
     }
 
-    close (cb) {
+    async close () {
         if (!this.connection) {
-            return cb(this.wrapClassMessage(`Connection is already closed: ${this.getUri()}`));
+            throw new Error(this.wrapClassMessage(`Connection is already closed: ${this.getUri()}`));
         }
-        AsyncHelper.series([
-            cb => this.closeClient(cb),
-            cb => {
-                this.connection = null;
-                this.log('info', `Connection is closed: ${this.getUri()}`);
-                this.trigger(this.EVENT_CLOSE_CONNECTION);
-                cb();
-            }
-        ], cb);
+        await this.closeClient();
+        this.connection = null;
+        this.log('info', `Connection is closed: ${this.getUri()}`);
+        this.trigger(this.EVENT_CLOSE_CONNECTION);
     }
 
-    afterCommand (err, cmd, data = {}) {
-        let message = `db: ${this.settings.database}`;
-        data.cmd = cmd;
-        err ? this.afterError(message, Object.assign({err}, data))
-            : this.trigger(this.EVENT_COMMAND, {message, data});
+    logCommand (command, data = {}) {
+        let message = `db: ${this.settings.database}: ${command}`;
+        this.trigger(this.EVENT_COMMAND, {message, data});
     }
 
     afterError (message, data) {
@@ -94,19 +81,8 @@ module.exports = class Driver extends Base {
         return this.builder.buildWhere(condition);
     }
 
-    buildQuery (query, cb) {
-        query.prepare(err => {
-            if (err) {
-                return cb(err);
-            }
-            try {
-                query = this.builder.build(query);
-            } catch (err) {
-                return cb(err);
-            }
-            cb(null, query);
-        });
+    async buildQuery (query) {
+        await query.prepare();
+        return this.builder.build(query);
     }
 };
-
-const AsyncHelper = require('../helper/AsyncHelper');

@@ -24,8 +24,8 @@ module.exports = class Connection extends Base {
         });
     }
 
-    configure (cb) {
-        this.driver.open(cb);
+    init () {
+        return this.driver.open();
     }
 };
 

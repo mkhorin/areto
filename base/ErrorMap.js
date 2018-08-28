@@ -13,7 +13,9 @@ module.exports = class ErrorMap {
     }
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : [];
+        return Object.prototype.hasOwnProperty.call(this._data, key)
+            ? this._data[key]
+            : [];
     }
 
     getOneFirst (key) {

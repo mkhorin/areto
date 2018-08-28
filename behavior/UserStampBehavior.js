@@ -15,18 +15,17 @@ module.exports = class UserStampBehavior extends Base {
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
-    beforeInsert (cb, event) {
+    beforeInsert (event) {
         if (this.creatorAttr) {
             this.owner.set(this.creatorAttr, this.getUserId());
         }
-        this.beforeUpdate(cb, event);
+        this.beforeUpdate(event);
     }
 
-    beforeUpdate (cb, event) {
+    beforeUpdate (event) {
         if (this.editordAttr) {
             this.owner.set(this.editordAttr, this.getUserId());
         }
-        cb();
     }
 
     getUserId () {

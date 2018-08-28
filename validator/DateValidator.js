@@ -47,27 +47,26 @@ module.exports = class DateValidator extends Base {
             : !isNaN(date.getTime());
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
-        model.set(attr, value);        
-        this.validateValue(value, (err, message)=> {
-            message && this.addError(model, attr, message);
-            cb(err);
-        });
+        model.set(attr, value);
+        let message = await this.validateValue(value);
+        if (message) {
+            this.addError(model, attr, message);
+        }
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         value = value instanceof Date ? value : new Date(value);
         if (!this.isValidDateObject(value)) {            
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if (this.min !== null && value < this.min) {
-            return cb(null, this.getTooSmallMessage());
+            return this.getTooSmallMessage();
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.getTooBigMessage());
+            return this.getTooBigMessage();
         }
-        cb();
     }
 };

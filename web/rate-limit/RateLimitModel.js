@@ -27,32 +27,30 @@ module.exports = class RateLimitModel extends Base {
         return this._data.blockedTill;
     }
 
-    increment (cb) {
-        this._data.counter++;
+    increment () {
+        this._data.counter += 1;
         if (this.isLimited()) {
             this.setBlockedTill();
         }
-        this.save(cb);
+        return this.save();
     }
 
-    reset (cb) {
+    reset () {
         this._data.counter = 0;
         this._data.blockedTill = null;
-        this.save(cb);
+        return this.save();
     }
 
-    block (cb, timeout) {
+    block (timeout) {
         this.setBlockedTill(timeout);
-        this.save(cb);
+        return this.save();
     }
 
-    save (cb) {
+    async save () {
         this._data.updatedAt = new Date;
         this._data.createdAt = this._data.createdAt || this._data.updatedAt;
-        AsyncHelper.series([
-            cb => this.store.save(this, cb),
-            cb => this.store.rateLimit.afterRateUpdate(this, cb)
-        ], err => cb(err));
+        await this.store.save(this);
+        await this.store.rateLimit.afterRateUpdate(this);
     }
 
     getAttempts () {
@@ -78,5 +76,3 @@ module.exports = class RateLimitModel extends Base {
         this._data.blockedTill = new Date(Date.now() + timeout * 1000);
     }
 };
-
-const AsyncHelper = require('../../helper/AsyncHelper');

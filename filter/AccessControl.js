@@ -7,7 +7,7 @@ module.exports = class AccessControl extends Base {
     constructor (config) {
         super(Object.assign({
             // rules: [] rule configs
-            // denyCallback: function (action, user, cb)
+            // denyPromise: async (action, user)
             AccessRule
         }, config));
         
@@ -24,38 +24,30 @@ module.exports = class AccessControl extends Base {
         });
     }
 
-    beforeAction (action, complete) {
+    async beforeAction (action, complete) {
         let user = action.controller.user;
         // check rules before the first result - allow or deny
-        AsyncHelper.eachSeries(this.rules, (rule, cb)=> {
-            rule.can(action, user, (err, access)=> {                
-                if (err) {
-                    return complete(err);
-                }
-                if (access === true) {
-                    return complete();
-                }
-                if (access !== false) {
-                    return cb(); // check next rule
-                }
-                this.denyAccess(rule, action, user, complete);
-            });
-        }, complete);
+        for (let rule of this.rules) {
+            let access = await rule.can(action, user);
+            if (access === false) {
+                return this.denyAccess(rule, action, user);
+            }
+            if (access === true) {
+                return;
+            }
+        }
     }
 
-    denyAccess (rule, action, user, cb) {
-        if (rule.denyCallback) {
-            return rule.denyCallback(action, user, cb);
+    async denyAccess (rule, action, user) {
+        if (rule.denyPromise) {
+            return rule.denyPromise(action, user);
         }
-        if (this.denyCallback) {
-            this.denyCallback(action, user, cb);
+        if (this.denyPromise) {
+            return this.denyPromise(action, user);
         }
-        user.isGuest()
-            ? user.loginRequired()
-            : cb(new ForbiddenHttpException);
+        throw new ForbiddenHttpException;
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const AccessRule = require('./AccessRule');
 const ForbiddenHttpException = require('../error/ForbiddenHttpException');

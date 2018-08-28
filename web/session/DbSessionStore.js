@@ -11,44 +11,44 @@ module.exports = class DbSessionStore extends Base {
         }, config));
     }
 
-    get (sid, cb) {
-        this.findBySid(sid).one((err, result)=> {
-            cb(err, result ? result.data : null);
-        });
+    get (sid, callback) {
+        this.findBySid(sid).one().then(result => {
+            callback(null, result ? result.data : null);
+        }, callback);
     }
 
-    set (sid, session, cb) {
-        this.findBySid(sid).upsert({
+    set (sid, session, callback) {
+        PromiseHelper.callback(this.findBySid(sid).upsert({
             'data': session,
             'userId': session[this.userIdParam],
             'updatedAt': new Date
-        }, cb);
+        }), callback);
     }
 
-    touch (sid, session, cb) {
-        this.findBySid(sid).update({
+    touch (sid, session, callback) {
+        PromiseHelper.callback(this.findBySid(sid).update({
             updatedAt: new Date
-        }, cb);
+        }), callback);
     }
 
-    destroy (sid, cb) {
-        this.findBySid(sid).remove(cb);
+    destroy (sid, callback) {
+        PromiseHelper.callback(this.findBySid(sid).remove(), callback);
     }
 
-    clear (cb) {
-        this.find().remove(cb);
+    clear (callback) {
+        PromiseHelper.callback(this.find().remove(), callback);
     }
 
-    removeExpired (cb) {
+    removeExpired (callback) {
         if (!this.session.lifetime) {
-            return cb();
+            return callback();
         }
         let expired = new Date(Date.now() - this.session.lifetime);
-        this.find(['<', 'updatedAt', expired]).remove(cb);
+        PromiseHelper.callback(this.find(['<', 'updatedAt', expired]).remove(), callback);
     }
 
-    removeByUserId (userId, cb) {
-        this.find(['ID', 'userId', userId]).remove(cb);
+    removeByUserId (userId, callback) {
+        PromiseHelper.callback(this.find(['ID', 'userId', userId]).remove(), callback);
     }
 
     findBySid (sid) {
@@ -60,4 +60,5 @@ module.exports = class DbSessionStore extends Base {
     }
 };
 
+const PromiseHelper = require('../../helper/PromiseHelper');
 const Query = require('../../db/Query');

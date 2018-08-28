@@ -21,27 +21,17 @@ module.exports = class DbStore extends Base {
         }, config));
     }
     
-    load (cb) {
-        AsyncHelper.waterfall([
-            cb => this.loadData(cb),
-            (data, cb)=> {
-                try {
-                    data = this.prepare(data);
-                } catch (err) {
-                    return cb(err);
-                }
-                cb(null, data);
-            }
-        ], cb);
+    async load () {
+        return this.prepare(await this.loadData());
     }
 
-    loadData (cb) {
-        AsyncHelper.series({
-            itemMap: cb => this.find(this.TABLE_ITEM).index(this.key).all(cb),
-            ruleMap: cb => this.find(this.TABLE_RULE).index(this.key).all(cb),
-            links: cb => this.find(this.TABLE_ITEM_CHILD).all(cb),
-            assignments: cb => this.find(this.TABLE_ASSIGNMENT).all(cb)
-        }, cb);
+    async loadData () {
+        return {
+            'itemMap': await this.find(this.TABLE_ITEM).index(this.key).all(),
+            'ruleMap': await this.find(this.TABLE_RULE).index(this.key).all(),
+            'links': await this.find(this.TABLE_ITEM_CHILD).all(),
+            'assignments': await this.find(this.TABLE_ASSIGNMENT).all()
+        };
     }
 
     prepare (data) {
@@ -153,97 +143,98 @@ module.exports = class DbStore extends Base {
 
     // CREATE
 
-    createPermissionItems (items, cb) {
-        this.createTypeItems(this.rbac.Item.TYPE_PERMISSION, items, cb);
+    createPermissionItems (items) {
+        return this.createTypeItems(this.rbac.Item.TYPE_PERMISSION, items);
     }
 
-    createRoleItems (items, cb) {
-        this.createTypeItems(this.rbac.Item.TYPE_ROLE, items, cb);
+    createRoleItems (items) {
+        return this.createTypeItems(this.rbac.Item.TYPE_ROLE, items);
     }
 
-    createRouteItems (items, cb) {
-        this.createTypeItems(this.rbac.Item.TYPE_ROUTE, items, cb);
+    createRouteItems (items) {
+        return this.createTypeItems(this.rbac.Item.TYPE_ROUTE, items);
     }
 
-    createTypeItems (type, items, cb) {
-        if (!items) {
-            return cb();
+    async createTypeItems (type, items) {
+        if (items) {
+            for (let name of Object.keys(items)) {
+                items[name].type = type;
+            }
+            await this.createItems(items);
         }
-        for (let name of Object.keys(items)) {
-            items[name].type = type;
-        }
-        this.createItems(items, cb);
     }
 
-    createItems (data, cb) {
+    async createItems (data) {
+        let items = this.prepareItems(data);
+        for (let item of items) {
+            await item.create();
+        }
+        for (let item of items) {
+            await item.setChildren();
+        }
+        for (let item of items) {
+            await item.setParents();
+        }
+    }
+
+    prepareItems (data) {
+        if (!data) {
+            return [];
+        }
         let items = [];
+        for (let name of Object.keys(data)) {
+            items.push(new this.rbac.Item({
+                name,
+                store: this,
+                data: data[name]
+            }));
+        }
+        return items;
+    }
+
+    async createRules (data) {
         if (data) {
-            for (let name of Object.keys(data)) {
-                items.push(new this.rbac.Item({
-                    name,
-                    store: this,
-                    data: data[name]
-                }));
+            for (let key of Object.keys(data)) {
+                await this.createRule(data[key], key);
             }
         }
-        AsyncHelper.series([
-            cb => AsyncHelper.eachSeries(items, (item, cb)=> item.create(cb), cb),
-            cb => AsyncHelper.eachSeries(items, (item, cb)=> item.setChildren(cb), cb),
-            cb => AsyncHelper.eachSeries(items, (item, cb)=> item.setParents(cb), cb)
-        ], cb);
     }
 
-    createRules (data, cb) {
-        AsyncHelper.eachOfSeries(data, this.createRule.bind(this), cb);
+    async createRule (data, name) {
+        let rule = await this.findRuleByName(name).one();
+        if (rule) {
+            return this.log('warn', `Rule already exists: ${name}`);
+        }
+        await this.findRule().insert(Object.assign({name}, data));
     }
 
-    createRule (data, name, cb) {
-        AsyncHelper.waterfall([
-            cb => this.findRuleByName(name).one(cb),
-            (rule, cb)=> {
-                if (rule) {
-                    this.log('warn', `Rule already exists: ${name}`);
-                    return cb();
-                }
-                this.findRule().insert(Object.assign({name}, data), cb);
+    async createAssignments (data) {
+        if (data) {
+            for (let key of Object.keys(data)) {
+                await this.createAssignment(data[key], key);
             }
-        ], cb);
+        }
     }
 
-    createAssignments (data, cb) {
-        AsyncHelper.eachOfSeries(data, this.createAssignment.bind(this), cb);
-    }
-
-    createAssignment (items, user, cb) {
-        AsyncHelper.waterfall([
-            cb => this.findItemByName(items).column(this.key, cb),
-            (result, cb)=> {
-                if (result.length !== items.length) {
-                    return cb(`RBAC: Not found assignment item: ${items}`);
-                }
-                items = result;
-                this.rbac.findUserModel(user).one(cb);
-            },
-            (model, cb)=> {
-                if (!model) {
-                    return cb(`RBAC: Not found user: ${user}`);
-                }
-                user = model.getId();
-                AsyncHelper.eachSeries(items, (item, cb)=> {
-                    AsyncHelper.waterfall([
-                        cb => this.findAssignment().and({user, item}).one(cb),
-                        (found, cb)=> {
-                            found ? cb() : this.findAssignment().insert({user, item}, cb);
-                        }
-                    ], cb);
-                }, cb);
+    async createAssignment (names, user) {
+        let items = await this.findItemByName(items).column(this.key);
+        if (items.length !== names.length) {
+            throw new Error(`RBAC: Not found assignment item: ${names}`);
+        }
+        let model = this.rbac.findUserModel(user).one();
+        if (!model) {
+            throw new Error(`RBAC: Not found user: ${user}`);
+        }
+        user = model.getId();
+        for (let item of item) {
+            if (!await this.findAssignment().and({user, item}).one()) {
+                await this.findAssignment().insert({user, item});
             }
-        ], cb);
+        }
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const MongoHelper = require('../helper/MongoHelper');
 const Query = require('../db/Query');
 const Rule = require('./Rule');

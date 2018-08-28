@@ -35,106 +35,76 @@ module.exports = class Item extends Base {
         this.parents.push(item);
     }
 
-    create (callback) {
+    async create () {
         if (!this.constructor.isType(this.data.type)) {
-            return callback(`Invalid '${this.data.type}' type  for RBAC item: ${this.name}`);
+            throw new Error(`Invalid '${this.data.type}' type  for RBAC item: ${this.name}`);
         }
-        AsyncHelper.waterfall([
-            cb => this.store.findItemByName(this.name).one(cb),
-            (item, cb)=> {
-                if (item) {
-                    this.store.log('warn', `RBAC item already exists: ${this.name}`);
-                    return callback();
-                }
-                this.resolveRelations(cb);
-            },
-            (relations, cb)=> {
-                relations.name = this.name;
-                let doc = Object.assign({}, this.data, relations);
-                ObjectHelper.deleteProps(['children', 'parents'], doc);
-                this.store.findItem().insert(doc, cb);
-            }
-        ], callback);
+        let item = await this.store.findItemByName(this.name).one();
+        if (item) {
+            return this.store.log('warn', `RBAC item already exists: ${this.name}`);
+        }
+        let relations = await this.resolveRelations();
+        relations.name = this.name;
+        let doc = Object.assign({}, this.data, relations);
+        ObjectHelper.deleteProps(['children', 'parents'], doc);
+        await this.store.findItem().insert(doc);
     }
 
-    resolveRelations (cb) {
+    async resolveRelations () {
         let result = {};
-        this.resolveRuleRelation(result, err => cb(err, result));
+        await this.resolveRuleRelation(result);
+        return result;
     }
 
-    resolveRuleRelation (result, cb) {
-        if (!this.data.rule) {
+    async resolveRuleRelation (result) {
+        if (this.data.rule) {
+            result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
+            if (!result.rule) {
+                throw new Error(`Not found rule for RBAC item: ${this.name}`);
+            }
+        } else {
             result.rule = null;
-            return cb();
         }
-        this.store.findRuleByName(this.data.rule).scalar(this.store.key, (err, id)=>{
-            if (err) {
-                return cb(err);
-            }
-            if (!id) {
-                return cb(`Not found rule for RBAC item: ${this.name}`);
-            }
-            result.rule = id;
-            cb();
-        });
     }
 
-    setChildren (cb) {
-        if (!this.data.children || !this.data.children.length) {
-            return cb();
-        }
-        AsyncHelper.waterfall([
-            cb => this.findRelatives('children', cb),
-            (ids, cb)=> {
-                this.data.children = ids;
-                this.store.findItemChild().and({
-                    'parent': this.data.itemId,
-                    'child': this.data.children
-                }).remove(cb);
-            },
-            cb => this.store.findItemChild().insert(this.data.children.map(id => ({
+    async setChildren () {
+        if (this.data.children && this.data.children.length) {
+            this.data.children = this.findRelatives('children');
+            await this.store.findItemChild().and({
+                'parent': this.data.itemId,
+                'child': this.data.children
+            }).remove();
+            await this.store.findItemChild().insert(this.data.children.map(id => ({
                 'parent': this.data.itemId,
                 'child': id
-            })), cb)
-        ], cb);
+            })));
+        }
     }
 
-    setParents (cb) {
-        if (!this.data.parents || !this.data.parents.length) {
-            return cb();
-        }
-        AsyncHelper.waterfall([
-            cb => this.findRelatives('parents', cb),
-            (ids, cb)=> {
-                this.data.parents = ids;
-                this.store.findItemChild().and({
-                    'parent': this.data.parents,
-                    'child': this.data.itemId
-                }).remove(cb);
-            },
-            cb => this.store.findItemChild().insert(this.data.parents.map(id => ({
+    async setParents () {
+        if (this.data.parents && this.data.parents.length) {
+            this.data.parents = await this.findRelatives('parents');
+            await this.store.findItemChild().and({
+                'parent': this.data.parents,
+                'child': this.data.itemId
+            }).remove();
+            await this.store.findItemChild().insert(this.data.parents.map(id => ({
                 'parent': id,
                 'child': this.data.itemId
-            })), cb)
-        ], cb);
+            })));
+        }
     }
 
-    findRelatives (relKey, cb) {
-        AsyncHelper.waterfall([
-            cb => this.store.findItemByName(this.name).one(cb),
-            (item, cb)=> {
-                this.data.itemId = item ? item[this.store.key] : null;
-                this.store.findItemByName(this.data[relKey]).all(cb);
-            },
-            (items, cb)=> {
-                items.length !== this.data[relKey].length
-                    ? cb(`Not found '${this.data[relKey]}' ${relKey} for RBAC item: ${this.name}`)
-                    : cb(null, items.map(item => item[this.store.key]));
-            }
-        ], cb);
+    async findRelatives (relKey) {
+        let items = await this.store.findItemByName(this.name).one();
+        this.data.itemId = item ? item[this.store.key] : null;
+        items = await this.store.findItemByName(this.data[relKey]).all();
+        if (items.length === this.data[relKey].length) {
+            return items.map(item => item[this.store.key])
+        }
+        throw new Error(`Not found '${this.data[relKey]}' ${relKey} for RBAC item: ${this.name}`);
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ObjectHelper = require('../helper/ObjectHelper');

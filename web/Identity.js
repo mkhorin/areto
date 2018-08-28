@@ -4,9 +4,9 @@ const Base = require('../base/Base');
 
 module.exports = class Identity extends Base {
 
-    getAssignments (cb) {
+    getAssignments () {
         // get user's assigned roles []
-        cb(null, this.module.components.rbac.getUserAssignments(this.getId()));
+        return Promise.resolve(this.module.components.rbac.getUserAssignments(this.getId()));
     }
 
     getAuthKey () {
@@ -17,16 +17,9 @@ module.exports = class Identity extends Base {
         return this.getAuthKey() === key;
     }
 
-    setAuthKey (cb) {
-        AsyncHelper.waterfall([
-            cb => SecurityHelper.generateRandomString(16, cb),
-            (result, cb)=> {
-                this.set('authKey', result);
-                cb();
-            }
-        ], cb);
+    setAuthKey () {
+        this.set('authKey', SecurityHelper.generateRandomString(16));
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const SecurityHelper = require('../helper/SecurityHelper');

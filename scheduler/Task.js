@@ -140,31 +140,29 @@ module.exports = class Task extends Base {
         }
     }
 
-    processInternal () {
+    async processInternal () {
         if (!this.isRunning()) {
             return false;
         }
         try {
             this.log('info', `Job start: ${this._job.CLASS_FILE}`);
             this._lastStartDate = new Date;
-            this._job.execute((err, result)=> {
-                if (err) {
-                    this.fail(err);
-                } else {
-                    this._counter += 1;
-                    this._lastEndDate = new Date;
-                    this.done(result);
-                }
-                this._job = null;
-            });
-        } catch (error) {
-            this._job = null;
-            this.fail(error);
+            let result = await this._job.execute();
+            if (this._job.isCanceled()) {
+                this.fail('Job canceled');
+            } else {
+                this._counter += 1;
+                this._lastEndDate = new Date;
+                this.done(result);    
+            }
+        } catch (err) {
+            this.fail(err);
         }
+        this._job = null;
     }
 
-    beforeRun (cb) {
-        this.triggerCallback(this.EVENT_BEFORE_RUN, cb);
+    beforeRun () {
+        return this.triggerWait(this.EVENT_BEFORE_RUN);
     }
 
     done (result) {

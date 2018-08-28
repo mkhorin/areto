@@ -12,40 +12,25 @@ module.exports = class Cache extends Base {
         }, config));
     }
 
-    use (key, getter, cb, duration) {
-        this.get(key, (err, value)=> {
-            if (err) {
-                return cb(err);
-            }
-            if (value !== undefined) {
-                return cb(null, value);
-            }
-            getter((err, value)=> {
-                if (err) {
-                    return cb(err);
-                }
-                this.set(key, value, duration, err => {
-                    cb(err, value);
-                }); 
-            });
-        });
+    async use (key, getter, duration) {
+        let value = await this.get(key);
+        if (value === undefined) {
+            value = await getter();
+            await this.set(key, value, duration);
+        }
+        return value;
     }
 
-    get (key, cb) {
+    async get (key) {
         key = this.buildKey(key);
-        this.getValue(key, (err, value)=> {
-            if (err || value === undefined) {
-                return cb(err);
-            }
+        let value = await this.getValue(key);
+        if (value !== undefined) {
             this.log('trace', `Get key: ${key}`);
-            if (this.serializer) {
-                value = this.serializer.parse(value);
-            }
-            cb(null, value);
-        });
+            return this.serializer ? this.serializer.parse(value) : value;
+        }
     }
 
-    set (key, value, duration, cb) {
+    set (key, value, duration) {
         if (!Number.isInteger(duration)) {
             duration = this.duration;
         }
@@ -54,35 +39,21 @@ module.exports = class Cache extends Base {
             value = this.serializer.stringify(value);
         }
         this.log('trace', `Set key: ${key}: Duration: ${duration}`);
-        this.setValue(key, value, duration, cb);
+        return this.setValue(key, value, duration);
     }
 
-    remove (key, cb) {
+    remove (key) {
         key = this.buildKey(key);
-        this.removeValue(key, cb);
+        return this.removeValue(key);
     }
 
-    flush (cb) {        
-        this.flushValues(cb);
-    }
-
-    getValue (key, cb) {
-        cb();
-    }
-
-    setValue (key, value, duration, cb) {
-        cb();
-    }
-
-    removeValue (key, cb) {
-        cb();
-    }
-
-    flushValues (cb) {
-        cb();
+    flush () {        
+        return this.flushValues();
     }
 
     buildKey (key) {
-        return this.keyPrefix ? `${this.keyPrefix}${key}` : key;
+        return this.keyPrefix
+            ? `${this.keyPrefix}${key}`
+            : key;
     }
 };

@@ -32,7 +32,7 @@ module.exports = class Theme extends Base {
         });
     }
 
-    configure () {
+    init () {
     }
 
     isEmpty () {

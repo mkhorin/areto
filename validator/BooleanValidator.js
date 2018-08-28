@@ -20,7 +20,7 @@ module.exports = class BooleanValidator extends Base {
         });
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr);
         if (this.strict ? value === this.trueValue : value == this.trueValue) {
             if (this.castValue) {
@@ -33,14 +33,13 @@ module.exports = class BooleanValidator extends Base {
         } else {
             this.addError(model, attr, this.getMessage());
         }
-        cb();
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if ((!this.strict && (value == this.trueValue || value == this.falseValue)) 
             || (this.strict && (value === this.trueValue || value === this.falseValue))) {
-            return cb();
+            return;
         }
-        cb(null, this.getMessage());
+        return this.getMessage();
     }
 };

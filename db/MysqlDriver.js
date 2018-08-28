@@ -13,186 +13,162 @@ module.exports = class MysqlDriver extends Base {
         this.client = mysql.createPool(this.settings);
     }
 
-    openClient (cb) {
+    async openClient () {
         // try to open the first connection in the pool
-        this.client.getConnection((err, connection)=> {
-            if (connection) {
-                connection.release();
-            }
-            cb(err, connection);
-        });
+        return this.getConnection();
     }
 
-    closeClient (cb) {
-        this.client.end(cb);
+    async closeClient () {
+        await PromiseHelper.promise(this.client.end.bind(this.client));
     }
 
     getQueryData (data) {
         return data.err ? `${data.err.toString()}: ${data.sql}` : data.sql;
     }
 
+    logCommand (data) {
+        let message = `db: ${this.settings.database}`;
+        this.trigger(this.EVENT_COMMAND, {message, data});
+    }
+
     // OPERATIONS
 
-    getConnection (cb) {
-        this.client.getConnection((err, connection)=> {
-            if (err && connection) {
-                connection.release();
-            }
-            cb(err, connection);
-        });
+    async getConnection () {
+        let connection = await PromiseHelper.promise(this.client.getConnection.bind(this.client));
+        if (connection) {
+            connection.release();
+        }
+        return connection;
     }
 
-    execute (sql, cb) {
-        this.getConnection((err, connection)=> {
-            if (err) {
-                return cb(err);
-            }
-            connection.query(sql, (err, results, fields)=> {
-                connection.release();
-                this.afterCommand(err, {sql});
-                cb(err, results);
-            });
-        });
+    async execute (sql) {
+        let connection = await this.getConnection();
+        this.logCommand({sql});
+        let result = await PromiseHelper.promise(connection.query.bind(connection));
+        connection.release();
+        return result;
     }
 
-    find (table, condition, cb) {
+    find (table, condition) {
         let sql = `SELECT * FROM ${this.escapeId(table)}`;
         if (condition) {
             sql += condition;
         }
-        this.execute(sql, cb);
+        return this.execute(sql);
     }
 
-    insert (table, data, cb) {
-        let columns = this.escapeId(Object.keys(data)).join(',');
+    async insert (table, data) {
+        let columns = this.escapeId(Object.keys(data)).join();
         let values = this.escape(Object.values(data));
         let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
-        this.execute(sql, (err, result)=> {
-            err ? cb(err) : cb(null, result.insertId);
-        });
+        let result = await this.execute(sql);
+        return result.insertId;
     }
     
-    upsert (table, condition, data, cb) {
+    upsert (table, condition, data) {
         let columns = this.escapeId(Object.keys(data));
         let values = this.escape(Object.values(data));
-        let updates = columns.map(column => `${column}=VALUES(${column})`).join(',');
-        let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join(',')}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
-        this.execute(sql, cb);
+        let updates = columns.map(column => `${column}=VALUES(${column})`).join();
+        let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join()}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
+        return this.execute(sql);
     }
 
-    update (table, condition, data, cb) {
-        let values = Object.keys(data).map(key => `${this.escapeId(key)}=${this.escape(data[key])}`).join(',');
+    update (table, condition, data) {
+        let values = Object.keys(data).map(key => `${this.escapeId(key)}=${this.escape(data[key])}`).join();
         let sql = `UPDATE ${this.escapeId(table)} SET ${values}`;
         if (condition) {
             sql += condition;
         }
-        this.execute(sql, cb);
+        return this.execute(sql);
     }
 
-    updateAll (table, condition, data, cb) {
-        cb(this.wrapClassMessage('updateAll: TODO...'));
+    updateAll (table, condition, data) {
+        throw new Error(this.wrapClassMessage('Need to do'));
     }
 
-    remove (table, condition, cb) {
+    remove (table, condition) {
         let sql = `DELETE FROM ${this.escapeId(table)}`;
         if (condition) {
             sql += condition;
         }
-        this.execute(sql, cb);
+        return this.execute(sql);
     }
 
-    drop (table, cb) {
-        this.execute(`DROP TABLE IF EXISTS ${this.escapeId(table)}`, cb);
+    drop (table) {
+        return this.execute(`DROP TABLE IF EXISTS ${this.escapeId(table)}`);
     }
 
-    truncate (table, cb) {
-        this.execute(`TRUNCATE FROM ${this.escapeId(table)}`, cb);
+    truncate (table) {
+        return this.execute(`TRUNCATE FROM ${this.escapeId(table)}`);
     }
 
-    create (table, fields, keys, cb, engine = 'innodb') {
+    create (table, fields, keys, engine = 'innodb') {
         let data = [];
         for (let name of Object.keys(fields)) {
             data.push(`${this.escapeId(name)} ${fields[name]}`);
         }
         keys && data.push(keys);
-        data = data.join(',');
-        this.execute(`CREATE TABLE IF NOT EXISTS ${this.escapeId(table)} (${data}) engine=${engine}`, cb);
+        data = data.join();
+        return this.execute(`CREATE TABLE IF NOT EXISTS ${this.escapeId(table)} (${data}) engine=${engine}`);
     }
 
     // AGGREGATE
 
-    count (table, where, cb) {
-        let sql = `SELECT COUNT(*) FROM ${table} ${where}`;
-        this.execute(sql, (err, results)=> {
-            err ? cb(err) : cb(null, results[0]['COUNT(*)']);
-        });
+    async count (table, condition) {
+        let sql = `SELECT COUNT(*) FROM ${table} ${condition}`;
+        let result = await this.execute(sql);
+        return result[0]['COUNT(*)'];
     }
 
     // QUERY
 
-    queryAll (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            if (err) {
-                return cb(err);
-            }
-            this.execute(this.builder.stringify(cmd), (err, docs)=> {
-                if (err) {
-                    return cb(err);
-                }                
-                if (!cmd.order) {
-                    docs = query.sortOrderByIn(docs);
-                }    
-                query.populate(docs, cb);                    
-            });
-        });
+    async queryAll (query) {
+        let cmd = await this.buildQuery(query);
+        let docs = await this.execute(this.builder.stringify(cmd));
+        if (!cmd.order) {
+            docs = query.sortOrderByIn(docs);
+        }
+        return query.populate(docs);
     }
 
-    queryColumn (query, key, cb) {        
-        this.queryAll(query.asRaw().select({[key]: 1}), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.map(doc => doc[key]));
-        });
+    async queryColumn (query, key) {
+        let docs = await this.queryAll(query.asRaw().select({[key]: 1}));
+        return docs.map(doc => doc[key]);
     }
 
-    queryScalar (query, key, cb) {
-        this.queryAll(query.asRaw().select({[key]: 1}).limit(1), (err, docs)=> {
-            err ? cb(err) : cb(null, docs.length ? docs[0] : null);
-        });
+    async queryScalar (query, key) {
+        let docs = await this.queryAll(query.asRaw().select({[key]: 1}).limit(1));
+        return docs.length ? docs[0] : undefined;
     }
 
-    queryInsert (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.insert(cmd.from, data, cb);
-        });
+    async queryInsert (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.insert(cmd.from, data);
     }
 
-    queryUpdate (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.update(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpdate (query, data) {
+        let cms = await this.buildQuery(query);
+        return this.update(cmd.from, cmd.where, data);
     }
 
-    queryUpdateAll (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.updateAll(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpdateAll (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.updateAll(cmd.from, cmd.where, data);
     }
 
-    queryUpsert (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.upsert(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpsert (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.upsert(cmd.from, cmd.where, data);
     }
 
-    queryRemove (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.remove(cmd.from, cmd.where, cb);
-        });
+    async queryRemove (query) {
+        let cmd = await this.buildQuery(query);
+        return this.remove(cmd.from, cmd.where);
     }
 
-    queryCount (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.count(cmd.from, cmd.where, cb);
-        });
+    async queryCount (query) {
+        let cmd = await this.buildQuery(query);
+        return this.count(cmd.from, cmd.where);
     }
 
     // ESCAPES
@@ -252,5 +228,6 @@ module.exports.init();
 
 const moment = require('moment');
 const mysql = require('mysql');
+const PromiseHelper = require('../helper/PromiseHelper');
 const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');

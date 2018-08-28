@@ -34,20 +34,19 @@ module.exports = class StringValidator extends Base {
         });
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (typeof value !== 'string') {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         let length = value.length;
         if (this.min !== null && length < this.min) {
-            return cb(null, this.getTooShortMessage());
+            return this.getTooShortMessage();
         }
         if (this.max !== null && length > this.max) {
-            return cb(null, this.getTooLongMessage());
+            return this.getTooLongMessage();
         }
         if (this.length !== null && length !== this.length) {
-            return cb(null, this.getNotEqualMessage());
-        } 
-        cb();
+            return this.getNotEqualMessage();
+        }
     }
 };

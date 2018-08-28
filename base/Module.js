@@ -35,12 +35,15 @@ module.exports = class Module extends Base {
             components: {}, // inherited
             params: {}, // inherited
             widgets: {} // inherited
-        }, config));        
-
-        this.parent = ClassHelper.getParentModule(this);
-        this.app = this.parent ? this.parent.app : this;
+        }, config));
         this._express = express();
         this._expressQueue = []; // for deferred assign
+        this.setParent();
+    }
+
+    setParent () {
+        this.parent = ClassHelper.getParentModule(this);
+        this.app = this.parent.app;
     }
     
     getFullName (separator = '.') { // eg - app.admin.post
@@ -112,9 +115,7 @@ module.exports = class Module extends Base {
     }
 
     getControllerClass (id) {
-        try {
-            return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
-        } catch (e) {}
+        return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
     }
 
     log (type, message, data) {
@@ -143,28 +144,28 @@ module.exports = class Module extends Base {
 
     // EVENTS
 
-    beforeInit (cb) {
-        this.triggerCallback(this.EVENT_BEFORE_INIT, cb);
+    beforeInit () {
+        return this.triggerWait(this.EVENT_BEFORE_INIT);
     }
 
-    afterComponentInit (cb) {
-        this.triggerCallback(this.EVENT_AFTER_COMPONENT_INIT, cb);
+    afterComponentInit () {
+        return this.triggerWait(this.EVENT_AFTER_COMPONENT_INIT);
     }
 
-    afterModuleInit (cb) {
-        this.triggerCallback(this.EVENT_AFTER_MODULE_INIT, cb);
+    afterModuleInit () {
+        return this.triggerWait(this.EVENT_AFTER_MODULE_INIT);
     }
 
-    afterInit (cb) {
-        this.triggerCallback(this.EVENT_AFTER_INIT, cb);
+    afterInit () {
+        return this.triggerWait(this.EVENT_AFTER_INIT);
     }
 
-    beforeAction (action, cb) {
-        this.triggerCallback(this.EVENT_BEFORE_ACTION, cb, new ActionEvent(action));
+    beforeAction (action) {
+        return this.triggerWait(this.EVENT_BEFORE_ACTION, new ActionEvent(action));
     }
 
-    afterAction (action, cb) {
-        this.triggerCallback(this.EVENT_AFTER_ACTION, cb, new ActionEvent(action));
+    afterAction (action) {
+        return this.triggerWait(this.EVENT_AFTER_ACTION, new ActionEvent(action));
     }
 
     // EXPRESS SETUP QUEUES
@@ -213,7 +214,7 @@ module.exports = class Module extends Base {
         return require(file);
     }
 
-    configure (configName, cb) {
+    async init (configName) {
         this.setConfig(configName);
         Object.assign(this.params, this.config.params);
         Object.assign(this.widgets, this.config.widgets);
@@ -222,26 +223,22 @@ module.exports = class Module extends Base {
             AssignHelper.deepAssignUndefined(this.params, this.parent.params);
             AssignHelper.deepAssignUndefined(this.widgets, this.parent.widgets);
         }
-        this.setMountPath();
+        this.mountPath = this.getMountPath();
         if (this.config.forwarder) {
             this.setForwarder(this.config.forwarder);
         }
-        AsyncHelper.series([
-            cb => this.beforeInit(cb),
-            cb => this.createComponents(this.config.components, cb),
-            cb => this.afterComponentInit(cb),
-            cb => this.createModules(this.config.modules, cb),
-            cb => this.afterModuleInit(cb),
-            cb => {
-                this.createRouter(this.config.router);
-                this.attachExpress();
-                this.afterInit(cb);
-            }
-        ], cb);
+        await this.beforeInit();
+        await this.initComponents(this.config.components);
+        await this.afterComponentInit();
+        await this.initModules(this.config.modules);
+        await this.afterModuleInit();
+        this.createRouter(this.config.router);
+        this.attachExpress();
+        await this.afterInit();
     }
 
-    setMountPath () {
-        this.mountPath = this.config.mountPath || (this.parent ? `/${this.NAME}` : '/');
+    getMountPath () {
+        return this.config.mountPath || (this.parent ? `/${this.NAME}` : '/');
     }
 
     setForwarder (config) {
@@ -251,21 +248,21 @@ module.exports = class Module extends Base {
         }, config);
     }
 
-    createModules (config, cb) {
-        AsyncHelper.eachOfSeries(config || {}, (config, id, cb)=> {
-            if (!config) {
-                this.log('info', `Module skipped: ${id}`);
-                return cb();
-            }
-            let configName = config.configName || this.configName;
-            let module = require(this.getPath('module', id, 'module'));
-            this.modules[id] = module;
-            module.configure(configName, err => {
-                err ? this.log('error', `Module failed: ${id}`, err)
-                    : this.log('info', `Module ready: ${id}`);
-                setImmediate(cb);
-            });
-        }, cb);
+    async initModules (config = {}) {
+        for (let key of Object.keys(config)) {
+            await this.initModule(key, config[key]);
+        }
+    }
+
+    async initModule (id, config) {
+        if (!config) {
+            return this.log('info', `Module skipped: ${id}`);
+        }
+        let configName = config.configName || this.configName;
+        let module = require(this.getPath('module', id, 'module'));
+        this.modules[id] = module;
+        await module.init(configName);
+        this.log('info', `Module ready: ${id}`);
     }
 
     createRouter (config) {
@@ -296,32 +293,26 @@ module.exports = class Module extends Base {
         return this.parent ? this.parent.getComponent(name) : null;
     }
 
-    createComponents (components, cb) {
+    async initComponents (components) {
         components = components || {};
         this.extendComponentsByDefaults(components);
-        AsyncHelper.eachOfSeries(components, (config, id, cb)=> {
-            if (!config) {
-                this.log('info', `Component skipped: ${id}`);
-                return cb();
-            }
-            config.module = config.module || this;
-            config.id = id;
-            let name = config.setter || id;
-            let method = `create${StringHelper.idToCamel(name)}Component`;
-            AsyncHelper.series([
-                cb => {
-                    if (typeof this[method] === 'function') {
-                        return this[method](id, config, cb);
-                    }
-                    this.createComponent(id, config);
-                    setImmediate(cb);
-                },
-                cb => {
-                    this.log('trace', `Component ready: ${id}`);
-                    setImmediate(cb);
-                }
-            ], cb);
-        }, cb);
+        for (let id of Object.keys(components)) {
+            await this.initComponent(id, components[id]);
+        }
+    }
+
+    async initComponent (id, config) {
+        if (!config) {
+            return this.log('info', `Component skipped: ${id}`);
+        }
+        config.module = config.module || this;
+        config.id = id;
+        let name = config.setter || id;
+        let method = `create${StringHelper.idToCamel(name)}Component`;
+        typeof this[method] === 'function'
+            ? await this[method](id, config)
+            : await this.createComponent(id, config);
+        this.log('trace', `Component ready: ${id}`);
     }
 
     extendComponentsByDefaults (components) {
@@ -346,117 +337,106 @@ module.exports = class Module extends Base {
         this.components[name] = newComponent;
     }
 
-    createAssetComponent (id, config, cb) {
+    createAssetComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../web/asset/AssetManager')
         }, config));
-        setImmediate(cb);
     }
 
-    createBodyParserComponent (id, config, cb) {
+    createBodyParserComponent (id, config) {
         config = Object.assign({
             extended: true
         }, config);
         let bodyParser = require('body-parser');
         this.appendToExpress('use', bodyParser.json());
         this.appendToExpress('use', bodyParser.urlencoded(config));
-        setImmediate(cb);
     }
 
-    createCacheComponent (id, config, cb) {
+    createCacheComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../cache/Cache')
         }, config));
-        setImmediate(cb);
     }
 
-    createConnectionComponent (id, config, cb) {
+    createConnectionComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../db/Connection')
         }, config));
-        this.getDb().open(cb);
+        return this.getDb().open();
     }
 
-    createCookieComponent (id, config, cb) {
+    createCookieComponent (id, config) {
         config = config || {};
         let cookieParser = require('cookie-parser');
         this.appendToExpress('use', cookieParser(config.secret, config.options));
-        setImmediate(cb);
     }
 
-    createFormatterComponent (id, config, cb) {
+    createFormatterComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../i18n/Formatter'),
             i18n: this.components.i18n
         }, config));
-        setImmediate(cb);
     }
 
-    createI18nComponent (id, config, cb) {
+    createI18nComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../i18n/I18n'),
             parent: this.parent ? this.parent.components.i18n : null
         }, config));
-        setImmediate(cb);
     }
 
-    createLoggerComponent (id, config, cb) {
-        this.createComponent(id, Object.assign({
+    createLoggerComponent (id, config) {
+        return this.createComponent(id, Object.assign({
             Class: require('../log/Logger')
-        }, config)).configure(cb);
+        }, config)).init();
     }
 
-    createRateLimitComponent (id, config, cb) {
-        this.createComponent(id, Object.assign({
+    createRateLimitComponent (id, config) {
+        return this.createComponent(id, Object.assign({
             Class: require('../web/rate-limit/RateLimit')
-        }, config)).configure(cb);
+        }, config)).init();
     }
 
-    createRbacComponent (id, config, cb) {
-        this.createComponent(id, Object.assign({
+    createRbacComponent (id, config) {
+        return this.createComponent(id, Object.assign({
             Class: require('../rbac/Rbac')
-        }, config)).configure(cb);
+        }, config)).init();
     }
 
-    createSchedulerComponent (id, config, cb) {
+    createSchedulerComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../scheduler/Scheduler')
         }, config));
-        setImmediate(cb);
     }
 
-    createSessionComponent (id, config, cb) {
+    createSessionComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../web/session/Session')
         }, config));
-        setImmediate(cb);
     }
 
-    createStaticComponent (id, config, cb) {
+    createStaticComponent (id, config) {
         // use static content handlers before others
         this.app.useBaseExpressHandler(this.getRoute(), express.static(this.getPath('web'), config.options));
-        setImmediate(cb);
     }
 
-    createViewComponent (id, config, cb) {
-        this.createComponent(id, Object.assign({
+    createViewComponent (id, config) {
+        return this.createComponent(id, Object.assign({
             Class: require('../view/View'),
             parent: this.parent ? this.parent.getComponent(id) : null
-        }, config)).configure(cb);
+        }, config)).init();
     }
 
-    createViewEngineComponent (id, config, cb) {
+    createViewEngineComponent (id, config) {
         this.appendToExpress('engine', config.extension, config.engine);
         this.appendToExpress('set', 'view engine', config.extension);
-        setImmediate(cb);
     }
 
-    createUserComponent (id, config, cb) {
+    createUserComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../web/User')
         }, config));
         this.appendToExpress('use', this.handleUser);
-        setImmediate(cb);
     }
 
     // MIDDLEWARE
@@ -473,7 +453,7 @@ module.exports = class Module extends Base {
         let module = res.locals.module;
         res.locals.user = module.components.user.createWebUser(req, res, next);
         // try to identify the user immediately, otherwise have to do a callback for isGuest and etc
-        res.locals.user.ensureIdentity(next);
+        PromiseHelper.callback(res.locals.user.ensureIdentity(), next);
     }
 };
 module.exports.init();
@@ -481,11 +461,11 @@ module.exports.init();
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const AsyncHelper = require('../helper/AsyncHelper');
 const ClassHelper = require('../helper/ClassHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const AssignHelper = require('../helper/AssignHelper');
+const PromiseHelper = require('../helper/PromiseHelper');
 const ActionEvent = require('./ActionEvent');
 const Connection = require('../db/Connection');
 const Url = require('../web/Url');

@@ -25,28 +25,23 @@ module.exports = class IpValidator extends Base {
         return this.createMessage(this.ip6NotAllowed, 'Value must not be an IPv6 address');
     }
 
-    validateAttr (model, attr, cb) {
-        super.validateAttr(model, attr, err => {
-            if (err) {
-                return cb(err);
-            }
-            if (!model.hasError()) {
-                model.set(attr, model.get(attr).toLowerCase());
-            }
-            cb();
-        });
+    async validateAttr (model, attr) {
+        await super.validateAttr(model, attr);
+        if (!model.hasError()) {
+            model.set(attr, model.get(attr).toLowerCase());
+        }
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (typeof value !== 'string' || value.length > 64) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if ((new RegExp(this.ip4Pattern)).test(value)) {
-            return this.ip4 ? cb() : cb(null, this.getIp4NotAllowedMessage());
+            return this.ip4 ? null : this.getIp4NotAllowedMessage();
         }
         if ((new RegExp(this.ip6Pattern)).test(value)) {
-            return this.ip6 ? cb() : cb(null, this.getIp6NotAllowedMessage());
+            return this.ip6 ? null : this.getIp6NotAllowedMessage();
         }
-        cb(null, this.getMessage());
+        return this.getMessage();
     }
 };

@@ -12,9 +12,8 @@ module.exports = class View extends Base {
         }, config));
     }
 
-    configure (cb) {
-        this.createThemeMap();
-        setImmediate(cb);
+    async init () {
+        this.createThemeMap();        
     }
 
     createThemeMap () {

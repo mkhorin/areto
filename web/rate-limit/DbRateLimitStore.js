@@ -10,20 +10,15 @@ module.exports = class DbRateLimitStore extends Base {
             table: 'rate_limit'
         }, config));
     }
-
-    find (type, user, cb) {
+    
+    async find (type, user) {
         let model = this.createModel({type, user});
-        AsyncHelper.waterfall([
-            cb => this.getQueryBy(type, user).one(cb),
-            (doc, cb)=> {
-                model.setData(doc);
-                cb(null, model);
-            }
-        ], cb);
+        model.setData(await this.getQueryBy(type, user).one());
+        return model;
     }
 
-    save (model, cb) {
-        this.getQueryBy(model.type, model.user).upsert(model.getData(), cb);
+    save (model) {
+        return this.getQueryBy(model.type, model.user).upsert(model.getData());
     }
 
     getQueryBy (type, user) {
@@ -43,5 +38,4 @@ module.exports = class DbRateLimitStore extends Base {
     }
 };
 
-const AsyncHelper = require('../../helper/AsyncHelper');
 const Query = require('../../db/Query');

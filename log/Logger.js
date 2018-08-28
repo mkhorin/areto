@@ -28,11 +28,10 @@ module.exports = class Logger extends Base {
         this.createTypes();
     }
 
-    configure (cb) {
+    async init () {
         if (this.isDebug()) {
             this.traceProcessingTime();
         }
-        cb();
     }
 
     createTypes () {
@@ -115,13 +114,13 @@ module.exports = class Logger extends Base {
         next();
     }
 
-    endProcessingTime (cb, event) {
+    endProcessingTime (event) {
         let controller = event.action.controller;
         let time = Date.now() - controller.res.locals.startProcessingTime;
         if (time >= this.processingTimeThreshold) {
             this.log('trace', this.formatProcessingTime(time, controller));
         }
-        cb();
+        return Promise.resolve();
     }
 
     formatProcessingTime (time, controller) {

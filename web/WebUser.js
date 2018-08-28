@@ -52,126 +52,114 @@ module.exports = class WebUser extends Base {
         return this.owner.loginUrl;
     }
 
-    login (model, duration, cb) {
+    async login (model, duration) {
         duration = duration || 0;
-        AsyncHelper.series([
-            cb => this.beforeLogin(model, false, duration, cb),
-            cb => this.switchIdentity(model, duration, cb),
-            cb => this.afterLogin(model, false, duration, cb)
-        ], cb);
+        await this.beforeLogin(model, false, duration);
+        await this.switchIdentity(model, duration);
+        await this.afterLogin(model, false, duration);
     }
 
-    loginByCookie (cb) {
+    async loginByCookie () {
         let value = this.req.cookies[this.owner.identityCookieParam];
         if (!value || typeof value !== 'object'
             || typeof value.id !== 'string'
             || typeof value.key !== 'string'
             || typeof value.duration !== 'number') {
-            return cb();
+            return false;
         }
         let duration = value.duration;
-        AsyncHelper.waterfall([
-            cb => this.owner.findUserModel(value.id).one(cb),
-            (model, cb)=> {
-                if (!model || !model.validateAuthKey(value.key)) {
-                    return cb();
-                }
-                AsyncHelper.series([
-                    cb => this.beforeLogin(model, true, duration, cb),
-                    cb => this.switchIdentity(model, this.owner.autoRenewCookie ? duration : 0, cb),
-                    cb => this.afterLogin(model, true, duration, cb)
-                ], cb);
-            }
-        ], cb);
+        let model = await this.owner.findUserModel(value.id).one();
+        if (model && model.validateAuthKey(value.key)) {
+            await this.beforeLogin(model, true, duration);
+            await this.switchIdentity(model, this.owner.autoRenewCookie ? duration : 0);
+            await this.afterLogin(model, true, duration);
+        }
     }
 
-    logout (cb, destroySession = true) {
-        let model = this.model;
-        model ? AsyncHelper.series([
-            cb => this.beforeLogout(model, cb),
-            cb => this.switchIdentity(null, 0, cb),
-            cb => this.afterLogout(model, cb)
-        ], cb) : cb();
+    async logout (destroySession = true) {
+        if (this.model) {
+            await this.beforeLogout(this.model);
+            await this.switchIdentity(null, 0);
+            await this.afterLogout(this.model);
+        }
     }
 
-    loginRequired () {
+    loginRequired (controller) {
         if (this.owner.enableSession) {
             this.setReturnUrl(this.req.originalUrl);
         }
-        this.owner.loginUrl && !this.req.xhr
-            ? this.res.redirect(Url.create(this.getLoginUrl(), this.getLocalModule()))
-            : this.next(new ForbiddenHttpException);
+        if (this.req.xhr || !this.getLoginUrl()) {
+            return this.next(new ForbiddenHttpException);
+        }
+        (controller || this.res).redirect(Url.create(this.getLoginUrl(), this.getLocalModule()));
     }
 
     // EVENTS
 
-    // if override this method call - super.beforeLogin
-    beforeLogin (model, cookieBased, duration, cb) {
-        this.triggerCallback(this.EVENT_BEFORE_LOGIN, cb, new Event({
-            model, cookieBased, duration
-        }));
+    // if override this method await super.beforeLogin
+    beforeLogin (model, cookieBased, duration) {
+        return this.triggerWait(this.EVENT_BEFORE_LOGIN, new Event({model, cookieBased, duration}));
     }
 
-    afterLogin (model, cookieBased, duration, cb) {
-        this.triggerCallback(this.EVENT_AFTER_LOGIN, cb, new Event({
-            model, cookieBased, duration
-        }));
+    afterLogin (model, cookieBased, duration) {
+        return this.triggerWait(this.EVENT_AFTER_LOGIN, new Event({model, cookieBased, duration}));
     }
 
-    beforeLogout (model, cb) {
-        this.triggerCallback(this.EVENT_BEFORE_LOGOUT, cb, new Event({model}));
+    beforeLogout (model) {
+        return this.triggerWait(this.EVENT_BEFORE_LOGOUT, new Event({model}));
     }
 
-    afterLogout (model, cb) {
-        this.triggerCallback(this.EVENT_AFTER_LOGOUT, cb, new Event({model}));
+    afterLogout (model) {
+        return this.triggerWait(this.EVENT_AFTER_LOGOUT, new Event({model}));
     }
 
     // IDENTITY
 
-    ensureIdentity (cb, autoRenew = true) {
-        if (this.model !== undefined) {
-            return cb();
+    async ensureIdentity (autoRenew = true) {
+        if (this.model === undefined) {
+            this.model = null;
+            if (this.owner.enableSession && autoRenew) {
+                await this.renewAuthStatus();
+                await this.setAssignments();
+            }
         }
-        this.model = null;
-        this.owner.enableSession && autoRenew
-            ? this.renewAuthStatus(()=> this.setAssignments(cb))
-            : cb();
     }
 
     setIdentity (model) {
         this.model = model;
     }
 
-    switchIdentity (model, duration, cb) {
+    async switchIdentity (model, duration) {
         this.setIdentity(model);
         if (!this.owner.enableSession) {
-            return cb();
+            return false;
         }
         let returnUrl = this.getReturnUrl();
-        // created new session instance
-        this.session.regenerate(()=> {
-            this.session = this.req.session;
-            this.setReturnUrl(returnUrl);
-            if (model) {
-                let now = Math.floor(Date.now() / 1000);
-                this.session[this.owner.idParam] = this.getId();
-                if (this.owner.authTimeout !== null) {
-                    this.session[this.owner.authTimeoutParam] = now + this.owner.authTimeout;
-                }
-                if (this.owner.absoluteAuthTimeout !== null) {
-                    this.session[this.owner.absoluteAuthTimeoutParam] = now + this.owner.absoluteAuthTimeout;
-                }
-                if (this.assignments) {
-                    this.session[this.owner.assignmentsParam] = this.assignments;
-                }
-                if (duration > 0 && this.owner.enableAutoLogin) {
-                    this.sendIdentityCookie(model, duration);
-                }
-            } else if (this.owner.enableAutoLogin) {
-                this.res.clearCookie(this.owner.identityCookieParam, this.owner.identityCookie);
-            }
-            setImmediate(cb);
-        });
+        await PromiseHelper.promise(this.session.regenerate.bind(this.session)); // created new session instance
+        this.session = this.req.session;
+        this.setReturnUrl(returnUrl);
+        if (model) {
+            this.setIdentitySession(model, duration);
+        } else if (this.owner.enableAutoLogin) {
+            this.res.clearCookie(this.owner.identityCookieParam, this.owner.identityCookie);
+        }
+    }
+
+    setIdentitySession (model, duration) {
+        let now = Math.floor(Date.now() / 1000);
+        this.session[this.owner.idParam] = this.getId();
+        if (this.owner.authTimeout !== null) {
+            this.session[this.owner.authTimeoutParam] = now + this.owner.authTimeout;
+        }
+        if (this.owner.absoluteAuthTimeout !== null) {
+            this.session[this.owner.absoluteAuthTimeoutParam] = now + this.owner.absoluteAuthTimeout;
+        }
+        if (this.assignments) {
+            this.session[this.owner.assignmentsParam] = this.assignments;
+        }
+        if (duration > 0 && this.owner.enableAutoLogin) {
+            this.sendIdentityCookie(model, duration);
+        }
     }
 
     sendIdentityCookie (model, duration) {
@@ -185,18 +173,13 @@ module.exports = class WebUser extends Base {
 
     // RENEW AUTH
 
-    renewAuthStatus (cb) {
+    async renewAuthStatus () {
         let id = this.session[this.owner.idParam];
-        if (!id) {
-            return this.renewAuthExpire(null, cb);
-        }
-        AsyncHelper.waterfall([
-            cb => this.owner.findUserModel(id).one(cb),
-            this.renewAuthExpire.bind(this)
-        ], cb);
+        let model = id ? await this.owner.findUserModel(id).one() : null;
+        await this.renewAuthExpire(model);
     }
 
-    renewAuthExpire (model, cb) {
+    async renewAuthExpire (model) {
         this.setIdentity(model);
         if (model && (this.owner.authTimeout !== null || this.owner.absoluteAuthTimeout !== null)) {
             let now = Math.floor(Date.now() / 1000);
@@ -207,25 +190,23 @@ module.exports = class WebUser extends Base {
                 ? this.session[this.owner.absoluteAuthTimeoutParam]
                 : null;
             if (expire !== null && expire < now || expireAbsolute !== null && expireAbsolute < now) {
-                return this.logout(()=> this.renewAuthCookie(cb), false);
-            }
-            if (this.owner.authTimeout !== null) {
+                await this.logout(false);
+            } else if (this.owner.authTimeout !== null) {
                 this.session[this.owner.authTimeoutParam] = now + this.owner.authTimeout;
             }
         }
-        this.renewAuthCookie(cb);
+        await this.renewAuthCookie();
     }
 
-    renewAuthCookie (cb) {
+    async renewAuthCookie () {
         if (this.owner.enableAutoLogin) {
             if (this.isGuest()) {
-                return this.loginByCookie(cb);
+                await this.loginByCookie();
             }
             if (this.owner.autoRenewCookie) {
-                this.renewIdentityCookie();
+                await this.renewIdentityCookie();
             }
         }
-        setImmediate(cb);
     }
 
     renewIdentityCookie () {
@@ -238,45 +219,34 @@ module.exports = class WebUser extends Base {
 
     // RBAC
 
-    setAssignments (cb) {
+    async setAssignments () {
         if (!this.getLocalModule().components.rbac) {
-            return cb();
+            return;
         }
         if (!this.model) {
-            this.assignments = this.owner.guestAssignments || [];
-            return cb();
+            return this.assignments = this.owner.guestAssignments || [];
         }
-        this.model.getAssignments((err, result)=> {
-            if (err) {
-                return cb(err);
-            }
-            this.assignments = result || this.owner.defaultAssignments || [];
-            cb();
-        });
+        let result = await this.model.getAssignments();
+        this.assignments = result || this.owner.defaultAssignments || [];
     }
 
-    can (name, cb, params) {
-        Object.prototype.hasOwnProperty.call(this._accessCache, name)
-            ? cb(null, this._accessCache[name])
-            : this.forceCan(name, cb, params);
+    can (name, params) {
+        return Object.prototype.hasOwnProperty.call(this._accessCache, name)
+            ? this._accessCache[name]
+            : this.forceCan(name, params);
     }
 
-    forceCan (name, cb, params) {
+    async forceCan (name, params) {
         params = Object.assign({
             user: this
         }, params);
-        this.getLocalModule().components.rbac.can(this.assignments, name, (err, access)=> {
-            if (err) {
-                return cb(err);
-            }
-            this._accessCache[name] = !!access;
-            cb(null, access);
-        }, params);
+        let access = await this.getLocalModule().components.rbac.can(this.assignments, name, params);
+        return this._accessCache[name] = !!access;
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
+const PromiseHelper = require('../helper/PromiseHelper');
 const Event = require('../base/Event');
 const ForbiddenHttpException = require('../error/ForbiddenHttpException');
 const Url = require('./Url');

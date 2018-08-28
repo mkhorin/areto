@@ -105,8 +105,8 @@ module.exports = class Scheduler extends Base {
         this.start();
     }
     
-    taskBeforeRun (cb, event) {
-        this.triggerCallback(this.EVENT_TASK_BEFORE_RUN, cb, event);
+    taskBeforeRun (event) {
+        return this.triggerWait(this.EVENT_TASK_BEFORE_RUN, event);
     }
 
     taskDone (event, data) {

@@ -8,7 +8,7 @@ module.exports = class SecurityHelper {
 
     static createSalt (length = DEFAULT_SALT_LENGTH) {
         let min = Math.pow(10, length - 1);
-        return String(parseInt(Math.random() * (min * 9 - 1)) + min);
+        return Math.floor(Math.random() * (min * 9 - 1) + min).toString();
     }
 
     static extractSalt (hash, length = DEFAULT_HASH_LENGTH) {
@@ -35,27 +35,16 @@ module.exports = class SecurityHelper {
         return this.hashValue(password, this.extractSalt(hash)) === hash;
     }
 
-    static generateRandomString (length, cb) {
+    static generateRandomString (length) {
         if (isNaN(length)) {
-            return cb('generateRandomString: Length must be a number');
+            throw new Error('Length must be a number');
         }
-        crypto.randomBytes(length, (err, buf)=> {
-            err ? cb(err) : cb(null, buf.toString('hex'));
-        });
+        return crypto.randomBytes(length).toString('hex');
     }
 
-    static hashFile (file, cb, algo = DEFAULT_HASH_ALGO) {
-        fs.readFile(file, (err, data)=> {
-            if (err) {
-                return cb(err);
-            }
-            try {
-                data = crypto.createHash(algo).update(data).digest('hex');
-            } catch (err) {
-                return cb(err);
-            }
-            cb(null, data);
-        });
+    static hashFile (file, algo = DEFAULT_HASH_ALGO) {
+        let data = fs.readFileSync(file);
+        return crypto.createHash(algo).update(data).digest('hex');
     }
 };
 

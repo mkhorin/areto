@@ -4,11 +4,11 @@ const Base = require('./DataProvider');
 
 module.exports = class ActiveDataProvider extends Base {
 
-    prepareTotalCount (cb) {
-        this.query.count(cb);
+    prepareTotalCount () {
+        return this.query.count();
     }
     
-    prepareModels (cb) {
+    prepareModels () {
         if (this.pagination) {
             this.pagination.totalCount = this.totalCount;
             if (this.pagination.pageSize > 0) {
@@ -18,7 +18,7 @@ module.exports = class ActiveDataProvider extends Base {
         if (this.sort) {
             this.query.addOrder(this.sort.getOrders());
         }
-        this.query.all(cb);
+        return this.query.all();
     }
    
     setSort (data) {

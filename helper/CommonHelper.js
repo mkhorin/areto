@@ -95,23 +95,22 @@ module.exports = class CommonHelper {
         return result;
     }
 
-    static spawnProcess (path, command, args, cb) {
-        try {
-            if (this.isWinPlatform()) {
-                command += '.cmd';
-            }
-            let child = childProcess.spawn(command, args, {
-                cwd: path,
-                env: process.env
-            });
-            child.stdout.on('data', data => console.log(`${data}`));
-            child.stderr.on('data', data => console.error(`${data}`));
-            child.on('close', code => {
-                cb(code ? `Spawn process '${command}' failed: ${code}` : null);
-            });
-        } catch (err) {
-            return cb(err);
+    static spawnProcess (path, command, args) {
+        if (this.isWinPlatform()) {
+            command += '.cmd';
         }
+        let child = childProcess.spawn(command, args, {
+            cwd: path,
+            env: process.env
+        });
+        child.stdout.on('data', data => console.log(`${data}`));
+        child.stderr.on('data', data => console.error(`${data}`));
+        return new Promise((resolve, reject)=> {
+            child.on('close', code => {
+                code ? reject(`Spawn process: ${command}: failed: ${code}`)
+                     : resolve();
+            });
+        });
     }
 };
 

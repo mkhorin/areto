@@ -10,16 +10,15 @@ module.exports = class RateLimitStore extends Base {
         }, config));
     }
 
-    configure (cb) {
-        cb();
+    async init () {
     }
 
-    find (type, user, cb) {
-        cb(this.wrapClassMessage('Need to override'));
+    async find (type, user) {
+        throw new Error(this.wrapClassMessage('Need to override'));
     }
 
-    save (model, cb) {
-        cb(this.wrapClassMessage('Need to override'));
+    async save (model) {
+        throw new Error(this.wrapClassMessage('Need to override'));
     }
 
     createModel (config) {

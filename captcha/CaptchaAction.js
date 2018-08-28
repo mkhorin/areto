@@ -20,8 +20,8 @@ module.exports = class Captcha extends Base {
         }, config));
     }
 
-    run () {
-        this.renderImage(this.getVerifyCode(true), err => this.complete(err));
+    execute () {
+        return this.renderImage(this.getVerifyCode(true));
     }
 
     validate (value) {
@@ -53,9 +53,17 @@ module.exports = class Captcha extends Base {
         return buffer.join('');
     }
 
-    renderImage (code, cb) {
-        let w = this.width, h = this.height;
+    async renderImage (code) {
+        let w = this.width;
+        let h = this.height;
         let image = gm(w, h, this.backColor);
+        this.drawImage(image, code, w, h);
+        image = image.setFormat('jpg').quality(this.quality);
+        let buffer = await PromiseHelper.promise(image.toBuffer.bind(image));
+        this.controller.sendData(buffer, "binary");
+    }
+
+    drawImage (image, code, w, h) {
         image.fill(this.foreColor);
         image.font(this.fontFile);
         //image.affine(5,5);
@@ -75,10 +83,6 @@ module.exports = class Captcha extends Base {
             step = CommonHelper.getRandom(downB, topB);
         }
         //image.noise(1);
-        AsyncHelper.waterfall([
-            cb => image.setFormat('jpg').quality(this.quality).toBuffer(cb),
-            buffer => this.controller.sendData(buffer, "binary")
-        ], cb);
     }
 
     drawText (image, x, y, text, angle) {
@@ -88,5 +92,5 @@ module.exports = class Captcha extends Base {
 
 const gm = require('gm');
 const path = require('path');
-const AsyncHelper = require('../helper/AsyncHelper');
 const CommonHelper = require('../helper/CommonHelper');
+const PromiseHelper = require('../helper/PromiseHelper');

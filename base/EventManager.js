@@ -17,7 +17,7 @@ module.exports = class EventManager extends Base {
     }
 
     /**
-     * data - get only with this handler
+     * @data - comes only with this handler
      */
     on (name, handler, data, prepend) {
         if (!name) {
@@ -40,25 +40,25 @@ module.exports = class EventManager extends Base {
         if (!(this._events[name] instanceof Array)) {
             return false;
         }
-        if (handler) {
-            let removed = false;
-            for (let i = this._events[name].length - 1; i >= 0; --i) {
-                if (this._events[name][i][0] === handler) {
-                    this._events[name].splice(i, 1);
-                    removed = true;    
-                }
-            }
-            return removed;
+        if (!handler) {
+            delete this._events[name];
+            return true;
         }
-        delete this._events[name];
-        return true;
+        let removed = false;
+        for (let i = this._events[name].length - 1; i >= 0; --i) {
+            if (this._events[name][i][0] === handler) {
+                this._events[name].splice(i, 1);
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     trigger (name, event) {
         this.owner.ensureBehaviors();
         if (this._events[name] instanceof Array) {
             event = Event.create(event, this.owner, name);
-            // trigger can be deleted inside the handler, array will change this._events[name]
+            // trigger can be deleted inside the handler, array will change _events[name]
             for (let i = this._events[name].length - 1; i >= 0; --i) {
                 this._events[name][i][0](event, this._events[name][i][1]); // handler(event, data)
                 if (event.handled) {
@@ -69,18 +69,16 @@ module.exports = class EventManager extends Base {
         Event.trigger(this.owner, name, event); // invoke class-level handlers
     }
 
-    triggerCallback (name, cb, event) {
+    triggerWait (name, event) {
         this.owner.ensureBehaviors();
         let tasks = [];
         if (this._events[name] instanceof Array) {
             event = Event.create(event, this.owner, name);
-            this._events[name].forEach(function (handler) {
-                tasks.push(function (cb) {
-                    handler[0](cb, event, handler[1]);
-                });
+            this._events[name].forEach(handler => {
+                tasks.push(()=> handler[0](event, handler[1]));
             });
         }
-        Event.triggerCallback(this.owner, name, cb, event, tasks);
+        return Event.triggerWait(this.owner, name, event, tasks);
     }
 };
 

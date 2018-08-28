@@ -15,11 +15,10 @@ module.exports = class IdValidator extends Base {
         return this.createMessage(this.message, 'Invalid ID');
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr);
         if (this.isEmptyValue(value)) {
-            model.set(attr, null);
-            return cb();
+            return model.set(attr, null);
         }
         value = model.getDb().normalizeId(value);
         if (value === null) {
@@ -27,6 +26,5 @@ module.exports = class IdValidator extends Base {
         } else if (this.normalize) {
             model.set(attr, value);
         }
-        cb();
     }
 };

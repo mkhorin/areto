@@ -97,7 +97,7 @@ module.exports = class Query extends Base {
             return this.and(conditions[0]);
         }
         if (conditions.length > 1) {
-            return this.query.and(['OR'].concat(conditions));
+            return this.and(['OR'].concat(conditions));
         }
         return this;
     }
@@ -135,60 +135,60 @@ module.exports = class Query extends Base {
 
     // COMMAND
 
-    all (cb) {
-        this._db.queryAll(this, cb);
+    all () {
+        return this._db.queryAll(this);
     }
 
-    one (cb) {
-        this._db.queryOne(this, cb);
+    one () {
+        return this._db.queryOne(this);
     }
 
-    column (key, cb) {
-        this._db.queryColumn(this, key, cb);
+    column (key) {
+        return this._db.queryColumn(this, key);
     }
 
-    distinct (key, cb) {
-        this._db.queryDistinct(this, key, cb);
+    distinct (key) {
+        return this._db.queryDistinct(this, key);
     }
 
-    scalar (key, cb) {
-        this._db.queryScalar(this, key, cb);
+    scalar (key) {
+        return this._db.queryScalar(this, key);
     }
 
-    insert (data, cb) {
-        this._db.queryInsert(this, data, cb);
+    insert (data) {
+        return this._db.queryInsert(this, data);
     }
 
-    update (data, cb) {
-        this._db.queryUpdate(this, data, cb);
+    update (data) {
+        return this._db.queryUpdate(this, data);
     }
 
-    updateAll (data, cb) {
-        this._db.queryUpdateAll(this, data, cb);
+    updateAll (data) {
+        return this._db.queryUpdateAll(this, data);
     }
 
-    upsert (data, cb) {
-        this._db.queryUpsert(this, data, cb);
+    upsert (data) {
+        return this._db.queryUpsert(this, data);
     }
 
-    remove (cb) {
-        this._db.queryRemove(this, cb);
+    remove () {
+        return this._db.queryRemove(this);
     }
 
-    count (cb) {
-        this._db.queryCount(this, cb);
+    count () {
+        return this._db.queryCount(this);
     }
 
-    max (key, cb) {
+    max (key) {
         this._order = {[key]: -1};
         this._limit = 1;
-        this.scalar(key, cb);
+        return this.scalar(key);
     }
 
-    min (key, cb) {
+    min (key) {
         this._order = {[key]: 1};
         this._limit = 1;
-        this.scalar(key, cb);
+        return this.scalar(key);
     }
 
     //
@@ -199,8 +199,8 @@ module.exports = class Query extends Base {
             || (typeof value === 'object' && !Object.values(value).length);
     }
     
-    prepare (cb) {
-        cb();
+    prepare () {
+        return Promise.resolve();
     }
 
     afterBuild () {
@@ -211,11 +211,11 @@ module.exports = class Query extends Base {
         }
     }
 
-    populate (docs, cb) {
+    populate (docs) {
         if (this._index) {
             docs = QueryHelper.indexObjects(docs, this._index);
         }
-        cb(null, docs);
+        return Promise.resolve(docs);
     }
 
     filterCondition (data) {
@@ -301,9 +301,3 @@ module.exports = class Query extends Base {
 
 const ArrayHelper = require('../helper/ArrayHelper');
 const QueryHelper = require('../helper/QueryHelper');
-
-/*
-sum (q) {
-    return this.queryScalar('SUM('+ q +')');
-};
-*/

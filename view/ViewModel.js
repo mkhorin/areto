@@ -36,12 +36,12 @@ module.exports = class ViewModel extends Base {
         this._attrs = {};
     }
 
-    resolve (cb) {
-        cb(null, {});
+    getData () {
+        return {};
     }
 
-    prepare (cb) {
-        this.resolve((err, data)=> cb(err, Object.assign(this.data, data)));
+    async prepare () {
+        return Object.assign(this.data, await this.getData());
     }
 
     getAttrLabel (name) {

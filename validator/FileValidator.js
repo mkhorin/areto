@@ -46,46 +46,47 @@ module.exports = class FileValidator extends Base {
         });
     }
 
-    // file {  path, size, extension, mime }
-    validateValue (file, cb) {
+    async validateValue (file) { // file {path, size, extension, mime}
         if (!file || !file.path) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
-            return cb(null, this.getNotImageMessage());
+            return this.getNotImageMessage();
         }
-        fs.stat(file.path, (err, stats)=> {
-            if (err || !stats.isFile()) {
-                return cb(null, this.getMessage());
+        try {
+            let stats = fs.statSync(file.path);
+            if (!stats.isFile()) {
+                return this.getMessage();
             }
             if (this.minSize && file.size < this.minSize) {
-                return cb(null, this.getTooSmallMessage());
+                return this.getTooSmallMessage();
             }
             if (this.maxSize && file.size > this.maxSize) {
-                return cb(null, this.getTooBigMessage());
+                return this.getTooBigMessage();
             }
             if (this.extensions instanceof Array
                 && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
-                return cb(null, this.getWrongExtensionMessage());
+                return this.getWrongExtensionMessage();
             }
             if (this.mimeTypes instanceof Array && (!file.mime || !this.mimeTypes.includes(file.mime))) {
-                return cb(null, this.getWrongMimeTypeMessage());
+                return this.getWrongMimeTypeMessage();
             }
-            cb();
-        });
+        } catch (err) {
+            return this.getMessage();
+        }
     }
 
     getParams () {
         return {
-            imageOnly: this.imageOnly,
-            minSize: this.minSize,
-            maxSize: this.maxSize,
-            extensions: this.extensions,
-            mimeTypes: this.mimeTypes,
-            tooSmall: this.tooSmall,
-            tooBig: this.tooBig,
-            wrongExtension: this.wrongExtension,
-            wrongMimeType: this.wrongMimeType
+            'imageOnly': this.imageOnly,
+            'minSize': this.minSize,
+            'maxSize': this.maxSize,
+            'extensions': this.extensions,
+            'mimeTypes': this.mimeTypes,
+            'tooSmall': this.tooSmall,
+            'tooBig': this.tooBig,
+            'wrongExtension': this.wrongExtension,
+            'wrongMimeType': this.wrongMimeType
         };
     }
 };

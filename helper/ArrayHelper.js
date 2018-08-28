@@ -53,18 +53,30 @@ module.exports = class ArrayHelper {
         return true;
     }
 
-    static getValueByKey (key, keyProp, objects, returnProp) {
-        for (let object of objects) {
-            if (object[keyProp] === key) {
-                return returnProp === undefined ? object : object[returnProp];
-            }
-        }
-    }
-
     static concatValues (values) {
         return values instanceof Array
             ? Array.prototype.concat.apply([], values)
             : values;
+    }
+
+    static getObjectPropValues (items, prop) {
+        let values = [];
+        for (let item of items) {
+            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
+                values.push(item[prop]);
+            }
+        }
+        return values;
+    }
+
+    static searchByProp (value, searchProp, items, returnProp) {
+        if (items instanceof Array) {
+            for (let item of items) {
+                if (item && item[searchProp] === value) {
+                    return returnProp === undefined ? item : item[returnProp];
+                }
+            }
+        }
     }
 
     // INDEX
@@ -141,26 +153,6 @@ module.exports = class ArrayHelper {
             values[j] = t;
         }
         return values;
-    }
-
-    static getObjectPropValues (items, prop) {
-        let values = [];
-        for (let item of items) {
-            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
-                values.push(item[prop]);
-            }
-        }
-        return values;
-    }
-
-    static searchByProperty (value, items, searchProp, returnProp) {
-        if (items instanceof Array) {
-            for (let item of items) {
-                if (item && item[searchProp] === value) {
-                    return returnProp === undefined ? item : item[returnProp];
-                }
-            }
-        }
     }
 
     // HIERARCHY

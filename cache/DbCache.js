@@ -12,35 +12,26 @@ module.exports = class DbCache extends Base {
         this._cache = {};
     }
 
-    getValue (key, cb) {        
-        this.getQuery().and({key}).one((err, doc)=> {
-            if (err || !doc) {
-                return cb(err);
-            }
-            if (!doc.expiredAt || doc.expiredAt > Date.now() / 1000) {
-                return cb(null, doc.value);
-            }
-            cb();
-        });
+    async getValue (key) {
+        let doc = await this.getQuery().and({key}).one();
+        if (doc && (!doc.expiredAt || doc.expiredAt > Date.now() / 1000)) {
+            return doc.value;
+        }
     }
 
-    setValue (key, value, duration, cb) {
+    setValue (key, value, duration) {
         let expiredAt = duration
             ? Math.trunc(Date.now() / 1000 + duration)
-            : 0;
-        let query = this.getQuery().and({key});
-        query.one((err, stored)=> {
-            err ? cb(err)
-                : query.upsert({key, value, expiredAt}, cb);
-        });
+            : 0;        
+        return this.getQuery().and({key}).upsert({key, value, expiredAt});
     }
 
-    removeValue (key, cb) {
-        this.getQuery().and({key}).remove(cb);
+    removeValue (key) {
+        return this.getQuery().and({key}).remove();
     }
 
-    flushValues (cb) {
-        this.db.truncate(this.table, cb);
+    flushValues () {
+        return this.db.truncate(this.table);
     }
 
     getQuery () {

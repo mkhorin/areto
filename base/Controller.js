@@ -112,10 +112,9 @@ module.exports = class Controller extends Base {
         return ids;
     }
 
-    assign (req, res, next, err) {
+    assign (req, res, err) {
         this.req = req;
         this.res = res;
-        this.next = next;
         this.err = err;
         this.user = res.locals.user;
         this.language = res.locals.language || (this.i18n && this.i18n.getActiveNotSourceLanguage());
@@ -123,18 +122,25 @@ module.exports = class Controller extends Base {
         return this;
     }
 
-    execute (name) {
+    async execute (name) {
         this.action = this.createAction(name);
         if (!this.action) {
-            return this.throwError(this.wrapClassMessage(`Unable to create action: ${name}`));
+            throw new Error(this.wrapClassMessage(`Unable to create action: ${name}`));
         }
-        AsyncHelper.series([
-            cb => this.triggerBeforeAction(cb),
-            cb => this.action.execute(cb),
-            cb => this.triggerAfterAction(cb)
-        ], err => {
-            err ? this.throwError(err) : this.response.end();
-        });
+        // trigger module's beforeAction from root to current
+        for (let module of this.module.getAncestry().slice().reverse()) {
+            await module.beforeAction(this.action);
+        }
+        await this.beforeAction();
+        if (!this.response.has()) { // check to response by beforeActions
+            await this.action.execute();
+        }
+        await this.afterAction();
+        // trigger module's afterAction from current to root
+        for (let module of this.module.getAncestry()) {
+            await module.afterAction(this.action);
+        }
+        this.response.end();
     }
 
     createAction (name) {
@@ -144,14 +150,13 @@ module.exports = class Controller extends Base {
 
     createInlineAction (name) {
         let method = `action${StringHelper.idToCamel(name)}`;
-        if (typeof this[method] !== 'function') {
-            return null;
+        if (typeof this[method] === 'function') {
+            return ClassHelper.createInstance(this.INLINE_ACTION_CLASS || this.module.INLINE_ACTION_CLASS, {
+                name,
+                controller: this,
+                method: this[method]
+            });
         }
-        return ClassHelper.createInstance(this.INLINE_ACTION_CLASS || this.module.INLINE_ACTION_CLASS, {
-            name,
-            controller: this,
-            method: this[method]
-        });
     }
 
     createMapAction (name) {
@@ -163,34 +168,16 @@ module.exports = class Controller extends Base {
         }
     }
 
-    triggerBeforeAction (cb) {
-        // trigger module's beforeAction from root to current
-        AsyncHelper.eachSeries(this.module.getAncestry().slice().reverse(), (module, cb)=> {
-            module.beforeAction(this.action, cb);
-        }, err => {
-            err ? cb(err) : this.beforeAction(cb);
-        });
-    }
-
-    triggerAfterAction (cb) {
-        AsyncHelper.series([
-            cb => this.afterAction(cb),
-            // trigger module's afterAction from current to root
-            cb => AsyncHelper.eachSeries(this.module.getAncestry(), (module, cb)=> {
-                module.afterAction(this.action, cb);
-            }, cb)
-        ], cb);
-    }
-
     // EVENTS
 
-    beforeAction (cb) {
-        // if override this method call - super.beforeAction(cb)
-        this.triggerCallback(this.EVENT_BEFORE_ACTION, cb, new ActionEvent(this.action));
+    beforeAction () {
+        // if override this method call - await super.beforeAction()
+        return this.triggerWait(this.EVENT_BEFORE_ACTION, new ActionEvent(this.action));
     }
 
-    afterAction (cb) {
-        this.triggerCallback(this.EVENT_AFTER_ACTION, cb, new ActionEvent(this.action));
+    afterAction () {
+        // if override this method call - await super.afterAction()
+        return this.triggerWait(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
     }
     
     // REQUEST
@@ -260,12 +247,10 @@ module.exports = class Controller extends Base {
     reload () {
         this.setHttpStatus(200);
         this.response.redirect(this.req.originalUrl);
-        this.action.complete();
     }
 
     redirect (url) {
         this.response.redirect(this.createUrl(url));
-        this.action.complete();
     }
 
     setHttpStatus (code) {
@@ -274,36 +259,29 @@ module.exports = class Controller extends Base {
     }
 
     setHttpHeader (name, value) {
-        this.res.set(name, value);
+        typeof name === 'string'
+            ? this.res.set(name, value)
+            : this.res.set(name);
+        return this;
     }
 
     // RENDER
 
-    render (template, data, cb) {
+    render (template, data, send = true) {
         let model = this.createViewModel(template, {data});
-        model ? this.renderViewModel(model, template, cb)
-              : this.renderTemplate(template, data, cb);
+        return model ? this.renderViewModel(model, template, send)
+                     : this.renderTemplate(template, data, send);
     }
 
-    renderViewModel (model, template, cb) {
-        model.prepare((err, data)=> {
-            err ? this.action.complete(err)
-                : this.renderTemplate(template, data, cb)
-        });
+    async renderViewModel (model, template, send) {
+        let data = await model.prepare();
+        return this.renderTemplate(template, data, send);
     }
 
-    renderTemplate (template, data, cb) {
-        this.getView().render(this.getViewFileName(template), data, this.completeRender.bind(this, cb));
-    }
-
-    completeRender (callback, err, content) {
-        if (callback) {
-            callback(err, content);
-        } else if (err) {
-            this.action.complete(err);
-        } else {
-            this.send(content);
-        }
+    async renderTemplate (template, data, send = true) {
+        let content = await this.getView().render(this.getViewFileName(template), data);
+        send && this.send(content);
+        return content;
     }
 
     createViewModel (name, config = {}) {
@@ -337,7 +315,6 @@ module.exports = class Controller extends Base {
 
     send (data, code) {
         this.response.send('send', data, code);
-        this.action.complete();
     }
 
     sendText (data, code) {
@@ -345,48 +322,19 @@ module.exports = class Controller extends Base {
     }
 
     sendFile (data, code) {
-        this.response.send('download', data, code);
-        this.action.complete();
+        this.response.send('sendFile', data, code);
     }
 
     sendJson (data, code) {
         this.response.send('json', data, code);
-        this.action.complete();
     }
 
     sendStatus (code) {
         this.response.send('sendStatus', code);
-        this.action.complete();
     }
 
     sendData (data, encoding) {
         this.response.sendData(data, encoding);
-        this.action.complete();
-    }
-
-    // THROW
-
-    throwError (err, status) {
-        let Exception = require('../error/HttpException');
-        if (!(err instanceof Exception)) {
-            err = new Exception(status || 500, err);
-        }
-        this.next(err);
-    }
-
-    throwBadRequest (err) {
-        let Exception = require('../error/BadRequestHttpException');
-        this.next(new Exception(err));
-    }
-
-    throwNotFound (err) {
-        let Exception = require('../error/NotFoundHttpException');
-        this.next(new Exception(err));
-    }
-
-    throwForbidden (err) {
-        let Exception = require('../error/ForbiddenHttpException');
-        this.next(new Exception(err));
     }
 
     // URL
@@ -405,11 +353,10 @@ module.exports = class Controller extends Base {
 
     // SECURITY
 
-    can (name, cb, params) {
-        this.user.can(name, (err, access)=> {
-            err ? this.throwError(err)
-                : access ? cb() : this.throwForbidden();
-        }, params);
+    async can (name, params) {
+        if (!await this.user.can(name, params)) {
+            throw new ForbiddenHttpException;
+        }
     }
 
     // I18N
@@ -442,9 +389,9 @@ module.exports = class Controller extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
+const ForbiddenHttpException = require('../error/ForbiddenHttpException');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
 const Message = require('../i18n/Message');

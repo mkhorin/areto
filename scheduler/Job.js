@@ -4,44 +4,26 @@ const Base = require('../base/Base');
 
 module.exports = class Job extends Base {
 
-    run () {
+    async run () {
         // place code here
-        this.complete();
     }
 
     isCanceled () {
         return this._canceled;
     }
 
-    isCompleted () {
-        return this._completed;
-    }
-
-    execute (cb) {
-        if (this._completeCallback) {
-            return cb('Job has already runned');
-        }
-        this._completeCallback = cb;
-        setImmediate(()=> {
-            try {
-                this.run();
-            } catch (err) {
-                this.complete(err);
-            }
-        });
-    }
-
     cancel () {
         this._canceled = true;
     }
 
-    complete (err, result) {
-        if (this.isCompleted()) {
-            return false;
+    async execute () {
+        if (this._started) {
+            throw new Error('Job has already started');
         }
-        this._completed = true;
-        this.isCanceled()
-            ? this._completeCallback('Job canceled')
-            : this._completeCallback(err, result);
+        this._started = true;
+        await PromiseHelper.setImmediate();
+        await this.run();
     }
 };
+
+const PromiseHelper = require('../helper/PromiseHelper');

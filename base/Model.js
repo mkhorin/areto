@@ -289,27 +289,26 @@ module.exports = class Model extends Base {
 
     // EVENTS
 
-    beforeValidate (cb) {
-        // call super.beforeValidate(cb) if override this method
-        this.triggerCallback(this.EVENT_BEFORE_VALIDATE, cb);
+    beforeValidate () {
+        // await super.beforeValidate() if override this method
+        return this.triggerWait(this.EVENT_BEFORE_VALIDATE);
     }
 
-    afterValidate (cb) {
-        // call super.afterValidate(cb) if override this method
-        this.triggerCallback(this.EVENT_AFTER_VALIDATE, cb);
+    afterValidate () {
+        // await super.afterValidate() if override this method
+        return this.triggerWait(this.EVENT_AFTER_VALIDATE);
     }
 
     // VALIDATE
 
-    validate (cb, attrNames) {
+    async validate (attrNames) {
         attrNames = attrNames || this.getActiveAttrNames();
-        AsyncHelper.series([
-            cb => this.beforeValidate(cb),
-            cb => AsyncHelper.eachSeries(this.getActiveValidators(), (validator, cb)=> {
-                validator.validateAttrs(this, attrNames, cb);
-            }, cb),
-            cb => this.afterValidate(cb)
-        ], err => cb(err, this));
+        await this.beforeValidate();
+        for (let validator of this.getActiveValidators()) {
+            await validator.validateAttrs(this, attrNames);
+        }
+        await this.afterValidate();
+        return !this.hasError();
     }
 
     getValidators () {
@@ -339,10 +338,10 @@ module.exports = class Model extends Base {
         });
     }
 
-    setDefaultValues (cb) {
-        AsyncHelper.eachSeries(this.getActiveValidatorsByClass(Validator.BUILTIN.default), (validator, cb)=> {
-            validator.validateAttrs(this, null, cb);
-        }, cb);
+    async setDefaultValues () {
+        for (let validator of this.getActiveValidatorsByClass(Validator.BUILTIN.default)) {
+            await validator.validateAttrs(this);
+        }
     }
 
     addValidator (rule) {
@@ -385,7 +384,6 @@ module.exports = class Model extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
 const Validator = require('../validator/Validator');

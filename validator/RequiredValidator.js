@@ -24,20 +24,20 @@ module.exports = class RequiredValidator extends Base {
         });
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (this.skip) {
-            return cb();
+            return;
         }
         if (this.requiredValue === null) {
             if (this.strict && value !== null || !this.strict 
                 && !this.isEmptyValue(typeof value === 'string' ? value.trim() : value)) {
-               return cb();
+               return;
             }
-            return cb(null, this.getMessage());
+            return this.getMessage();
         } 
         if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
-            return cb();
+            return;
         }
-        cb(null, this.getRequiredMessage());
+        return this.getRequiredMessage();
     }
 };

@@ -95,27 +95,30 @@ module.exports = class ActiveRecord extends Base {
 
     // EVENTS
 
-    afterFind (cb) {
-        this.triggerCallback(this.EVENT_AFTER_FIND, cb);
+    afterFind () {
+        return this.triggerWait(this.EVENT_AFTER_FIND);
     }
 
-    beforeSave (insert, cb) {
-        this.triggerCallback(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE, cb);
+    beforeSave (insert) {
+        return this.triggerWait(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE);
     }
 
-    afterSave (insert, cb) {
+    afterSave (insert) {
         this.assignOldAttrs();
-        this.triggerCallback(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE, cb); 
+        return this.triggerWait(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE);
     }
 
-    beforeRemove (cb) {
-        this.triggerCallback(this.EVENT_BEFORE_REMOVE, cb);
+    beforeRemove () {
+        return this.triggerWait(this.EVENT_BEFORE_REMOVE);
     }
 
-    afterRemove (cb) {
-        AsyncHelper.eachSeries(this.UNLINK_ON_REMOVE, this.unlinkAll.bind(this), ()=> {
-            this.triggerCallback(this.EVENT_AFTER_REMOVE, cb);
-        });
+    async afterRemove () {
+        if (this.UNLINK_ON_REMOVE instanceof Array) {
+            for (let relation of this.UNLINK_ON_REMOVE) {
+                await this.unlinkAll(relation);
+            }
+        }
+        await this.triggerWait(this.EVENT_AFTER_REMOVE);
     }
 
     // POPULATE
@@ -158,85 +161,87 @@ module.exports = class ActiveRecord extends Base {
 
     // SAVE
 
-    save (cb) {
-        AsyncHelper.waterfall([
-            cb => this.validate(cb),
-            (model, cb)=> this.hasError()
-                ? cb(null, this)
-                : this.forceSave(cb)
-        ], cb);
+    async save () {
+        if (await this.validate()) {
+            await this.forceSave();
+            return true;
+        }
     }
 
-    forceSave (cb) {
-        this._isNewRecord ? this.insert(cb) : this.update(cb);
+    forceSave () {
+        return this._isNewRecord ? this.insert() : this.update();
     }
 
-    insert (cb) {
-        AsyncHelper.series([
-            cb => this.beforeSave(true, cb),
-            cb => AsyncHelper.waterfall([
-                cb => this.constructor.find().insert(this.filterAttrs(), cb),
-                (id, cb)=> {
-                    this.set(this.PK, id);
-                    this._isNewRecord = false;
-                    cb();
-                }
-            ], cb),
-            cb => this.afterSave(true, cb)
-        ], err => cb(err, this));
+    async insert () {
+        await this.beforeSave(true);
+        this.set(this.PK, await this.constructor.find().insert(this.filterAttrs()));
+        this._isNewRecord = false;
+        await this.afterSave(true);
     }
 
-    update (cb) {
-        AsyncHelper.series([
-            cb => this.beforeSave(false, cb),
-            cb => this.findById().update(this.filterAttrs(), cb),
-            cb => this.afterSave(false, cb)
-        ], err => cb(err, this));
+    async update () {
+        await this.beforeSave(false);
+        await this.findById().update(this.filterAttrs());
+        await this.afterSave(false);
     }
 
     /**
      * will not perform data validation and will not trigger events
      */
-    updateAttrs (cb, attrs) {
+    updateAttrs (attrs) {
         Object.assign(this._attrs, attrs);
-        this.findById().update(this.filterAttrs(), cb);
+        return this.findById().update(this.filterAttrs());
     }
 
     // REMOVE
 
-    static removeBatch (models, cb) {
+    static async removeById (id) {
+        return this.remove(await this.findById(id).all());
+    }
+
+    static async remove (models) {
+        for (let model of models) {
+            await model.remove();
+            await PromiseHelper.setImmediate();
+        }
+    }
+    
+    static async removeBatch (models) {
         let counter = 0;
-        AsyncHelper.eachSeries(models, (model, cb)=> {
-            model.remove(err => {
-                counter += err ? 0 : 1;
-                setImmediate(cb);
-            });
-        }, err => cb(null, counter));
+        for (let model of models) {
+            try {
+                await model.remove();
+                counter += 1;
+            } catch (err) {
+                this.log('error', 'removeBatch', err);
+            }
+            await PromiseHelper.setImmediate();
+        }
+        return counter;
     }
 
-    static removeById (id, cb) {
-        AsyncHelper.waterfall([
-            cb => this.findById(id).all(cb),
-            (models, cb)=> this.removeBatch(models, cb)
-        ], cb);
-    }
-
-    remove (cb) {
-        AsyncHelper.series([
-            cb => this.beforeRemove(cb),
-            cb => this.findById().remove(cb),
-            cb => this.afterRemove(cb)
-        ], err => cb(err));
+    async remove () {
+        await this.beforeRemove();
+        await this.findById().remove();
+        await this.afterRemove();
     }
 
     // RELATIONS
 
-    static findRelation (models, name, cb, renew) {
-        AsyncHelper.mapSeries(models, (model, cb)=> model.findRelation(name, cb, renew), cb);
+    static async findRelation (models, name, renew) {
+        let relations = [];
+        for (let model of models) {
+            relations.push(await model.findRelation(name, renew));
+        }
+        return relations;
     }
 
-    static findRelations (models, names, cb, renew) {
-        AsyncHelper.mapSeries(models, (model, cb)=> model.findRelations(names, cb, renew), cb);
+    static async findRelations (models, names, renew) {
+        let relations = [];
+        for (let model of models) {
+            relations.push(await model.findRelations(names, renew));
+        }
+        return relations;
     }
 
     getAllRelationNames () {
@@ -287,56 +292,56 @@ module.exports = class ActiveRecord extends Base {
         return undefined;
     }
 
-    findRelation (name, cb, renew) {
+    async findRelation (name, renew) {
         let index = name.indexOf('.');
         if (index === -1) {
-            return this.findRelationOnly(name, cb, renew);
+            return this.findRelationOnly(name, renew);
         }
         let nestedName = name.substring(index + 1);
-        AsyncHelper.waterfall([
-            cb => this.findRelationOnly(name.substring(0, index), cb, renew),
-            (result, cb)=> {
-                if (result instanceof ActiveRecord) {
-                    return result.findRelation(nestedName, cb, renew);
-                }
-                if (!(result instanceof Array)) {
-                    return cb(null, result);
-                }
-                result = result.filter(model => model instanceof ActiveRecord);
-                AsyncHelper.mapSeries(result, (model, cb)=> {
-                    model.findRelation(nestedName, cb, renew);
-                }, (err, result)=> {
-                    cb(err, ArrayHelper.concatValues(result));
-                });
-            }
-        ], cb);
+        let result = await this.findRelationOnly(name.substring(0, index), renew);
+        if (result instanceof ActiveRecord) {
+            return result.findRelation(nestedName, renew);
+        }
+        if (!(result instanceof Array)) {
+            return result;
+        }
+        result = result.filter(model => model instanceof ActiveRecord);
+        let relations = [];
+        for (let model of result) {
+            relations.push(await model.findRelation(nestedName, renew));
+        }
+        return ArrayHelper.concatValues(relations);
     }
 
-    findRelationOnly (name, cb, renew) {
+    async findRelationOnly (name, renew) {
         if (this.isRelationPopulated(name) && !renew) {
-            return cb(null, this._related[name]);
+            return this._related[name];
         }
         let relation = this.getRelation(name);
         if (relation) {
-            return relation.findFor((err, result)=> {
-                this.populateRelation(name, result);
-                setImmediate(()=> cb(err, this._related[name]));
-            });
+            this.populateRelation(name, await relation.findFor());
+            await PromiseHelper.setImmediate();
+            return this._related[name];
         }
-        relation === null
-            ? cb(this.wrapMessage(`Unknown relation: ${name}`))
-            : cb(null, null);
+        if (relation === null) {
+            throw new Error(this.wrapMessage(`Unknown relation: ${name}`));
+        }
+        return null;
     }
 
-    findRelations (names, cb, renew) {
-        AsyncHelper.mapSeries(names, (name, cb)=> this.findRelation(name, cb, renew), cb);
+    async findRelations (names, renew) {
+        let relations = [];
+        for (let name of names) {
+            relations.push(await this.findRelation(name, renew));
+        }
+        return relations;
     }
 
-    handleEachRelationModel (names, handler, cb) {
-        AsyncHelper.waterfall([
-            cb => this.findRelations(names, cb),
-            (relations, cb)=> AsyncHelper.eachSeries(ArrayHelper.concatValues(relations), handler, cb)
-        ], cb);
+    async handleEachRelationModel (names, handler) {
+        let relations = await this.findRelations(names);
+        for (let model of ArrayHelper.concatValues(relations)) {
+            await handler(model);
+        }
     }
 
     unsetRelation (name) {
@@ -359,38 +364,34 @@ module.exports = class ActiveRecord extends Base {
 
     // LINK
 
-    linkViaModel (rel, targets, cb, model) {
+    linkViaModel (rel, targets, model) {
         if (!model) {
             model = new rel._viaRelation.model.constructor;
         } else if (!(model instanceof rel._viaRelation.model.constructor)) {
-            return cb(this.wrapMessage('linkViaModel: Invalid link model'));
+            throw new Error(this.wrapMessage('linkViaModel: Invalid link model'));
         }
         model.set(rel.linkKey, this.get(rel.refKey));
         model.set(rel._viaRelation.refKey, this.get(rel._viaRelation.linkKey));
-        model.save(cb);
+        return model.save();
     }
 
-    link (name, model, cb, extraColumns) {
+    async link (name, model, extraColumns) {
         let rel = this.getRelation(name);
         let link = (rel._viaRelation || rel._viaTable) ? this.linkVia : this.linkInline;
-        link.call(this, rel, model, extraColumns, err => {
-            if (err) {
-                return cb(err);
+        await link.call(this, rel, model, extraColumns);
+        if (!rel._multiple) {
+            this._related[name] = model; // update lazily loaded related objects
+        } else if (this.isRelationPopulated(name)) {
+            if (rel._index) {
+                this._related[name][model._index] = model;
+            } else {
+                this._related[name].push(model);
             }
-            if (!rel._multiple) {
-                this._related[name] = model; // update lazily loaded related objects
-            } else if (this.isRelationPopulated(name)) {
-                if (rel._index) {
-                    this._related[name][model._index] = model;
-                } else {
-                    this._related[name].push(model);
-                }
-            }
-            setImmediate(()=> cb(null, this));
-        });
+        }
+        await PromiseHelper.setImmediate();
     }
 
-    linkVia (rel, model, extraColumns, cb) {
+    linkVia (rel, model, extraColumns) {
         let via = rel._viaTable || rel._viaRelation;
         let columns = {
             [via.refKey]: this.get(via.linkKey),
@@ -400,31 +401,30 @@ module.exports = class ActiveRecord extends Base {
             Object.assign(columns, extraColumns);
         }
         if (rel._viaTable) {
-            return this.getDb().insert(via._from, columns, cb);
+            return this.getDb().insert(via._from, columns);
         }
         // unset rel so that it can be reloaded to reflect the change
         this.unsetRelation(rel._viaRelationName);
         let viaModel = new via.model.constructor;
         viaModel.assignAttrs(columns);
-        viaModel.insert(cb);
+        return viaModel.insert();
     }
 
-    linkInline (rel, model, extraColumns, cb) {
-        rel.isBackRef()
-            ? this.bindModels(rel.refKey, rel.linkKey, model, this, cb, rel)
-            : this.bindModels(rel.linkKey, rel.refKey, this, model, cb, rel);
+    linkInline (rel, model, extraColumns) {
+        return rel.isBackRef()
+            ? this.bindModels(rel.refKey, rel.linkKey, model, this, rel)
+            : this.bindModels(rel.linkKey, rel.refKey, this, model, rel);
     }
 
-    unlink (name, model, cb, remove) {
+    async unlink (name, model, remove) {
         let rel = this.getRelation(name);
         if (remove === undefined) {
             remove = rel._removeOnUnlink;
         }
         let unlink = (rel._viaTable || rel._viaRelation) ? this.unlinkVia : this.unlinkInline;
-        unlink.call(this, rel, model, remove, ()=> {
-            this.unsetUnlinked(name, model, rel);
-            setImmediate(()=> cb(null, this));
-        });
+        await unlink.call(this, rel, model, remove);
+        this.unsetUnlinked(name, model, rel);
+        await PromiseHelper.setImmediate();
     }
 
     unsetUnlinked (name, model, rel) {
@@ -440,7 +440,7 @@ module.exports = class ActiveRecord extends Base {
         }
     }
 
-    unlinkVia (rel, model, remove, cb) {
+    unlinkVia (rel, model, remove) {
         let via = rel._viaTable || rel._viaRelation;
         let condition = {
             [via.refKey]: this.get(via.linkKey),
@@ -454,16 +454,15 @@ module.exports = class ActiveRecord extends Base {
             remove = via._removeOnUnlink;
         }
         if (rel._viaTable) {
-            remove ? this.getDb().remove(via._from, condition, cb)
-                   : this.getDb().update(via._from, condition, nulls, cb);
-        } else {
-            this.unsetRelation(rel._viaRelationName);
-            remove ? via.model.find(condition).remove(cb)
-                   : via.model.find(condition).updateAll(nulls, cb);
+            return remove ? this.getDb().remove(via._from, condition)
+                          : this.getDb().update(via._from, condition, nulls);
         }
+        this.unsetRelation(rel._viaRelationName);
+        return remove ? via.model.find(condition).remove()
+                      : via.model.find(condition).updateAll(nulls);
     }
 
-    unlinkInline (rel, model, remove, cb) {
+    unlinkInline (rel, model, remove) {
         let ref = model.get(rel.refKey);
         let link = this.get(rel.linkKey);
         if (rel.isBackRef()) {             
@@ -475,7 +474,7 @@ module.exports = class ActiveRecord extends Base {
             } else {
                 model.set(rel.refKey, null);
             }
-            return remove ? model.remove(cb) : model.forceSave(cb);
+            return remove ? model.remove() : model.forceSave();
         }
         if (link instanceof Array) {
             let index = MongoHelper.indexOf(ref, link);
@@ -485,25 +484,23 @@ module.exports = class ActiveRecord extends Base {
         } else {
             this.set(rel.linkKey, null);
         }
-        remove ? this.remove(cb) : this.forceSave(cb);
+        return remove ? this.remove() : this.forceSave();
     }
 
-    unlinkAll (name, cb, remove) {
+    async unlinkAll (name, remove) {
         let rel = this.getRelation(name);
         if (!rel) {
-            return cb();
+            return false;
         }
         if (remove === undefined) {
             remove = rel._removeOnUnlink;
         }
         let unlink = (rel._viaRelation || rel._viaTable) ? this.unlinkViaAll : this.unlinkInlineAll;
-        unlink.call(this, rel, remove, err => {
-            this.unsetRelation(name);
-            cb(err);
-        });
+        await unlink.call(this, rel, remove);
+        this.unsetRelation(name);
     }
 
-    unlinkViaAll (rel, remove, cb) {
+    async unlinkViaAll (rel, remove) {
         let via = rel._viaTable || rel._viaRelation;
         if (rel._viaRelation) {
             this.unsetRelation(rel._viaRelationName);
@@ -515,22 +512,22 @@ module.exports = class ActiveRecord extends Base {
         }
         if (!(rel.remove instanceof Array)) {
             condition = this.getDb().buildCondition(condition);
-            remove ? this.getDb().remove(via._from, condition, cb)
-                   : this.getDb().update(via._from, condition, nulls, cb);
+            remove ? await this.getDb().remove(via._from, condition)
+                   : await this.getDb().update(via._from, condition, nulls);
         } else if (remove) {
-            via.model.find(condition).all((err, models)=> {
-                err ? cb(err) : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
-            });
+            for (let model of await via.model.find(condition).all()) {
+                await model.remove();
+            }
         } else {
-            via.model.find(condition).updateAll(nulls, cb);
+            await via.model.find(condition).updateAll(nulls);
         }
     }
 
-    unlinkInlineAll (rel, remove, cb) {
+    async unlinkInlineAll (rel, remove) {
         // rel via array valued attr
         if (!remove && this.get(rel.linkKey) instanceof Array) { 
             this.set(rel.linkKey, []);
-            return this.forceSave(cb);
+            return this.forceSave();
         }
         let nulls = {[rel.refKey]: null};
         let condition = {[rel.refKey]: this.get(rel.linkKey)};
@@ -538,33 +535,33 @@ module.exports = class ActiveRecord extends Base {
             condition = ['AND', condition, rel._where];
         }
         if (remove) {
-            rel.all((err, models)=> {
-                err ? cb(err) : AsyncHelper.eachSeries(models, (model, cb)=> model.remove(cb), cb);
-            });
+            for (let model of await rel.all()) {
+                await model.remove();
+            }
         } else if (rel._viaArray) {
-            rel.model.getDb().updateAllPull(rel.model.TABLE, {}, condition, cb);
+            await rel.model.getDb().updateAllPull(rel.model.TABLE, {}, condition);
         } else {
-            rel.model.find(condition).updateAll(nulls, cb);
+            await rel.model.find(condition).updateAll(nulls);
         }
     }
 
-    bindModels (foreignKey, primaryKey, foreignModel, primaryModel, cb, rel) {
+    bindModels (foreignKey, primaryKey, foreignModel, primaryModel, rel) {
         let value = primaryModel.get(primaryKey);
         if (!value) {
-            return cb(this.wrapMessage('bindModels: primary key is null'));
+            throw new Error(this.wrapMessage('bindModels: primary key is null'));
         }
         if (!rel._viaArray) {
             foreignModel.set(foreignKey, value);
-            return foreignModel.forceSave(cb);
+            return foreignModel.forceSave();
         }
         if (!(foreignModel.get(foreignKey) instanceof Array)) {
             foreignModel.set(foreignKey, []);
         }
         if (MongoHelper.indexOf(value, foreignModel.get(foreignKey)) === -1) {
             foreignModel.get(foreignKey).push(value);
-            return foreignModel.forceSave(cb);
+            return foreignModel.forceSave();
         }
-        cb(); // value is already exists
+        return Promise.resolve(); // value is already exists
     }
 
     getHandler (name) {
@@ -587,9 +584,9 @@ module.exports = class ActiveRecord extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ArrayHelper = require('../helper/ArrayHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const MongoHelper = require('../helper/MongoHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
+const PromiseHelper = require('../helper/PromiseHelper');

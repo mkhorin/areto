@@ -4,7 +4,6 @@ const Base = require('./Validator');
 
 module.exports = class SafeValidator extends Base {
 
-    validateAttr (model, attr, cb) {
-        cb();
+    async validateAttr (model, attr) {
     }
 };

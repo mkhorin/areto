@@ -82,7 +82,7 @@ module.exports = class Validator extends Base {
         return new Message(defaultMessage, category, params);
     }
 
-    validateAttrs (model, attrs, cb) {
+    async validateAttrs (model, attrs) {
         attrs = attrs instanceof Array
             ? ArrayHelper.intersect(attrs, this.attrs)
             : this.attrs;
@@ -92,20 +92,20 @@ module.exports = class Validator extends Base {
                 && (!this.skipOnEmpty || !this.isEmptyValue(model.get(attr)))
                 && (typeof this.when !== 'function' || this.when(model, attr));
         });
-        AsyncHelper.eachSeries(attrs, (attr, cb)=>{
-            this.validateAttr(model, attr, cb);
-        }, cb);
+        for (let attr of attrs) {
+            await this.validateAttr(model, attr);
+        }
     }
 
-    validateAttr (model, attr, cb) {
-        this.validateValue(model.get(attr), (err, message)=> {
+    async validateAttr (model, attr) {
+        let message = await this.validateValue(model.get(attr));
+        if (message) {
             this.addError(model, attr, message);
-            cb(err);
-        });
+        }
     }
 
-    validateValue (value, cb) {
-        cb(this.wrapClassMessage('Need to override'));
+    async validateValue (value) {
+        throw new Error(this.wrapClassMessage('Need to override'));
     }
 
     isActive (scenario) {
@@ -121,19 +121,16 @@ module.exports = class Validator extends Base {
     }
 
     addError (model, attr, message) {
-        if (message) {
-            let value = model.get(attr);
-            message.addParams({
-                'attr': model.getAttrLabel(attr),
-                'value': value instanceof Array ? value.join() : value
-            });
-            model.addError(attr, message);
-        }
+        let value = model.get(attr);
+        message.addParams({
+            attr: model.getAttrLabel(attr),
+            value: value instanceof Array ? value.join() : value
+        });
+        model.addError(attr, message);
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ArrayHelper = require('../helper/ArrayHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const Message = require('../i18n/Message');

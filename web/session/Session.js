@@ -23,16 +23,16 @@ module.exports = class Session extends Base {
         this.module.appendToExpress('use', flash());
     }
 
-    removeExpired (cb) {
-        this.store.removeExpired(cb);
+    removeExpired () {
+        return this.store.removeExpired();
     }
 
-    removeByUserId (userId, cb) {
-        this.store.removeByUserId(userId, cb);
+    removeByUserId (userId) {
+        return this.store.removeByUserId(userId);
     }
 
-    clear (cb) {
-        this.store.clear(cb);
+    clear () {
+        return this.store.clear();
     }
 };
 

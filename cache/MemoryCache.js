@@ -9,30 +9,30 @@ module.exports = class MemoryCache extends Base {
         this._cache = {};
     }
 
-    getValue (key, cb) {
+    getValue (key) {
         let value = this._cache[key];
-        value && (value[1] === 0 || value[1] > Date.now())
-            ? cb(null, value[0])
-            : cb();
+        return value && (value[1] === 0 || value[1] > Date.now())
+            ? Promise.resolve(value[0])
+            : Promise.resolve();
     }
 
-    setValue (key, value, duration, cb) {
+    setValue (key, value, duration) {
         if (duration) {
             duration = Date.now() + duration * 1000;
         }
         this._cache[key] = [value, duration];
-        cb();
+        return Promise.resolve();
     }
 
-    removeValue (key, cb) {
+    removeValue (key) {
         if (Object.prototype.hasOwnProperty.call(this._cache, key)) {
             delete this._cache[key];
         }
-        cb();
+        return Promise.resolve();
     }
 
-    flushValues (cb) {
+    flushValues () {
         this._cache = {};
-        cb();
+        return Promise.resolve();
     }
 };

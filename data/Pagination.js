@@ -76,7 +76,7 @@ module.exports = class Pagination extends Base {
             return this.totalCount > 0 ? 1 : 0;
         }
         let total = this.totalCount < 0 ? 0 : this.totalCount;
-        return parseInt((total + this.pageSize - 1) / this.pageSize);
+        return Math.floor((total + this.pageSize - 1) / this.pageSize);
     }
 
     getOffset () {

@@ -32,32 +32,26 @@ module.exports = class NumberValidator extends Base {
         });
     }
 
-    validateAttr (model, attr, cb) {
-        super.validateAttr(model, attr, err => {
-            if (err) {
-                return cb(err);
-            }
-            if (!model.hasError()) {
-                model.set(attr, Number(model.get(attr)));
-            }
-            cb();
-        });
+    async validateAttr (model, attr) {
+        await super.validateAttr(model, attr);
+        if (!model.hasError()) {
+            model.set(attr, Number(model.get(attr)));
+        }
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         value = parseFloat(value);
         if (isNaN(value)) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if (this.integerOnly && value !== parseInt(value)) {
-            return cb(null, this.getNotIntegerMessage());
+            return this.getNotIntegerMessage();
         }
         if (this.min !== null && value < this.min) {
-            return cb(null, this.getTooSmallMessage());
+            return this.getTooSmallMessage();
         } 
         if (this.max !== null && value > this.max) {
-            return cb(null, this.getTooBigMessage());
+            return this.getTooBigMessage();
         }
-        cb();
     }
 };

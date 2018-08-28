@@ -21,7 +21,6 @@ module.exports = class FileLogStore extends Base {
         mkdirp.sync(this.baseDir);
         this.fd = fs.openSync(this.file, 'a');
         if (this.observePeriod) {
-            this.observePeriod *= 1000;
             this.observe();
         }
     }
@@ -51,15 +50,16 @@ module.exports = class FileLogStore extends Base {
 
     observe () {
         setTimeout(()=> {
-            fs.fstat(this.fd, (err, stats)=> {
-                if (err) {
-                    this.log('error', `observe`, err);
-                } else if (stats.size > this.maxFileSize) {
+            try {
+                let stat = fs.fstatSync(this.fd);
+                if (stat.size > this.maxFileSize) {
                     this.rotate();
                 }
                 this.observe();
-            });
-        }, this.observePeriod);
+            } catch (err) {
+                this.log('error', this.wrapClassMessage('observe'), err);
+            }
+        }, this.observePeriod * 1000);
     }
 
     rotate () {
@@ -101,4 +101,5 @@ const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
 const util = require('util');
+const PromiseHelper = require('../helper/PromiseHelper');
 const Exception = require('../error/Exception');

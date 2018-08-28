@@ -48,17 +48,19 @@ module.exports = class ActionView extends Base {
 
     // RENDER
 
-    render (template, params, cb) {
+    async render (template, params) {
         params = this.getRenderParams(params);
         this.layout = params.viewLayout
             || this.controller.VIEW_LAYOUT
             || this.controller.module.VIEW_LAYOUT;
-        AsyncHelper.waterfall([
-            cb => this.controller.res.app.render(this.get(template), params, cb),
-            (content, cb)=> this.renderWidgets(content, params, cb),
-            (content, cb)=> cb(null, this._asset
-                ? this._asset.render(content) : content)
-        ], cb);
+        let content = await this.renderTemplate(this.get(template), params);
+        content = await this.renderWidgets(content, params);
+        return this._asset ? this._asset.render(content) : content;
+    }
+
+    renderTemplate (template, params) {
+        let app = this.controller.res.app;
+        return PromiseHelper.promise(app.render.bind(app, template, params));
     }
 
     getRenderParams (params) {
@@ -121,29 +123,30 @@ module.exports = class ActionView extends Base {
         return `#{${anchor}}`;
     }
 
-    renderWidgets (content, renderParams, cb) {
+    async renderWidgets (content, renderParams) {
         let anchors = Object.keys(this.widgets);
         if (anchors.length === 0) {
-            return cb(null, content);
+            return content;
         }
-        AsyncHelper.eachSeries(anchors, (anchor, cb)=> {
-            this.renderWidget(anchor, renderParams, cb);
-        }, err => err ? cb(err) : cb(null, this.insertWidgetContent(content)));
+        for (let anchor of anchors) {
+            await this.renderWidget(anchor, renderParams);
+        }
+        return this.insertWidgetContent(content);
     }
 
-    renderWidget (anchor, renderParams, cb) {
+    renderWidget (anchor, renderParams) {
         let params = this.widgets[anchor];
         let widget = this.controller.module.widgets[params.configId];
         if (!widget) {
             delete this.widgets[anchor];
             this.log('error', `Widget config not found: ${params.configId}`);
-            return cb();
+            return Promise.resolve();
         }
         widget = ClassHelper.createInstance(Object.assign({
             view: this
         }, widget, params));
         this.widgets[anchor] = widget;
-        widget.execute(cb, renderParams);
+        return widget.execute(renderParams);
     }
 
     insertWidgetContent (content) {
@@ -162,7 +165,7 @@ module.exports = class ActionView extends Base {
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ClassHelper = require('../helper/ClassHelper');
 const CommonHelper = require('../helper/CommonHelper');
+const PromiseHelper = require('../helper/PromiseHelper');
 const DataMap = require('../base/DataMap');

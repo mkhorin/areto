@@ -12,67 +12,55 @@ module.exports = class FileHelper {
         return path.dirname(file).substring(root.length + 1);
     }
 
-    static handleDirFiles (dir, fileHandler, cb) {
-        AsyncHelper.waterfall([
-            cb => fs.readdir(dir, cb),
-            (files, cb)=> AsyncHelper.eachSeries(files, fileHandler, cb)
-        ], cb);
+    static async handleDirFiles (dir, fileHandler) {
+        let files = fs.readdirSync(dir);
+        for (let file of files) {
+            await fileHandler(file);
+        }
     }
 
-    static readDirWithoutError (dir, handler, cb) {
-        fs.readdir(dir, (err, files)=> handler(err ? [] : files, cb));
+    static readDirWithoutError (dir) {
+        try {
+            return fs.readdirSync(dir);
+        } catch (err) {
+            return [];
+        }
     }
 
-    static emptyDir (dir, cb) {
-        this.handleDirFiles(dir, (file, cb)=> {
-            this.removeDeep(path.join(dir, file), cb);
-        }, cb);
+    static emptyDir (dir) {
+        return this.handleDirFiles(dir, file => this.removeDeep(path.join(dir, file)));
     }
 
-    static removeDeep (file, cb) {
-        AsyncHelper.waterfall([
-            cb => setImmediate(cb),
-            cb => fs.stat(file, (err, stat)=> cb(null, stat)), // skip non-existent
-            (stat, cb)=> {
-                if (!stat) {
-                    return cb();
-                }
-                if (stat.isFile()) {
-                    return fs.unlink(file, cb);
-                }
-                AsyncHelper.series([
-                    cb => this.handleDirFiles(file, (name, cb)=> {
-                        this.removeDeep(path.join(file, name), cb);
-                    }, cb),
-                    cb => fs.rmdir(file, cb)
-                ], cb);
-            }
-        ], cb);
+    static async removeDeep (dir) {
+        let stat = null;
+        try {
+            stat = fs.statSync(dir);
+        } catch (err) {
+            return; // skip non-existent
+        }
+        if (stat.isFile()) {
+            return fs.unlinkSync(dir);
+        }
+        await PromiseHelper.setImmediate();
+        await this.handleDirFiles(dir, file => this.removeDeep(path.join(dir, file)));
+        fs.rmdirSync(dir);
     }
 
-    static copyDeep (source, target, cb) {
-        AsyncHelper.waterfall([
-            cb => setImmediate(cb),
-            cb => fs.stat(source, cb),
-            (stat, cb)=> {
-                if (stat.isFile()) {
-                    return AsyncHelper.series([
-                        cb => mkdirp(path.dirname(target), {
-                            mode: stat.mode
-                        }, cb),
-                        cb => fs.copyFile(source, target, cb)
-                    ], cb);
-                }
-                AsyncHelper.series([
-                    cb => mkdirp(target, {
-                        mode: stat.mode
-                    }, cb),
-                    cb => this.handleDirFiles(source, (name, cb)=> {
-                        this.copyDeep(path.join(source, name), path.join(target, name), cb);
-                    }, cb)
-                ], cb);
-            }
-        ], cb);
+    static async copyDeep (source, target) {
+        let stat = fs.statSync(source);
+        if (stat.isFile()) {
+            mkdirp.sync(path.dirname(target), {
+                mode: stat.mode
+            });
+            return fs.copyFileSync(source, target);
+        }
+        mkdirp.sync(target, {
+            mode: stat.mode
+        });
+        await PromiseHelper.setImmediate();
+        await this.handleDirFiles(source, file => {
+            return this.copyDeep(path.join(source, file), path.join(target, file));
+        });
     }
 
     static getClosestDir (file, target) {
@@ -94,22 +82,12 @@ module.exports = class FileHelper {
         return path.extname(file).toLowerCase() === '.json';
     }
 
-    static readJsonFile (file, cb) {
-        AsyncHelper.waterfall([
-            cb => fs.readFile(file, cb),
-            (data, cb)=> {
-                try {
-                    data = JSON.parse(data);
-                } catch (err) {
-                    return cb(err);
-                }
-                cb(null, data);
-            }
-        ], cb);
+    static readJsonFile (file) {
+        return JSON.parse(fs.readFileSync(file));
     }
 };
 
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
-const AsyncHelper = require('./AsyncHelper');
+const PromiseHelper = require('./PromiseHelper');

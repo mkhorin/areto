@@ -32,281 +32,214 @@ module.exports = class MongoDriver extends Base {
         this._collections = {};
     }
 
-    openClient (cb) {
-        AsyncHelper.waterfall([
-            cb => this.client.connect(this.getUri(true), this.settings.options, cb),
-            client => {
-                this._client = client;
-                cb(null, client.db());
-            }
-        ], cb);
+    async openClient () {
+        this._client = await this.client.connect(this.getUri(true), this.settings.options);
+        return this._client.db();
     }
 
-    closeClient (cb) {
-        AsyncHelper.series([
-            cb => this._client ? this._client.close(true, cb) : cb(),
-            cb => {
-                this._client = null;
-                cb();
-            }
-        ],cb);
+    async closeClient () {
+        if (this._client) {
+            await this._client.close(true);
+            this._client = null;
+        }
     }
 
     // OPERATIONS
 
-    isCollectionExists (table, cb) {
-        AsyncHelper.waterfall([
-            cb => this.connection.listCollections().get(cb),
-            (items, cb)=> cb(null, !!ArrayHelper.searchByProperty(table, items, 'name'))
-        ], cb);
+    async isCollectionExists (name) {
+        let items = await this.connection.listCollections().get();
+        return !!ArrayHelper.searchByProp(name, 'name', items);
     }
 
-    getCollection (table) {
-        if (!this._collections[table]) {
-            this._collections[table] = this.connection.collection(table);
+    getCollection (name) {
+        if (!this._collections[name]) {
+            this._collections[name] = this.connection.collection(name);
         }
-        return this._collections[table];
+        return this._collections[name];
     }
 
-    getCollections (cb) {
-        this.connection.collections((err, results)=> {
-            if (err) {
-                this.afterError(this.wrapClassMessage('Get collections failed'));
-            }
-            cb(err, results);
-        });
+    getCollections () {
+        try {
+            return this.connection.collections();
+        } catch (err) {
+            this.afterError(this.wrapClassMessage('Get collections failed'));
+            throw err;
+        }
     }
 
-    find (table, condition, cb) {
-        this.getCollection(table).find(condition).toArray((err, data)=> {
-            this.afterCommand(err, 'find', {table, condition});
-            cb(err, data);
-        });
+    find (table, query) {
+        this.logCommand('find', {table, query});
+        return this.getCollection(table).find(query).toArray();
     }
 
-    distinct (table, key, query, options, cb) {
-        this.getCollection(table).distinct(key, query, options, (err, values)=> {
-            this.afterCommand(err, 'distinct', {table, query});
-            cb(err, values);
-        });
+    distinct (table, key, query, options) {
+        this.logCommand('distinct', {table, query});
+        return this.getCollection(table).distinct(key, query, options);
     }
 
-    insert (table, data, cb) {
-        this.getCollection(table).insert(data, {}, (err, result)=> {
-            this.afterCommand(err, 'insert', {table, data});
-            err ? cb(err)
-                : cb(null, result.insertedIds[0]);
-        });
+    async insert (table, data) {
+        this.logCommand('insert', {table, data});
+        if (data instanceof Array) {
+            let result = await this.getCollection(table).insertMany(data);
+            return result.insertedIds;
+        }
+        let result = await this.getCollection(table).insertOne(data);
+        return result.insertedId;
     }
 
-    upsert (table, condition, data, cb) {
-        this.getCollection(table).update(condition, {$set: data}, {upsert: true}, (err, result)=> {
-            this.afterCommand(err, 'upsert', {table, condition, data});
-            cb(err, result);
-        });
+    upsert (table, query, data) {
+        this.logCommand('upsert', {table, query, data});
+        return this.getCollection(table).updateOne(query, {$set: data}, {upsert: true});
     }
 
-    update (table, condition, data, cb) {
-        this.getCollection(table).update(condition, {$set: data}, {}, (err, result)=> {
-            this.afterCommand(err, 'update', {table, condition, data});
-            cb(err, result);
-        });
+    update (table, query, data) {
+        this.logCommand('update', {table, query, data});
+        return this.getCollection(table).updateOne(query, {$set: data});
     }
 
-    updateAll (table, condition, data, cb) {
-        this.getCollection(table).update(condition, {$set: data}, {multi: true}, (err, result)=> {
-            this.afterCommand(err, 'updateAll', {table, condition, data});
-            cb(err, result);
-        });
+    updateAll (table, query, data) {
+        this.logCommand('updateAll', {table, query, data});
+        return this.getCollection(table).updateMany(query, {$set: data});
     }
 
-    updateAllPull (table, condition, data, cb) {
-        this.getCollection(table).update(condition, {$pull: data}, {multi: true}, (err, result)=> {
-            this.afterCommand(err, 'updateAllPull', {table, condition, data});
-            cb(err, result);
-        });
+    updateAllPull (table, query, data) {
+        this.logCommand('updateAllPull', {table, query, data});
+        return this.getCollection(table).updateMany(query, {$pull: data});
     }
 
-    updateAllPush (table, condition, data, cb) {
-        this.getCollection(table).update(condition, {$push: data}, {multi: true}, (err, result)=> {
-            this.afterCommand(err, 'updateAllPush', {table, condition, data});
-            cb(err, result);
-        });
+    updateAllPush (table, query, data) {
+        this.logCommand('updateAllPush', {table, query, data});
+        return this.getCollection(table).updateMany(query, {$push: data});
     }
 
-    remove (table, condition, cb) {
-        condition = condition || {};
-        this.getCollection(table).remove(condition, err => {
-            this.afterCommand(err, 'remove', {table, condition});
-            cb && cb(err);
-        });
+    remove (table, query = {}) {
+        this.logCommand('remove', {table, query});
+        return this.getCollection(table).deleteMany(query);
     }
 
-    drop (table, cb) {
-        AsyncHelper.waterfall([
-            cb => this.isCollectionExists(table, cb),
-            (exists, cb)=> {
-                exists ? this.getCollection(table).drop(err => {
-                    this.afterCommand(err, 'drop', {table});
-                    cb && cb(err);
-                }) : cb();
-            }
-        ], cb);
+    async drop (table) {
+        if (await this.isCollectionExists(table)) {
+            this.logCommand('drop', {table});
+            await this.getCollection(table).drop();
+        }
     }
 
-    truncate (table, cb) {
-        this.drop(table, cb);
+    truncate (table) {
+        return this.drop(table);
     }
 
     // AGGREGATE
 
-    count (table, condition, cb) {
-        this.getCollection(table).countDocuments(condition, {}, (err, counter)=> {
-            this.afterCommand(err, 'count', {table, condition});
-            cb(err, counter);
-        });
+    count (table, query) {
+        this.logCommand('count', {table, query});
+        return this.getCollection(table).countDocuments(query);
     }
 
     // QUERY
 
-    queryAll (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            if (err) {
-                return cb(err);
-            }
-            let cursor = this.getCollection(cmd.from).find(cmd.where, cmd.select);
-            if (cmd.order) {
-                cursor.sort(cmd.order);
-            }
-            if (cmd.offset) {
-                cursor.skip(cmd.offset);
-            }
-            if (cmd.limit) {
-                cursor.limit(cmd.limit);
-            }
-            cursor.toArray((err, docs)=> {
-                this.afterCommand(err, 'find', {
-                    table: cmd.from,
-                    query: cmd
-                });
-                if (err) {
-                    return cb(err);
-                }
-                if (!cmd.order) {
-                    docs = query.sortOrderByIn(docs);
-                }
-                query.populate(docs, cb);
-            });
-        });
+    async queryAll (query) {
+        let cmd = await this.buildQuery(query);
+        let cursor = this.getCollection(cmd.from).find(cmd.where);
+        if (cmd.select) {
+            cursor.project(cmd.select);
+        }
+        if (cmd.order) {
+            cursor.sort(cmd.order);
+        }
+        if (cmd.offset) {
+            cursor.skip(cmd.offset);
+        }
+        if (cmd.limit) {
+            cursor.limit(cmd.limit);
+        }
+        this.logCommand('find', cmd);
+        let docs = await cursor.toArray();
+        if (!cmd.order) {
+            docs = query.sortOrderByIn(docs);
+        }
+        return query.populate(docs);
     }
 
-    queryOne (query, cb) {
-        this.queryAll(query.limit(1), (err, docs)=> {
-            err ? cb(err)
-                : cb(null, docs.length ? docs[0] : null);
-        });
+    async queryOne (query) {
+        let docs = await this.queryAll(query.limit(1));
+        return docs.length ? docs[0] : null;
     }
 
-    queryColumn (query, key, cb) {
-        this.queryAll(query.asRaw().select({[key]: 1}), (err, docs)=> {
-            err ? cb(err)
-                : cb(null, docs.map(doc => doc[key]));
-        });
+    async queryColumn (query, key) {
+        let docs = await this.queryAll(query.asRaw().select({[key]: 1}));
+        return docs.map(doc => doc[key]);
     }
 
-    queryDistinct (query, key, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.distinct(cmd.from, key, cmd.where, {}, cb);
-        });
+    async queryDistinct (query, key) {
+        let cmd = await this.buildQuery(query);
+        return this.distinct(cmd.from, key, cmd.where, {});
     }
 
-    queryScalar (query, key, cb) {
-        this.queryAll(query.asRaw().select({[key]: 1}).limit(1), (err, docs)=> {
-            err ? cb(err)
-                : cb(null, docs.length ? docs[0][key] : null);
-        });
+    async queryScalar (query, key) {
+        let docs = await this.queryAll(query.asRaw().select({[key]: 1}).limit(1));
+        return docs.length ? docs[0][key] : undefined;
     }
 
-    queryInsert (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err) : this.insert(cmd.from, data, cb);
-        });
+    async queryInsert (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.insert(cmd.from, data);
     }
 
-    queryUpdate (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.update(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpdate (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.update(cmd.from, cmd.where, data);
     }
 
-    queryUpdateAll (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.updateAll(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpdateAll (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.updateAll(cmd.from, cmd.where, data);
     }
 
-    queryUpsert (query, data, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.upsert(cmd.from, cmd.where, data, cb);
-        });
+    async queryUpsert (query, data) {
+        let cmd = await this.buildQuery(query);
+        return this.upsert(cmd.from, cmd.where, data);
     }
 
-    queryRemove (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.remove(cmd.from, cmd.where, cb);
-        });
+    async queryRemove (query) {
+        let cmd = await this.buildQuery(query);
+        return this.remove(cmd.from, cmd.where);
     }
 
-    queryCount (query, cb) {
-        this.buildQuery(query, (err, cmd)=> {
-            err ? cb(err)
-                : this.count(cmd.from, cmd.where, cb);
-        });
+    async queryCount (query) {
+        let cmd = await this.buildQuery(query);
+        return this.count(cmd.from, cmd.where);
     }
 
     // INDEXES
 
-    getIndexes (table, cb) {
-        return this.getCollection(table).indexInformation({full: true}, cb);
+    getIndexes (table) {
+        return this.getCollection(table).indexInformation({full: true});
     }
 
     /**
+     * @param table
      * @param data [{ title:1 }, { unique: true }]
      */ 
-    createIndex (table, data, cb) {
-        this.getCollection(table).createIndex(data[0], data[1], err => {            
-            this.afterCommand(err, 'createIndex', {table, data});
-            cb(err);
-        });
+    createIndex (table, data) {
+        this.logCommand('createIndex', {table, data});
+        return this.getCollection(table).createIndex(data[0], data[1]);
     }
 
-    dropIndex (table, name, cb) {
-        this.getCollection(table).dropIndex(name, err => {
-            this.afterCommand(err, 'dropIndex', {table, name});
-            cb(err);
-        });
+    dropIndex (table, name) {
+        this.logCommand('dropIndex', {table, name});
+        return this.getCollection(table).dropIndex(name);
     }
 
-    dropIndexes (table, cb) {
-        this.getCollection(table).dropIndexes(err => {
-            this.afterCommand(err, 'dropIndexes', {table});
-            cb(err);
-        });
+    dropIndexes (table) {
+        this.logCommand('dropIndexes', {table});
+        return this.getCollection(table).dropIndexes();
     }
 
-    reIndex (table, cb) {
-        this.getCollection(table).reIndex(err => {
-            this.afterCommand(err, 'reIndex', {table});
-            cb(err);
-        });
+    reIndex (table) {
+        this.logCommand('reIndex', {table});
+        return this.getCollection(table).reIndex();
     }
 };
 module.exports.init();
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const MongoQueryBuilder = require('./MongoQueryBuilder');

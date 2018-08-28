@@ -15,31 +15,26 @@ module.exports = class HistoryBehavior extends Base {
         this.assign(ActiveRecord.EVENT_AFTER_REMOVE, this.afterRemove);
     }
 
-    beforeUpdate (cb, event) {
-        AsyncHelper.eachSeries(this.getAttrNames(), (attr, cb)=> {
-            this.owner.isAttrChanged(attr) 
-                ? this.createHistory(attr, cb) 
-                : cb();
-        }, cb);
+    async beforeUpdate (event) {
+        for (let name of this.getAttrNames()) {
+            if (this.owner.isAttrChanged(name)) {
+                await this.createHistory(name);
+            }
+        }
     }
 
-    createHistory (attr, cb) {
+    async createHistory (attr) {
         let model = new this.History;
         model.setTargetData(this.owner, attr);
-        AsyncHelper.series([
-            cb => model.save(cb),
-            cb => {
-                if (model.hasError()) {
-                    this.log('error', 'Model has errors', model.getErrors());
-                }
-                cb();
-            }
-        ], cb);
+        await model.save();
+        if (model.hasError()) {
+            this.log('error', 'Model has errors', model.getErrors());
+        }
     }
 
-    afterRemove (cb, event) {
+    afterRemove (event) {
         // remove all target object history
-        this.History.removeTargetAll(this.owner, cb);
+        return this.History.removeTargetAll(this.owner);
     }
 
     getAttrNames () {
@@ -55,6 +50,5 @@ module.exports = class HistoryBehavior extends Base {
     }
 };
 
-const AsyncHelper = require('../helper/AsyncHelper');
 const ArrayHelper = require('../helper/ArrayHelper');
 const ActiveRecord = require('../db/ActiveRecord');

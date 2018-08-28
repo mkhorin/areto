@@ -37,8 +37,8 @@ module.exports = class Component extends Base {
         this.events.trigger.apply(this.events, arguments);
     }
 
-    triggerCallback () {
-        this.events.triggerCallback.apply(this.events, arguments);
+    triggerWait () {
+        return this.events.triggerWait.apply(this.events, arguments);
     }
 
     getBehavior () {

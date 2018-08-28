@@ -15,13 +15,12 @@ module.exports = class EmailValidator extends Base {
         return this.createMessage(this.message, 'Invalid email');
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         if (typeof value !== 'string' || value.length > this.maxLength) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
         if (!(new RegExp(this.pattern)).test(value)) {
-            return cb(null, this.getMessage());
+            return this.getMessage();
         }
-        cb();
     }
 };

@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const StringHelper = require('../../../helper/StringHelper');
 
-describe('helpers.string', ()=> {
+describe('StringHelper', ()=> {
 
     it('toWordFirstUpperCase: capitalize first letters', ()=> {
         expect(StringHelper.toWordFirstUpperCase('up first letters')).to.equal('Up First Letters');

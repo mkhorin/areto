@@ -34,7 +34,7 @@ module.exports = class RegExpValidator extends Base {
         return this.createMessage(this.message, 'Invalid value');
     }
 
-    validateValue (value, cb) {
+    async validateValue (value) {
         let valid = true;
         if (typeof value !== 'string') {
             valid = false;
@@ -43,7 +43,7 @@ module.exports = class RegExpValidator extends Base {
         } else {
             valid = !!this.not;
         }
-        cb(null, valid ? null : this.getMessage());
+        return valid ? null : this.getMessage();
     }
 };
 module.exports.init();

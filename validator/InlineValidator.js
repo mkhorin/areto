@@ -11,11 +11,11 @@ module.exports = class InlineValidator extends Base {
         }, config));
     }
 
-    validateAttr (model, attrName, cb) {
+    async validateAttr (model, attrName) {
         let method = this.method;
         if (typeof method === 'string') {
             method = model[method];
         }
-        method.call(model, cb, attrName, this.params);
+        await method.call(model, attrName, this.params);
     }
 };

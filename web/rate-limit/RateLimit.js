@@ -23,20 +23,20 @@ module.exports = class RateLimit extends Base {
         });
     }
 
-    configure (cb) {
-        this.store.configure(cb);
+    init () {
+        return this.store.init();
     }
 
-    find (type, user, cb) {
-        this.store.find(type, user, cb);
+    find (type, user) {
+        return this.store.find(type, user);
     }
 
-    remove (type, user, cb) {
-        this.store.remove(type, user, cb);
+    remove (type, user) {
+        return this.store.remove(type, user);
     }
 
-    afterRateUpdate (model, cb) {
-        this.triggerCallback(this.EVENT_AFTER_RATE_UPDATE, cb, new Event({model}));
+    afterRateUpdate (model) {
+        return this.triggerWait(this.EVENT_AFTER_RATE_UPDATE, new Event({model}));
     }
 
     getAttempts (type) {

@@ -9,18 +9,18 @@ module.exports = class MemorySessionStore extends Base {
         this._sessions = {};
         this._users = {};
     }
-    
-    get (sid, cb) {
+
+    get (sid, callback) {
         if (!Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            return cb(null, null);
+            return callback(null, null);
         }
         if (this.session.lifetime && (new Date) - this._sessions[sid].updatedAt > this.session.lifetime) {
-            return cb(null, null);
+            return callback(null, null);
         }
-        cb(null, this._sessions[sid].data);
+        callback(null, this._sessions[sid].data);
     }
 
-    set (sid, session, cb) {
+    set (sid, session, callback) {
         this._sessions[sid] = {
             data: session,
             updatedAt: new Date
@@ -28,19 +28,19 @@ module.exports = class MemorySessionStore extends Base {
         if (session[this.userIdParam]) {
             this._users[session[this.userIdParam]] = sid;
         }
-        cb();
+        callback();
     }
 
-    touch (sid, session, cb) {
+    touch (sid, session, callback) {
         if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            this._sessions[sid].updatedAt = new Date;             
+            this._sessions[sid].updatedAt = new Date;
         }
-        cb();
+        callback();
     }
 
-    removeExpired (cb) {
+    removeExpired (callback) {
         if (!this.session.lifetime) {
-            return cb();
+            return callback();
         }
         let now = new Date;
         for (let sid of Object.keys(this._sessions)) {
@@ -48,33 +48,33 @@ module.exports = class MemorySessionStore extends Base {
                 if (this._sessions[sid][this.userIdParam]) {
                     delete this._users[this._sessions[sid][this.userIdParam]];
                 }
-                delete this._sessions[sid]; 
+                delete this._sessions[sid];
             }
         }
-        cb();
+        callback();
     }
 
-    removeByUserId (userId, cb) {
-        if (Object.prototype.hasOwnProperty.call(this._users, userId)) {            
+    removeByUserId (userId, callback) {
+        if (Object.prototype.hasOwnProperty.call(this._users, userId)) {
             delete this._sessions[this._users[userId]];
             delete this._users[userId];
         }
-        cb();
+        callback();
     }
-    
-    destroy (sid, cb) {
+
+    destroy (sid, callback) {
         if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
             if (this._sessions[sid][this.userIdParam]) {
                 delete this._users[this._sessions[sid][this.userIdParam]];
             }
             delete this._sessions[sid];
         }
-        cb();
+        callback();
     }
 
-    clear (cb) {
+    clear (callback) {
         this._sessions = {};
         this._users = {};
-        cb();
+        callback();
     }
 };

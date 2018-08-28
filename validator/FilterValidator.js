@@ -7,23 +7,21 @@ module.exports = class FilterValidator extends Base {
     static getConstants () {
         return {
             FILTERS: {
-                'boolean': function (value, cb) {
-                    cb(null, typeof value === 'boolean' ? value : value === 'on');
+                'boolean': async value => {
+                    return typeof value === 'boolean' ? value : value === 'on';
                 },
-                'json': function (value, cb) {
+                'json': async value => {
                     if (!value || typeof value === 'object') {
-                        return cb(null, value);
+                        return value;
                     }
                     value = CommonHelper.parseJson(value);
-                    value === undefined
-                        ? cb(null, value, this.createMessage(this.message, 'Invalid JSON'))
-                        : cb(null, value);
+                    return value === undefined
+                        ? this.createMessage(this.message, 'Invalid JSON')
+                        : value;
                 },
-                'split': function (value, cb) {
-                    if (!Array.isArray(value)) {
-                        value = this.isEmptyValue(value) ? [] : String(value).split(this.separator);
-                    }
-                    cb(null, value);
+                'split': async value => {
+                    return value instanceof Array ? value
+                        : (typeof value === 'string' ? value.split(this.separator) : []);
                 }
             }
         };
@@ -49,35 +47,27 @@ module.exports = class FilterValidator extends Base {
         }
     }
 
-    validateAttr (model, attr, cb) {
+    async validateAttr (model, attr) {
         let value = model.get(attr);
         if (value instanceof Array && this.skipOnArray) {
-            return cb();
+            return;
         }
-        if (typeof this.filter === 'string') {
-            if (value === null || value === undefined) {
-                return cb();
-            }
-            if (typeof value[this.filter] !== 'function') {
-                return cb(this.wrapClassMessage(`Not found inline filter '${this.filter}' of '${value.constructor.name}'`));
-            }
-            try {
-                model.set(attr, value[this.filter]());
-            } catch (err) {
-                return cb(err);
-            }
-            return cb();
+        if (typeof this.filter === 'function') {
+            let result = await this.filter(value, model, attr);
+            return result instanceof Message
+                ? this.addError(model, attr, result)
+                : model.set(attr, result);
         }
-        this.filter(value, (err, result, message)=> {
-            if (err) {
-                return cb(err);
-            }
-            message ? this.addError(model, attr, message)
-                    : model.set(attr, result);
-            cb();
-        }, model, attr);
+        if (value === null || value === undefined) {
+            return;
+        }
+        if (typeof value[this.filter] !== 'function') {
+            throw new Error(`Not found inline filter '${this.filter}' of '${value.constructor.name}'`);
+        }
+        return model.set(attr, value[this.filter]());
     }
 };
 module.exports.init();
 
 const CommonHelper = require('../helper/CommonHelper');
+const Message = require('../i18n/Message');

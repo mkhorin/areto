@@ -17,21 +17,20 @@ module.exports = class MemoryRateLimitStore extends Base {
         return Object.prototype.hasOwnProperty.call(this._data, type);
     }
 
-    find (type, user, cb) {
+    async find (type, user) {
         let model = this.createModel({type, user});
         if (this.hasType(type)) {
             let key = this.constructor.getTypeKey(user);
             model.setData(this._data[type][key]);
         }
-        cb(null, model);
+        return model;
     }
 
-    save (model, cb) {
+    async save (model) {
         if (!this.hasType(model.type)) {
             this._data[model.type] = {};
         }
         let key = this.constructor.getTypeKey(model.user);
         this._data[model.type][key] = model.getData();
-        cb();
     }
 };
