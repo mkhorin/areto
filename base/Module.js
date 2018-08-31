@@ -202,20 +202,6 @@ module.exports = class Module extends Base {
             this.getConfigFile(name),
             this.getConfigFile(`${name}-local`)
         );
-    }
-
-    getConfigFile (name) {
-        let file = this.getPath('config', `${name}.js`);
-        try {
-            fs.statSync(file); // skip absent config file
-        } catch (err) {
-            return {};
-        }
-        return require(file);
-    }
-
-    async init (configName) {
-        this.setConfig(configName);
         Object.assign(this.params, this.config.params);
         Object.assign(this.widgets, this.config.widgets);
         if (this.parent) {
@@ -223,10 +209,21 @@ module.exports = class Module extends Base {
             AssignHelper.deepAssignUndefined(this.params, this.parent.params);
             AssignHelper.deepAssignUndefined(this.widgets, this.parent.widgets);
         }
+    }
+
+    getConfigFile (name) {
+        let file = this.getPath('config', `${name}.js`);
+        return fs.existsSync(file) ? require(file) : {};
+    }
+
+    async init (configName) {
+        this.setConfig(configName);
         this.mountPath = this.getMountPath();
         if (this.config.forwarder) {
             this.setForwarder(this.config.forwarder);
         }
+        this.setStaticSource(this.params.static);
+        this.setTemplateEngine(this.params.template);
         await this.beforeInit();
         await this.initComponents(this.config.components);
         await this.afterComponentInit();
@@ -246,6 +243,24 @@ module.exports = class Module extends Base {
             Class: require('../web/Forwarder'),
             module: this
         }, config);
+    }
+
+    setTemplateEngine (params) {
+        if (params) {
+            this.appendToExpress('engine', params.extension, params.engine);
+            this.appendToExpress('set', 'view engine', params.extension);
+            this.appendToExpress('set', 'views', params.views || '/');
+        }
+    }
+
+    setStaticSource (params) {
+        if (params) {
+            let dir = this.getPath(params.dir || 'web');
+            if (fs.existsSync(dir)) {
+                // use static content handlers before others
+                this.app.useBaseExpressHandler(this.getRoute(), express.static(dir, params.options));
+            }
+        }
     }
 
     async initModules (config = {}) {
@@ -361,7 +376,7 @@ module.exports = class Module extends Base {
     createConnectionComponent (id, config) {
         this.createComponent(id, Object.assign({
             Class: require('../db/Connection')
-        }, config));
+        }, config)).init();
         return this.getDb().open();
     }
 
@@ -415,21 +430,11 @@ module.exports = class Module extends Base {
         }, config));
     }
 
-    createStaticComponent (id, config) {
-        // use static content handlers before others
-        this.app.useBaseExpressHandler(this.getRoute(), express.static(this.getPath('web'), config.options));
-    }
-
     createViewComponent (id, config) {
         return this.createComponent(id, Object.assign({
             Class: require('../view/View'),
             parent: this.parent ? this.parent.getComponent(id) : null
         }, config)).init();
-    }
-
-    createViewEngineComponent (id, config) {
-        this.appendToExpress('engine', config.extension, config.engine);
-        this.appendToExpress('set', 'view engine', config.extension);
     }
 
     createUserComponent (id, config) {

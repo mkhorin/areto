@@ -1,6 +1,6 @@
 {
   "name": "areto",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
@@ -26,7 +26,7 @@
     "moment": "^2.22.2",
     "mongodb": "^3.1.4",
     "mysql": "^2.16.0",
-    "path-to-regexp": "^2.3.0"
+    "path-to-regexp": "^2.4.0"
   },
   "devDependencies": {
     "chai": "^4.1.2"

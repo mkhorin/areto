@@ -10,22 +10,20 @@ module.exports = class Connection extends Base {
             'mongodb': require('./MongoDriver'),
             'mysql': require('./MysqlDriver')
         }, this.drivers);
-        this.initDriver();
-    }
-
-    initDriver () {
-        this.driver = this.driver || this.drivers[this.schema];
-        if (!this.driver) {
-            throw new Error(this.wrapClassMessage(`Unknown driver: ${this.schema}`));
-        }
-        this.driver = ClassHelper.createInstance(this.driver, {
-            'module': this.module,
-            'settings': this.settings
-        });
     }
 
     init () {
-        return this.driver.open();
+        this.driver = this.createDriver(this.driver || this.drivers[this.schema]);
+    }
+
+    createDriver (driver) {
+        if (!driver) {
+            throw new Error(this.wrapClassMessage(`Unknown driver: ${this.schema}`));
+        }
+        return ClassHelper.createInstance(driver, {
+            'module': this.module,
+            'settings': this.settings
+        });
     }
 };
 

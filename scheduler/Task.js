@@ -24,7 +24,6 @@ module.exports = class Task extends Base {
         }, config));
         
         this._counter = 0;
-        this.module = this.scheduler.module;
         if (this.active) {
             this.start();
         }
@@ -112,13 +111,14 @@ module.exports = class Task extends Base {
         }
     }
 
-    execute () {
+    async execute () {
         if (this.isRunning()) {
             return this.fail('Job does not start. Previous one in progress');
         }
         try {
             this._job = this.createJob();
-            this.beforeRun(this.processInternal.bind(this));
+            await this.beforeRun();
+            this.processInternal();
         } catch (error) {
             this._job = null;
             this.fail(error);

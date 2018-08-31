@@ -79,7 +79,12 @@ module.exports = class Scheduler extends Base {
 
     executeTask (name) {
         let task = this.getTask(name);
-        task && !task.isRunning() && task.execute();
+        if (!task) {
+            return this.log('error', `Task not found: ${name}`);
+        }
+        if (!task.isRunning()) {
+            task.execute();
+        }
     }
 
     isActive () {
