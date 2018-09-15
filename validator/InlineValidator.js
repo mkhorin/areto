@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -11,11 +14,11 @@ module.exports = class InlineValidator extends Base {
         }, config));
     }
 
-    async validateAttr (model, attrName) {
+    validateAttr (model, attrName) {
         let method = this.method;
         if (typeof method === 'string') {
             method = model[method];
         }
-        await method.call(model, attrName, this.params);
+        return method.call(model, attrName, this.params);
     }
 };

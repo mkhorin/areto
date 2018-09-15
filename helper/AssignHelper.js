@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 module.exports = class AssignHelper {
@@ -40,14 +43,15 @@ module.exports = class AssignHelper {
 
     static _assignProp (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
-            if (from[prop] && typeof from[prop] === 'object') {
+            from = from[prop];
+            if (from && typeof from === 'object' && !(from instanceof Array)) {
                 if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] && typeof to[prop] === 'object') {
-                    to[prop] = this._assign(to[prop], from[prop]);
+                    to[prop] = this._assign(to[prop], from);
                 } else {
-                    to[prop] = this._assign({}, from[prop]);
+                    to[prop] = this._assign({}, from);
                 }
             } else {
-                to[prop] = from[prop];
+                to[prop] = from;
             }
         }
     }
@@ -63,13 +67,14 @@ module.exports = class AssignHelper {
 
     static _assignUndefinedProp (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
+            from = from[prop];
             if (Object.prototype.hasOwnProperty.call(to, prop)) {
-                if (from[prop] && typeof from[prop] === 'object'
-                    && to[prop] && typeof to[prop] === 'object') {
-                    this._assignUndefined(to[prop], from[prop])
+                to = to[prop];
+                if (from && typeof from === 'object' && to && typeof to === 'object') {
+                    this._assignUndefined(to, from);
                 }
             } else {
-                to[prop] = from[prop];
+                to[prop] = from;
             }
         }
     }

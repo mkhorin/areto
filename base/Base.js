@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const ClassHelper = require('../helper/ClassHelper');
@@ -25,3 +28,6 @@ module.exports = class Base {
         return this.constructor.wrapClassMessage(message);
     }
 };
+
+// default - JSON.stringify(new RegExp) = {}
+RegExp.prototype.toJSON = RegExp.prototype.toString;

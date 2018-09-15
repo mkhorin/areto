@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -33,7 +36,7 @@ module.exports = class CompareValidator extends Base {
         return this.createMessage(this.invalidValue, 'Invalid value');
     }
 
-    async validateAttr (model, attr) {
+    validateAttr (model, attr) {
         let value = model.get(attr), compareAttr, compareValue;
         if (value instanceof Array) {
             this.addError(model, attr, this.getInvalidValueMessage());
@@ -48,7 +51,7 @@ module.exports = class CompareValidator extends Base {
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         if (this.compareValue === null) {
             throw new Error('Value must be set');
         }

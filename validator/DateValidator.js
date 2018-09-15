@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -43,21 +46,20 @@ module.exports = class DateValidator extends Base {
 
     isValidDateObject (date) {        
         return Object.prototype.toString.call(date) !== '[object Date]'
-            ? false
-            : !isNaN(date.getTime());
+            ? false : !isNaN(date.getTime());
     }
 
-    async validateAttr (model, attr) {
+    validateAttr (model, attr) {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
         model.set(attr, value);
-        let message = await this.validateValue(value);
+        let message = this.validateValue(value);
         if (message) {
             this.addError(model, attr, message);
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         value = value instanceof Date ? value : new Date(value);
         if (!this.isValidDateObject(value)) {            
             return this.getMessage();

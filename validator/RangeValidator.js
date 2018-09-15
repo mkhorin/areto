@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -20,7 +23,7 @@ module.exports = class RangeValidator extends Base {
         return this.createMessage(this.message, 'Invalid range');
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         if (value instanceof Array && !this.allowArray) {
             return this.getMessage();
         }

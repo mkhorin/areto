@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Component');
@@ -28,16 +31,14 @@ module.exports = class Module extends Base {
         return StringHelper.camelToId(this.name);
     }
     
-    constructor (config) {
-        super(Object.assign({
-            modules: {},
-            config: {},
-            components: {}, // inherited
-            params: {}, // inherited
-            widgets: {} // inherited
-        }, config));
+    constructor () {
+        super();
         this._express = express();
         this._expressQueue = []; // for deferred assign
+        this.modules = {};
+        this.components = {}; // inherited from parent
+        this.params = {}; // inherited from parent
+        this.widgets = {}; // inherited from parent
         this.setParent();
     }
 
@@ -45,7 +46,15 @@ module.exports = class Module extends Base {
         this.parent = ClassHelper.getParentModule(this);
         this.app = this.parent.app;
     }
-    
+
+    getConfig () {
+        return this.config.get.apply(this.config, arguments);
+    }
+
+    getParam (key, defaults) {
+        return ObjectHelper.getNestedValue(key, this.params, defaults);
+    }
+
     getFullName (separator = '.') { // eg - app.admin.post
         return this.parent
             ? `${this.parent.getFullName(separator)}${separator}${this.NAME}`
@@ -90,7 +99,7 @@ module.exports = class Module extends Base {
     }
 
     getDefaultController () {
-        return this.getControllerClass(this.config.defaultController || 'default');
+        return this.getControllerClass(this.getConfig('defaultController', 'default'));
     }
 
     require (...args) {
@@ -184,26 +193,35 @@ module.exports = class Module extends Base {
         }
     }
 
-    // CONFIG
+    // INIT
 
-    getParam (key, defaults) {
-        return ObjectHelper.getNestedValue(key, this.params, defaults);
+    async init (config) {
+        Object.assign(this, config);
+        this.createConfiguration();
+        this.assignParams();
+        this.setMountPath();
+        this.setForwarder(this.getConfig('forwarder'));
+        this.setStaticSource(this.getParam('static'));
+        this.setTemplateEngine(this.getParam('template'));
+        await this.beforeInit();
+        await this.initComponents(this.getConfig('components'));
+        await this.afterComponentInit();
+        await this.initModules(this.getConfig('modules'));
+        await this.afterModuleInit();
+        this.createRouter(this.getConfig('router'));
+        this.attachExpress();
+        await this.afterInit();
+        this.log('info', `Configured as ${this.config.getTitle()}`);
     }
 
-    getConfig (key, defaults) {
-        return ObjectHelper.getNestedValue(key, this.config, defaults);
+    createConfiguration () {
+        let Configuration = this.Configuration || require('./Configuration');
+        this.config = new Configuration(this.getPath('config'), this.configName);
     }
 
-    setConfig (name) {
-        this.configName = name;
-        this.config = AssignHelper.deepAssign(
-            this.getConfigFile('default'),
-            this.getConfigFile('default-local'),
-            this.getConfigFile(name),
-            this.getConfigFile(`${name}-local`)
-        );
-        Object.assign(this.params, this.config.params);
-        Object.assign(this.widgets, this.config.widgets);
+    assignParams () {
+        Object.assign(this.params, this.getConfig('params'));
+        Object.assign(this.widgets, this.getConfig('widgets'));
         if (this.parent) {
             Object.assign(this.components, this.parent.components);
             AssignHelper.deepAssignUndefined(this.params, this.parent.params);
@@ -211,38 +229,17 @@ module.exports = class Module extends Base {
         }
     }
 
-    getConfigFile (name) {
-        let file = this.getPath('config', `${name}.js`);
-        return fs.existsSync(file) ? require(file) : {};
-    }
-
-    async init (configName) {
-        this.setConfig(configName);
-        this.mountPath = this.getMountPath();
-        if (this.config.forwarder) {
-            this.setForwarder(this.config.forwarder);
-        }
-        this.setStaticSource(this.params.static);
-        this.setTemplateEngine(this.params.template);
-        await this.beforeInit();
-        await this.initComponents(this.config.components);
-        await this.afterComponentInit();
-        await this.initModules(this.config.modules);
-        await this.afterModuleInit();
-        this.createRouter(this.config.router);
-        this.attachExpress();
-        await this.afterInit();
-    }
-
-    getMountPath () {
-        return this.config.mountPath || (this.parent ? `/${this.NAME}` : '/');
+    setMountPath () {
+        this.mountPath = this.getConfig('mountPath', this.parent ? `/${this.NAME}` : '/');
     }
 
     setForwarder (config) {
-        this.forwarder = ClassHelper.createInstance({
-            Class: require('../web/Forwarder'),
-            module: this
-        }, config);
+        if (config) {
+            this.forwarder = ClassHelper.createInstance(Object.assign({
+                Class: require('../web/Forwarder'),
+                module: this
+            }, config));
+        }
     }
 
     setTemplateEngine (params) {
@@ -269,15 +266,13 @@ module.exports = class Module extends Base {
         }
     }
 
-    async initModule (id, config) {
+    initModule (id, config) {
         if (!config) {
             return this.log('info', `Module skipped: ${id}`);
         }
-        let configName = config.configName || this.configName;
         let module = require(this.getPath('module', id, 'module'));
         this.modules[id] = module;
-        await module.init(configName);
-        this.log('info', `Module ready: ${id}`);
+        return module.init(config);
     }
 
     createRouter (config) {

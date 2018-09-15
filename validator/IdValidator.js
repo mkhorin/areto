@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -15,7 +18,7 @@ module.exports = class IdValidator extends Base {
         return this.createMessage(this.message, 'Invalid ID');
     }
 
-    async validateAttr (model, attr) {
+    validateAttr (model, attr) {
         let value = model.get(attr);
         if (this.isEmptyValue(value)) {
             return model.set(attr, null);

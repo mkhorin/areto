@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -15,7 +18,7 @@ module.exports = class EmailValidator extends Base {
         return this.createMessage(this.message, 'Invalid email');
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         if (typeof value !== 'string' || value.length > this.maxLength) {
             return this.getMessage();
         }

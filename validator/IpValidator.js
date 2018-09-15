@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -32,7 +35,7 @@ module.exports = class IpValidator extends Base {
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         if (typeof value !== 'string' || value.length > 64) {
             return this.getMessage();
         }

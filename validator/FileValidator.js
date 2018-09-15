@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -46,7 +49,7 @@ module.exports = class FileValidator extends Base {
         });
     }
 
-    async validateValue (file) { // file {path, size, extension, mime}
+    validateValue (file) { // file {path, size, extension, mime}
         if (!file || !file.path) {
             return this.getMessage();
         }

@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -39,7 +42,7 @@ module.exports = class NumberValidator extends Base {
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         value = parseFloat(value);
         if (isNaN(value)) {
             return this.getMessage();

@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 module.exports = class FileHelper {
@@ -12,10 +15,26 @@ module.exports = class FileHelper {
         return path.dirname(file).substring(root.length + 1);
     }
 
-    static async handleDirFiles (dir, fileHandler) {
+    static handleChildDirs (dir, handler) {
+        return this.handleChildren(dir, async file => {
+            if (fs.statSync(path.join(dir, file)).isDirectory()) {
+                await handler(file, dir);
+            }
+        });
+    }
+
+    static handleChildFiles (dir, handler) {
+        return this.handleChildren(dir, async file => {
+            if (fs.statSync(path.join(dir, file)).isFile()) {
+                await handler(file, dir);
+            }
+        });
+    }
+
+    static async handleChildren (dir, handler) {
         let files = fs.readdirSync(dir);
         for (let file of files) {
-            await fileHandler(file);
+            await handler(file, dir);
         }
     }
 
@@ -28,7 +47,7 @@ module.exports = class FileHelper {
     }
 
     static emptyDir (dir) {
-        return this.handleDirFiles(dir, file => this.removeDeep(path.join(dir, file)));
+        return this.handleChildren(dir, file => this.removeDeep(path.join(dir, file)));
     }
 
     static async removeDeep (dir) {
@@ -42,7 +61,7 @@ module.exports = class FileHelper {
             return fs.unlinkSync(dir);
         }
         await PromiseHelper.setImmediate();
-        await this.handleDirFiles(dir, file => this.removeDeep(path.join(dir, file)));
+        await this.handleChildren(dir, file => this.removeDeep(path.join(dir, file)));
         fs.rmdirSync(dir);
     }
 
@@ -58,7 +77,7 @@ module.exports = class FileHelper {
             mode: stat.mode
         });
         await PromiseHelper.setImmediate();
-        await this.handleDirFiles(source, file => {
+        await this.handleChildren(source, file => {
             return this.copyDeep(path.join(source, file), path.join(target, file));
         });
     }

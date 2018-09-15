@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -20,7 +23,7 @@ module.exports = class BooleanValidator extends Base {
         });
     }
 
-    async validateAttr (model, attr) {
+    validateAttr (model, attr) {
         let value = model.get(attr);
         if (this.strict ? value === this.trueValue : value == this.trueValue) {
             if (this.castValue) {
@@ -35,7 +38,7 @@ module.exports = class BooleanValidator extends Base {
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         if ((!this.strict && (value == this.trueValue || value == this.falseValue)) 
             || (this.strict && (value === this.trueValue || value === this.falseValue))) {
             return;

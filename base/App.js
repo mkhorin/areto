@@ -1,6 +1,7 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
-
-require('../init');
 
 const Base = require('./Module');
 
@@ -17,8 +18,8 @@ module.exports = class App extends Base {
         };
     }
 
-    constructor (config) {
-        super(config);
+    constructor () {
+        super();
         this._urlCache = {};
         this._baseExpress = express();
     }
@@ -27,8 +28,8 @@ module.exports = class App extends Base {
         this.app = this;
     }
 
-    async init (configName) {
-        await super.init(configName);
+    async init (config) {
+        await super.init(config);
         this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
     }
 
@@ -58,9 +59,9 @@ module.exports = class App extends Base {
             this.server = http.createServer(this._baseExpress).on('error', err => {
                 this.log('error', 'Server error', err);
                 reject(err);
-            }).listen(this.config.port, ()=> {
+            }).listen(this.getConfig('port'), ()=> {
+                this.log('info', `Started as`, this.server.address());
                 this.log('info', `Mounted as ${this.mountPath}`);
-                this.log('info', `Started as ${this.configName}`, this.server.address());
                 this.afterStart().then(resolve);
             });
         });

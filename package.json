@@ -1,7 +1,7 @@
 {
   "name": "areto",
-  "version": "0.18.0",
-  "description": "Node.js MVC Framework",
+  "version": "0.19.0",
+  "description": "MVC Node.js Framework",
   "author": {
     "name": "Maxim Khorin",
     "email": "maksimovichu@gmail.com"

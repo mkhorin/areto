@@ -1,14 +1,19 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
-const DEFAULT_HASH_ALGO = 'sha1';
-const DEFAULT_HASH_LENGTH = 40;
+const DEFAULT_HASH_ALGO = 'sha256';
+const DEFAULT_HASH_LENGTH = 64;
 const DEFAULT_SALT_LENGTH = 8;
 
 module.exports = class SecurityHelper {
 
     static createSalt (length = DEFAULT_SALT_LENGTH) {
-        let min = Math.pow(10, length - 1);
-        return Math.floor(Math.random() * (min * 9 - 1) + min).toString();
+        if (length % 2) {
+            throw new Error('length must be a multiple of 2');
+        }
+        return crypto.randomBytes(length / 2).toString('hex');
     }
 
     static extractSalt (hash, length = DEFAULT_HASH_LENGTH) {
@@ -22,6 +27,11 @@ module.exports = class SecurityHelper {
 
     static hashValue (value, salt, algo = DEFAULT_HASH_ALGO) {
         return crypto.createHmac(algo, salt).update(value).digest('hex') + salt;
+    }
+
+    static hashFile (file, algo = DEFAULT_HASH_ALGO) {
+        let data = fs.readFileSync(file);
+        return crypto.createHash(algo).update(data).digest('hex');
     }
 
     static encryptPassword (password) {
@@ -40,11 +50,6 @@ module.exports = class SecurityHelper {
             throw new Error('Length must be a number');
         }
         return crypto.randomBytes(length).toString('hex');
-    }
-
-    static hashFile (file, algo = DEFAULT_HASH_ALGO) {
-        let data = fs.readFileSync(file);
-        return crypto.createHash(algo).update(data).digest('hex');
     }
 };
 

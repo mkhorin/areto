@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -34,7 +37,7 @@ module.exports = class RegExpValidator extends Base {
         return this.createMessage(this.message, 'Invalid value');
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         let valid = true;
         if (typeof value !== 'string') {
             valid = false;

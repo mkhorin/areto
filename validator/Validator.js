@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('../base/Base');
@@ -104,7 +107,7 @@ module.exports = class Validator extends Base {
         }
     }
 
-    async validateValue (value) {
+    validateValue (value) {
         throw new Error(this.wrapClassMessage('Need to override'));
     }
 

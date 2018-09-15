@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Cache');
@@ -11,9 +14,9 @@ module.exports = class MemoryCache extends Base {
 
     getValue (key) {
         let value = this._cache[key];
-        return value && (value[1] === 0 || value[1] > Date.now())
-            ? Promise.resolve(value[0])
-            : Promise.resolve();
+        if (value && (value[1] === 0 || value[1] > Date.now())) {
+            return value[0];
+        }
     }
 
     setValue (key, value, duration) {
@@ -21,18 +24,15 @@ module.exports = class MemoryCache extends Base {
             duration = Date.now() + duration * 1000;
         }
         this._cache[key] = [value, duration];
-        return Promise.resolve();
     }
 
     removeValue (key) {
         if (Object.prototype.hasOwnProperty.call(this._cache, key)) {
             delete this._cache[key];
         }
-        return Promise.resolve();
     }
 
     flushValues () {
         this._cache = {};
-        return Promise.resolve();
     }
 };

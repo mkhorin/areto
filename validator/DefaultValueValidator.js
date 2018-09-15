@@ -1,3 +1,6 @@
+/**
+ * @copyright Copyright (c) 2018 Maxim Khorin (maksimovichu@gmail.com)
+ */
 'use strict';
 
 const Base = require('./Validator');
@@ -11,7 +14,7 @@ module.exports = class DefaultValueValidator extends Base {
         }, config));
     }
 
-    async validateAttr (model, attr) {
+    validateAttr (model, attr) {
         if (!this.isEmptyValue(model.get(attr))) {
             return;
         }
