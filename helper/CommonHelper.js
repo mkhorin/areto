@@ -54,12 +54,11 @@ module.exports = class CommonHelper {
     // DATE
 
     static isValidDate (date) {
-        date = new Date(date);
-        return Object.prototype.toString.call(date) !== '[object Date]' ? false : !isNaN(date.getTime());
+        return date ? !isNaN((date instanceof Date ? date : new Date(date)).getTime()) : false;
     }
 
     static getValidDate (date) {
-        return this.isValidDate(date) ? new Date(date) : null;
+        return !this.isValidDate(date) ? null : date instanceof Date ? date : new Date(date);
     }
 
     // ESCAPE

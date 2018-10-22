@@ -33,13 +33,14 @@ module.exports = class ThemeSet extends Base {
 
     get (name) {
         name = name || this.theme;
-        if (name) {
-            if (this.has(name)) {
-                return this._themes[name];
-            }
-            if (this.parent) {
-                return this.parent.get(name);
-            }
+        if (!name) {
+            return this._defaultTheme;
+        }
+        if (this.has(name)) {
+            return this._themes[name];
+        }
+        if (this.parent) {
+            return this.parent.get(name);
         }
         return this._defaultTheme;
     }

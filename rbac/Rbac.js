@@ -96,7 +96,7 @@ module.exports = class Rbac extends Base {
     }
 
     findUserModel (name) {
-        return this.module.components.user.UserModel.find({name});
+        return this.module.get('user').UserModel.find({name});
     }
 
     getUserAssignments (userId) {

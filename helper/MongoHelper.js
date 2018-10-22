@@ -57,16 +57,17 @@ module.exports = class MongoHelper {
     static replaceMongoDataToJson (data) {
         data = data || {};
         for (let key of Object.keys(data)) {
-            if (data[key] instanceof ObjectID) {
+            let value = data[key];
+            if (value instanceof ObjectID) {
                 data[key] = {
-                    $oid: data[key].toString()
+                    $oid: value.toString()
                 };
-            } else if (data[key] instanceof Date) {
+            } else if (value instanceof Date) {
                 data[key] = {
-                    $date: data[key].toISOString()
+                    $date: value.toISOString()
                 };
-            } else if (data[key] instanceof Object) {
-                this.replaceMongoDataToJson(data[key]);
+            } else if (value instanceof Object) {
+                this.replaceMongoDataToJson(value);
             }
         }
     }
@@ -74,14 +75,14 @@ module.exports = class MongoHelper {
     static replaceJsonToMongoData (data) {
         data = data || {};
         for (let key of Object.keys(data)) {
-            if (data[key] && data[key] instanceof Object) {
-                if (CommonHelper.isValidDate(data[key].$date)) {
-                    data[key] = new Date(data[key].$date);
-                } else if (ObjectID.isValid(data[key].$oid)) {
-                    data[key] = ObjectID(data[key].$oid);
-                } else {
-                    this.replaceJsonToMongoData(data[key]);
-                }
+            let value = data[key];
+            if (!value || !(value instanceof Object)) {
+            } else if (CommonHelper.isValidDate(value.$date)) {
+                data[key] = new Date(value.$date);
+            } else if (ObjectID.isValid(value.$oid)) {
+                data[key] = ObjectID(value.$oid);
+            } else {
+                this.replaceJsonToMongoData(value);
             }
         }
     }

@@ -47,6 +47,12 @@ module.exports = class Module extends Base {
         this.app = this.parent.app;
     }
 
+    get (name) {
+        return Object.prototype.hasOwnProperty.call(this.components, name)
+            ? this.components[name]
+            : null;
+    }
+
     getConfig () {
         return this.config.get.apply(this.config, arguments);
     }
@@ -372,7 +378,7 @@ module.exports = class Module extends Base {
         this.createComponent(id, Object.assign({
             Class: require('../db/Connection')
         }, config)).init();
-        return this.getDb().open();
+        return this.getDb(id).open();
     }
 
     createCookieComponent (id, config) {

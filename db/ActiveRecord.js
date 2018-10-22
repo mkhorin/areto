@@ -69,7 +69,7 @@ module.exports = class ActiveRecord extends Base {
         }
         let index = name.indexOf('.');
         if (index === -1) {
-            return this._related[name];
+            return this.rel(name);
         }
         let rel = this._related[name.substring(0, index)];
         let nested = name.substring(index + 1);
@@ -79,7 +79,8 @@ module.exports = class ActiveRecord extends Base {
         if (rel instanceof Array) {
             return rel.map(item => item instanceof ActiveRecord
                 ? item.get(nested)
-                : item ? item[nested] : item);
+                : item ? item[nested] : item
+            );
         }
         return rel ? rel[nested] : rel;
     }
@@ -216,7 +217,7 @@ module.exports = class ActiveRecord extends Base {
                 await model.remove();
                 counter += 1;
             } catch (err) {
-                this.log('error', 'removeBatch', err);
+                model.log('error', 'removeBatch', err);
             }
             await PromiseHelper.setImmediate();
         }

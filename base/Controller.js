@@ -95,6 +95,7 @@ module.exports = class Controller extends Base {
         this.response = new Response;
         this.response.controller = this;
         this.i18n = this.module.components.i18n;
+        this.formatter = this.module.components.formatter;
     }
 
     getModelClass () {
@@ -301,7 +302,7 @@ module.exports = class Controller extends Base {
     createView (params) {
         return new (this.VIEW_CLASS || this.module.VIEW_CLASS)(Object.assign({
             controller: this,
-            theme: this.module.components.view.getTheme()
+            theme: this.module.get('view').getTheme()
         }, params));
     }
 
@@ -385,7 +386,7 @@ module.exports = class Controller extends Base {
     }
 
     format (value, type, params) {
-        return this.module.components.formatter.format(value, type, this.language ? Object.assign({
+        return this.formatter.format(value, type, this.language ? Object.assign({
             language: this.language
         }, params) : params);
     }

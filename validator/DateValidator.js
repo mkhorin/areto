@@ -22,7 +22,7 @@ module.exports = class DateValidator extends Base {
             if (!(this[key] instanceof Date)) {
                 this[key] = new Date(this[key]);
             }
-            if (!this.isValidDateObject(this[key])) {
+            if (isNaN(this[key].getTime())) {
                 throw new Error(this.wrapClassMessage(`Invalid ${key} date`));
             }
         }
@@ -44,11 +44,6 @@ module.exports = class DateValidator extends Base {
         });
     }
 
-    isValidDateObject (date) {        
-        return Object.prototype.toString.call(date) !== '[object Date]'
-            ? false : !isNaN(date.getTime());
-    }
-
     validateAttr (model, attr) {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
@@ -61,7 +56,7 @@ module.exports = class DateValidator extends Base {
 
     validateValue (value) {
         value = value instanceof Date ? value : new Date(value);
-        if (!this.isValidDateObject(value)) {            
+        if (isNaN(value.getTime())) {
             return this.getMessage();
         }
         if (this.min !== null && value < this.min) {

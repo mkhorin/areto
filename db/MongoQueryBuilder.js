@@ -38,11 +38,20 @@ module.exports = class MongoQueryBuilder extends Base {
     
     build (query) {
         query.cmd = {
-            from: query._from,
-            select: this.buildSelect(query._select),
-            where: this.buildWhere(query._where),
-            order: this.buildOrder(query._order)
+            from: query._from
         };
+        let select = this.buildSelect(query._select);
+        if (select) {
+            query.cmd.select = select;
+        }
+        let where = this.buildWhere(query._where);
+        if (where) {
+            query.cmd.where = where;
+        }
+        let order = this.buildOrder(query._order);
+        if (order) {
+            query.cmd.order = order;
+        }
         if (query._offset) {
             query.cmd.offset = query._offset;
         }
@@ -50,7 +59,6 @@ module.exports = class MongoQueryBuilder extends Base {
             query.cmd.limit = query._limit;
         }
         query.afterBuild();
-        //console.dir(query.cmd, { depth: 10 });
         return query.cmd;
     }
 
@@ -248,5 +256,4 @@ module.exports = class MongoQueryBuilder extends Base {
     }
 };
 
-const mongodb = require('mongodb');
 const CommonHelper = require('../helper/CommonHelper');

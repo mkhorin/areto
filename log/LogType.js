@@ -10,7 +10,10 @@ module.exports = class LogType extends Base {
     constructor (config) {
         super(Object.assign({
             exclusive: false, 
-            consoleOutputMethod: 'log'
+            consoleMethod: 'log',
+            dataStringifyOptions: {
+                'depth': 10
+            }
         }, config));
 
         this.counter = 0;
@@ -22,8 +25,8 @@ module.exports = class LogType extends Base {
             this.store = this.commonStore;
         } else if (!(this.store instanceof LogStore)) {
             this.store = ClassHelper.createInstance(this.store, {
-                logger: this.logger,
-                logType: this
+                'logger': this.logger,
+                'logType': this
             });
         }
         if (this.exclusive || this.store === this.commonStore) {
@@ -35,11 +38,9 @@ module.exports = class LogType extends Base {
         if (!this.active) {
             return false;
         }
-        if (data instanceof Function) {
-            data = `[Function: ${data.name}]`;
-        }
+        data = this.formatData(data);
         if (this.consoleOutput) {
-            console[this.consoleOutputMethod](`${this.name}:`, message, data || '');
+            console[this.consoleMethod](`${this.name}:`, message, data);
         }
         if (this.store instanceof LogStore) {
             this.store.save(this.name, message, data);
@@ -50,7 +51,18 @@ module.exports = class LogType extends Base {
         this.counter += 1;
         this.logger.afterLog(this.name, message, data);
     }
+
+    formatData (data) {
+        if (data instanceof Function) {
+            return `[Function: ${data.name}]`;
+        }
+        if (data instanceof Error) {
+            return data.stack;
+        }
+        return data ? util.inspect(data, this.dataStringifyOptions) : '';
+    }
 };
 
+const util = require('util');
 const LogStore = require('./LogStore');
 const ClassHelper = require('../helper/ClassHelper');

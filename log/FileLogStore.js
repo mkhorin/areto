@@ -43,10 +43,8 @@ module.exports = class FileLogStore extends Base {
             msg = `${msg.message} ${msg.stack}`;
         }
         msg = `${new Date().toISOString()} ${type.toUpperCase()} ${msg}`;
-        if (data instanceof Error) {
-            msg = `${msg} ${data.stack}`;
-        } else if (data) {
-            msg = `${msg} ${util.inspect(data)}`;
+        if (data) {
+            msg = `${msg} ${data}`;
         }
         return msg + os.EOL;
     }
@@ -104,5 +102,4 @@ const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
 const util = require('util');
-const PromiseHelper = require('../helper/PromiseHelper');
 const Exception = require('../error/Exception');

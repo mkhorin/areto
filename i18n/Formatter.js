@@ -31,6 +31,10 @@ module.exports = class Formatter extends Base {
         }, config));
     }
 
+    getMethodName (type) {
+        return `as${StringHelper.toFirstUpperCase(type)}`;
+    }
+
     format (value, type, params) {
         let methodName = this.getMethodName(type);
         if (typeof this[methodName] === 'function') {
@@ -40,8 +44,10 @@ module.exports = class Formatter extends Base {
         return value;
     }
 
-    getMethodName (type) {
-        return `as${StringHelper.toFirstUpperCase(type)}`;
+    translate (message, category, language) {
+        return this.i18n
+            ? this.i18n.translate(message, category, null, language || this.language)
+            : message;
     }
 
     asRaw (value, params = {}) {
@@ -154,12 +160,6 @@ module.exports = class Formatter extends Base {
     asIso (value, params) {
         return value ? moment(value).toISOString()
             : this.asRaw(value, params);
-    }
-
-    translate (message, category, language) {
-        return this.i18n 
-            ? this.i18n.translate(message, category, null, language || this.language) 
-            : message;
     }
 };
 module.exports.init();

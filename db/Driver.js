@@ -24,9 +24,6 @@ module.exports = class Driver extends Base {
         super(config);
         this.connection = null;
         this.builder = new this.QueryBuilder(this);
-        if (this.module.components.logger) {
-            this.module.components.logger.traceDb(this);
-        }
     }
 
     normalizeId () {
@@ -67,17 +64,13 @@ module.exports = class Driver extends Base {
     }
 
     logCommand (command, data = {}) {
-        let message = `db: ${this.settings.database}: ${command}`;
-        this.trigger(this.EVENT_COMMAND, {message, data});
+        let message = `${this.settings.database}: ${command}`;
+        this.log('trace', message, data);
     }
 
     afterError (message, data) {
         this.log('error', message, data);
         this.trigger(this.EVENT_ERROR, {message, data});
-    }
-
-    formatCommandData (data) {
-        return JSON.stringify(data);
     }
 
     buildCondition (condition) {

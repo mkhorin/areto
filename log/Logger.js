@@ -21,8 +21,7 @@ module.exports = class Logger extends Base {
             LogType: LogType,
             store: require('./FileLogStore'), // common store
             consoleOutput: true,
-            processingTimeThreshold: 0, // ms
-            dbTraced: true
+            processingTimeThreshold: 0 // ms
         }, config));
 
         this.store = ClassHelper.createInstance(this.store, {
@@ -41,7 +40,7 @@ module.exports = class Logger extends Base {
         let errorOutputIndex = this.typeNames.indexOf('info');
         for (let i = 0; i < this.typeNames.length; ++i) {
             this.createType(this.typeNames[i], {
-                consoleOutputMethod: i > errorOutputIndex ? 'error' : 'log'
+                consoleMethod: i > errorOutputIndex ? 'error' : 'log'
             });
         }
     }
@@ -129,14 +128,6 @@ module.exports = class Logger extends Base {
     formatProcessingTime (time, controller) {
         let req = controller.req;  
         return `${controller.res.statusCode} ${req.method} ${time} ms ${req.originalUrl}`;
-    }
-
-    traceDb (db) {
-        if (this.dbTraced && this.isTrace()) {
-            db.on(db.EVENT_COMMAND, msg => {
-                this.log('trace', msg.message, db.formatCommandData(msg.data));
-            });
-        }
     }
 
     afterLog (type, message, data) {

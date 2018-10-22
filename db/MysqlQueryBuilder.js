@@ -43,7 +43,6 @@ module.exports = class MysqlQueryBuilder extends Base {
             limit: query._limit,
         };
         query.afterBuild();
-        //console.dir(query.cmd, { depth: 10 });
         return query.cmd;
     }
 

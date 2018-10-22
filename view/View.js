@@ -21,9 +21,9 @@ module.exports = class View extends Base {
 
     createThemeMap () {
         this.themeSet = ClassHelper.createInstance(this.ThemeSet, {
-            theme: this.theme,
-            parent: this.parent && this.parent.themeSet,
-            dir: this.module.getPath()
+            'theme': this.theme,
+            'parent': this.parent && this.parent.themeSet,
+            'dir': this.module.getPath()
         });
     }
 

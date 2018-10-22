@@ -30,8 +30,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     logCommand (data) {
-        let message = `db: ${this.settings.database}`;
-        this.trigger(this.EVENT_COMMAND, {message, data});
+        this.log('trace', this.settings.database, data);
     }
 
     // OPERATIONS

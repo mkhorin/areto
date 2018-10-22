@@ -34,10 +34,10 @@ module.exports = class DbLogStore extends Base {
             msg = `${msg.message} ${msg.stack}`;
         }
         return {
-            type,
-            message: msg,
-            data: data instanceof Error ? data.stack : data,
-            createdAt: new Date
+            'type': type,
+            'message': msg,
+            'data': data,
+            'createdAt': new Date
         };
     }
 
@@ -65,5 +65,6 @@ module.exports = class DbLogStore extends Base {
     }
 };
 
+const util = require('util');
 const Exception = require('../error/Exception');
 const Query = require('../db/Query');
