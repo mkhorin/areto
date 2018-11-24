@@ -101,19 +101,19 @@ module.exports = class WebUser extends Base {
 
     // if override this method await super.beforeLogin
     beforeLogin (model, cookieBased, duration) {
-        return this.triggerWait(this.EVENT_BEFORE_LOGIN, new Event({model, cookieBased, duration}));
+        return this.trigger(this.EVENT_BEFORE_LOGIN, new Event({model, cookieBased, duration}));
     }
 
     afterLogin (model, cookieBased, duration) {
-        return this.triggerWait(this.EVENT_AFTER_LOGIN, new Event({model, cookieBased, duration}));
+        return this.trigger(this.EVENT_AFTER_LOGIN, new Event({model, cookieBased, duration}));
     }
 
     beforeLogout (model) {
-        return this.triggerWait(this.EVENT_BEFORE_LOGOUT, new Event({model}));
+        return this.trigger(this.EVENT_BEFORE_LOGOUT, new Event({model}));
     }
 
     afterLogout (model) {
-        return this.triggerWait(this.EVENT_AFTER_LOGOUT, new Event({model}));
+        return this.trigger(this.EVENT_AFTER_LOGOUT, new Event({model}));
     }
 
     // IDENTITY
@@ -240,9 +240,10 @@ module.exports = class WebUser extends Base {
     }
 
     async forceCan (name, params) {
-        params = Object.assign({
-            user: this
-        }, params);
+        params = {
+            user: this,
+            ...params
+        };
         let access = await this.getLocalModule().components.rbac.can(this.assignments, name, params);
         return this._accessCache[name] = !!access;
     }

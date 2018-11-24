@@ -8,9 +8,10 @@ const Base = require('../../base/Base');
 module.exports = class RateLimitStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-           model: require('./RateLimitModel')
-        }, config));
+        super({
+           'model': require('./RateLimitModel'),
+            ...config
+        });
     }
 
     async init () {
@@ -25,9 +26,10 @@ module.exports = class RateLimitStore extends Base {
     }
 
     createModel (config) {
-        return ClassHelper.createInstance(this.model, Object.assign({
-            store: this
-        }, config));
+        return ClassHelper.createInstance(this.model, {
+            'store': this,
+            ...config
+        });
     }
 };
 

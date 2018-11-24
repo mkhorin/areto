@@ -294,7 +294,7 @@ module.exports = class Query extends Base {
                 } else if (prop instanceof Array) {
                     target[key] = prop.slice();
                 } else if (!(prop instanceof Base)) {
-                    target[key] = Object.assign({}, prop);
+                    target[key] = {...prop};
                 }
             }
         }

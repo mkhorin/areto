@@ -8,11 +8,11 @@ const Base = require('./Validator');
 module.exports = class EachValidator extends Base {
 
     constructor(config) {
-        super(Object.assign({
+        super({
             rule: null,
-            allowMessageFromRule: true
-        }, config));
-        
+            allowMessageFromRule: true,
+            ...config
+        });
         this._validator = null;
     }
 

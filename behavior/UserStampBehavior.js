@@ -8,12 +8,12 @@ const Base = require('../base/Behavior');
 module.exports = class UserStampBehavior extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             format: null, // 'YYYY-MM-DD HH:mm:ss';
             creatorAttr: 'creator', // or false
-            editordAttr: 'editor'
-        }, config));
-
+            editordAttr: 'editor',
+            ...config
+        });
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }

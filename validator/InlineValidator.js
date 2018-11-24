@@ -8,10 +8,11 @@ const Base = require('./Validator');
 module.exports = class InlineValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             method: null,
-            params: null
-        }, config));
+            params: null,
+            ...config
+        });
     }
 
     validateAttr (model, attrName) {

@@ -8,19 +8,18 @@ const Base = require('../base/Base');
 module.exports = class ThemeSet extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // dir: base dir
             // parent: new ThemeMap
             // theme: theme name
             defaultThemeDir: 'view',
             themeDir: 'theme',
             modulePriority: false,
-            Theme: require('./Theme')
-        }, config));
-        
+            Theme: require('./Theme'),
+            ...config
+        });
         this.defaultThemeDir = path.join(this.dir, this.defaultThemeDir);
         this.themeDir = path.join(this.dir, this.themeDir);
-        
         this.createDefault();
         this.createThemes();
         this.setParents();
@@ -68,25 +67,27 @@ module.exports = class ThemeSet extends Base {
 
     createTheme (name, dir) {
         this._themes[name] = ClassHelper.createInstance(this.Theme, {
-            name,
-            dir,
-            view: this
+            'name': name,
+            'dir': dir,
+            'view': this
         });
     }
 
     setParents () {
         for (let name of Object.keys(this._themes)) {
-            let parent;
-            let pos = name.lastIndexOf('.');
-            if (pos > 0) {
-                let parentName = name.substring(0, pos);
-                if (this.has(parentName)) {
-                    parent = this._themes[parentName];
-                }
-            } else if (this.parent && !this.modulePriority) {
-                parent = this.parent.get(name);
+            this._themes[name].parent = this.getParentByName(name) || this._defaultTheme;
+        }
+    }
+
+    getParentByName (name) {
+        let pos = name.lastIndexOf('.');
+        if (pos > 0) {
+            let parentName = name.substring(0, pos);
+            if (this.has(parentName)) {
+                return this._themes[parentName];
             }
-            this._themes[name].parent = parent || this._defaultTheme;
+        } else if (this.parent && !this.modulePriority) {
+            return this.parent.get(name);
         }
     }
 

@@ -8,13 +8,13 @@ const Base = require('../base/Base');
 module.exports = class Widget extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // disabled: true,
             // caching: true,
             cacheComponentId: 'cache',
-            // cacheDuration: 60 // seconds
-        }, config));
-
+            // cacheDuration: 60, // seconds
+            ...config
+        });
         this.controller = this.view.controller;
         this.module = this.controller.module;
         if (this.caching && !this.cache) {
@@ -38,9 +38,11 @@ module.exports = class Widget extends Base {
     }
 
     render (template, params) {
-        return this.view.renderTemplate(this.view.get(template), Object.assign({
-            _widget: this
-        }, this.renderParams, params));
+        return this.view.renderTemplate(this.view.get(template), {
+            '_widget': this,
+            ...this.renderParams, 
+            ...params
+        });
     }
 
     log (type, message, data) {

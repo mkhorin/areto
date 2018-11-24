@@ -8,12 +8,13 @@ const Base = require('../../base/Component');
 module.exports = class AssetManager extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             bundles: [],
             parentName: 'asset', // asset component from parent module
             ViewAsset,
-            AssetBundle
-        }, config));
+            AssetBundle,
+            ...config
+        });
 
         this.parent = this.module.getComponentFromParent(this.parentName);
         this.createBundles();
@@ -21,7 +22,7 @@ module.exports = class AssetManager extends Base {
 
     createViewAsset () {
         return new this.ViewAsset({
-            manager: this
+            'manager': this
         });
     }
 
@@ -34,7 +35,7 @@ module.exports = class AssetManager extends Base {
     }
 
     createBundles () {
-        this._bundles = this.parent ? Object.assign({}, this.parent._bundles) : {};
+        this._bundles = this.parent ? {...this.parent._bundles} : {};
         for (let data of this.bundles) {
             this._bundles[data.name] = this.createBundle(data);
         }

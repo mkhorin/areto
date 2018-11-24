@@ -8,11 +8,11 @@ const Base = require('../base/Behavior');
 module.exports = class ActionFilter extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             only: null,
-            except: []
-        }, config));
-        
+            except: [],
+            ...config
+        });
         this.assign(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
     }
 

@@ -8,11 +8,12 @@ const Base = require('../base/Component');
 module.exports = class Cache extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             keyPrefix: null,
             duration: 100, // seconds
-            serializer: null
-        }, config));
+            serializer: null,
+            ...config
+        });
     }
 
     async use (key, getter, duration) {

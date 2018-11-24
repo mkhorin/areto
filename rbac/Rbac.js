@@ -14,12 +14,12 @@ module.exports = class Rbac extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            store: require('./FileStore'),
-            Inspector: require('./Inspector'),
-            Item: require('./Item')
-        }, config));
-
+        super({
+            'store': require('./FileStore'),
+            'Inspector': require('./Inspector'),
+            'Item': require('./Item'),
+            ...config
+        });
         this.store = ClassHelper.createInstance(this.store, {
             rbac: this
         });
@@ -48,7 +48,7 @@ module.exports = class Rbac extends Base {
     }
 
     afterLoad () {
-        return this.triggerWait(this.EVENT_AFTER_LOAD);
+        return this.trigger(this.EVENT_AFTER_LOAD);
     }
 
     build (data) {
@@ -59,9 +59,10 @@ module.exports = class Rbac extends Base {
         this.resolveItemRules(data.items);
         this.itemMap = {};
         for (let name of Object.keys(data.items)) {
-            this.itemMap[name] = new this.Item(Object.assign({
-                rbac: this
-            }, data.items[name]));
+            this.itemMap[name] = new this.Item({
+                'rbac': this,
+                ...data.items[name]
+            });
         }
         for (let id of Object.keys(data.items)) {
             this.resolveItemLinks(this.itemMap[id]);

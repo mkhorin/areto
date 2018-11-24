@@ -8,14 +8,14 @@ const Base = require('./LogStore');
 module.exports = class DbLogStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            db: config.logger.module.getDb(),
-            table: 'log',
-            key: '_id',
-            observePeriod: 60, // seconds, null - off
-            maxRows: 10000
-        }, config));
-
+        super({
+            'db': config.logger.module.getDb(),
+            'table': 'log',
+            'key': '_id',
+            'observePeriod': 60, // seconds, null - off
+            'maxRows': 10000,
+            ...config
+        });
         if (this.observePeriod) {
             this.observe();
         }

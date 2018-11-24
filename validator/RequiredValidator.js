@@ -8,12 +8,12 @@ const Base = require('./Validator');
 module.exports = class RequiredValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             requiredValue: null,
             strict: false,
-            skip: false // skip validation
-        }, config));
-
+            skip: false, // skip validation
+            ...config
+        });
         this.skipOnEmpty = false;
     }
 

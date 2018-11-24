@@ -58,7 +58,7 @@ module.exports = class AssetBundle extends Base {
         let result = '';
         for (let item of this.css) {
             result += item instanceof Array
-                ? this.renderCssItem(item[0], Object.assign({}, this.cssOptions, item[1]))
+                ? this.renderCssItem(item[0], {...this.cssOptions, ...item[1]})
                 : this.renderCssItem(item, this.cssOptions);
         }
         return result;
@@ -69,7 +69,7 @@ module.exports = class AssetBundle extends Base {
         for (let item of this.js) {
             let options = this.jsOptions;
             if (item instanceof Array) {
-                options = Object.assign({}, this.jsOptions, item[1]);
+                options = {...this.jsOptions, ...item[1]};
                 item = item[0];
             }
             if (options.position ? (pos === options.position) : (pos === ActionView.POS_BODY_END)) {

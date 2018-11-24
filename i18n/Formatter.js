@@ -17,7 +17,7 @@ module.exports = class Formatter extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             language: config.i18n ? config.i18n.language : 'en',
             nullFormat: '<span class="not-set">[not set]</span>',
             booleanFormat: ['No', 'Yes'],
@@ -27,8 +27,9 @@ module.exports = class Formatter extends Base {
             timeFormat: 'LT',
             timeLongFormat: 'LTS',
             datetimeFormat: 'LLL',
-            timestampFormat: 'L LTS'
-        }, config));
+            timestampFormat: 'L LTS',
+            ...config
+        });
     }
 
     getMethodName (type) {
@@ -104,33 +105,38 @@ module.exports = class Formatter extends Base {
     }
 
     asDateLong (value, params) {
-        return this.asDate(value, Object.assign({
-            format: this.dateLongFormat
-        }, params));
+        return this.asDate(value, {
+            'format': this.dateLongFormat,
+            ...params
+        });
     }
 
     asTime (value, params) {
-        return this.asDate(value, Object.assign({
-            format: this.timeFormat
-        }, params));
+        return this.asDate(value, {
+            'format': this.timeFormat,
+            ...params
+        });
     }
 
     asTimeLong (value, params) {
-        return this.asDate(value, Object.assign({
-            format: this.timeLongFormat
-        }, params));
+        return this.asDate(value, {
+            'format': this.timeLongFormat,
+            ...params
+        });
     }
 
     asDatetime (value, params) {
-        return this.asDate(value, Object.assign({
-            format: this.datetimeFormat
-        }, params));
+        return this.asDate(value, {
+            'format': this.datetimeFormat,
+            ...params
+        });
     }
 
     asTimestamp (value, params) {
-        return this.asDate(value, Object.assign({
-            format: this.timestampFormat
-        }, params));
+        return this.asDate(value, {
+            'format': this.timestampFormat,
+            ...params
+        });
     }
 
     asFromNow (value, params = {}) {

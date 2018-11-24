@@ -8,11 +8,11 @@ const Base = require('../base/Base');
 module.exports = class FileMap extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            // dir: path
-            required: false // require files
-        }, config));
-        
+        super({
+            // dir: path,
+            required: false, // require files
+            ...config
+        });
         this.indexFiles();
     }
 

@@ -8,11 +8,12 @@ const Base = require('./Validator');
 module.exports = class NumberValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             integerOnly: false,
             max: null,
-            min: null
-        }, config));
+            min: null,
+            ...config
+        });
     }
 
     getMessage () {

@@ -31,12 +31,13 @@ module.exports = class FilterValidator extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             filter: null,
             skipOnEmpty: false,
             skipOnArray: false,
-            separator: ','
-        }, config));
+            separator: ',',
+            ...config
+        });
 
         if (this.filter === null) {
             throw new Error(this.wrapClassMessage('Filter property must be set'));

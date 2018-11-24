@@ -16,7 +16,9 @@ module.exports = class Item extends Base {
     }
 
     static isType (type) {
-        return type === this.TYPE_PERMISSION || type === this.TYPE_ROLE || type === this.TYPE_ROUTE;
+        return type === this.TYPE_PERMISSION
+            || type === this.TYPE_ROLE
+            || type === this.TYPE_ROUTE;
     }
 
     isPermission () {
@@ -48,7 +50,7 @@ module.exports = class Item extends Base {
         }
         let relations = await this.resolveRelations();
         relations.name = this.name;
-        let doc = Object.assign({}, this.data, relations);
+        let doc = {...this.data, ...relations};
         ObjectHelper.deleteProps(['children', 'parents'], doc);
         await this.store.findItem().insert(doc);
     }
@@ -60,42 +62,43 @@ module.exports = class Item extends Base {
     }
 
     async resolveRuleRelation (result) {
-        if (this.data.rule) {
-            result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
-            if (!result.rule) {
-                throw new Error(`Not found rule for RBAC item: ${this.name}`);
-            }
-        } else {
-            result.rule = null;
+        if (!this.data.rule) {
+            return result.rule = null;
+        }
+        result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
+        if (!result.rule) {
+            throw new Error(`Not found rule for RBAC item: ${this.name}`);
         }
     }
 
     async setChildren () {
-        if (this.data.children && this.data.children.length) {
-            this.data.children = this.findRelatives('children');
-            await this.store.findItemChild().and({
-                'parent': this.data.itemId,
-                'child': this.data.children
-            }).remove();
-            await this.store.findItemChild().insert(this.data.children.map(id => ({
-                'parent': this.data.itemId,
-                'child': id
-            })));
+        if (!this.data.children || !this.data.children.length) {
+            return null;
         }
+        this.data.children = this.findRelatives('children');
+        await this.store.findItemChild().and({
+            'parent': this.data.itemId,
+            'child': this.data.children
+        }).remove();
+        await this.store.findItemChild().insert(this.data.children.map(id => ({
+            'parent': this.data.itemId,
+            'child': id
+        })));
     }
 
     async setParents () {
-        if (this.data.parents && this.data.parents.length) {
-            this.data.parents = await this.findRelatives('parents');
-            await this.store.findItemChild().and({
-                'parent': this.data.parents,
-                'child': this.data.itemId
-            }).remove();
-            await this.store.findItemChild().insert(this.data.parents.map(id => ({
-                'parent': id,
-                'child': this.data.itemId
-            })));
+        if (!this.data.parents || !this.data.parents.length) {
+            return null;
         }
+        this.data.parents = await this.findRelatives('parents');
+        await this.store.findItemChild().and({
+            'parent': this.data.parents,
+            'child': this.data.itemId
+        }).remove();
+        await this.store.findItemChild().insert(this.data.parents.map(id => ({
+            'parent': id,
+            'child': this.data.itemId
+        })));
     }
 
     async findRelatives (relKey) {

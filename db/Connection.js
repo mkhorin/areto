@@ -9,10 +9,11 @@ module.exports = class Connection extends Base {
     
     constructor (config) {
         super(config);
-        this.drivers = Object.assign({
+        this.drivers = {
             'mongodb': require('./MongoDriver'),
-            'mysql': require('./MysqlDriver')
-        }, this.drivers);
+            'mysql': require('./MysqlDriver'),
+            ...this.drivers
+        };
     }
 
     init () {

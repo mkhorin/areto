@@ -21,10 +21,11 @@ module.exports = class ActionView extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             widgets: {},
-            data: {} 
-        }, config));
+            data: {},
+            ...config
+        });
     }
 
     get (name) {
@@ -67,15 +68,16 @@ module.exports = class ActionView extends Base {
     }
 
     getRenderParams (params) {
-        params = Object.assign({
+        params = {
             '_view': this,
             '_controller': this.controller,
             '_t': this.controller.translate.bind(this.controller),
             '_format': this.controller.format.bind(this.controller),
             '_url': this.controller.createUrl.bind(this.controller),
             '_baseUrl': this.controller.module.app.baseUrl,
-            '_data': null
-        }, params);
+            '_data': null,
+            ...params
+        };
         params._data = new DataMap(params._data);
         return params;
     }
@@ -145,9 +147,11 @@ module.exports = class ActionView extends Base {
             this.log('error', `Widget config not found: ${params.configId}`);
             return Promise.resolve();
         }
-        widget = ClassHelper.createInstance(Object.assign({
-            view: this
-        }, widget, params));
+        widget = ClassHelper.createInstance({
+            'view': this,
+            ...widget,
+            ...params
+        });
         this.widgets[anchor] = widget;
         return widget.execute(renderParams);
     }

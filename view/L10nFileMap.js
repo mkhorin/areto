@@ -8,12 +8,12 @@ const Base = require('../base/Base');
 module.exports = class L10nFileMap extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // baseDir: base path
             // localDir: localization path,
-            required: false // require files
-        }, config));
-
+            required: false, // require files
+            ...config
+        });
         try {
             this.createBaseMap();
             this.createLocalMap();
@@ -22,8 +22,8 @@ module.exports = class L10nFileMap extends Base {
 
     createBaseMap () {
         this._base = ClassHelper.createInstance(FileMap, {
-            dir: path.join(this.baseDir),
-            required: this.required
+            'dir': path.join(this.baseDir),
+            'required': this.required
         });
     }
 

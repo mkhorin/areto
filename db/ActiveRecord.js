@@ -94,26 +94,26 @@ module.exports = class ActiveRecord extends Base {
     }       
     
     assignOldAttrs () {
-        this._oldAttrs = Object.assign({}, this._attrs);            
+        this._oldAttrs = {...this._attrs};
     }
 
     // EVENTS
 
     afterFind () {
-        return this.triggerWait(this.EVENT_AFTER_FIND);
+        return this.trigger(this.EVENT_AFTER_FIND);
     }
 
     beforeSave (insert) {
-        return this.triggerWait(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE);
+        return this.trigger(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE);
     }
 
     afterSave (insert) {
         this.assignOldAttrs();
-        return this.triggerWait(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE);
+        return this.trigger(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE);
     }
 
     beforeRemove () {
-        return this.triggerWait(this.EVENT_BEFORE_REMOVE);
+        return this.trigger(this.EVENT_BEFORE_REMOVE);
     }
 
     async afterRemove () {
@@ -122,7 +122,7 @@ module.exports = class ActiveRecord extends Base {
                 await this.unlinkAll(relation);
             }
         }
-        await this.triggerWait(this.EVENT_AFTER_REMOVE);
+        await this.trigger(this.EVENT_AFTER_REMOVE);
     }
 
     // POPULATE

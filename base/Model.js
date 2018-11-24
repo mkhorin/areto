@@ -153,7 +153,7 @@ module.exports = class Model extends Base {
     }
 
     getAttrs () {
-        return Object.assign({}, this._attrs);
+        return {...this._attrs};
     }
 
     getAttrsByNames (names) {
@@ -294,12 +294,12 @@ module.exports = class Model extends Base {
 
     beforeValidate () {
         // await super.beforeValidate() if override this method
-        return this.triggerWait(this.EVENT_BEFORE_VALIDATE);
+        return this.trigger(this.EVENT_BEFORE_VALIDATE);
     }
 
     afterValidate () {
         // await super.afterValidate() if override this method
-        return this.triggerWait(this.EVENT_AFTER_VALIDATE);
+        return this.trigger(this.EVENT_AFTER_VALIDATE);
     }
 
     // VALIDATE

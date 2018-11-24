@@ -8,14 +8,14 @@ const Base = require('../base/Base');
 module.exports = class LogType extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             exclusive: false, 
             consoleMethod: 'log',
             dataStringifyOptions: {
                 'depth': 10
-            }
-        }, config));
-
+            },
+            ...config
+        });
         this.counter = 0;
         this.initStore();
     }

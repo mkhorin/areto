@@ -8,7 +8,7 @@ const Base = require('../base/Component');
 module.exports = class User extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             UserModel: null,
             WebUser: require('./WebUser'),
             enableSession: true,
@@ -24,12 +24,12 @@ module.exports = class User extends Base {
             defaultAssignments: ['user'],
             guestAssignments: ['guest'],
             identityCookie: {
-                httpOnly: true
+                'httpOnly': true
             },
             authTimeout: null, // in seconds (depends on last user activity)
-            absoluteAuthTimeout: null // in seconds (depends on last login)
-        }, config));
-
+            absoluteAuthTimeout: null, // in seconds (depends on last login)
+            ...config
+        });
         if (!this.UserModel) {
             throw new Error(this.wrapClassMessage('User model is not set'));
         }

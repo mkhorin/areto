@@ -8,10 +8,10 @@ const Base = require('../validator/Validator');
 module.exports = class CaptchaValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            captchaActionProp: 'captchaAction'
-        }, config));
-        
+        super({
+            captchaActionProp: 'captchaAction',
+            ...config
+        });        
         this.skipOnEmpty = false;
     }
 

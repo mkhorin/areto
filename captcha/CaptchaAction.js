@@ -8,7 +8,7 @@ const Base = require('../base/Action');
 module.exports = class Captcha extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             minLength: 5,
             maxLength: 5,
             width: 180,
@@ -19,8 +19,9 @@ module.exports = class Captcha extends Base {
             symbolPool: '0123456789',
             fontFile: path.join(__dirname, 'CaptchaFont.ttf'),
             fixedVerifyCode: null,
-            quality: 30
-        }, config));
+            quality: 30,
+            ...config
+        });
     }
 
     execute () {

@@ -8,12 +8,12 @@ const Base = require('../base/Base');
 module.exports = class MessageSource extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            forceTranslation: false,
-            sourceLanguage: config.i18n.sourceLanguage,
-            parent: null
-        }, config));
-
+        super({
+            'forceTranslation': false,
+            'sourceLanguage': config.i18n.sourceLanguage,
+            'parent': null,
+            ...config
+        });
         this.clearCache();
     }
 

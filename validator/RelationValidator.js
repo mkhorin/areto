@@ -8,7 +8,7 @@ const Base = require('./Validator');
 module.exports = class RelationValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             required: false,
             min: null,
             max: null,
@@ -16,9 +16,9 @@ module.exports = class RelationValidator extends Base {
             allow: null, // allow changes ['unlinks', ...]
             deny: null,
             filter: null, // async handler(value, model, attr)
-            behavior: 'relationChange'
-        }, config));
-        
+            behavior: 'relationChange',
+            ...config
+        });
         if (this.allow && this.deny) {
             throw new Error(this.wrapClassMessage('Allowed only one permission'));
         }

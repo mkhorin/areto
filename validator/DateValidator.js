@@ -8,11 +8,11 @@ const Base = require('./Validator');
 module.exports = class DateValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             min: null,
-            max: null
-        }, config));
-
+            max: null,
+            ...config
+        });
         this.initDate('min');
         this.initDate('max');
     }

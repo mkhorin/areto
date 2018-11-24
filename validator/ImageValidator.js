@@ -8,12 +8,13 @@ const Base = require('./FileValidator');
 module.exports = class ImageValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             maxHeight: null,
             maxWidth: null,
             minHeight: null,
-            minWidth: null
-        }, config));
+            minWidth: null,
+            ...config
+        });
     }
 
     getOverHeightMessage () {

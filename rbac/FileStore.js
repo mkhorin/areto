@@ -8,9 +8,10 @@ const Base = require('./Store');
 module.exports = class FileStore extends Base {
 
     constructor (config) {
-        super(Object.assign({            
-            'basePath': config.rbac.module.getPath('rbac')
-        }, config));
+        super({
+            'basePath': config.rbac.module.getPath('rbac'),
+            ...config
+        });
     }
     
     async load () {

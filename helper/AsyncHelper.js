@@ -100,7 +100,7 @@ module.exports = class AsyncHelper {
         (new this({items, callback, keys, result, counter: 0})).each();
     }
 
-    //
+    // METHOD
 
     constructor (config) {
         Object.assign(this, config);

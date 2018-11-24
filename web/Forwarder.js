@@ -8,11 +8,11 @@ const Base = require('../base/Component');
 module.exports = class Forwarder extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            Url: require('./Url'),
-            items: {}
-        }, config));
-
+        super({
+            'Url': require('./Url'),
+            'items': {},
+            ...config
+        });
         this.setItems();
     }
 

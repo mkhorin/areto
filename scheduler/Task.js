@@ -17,15 +17,15 @@ module.exports = class Task extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            active: true,
-            startDate: null, // new Date
-            startTime: null, // 00:00:00
-            period: 0, // seconds
-            repeats: 0, // 0 - endless
-            stopOnFail: true
-        }, config));
-        
+        super({
+            'active': true,
+            'startDate': null, // new Date
+            'startTime': null, // 00:00:00
+            'period': 0, // seconds
+            'repeats': 0, // 0 - endless
+            'stopOnFail': true,
+            ...config
+        });
         this._counter = 0;
         if (this.active) {
             this.start();
@@ -165,7 +165,7 @@ module.exports = class Task extends Base {
     }
 
     beforeRun () {
-        return this.triggerWait(this.EVENT_BEFORE_RUN);
+        return this.trigger(this.EVENT_BEFORE_RUN);
     }
 
     done (result) {

@@ -8,12 +8,13 @@ const Base = require('./Validator');
 module.exports = class BooleanValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             trueValue: true,
             falseValue: false,
             strict: false,
-            castValue: true
-        }, config));
+            castValue: true,
+            ...config
+        });
     }
 
     getMessage () {

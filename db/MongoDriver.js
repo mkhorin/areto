@@ -22,16 +22,20 @@ module.exports = class MongoDriver extends Base {
     }
 
     static normalizeObjectId (id) {
-        return id instanceof this.ObjectId ? id : this.ObjectId.isValid(id) ? this.ObjectId(id) : null;
+        return id instanceof this.ObjectId
+            ? id
+            : this.ObjectId.isValid(id)
+                ? this.ObjectId(id)
+                : null;
     }
 
     constructor (config) {
-        super(Object.assign({
-            client: MongoClient,
-            schema: 'mongodb',
-            QueryBuilder: MongoQueryBuilder
-        }, config));
-
+        super({
+            'client': MongoClient,
+            'schema': 'mongodb',
+            'QueryBuilder': MongoQueryBuilder,
+            ...config
+        });
         this._collections = {};
     }
 

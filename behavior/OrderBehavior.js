@@ -8,13 +8,13 @@ const Base = require('../base/Behavior');
 module.exports = class OrderBehavior extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             orderAttr: 'order',
             start: 10,
             step: 10,
-            filter: null
-        }, config)); 
-        
+            filter: null,
+            ...config
+        });        
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 

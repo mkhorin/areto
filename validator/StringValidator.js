@@ -8,11 +8,12 @@ const Base = require('./Validator');
 module.exports = class StringValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             length: null,
             max: null,
-            min: null
-        }, config));
+            min: null,
+            ...config
+        });
     }
 
     getMessage () {

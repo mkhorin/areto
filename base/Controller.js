@@ -176,12 +176,12 @@ module.exports = class Controller extends Base {
 
     beforeAction () {
         // if override this method call - await super.beforeAction()
-        return this.triggerWait(this.EVENT_BEFORE_ACTION, new ActionEvent(this.action));
+        return this.trigger(this.EVENT_BEFORE_ACTION, new ActionEvent(this.action));
     }
 
     afterAction () {
         // if override this method call - await super.afterAction()
-        return this.triggerWait(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
+        return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
     }
     
     // REQUEST
@@ -300,10 +300,11 @@ module.exports = class Controller extends Base {
     }
 
     createView (params) {
-        return new (this.VIEW_CLASS || this.module.VIEW_CLASS)(Object.assign({
-            controller: this,
-            theme: this.module.get('view').getTheme()
-        }, params));
+        return new (this.VIEW_CLASS || this.module.VIEW_CLASS)({
+            'controller': this,
+            'theme': this.module.get('view').getTheme(),
+            ...params
+        });
     }
 
     getViewFileName (name) {
@@ -378,7 +379,7 @@ module.exports = class Controller extends Base {
     }
 
     translateMessageMap (map, category = 'app') {
-        map = Object.assign({}, map);
+        map = {...map};
         for (let key of Object.keys(map)) {
             map[key] = this.translate(map[key], category);
         }
@@ -386,9 +387,10 @@ module.exports = class Controller extends Base {
     }
 
     format (value, type, params) {
-        return this.formatter.format(value, type, this.language ? Object.assign({
-            language: this.language
-        }, params) : params);
+        return this.formatter.format(value, type, this.language ? {
+            'language': this.language,
+            ...params
+        } : params);
     }
 };
 module.exports.init();

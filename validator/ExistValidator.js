@@ -17,12 +17,13 @@ const Base = require('./Validator');
 module.exports = class ExistValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             targetClass: null,
             targetAttr: null, // can be array
             filter: null,
-            ignoreCase: false
-        }, config));
+            ignoreCase: false,
+            ...config
+        });
     }
 
     getMessage () {

@@ -8,11 +8,12 @@ const Base = require('../base/Component');
 module.exports = class View extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // parent: new View
-            theme: config.parent && config.parent.theme, // theme name
-            ThemeSet: require('./ThemeSet')
-        }, config));
+            'theme': config.parent && config.parent.theme, // theme name
+            'ThemeSet': require('./ThemeSet'),
+            ...config
+        });
     }
 
     async init () {

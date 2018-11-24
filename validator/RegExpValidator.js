@@ -15,10 +15,11 @@ module.exports = class RegExpValidator extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            pattern: null,
-            not: false // not match pattern
-        }, config));
+        super({
+            'pattern': null,
+            'not': false, // not match pattern
+            ...config
+        });
 
         if (!this.pattern) {
             throw new Error(this.wrapClassMessage('Not set pattern'));

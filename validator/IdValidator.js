@@ -8,10 +8,11 @@ const Base = require('./Validator');
 module.exports = class IdValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             normalize: true,
-            skipOnEmpty: false
-        }, config));
+            skipOnEmpty: false,
+            ...config
+        });
     }
 
     getMessage () {

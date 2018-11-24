@@ -8,12 +8,13 @@ const Base = require('./Validator');
 module.exports = class UrlValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             pattern: '^{schemes}:\\/\\/(([A-Z0-9][A-Z0-9_-]*)(\\.[A-Z0-9][A-Z0-9_-]*)+)',
             validSchemes: ['http', 'https'],
             defaultScheme: null,
-            maxLength: 2000
-        }, config));
+            maxLength: 2000,
+            ...config
+        });
     }
 
     getMessage () {

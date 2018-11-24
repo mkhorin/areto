@@ -37,7 +37,7 @@ module.exports = class Inspector extends Base {
         }
         let model = new rule.Class(rule);
         model.params = rule.params
-            ? Object.assign({}, rule.params, this.params)
+            ? {...rule.params, ...this.params}
             : this.params;
         let passed = await model.execute();
         if (rule.name) {

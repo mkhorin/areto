@@ -18,7 +18,7 @@ module.exports = class Pagination extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             pageParam: 'page',
             pageSizeParam: 'page-size',
             defaultPageSize: 10,
@@ -29,9 +29,9 @@ module.exports = class Pagination extends Base {
             page: null,
             // totalCount: 0,
             // route:
-            // params: {}
-        }, config));
-        
+            // params: {},
+            ...config
+        });
         if (!this.route) {
             this.route = this.controller.getCurrentRoute();
         }
@@ -108,13 +108,13 @@ module.exports = class Pagination extends Base {
     }
 
     getQueryParam (name, defaultValue) {
-        let params = this.params ? this.params : this.controller.getQueryParams();
+        let params = this.params || this.controller.getQueryParams();
         let value = params[name] ? parseInt(params[name]) : NaN;
         return Number.isNaN(value) ? defaultValue : value;
     }
 
     createUrl (page, pageSize) {
-        let params = this.params ? this.params : Object.assign({}, this.controller.getQueryParams());
+        let params = this.params || {...this.controller.getQueryParams()};
         if (page > 0 || page >= 0 && this.forcePageParam) {
             params[this.pageParam] = page + 1;
         } else {

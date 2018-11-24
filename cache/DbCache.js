@@ -8,10 +8,10 @@ const Base = require('./Cache');
 module.exports = class DbCache extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            table: 'cache'
-        }, config));
-
+        super({
+            table: 'cache',
+            ...config
+        });
         this._cache = {};
     }
 

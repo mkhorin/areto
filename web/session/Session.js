@@ -8,19 +8,19 @@ const Base = require('../../base/Base');
 module.exports = class Session extends Base {
 
     constructor (config) {
-        super(Object.assign({            
-            expressSession: session,
-            resave: false,
-            saveUninitialized: false,
-            name: `${config.module.getFullName()}.sid`,
-            store: require('./MemorySessionStore'),
-            lifetime: 3600 // seconds
-            //cookie: {maxAge: 3600 * 1000}
-        }, config));
-
+        super({            
+            'expressSession': session,
+            'resave': false,
+            'saveUninitialized': false,
+            'name': `${config.module.getFullName()}.sid`,
+            'store': require('./MemorySessionStore'),
+            'lifetime': 3600, // seconds
+            //'cookie': {maxAge: 3600 * 1000},
+            ...config
+        });
         this.lifetime *= 1000;
         this.store = ClassHelper.createInstance(this.store, {
-            session: this
+            'session': this
         });
         this.module.appendToExpress('use', session(this));
         this.module.appendToExpress('use', flash());

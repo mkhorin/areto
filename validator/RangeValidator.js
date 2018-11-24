@@ -8,12 +8,12 @@ const Base = require('./Validator');
 module.exports = class RangeValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             range: null,
             not: false,
-            allowArray: false
-        }, config));
-
+            allowArray: false,
+            ...config
+        });
         if (!(this.range instanceof Array)) {
             throw new Error(this.wrapClassMessage('Range property must be array'));
         }

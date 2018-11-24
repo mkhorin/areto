@@ -8,12 +8,12 @@ const Base = require('../base/Behavior');
 module.exports = class HistoryBehavior extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             History: null, // history ActiveRecord
             includes: null, // [] tracked attr names
-            excludes: null // [] tracked attr names
-        }, config));
-
+            excludes: null, // [] tracked attr names
+            ...config
+        });
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
         this.assign(ActiveRecord.EVENT_AFTER_REMOVE, this.afterRemove);
     }

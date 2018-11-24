@@ -16,14 +16,14 @@ module.exports = class I18n extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             'language': config.parent ? config.parent.language : 'en',
             'sourceLanguage': config.parent ? config.parent.sourceLanguage : 'en',
             'sources': {},
             'basePath': config.module.getPath('message'),
-            'MessageFormatter': MessageFormatter
-        }, config)); 
-        
+            'MessageFormatter': MessageFormatter,
+            ...config
+        });
         this.createSources();
         this.createMessageFormatter();
     }
@@ -38,7 +38,7 @@ module.exports = class I18n extends Base {
                 sources[this.CORE_CATEGORY] = this.parent.sources[this.CORE_CATEGORY];
             } else {
                 sources[this.CORE_CATEGORY] = this.createSource(this.CORE_CATEGORY, {
-                    basePath: path.join(__dirname, 'message')
+                    'basePath': path.join(__dirname, 'message')
                 });
             }
         }
@@ -57,15 +57,18 @@ module.exports = class I18n extends Base {
         if (data instanceof MessageSource) {
             return data;
         }
-        return ClassHelper.createInstance(Object.assign({
-            Class: JsMessageSource,
-            parent: this.getSourceParent(category),
-            i18n: this
-        }, data));
+        return ClassHelper.createInstance({
+            'Class': JsMessageSource,
+            'parent': this.getSourceParent(category),
+            'i18n': this,
+            ...data
+        });
     }
 
     getSourceParent (category) {
-        return this.parent ? (this.parent.sources[category] || this.parent.getSourceParent(category)) : null;
+        return this.parent
+            ? (this.parent.sources[category] || this.parent.getSourceParent(category))
+            : null;
     }
 
     createMessageFormatter () {
@@ -93,7 +96,7 @@ module.exports = class I18n extends Base {
     }
 
     translateMessageMap (map, category) {
-        map = Object.assign({}, map);
+        map = {...map};
         for (let key of Object.keys(map)) {
             map[key] = this.translateMessage(map[key], category);
         }

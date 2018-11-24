@@ -9,23 +9,28 @@ const StringHelper = require('../../../helper/StringHelper');
 describe('StringHelper', ()=> {
 
     it('toWordFirstUpperCase: capitalize first letters', ()=> {
-        expect(StringHelper.toWordFirstUpperCase('up first letters')).to.equal('Up First Letters');
+        let res = StringHelper.toWordFirstUpperCase('up first letters');
+        expect(res).to.eql('Up First Letters');
     });
 
     it('camelize', ()=> {
-        expect(StringHelper.camelize('test_block online')).to.equal('TestBlockOnline');
+        let res = StringHelper.camelize('test_block online');
+        expect(res).to.eql('TestBlockOnline');
     });
 
     it('camelToWords', ()=> {
-        expect(StringHelper.camelToWords('TestBlockOnline')).to.equal('Test Block Online');
+        let res = StringHelper.camelToWords('TestBlockOnline');
+        expect(res).to.eql('Test Block Online');
     });
 
     it('camelToId', ()=> {
-        expect(StringHelper.camelToId('TestBlockOnline')).to.equal('test-block-online');
+        let res = StringHelper.camelToId('TestBlockOnline');
+        expect(res).to.eql('test-block-online');
     });
 
     it('idToCamel', ()=> {
-        expect(StringHelper.idToCamel('test-block-online')).to.equal('TestBlockOnline');
+        let res = StringHelper.idToCamel('test-block-online');
+        expect(res).to.eql('TestBlockOnline');
     });
 
 });

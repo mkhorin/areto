@@ -15,16 +15,16 @@ module.exports = class Sort extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             attrs: {},
             enableMultiSort: false,
             sortParam: 'sort',
             separator: ',',
             // defaultOrder
             // route
-            // params: 'attrName1,-attrName2'
-        }, config));
-        
+            // params: 'attrName1,-attrName2',
+            ...config
+        });
         this.initAttrs();
     }
 
@@ -105,7 +105,7 @@ module.exports = class Sort extends Base {
     }
 
     createUrl (attr) {
-        let params = this.params || Object.assign({}, this.controller.getQueryParams());
+        let params = this.params || {...this.controller.getQueryParams()};
         params[this.sortParam] = this.createSortParam(attr);
         let route = this.route || this.controller.getCurrentRoute();
         return this.controller.createUrl([route, params]);
@@ -113,7 +113,7 @@ module.exports = class Sort extends Base {
 
     createSortParam (attr) {
         let def = this.attrs[attr];
-        let directions = Object.assign({}, this.getOrders()), direction;
+        let directions = {...this.getOrders()}, direction;
         if (Object.prototype.hasOwnProperty.call(directions, attr)) {
             direction = directions[attr] === this.DESC ? this.ASC : this.DESC;
             delete directions[attr];
@@ -121,7 +121,7 @@ module.exports = class Sort extends Base {
             direction = 'default' in def ? def['default'] : this.ASC;
         }
         directions = this.enableMultiSort
-            ? Object.assign({[attr]: direction}, directions)
+            ? {[attr]: direction, ...directions}
             : {[attr]: direction};
         let sorts = [];
         for (let attr in directions) {

@@ -8,12 +8,13 @@ const Base = require('./Validator');
 module.exports = class CompareValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             compareAttr: null,
             compareValue: null,
             type: 'string',
-            operator: '=='
-        }, config));
+            operator: '==',
+            ...config
+        });
     }
 
     getMessage (params) {

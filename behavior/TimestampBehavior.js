@@ -8,12 +8,12 @@ const Base = require('../base/Behavior');
 module.exports = class TimestampBehavior extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             format: null, // 'YYYY-MM-DD HH:mm:ss';
             createdAttr: 'createdAt', // or false
-            updatedAttr: 'updatedAt'
-        }, config));
-
+            updatedAttr: 'updatedAt',
+            ...config
+        });
         this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
         this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }

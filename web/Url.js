@@ -108,11 +108,11 @@ module.exports = class Url extends Base {
         }
         let params = this.getParams(result, this.sourceParamNames);
         if (this.defaults) {
-            params = Object.assign({}, this.defaults, params);
+            params = {...this.defaults, ...params};
         }
         return {
-            path: this.createTarget(params),
-            params
+            'path': this.createTarget(params),
+            'params': params
         };
     }
 

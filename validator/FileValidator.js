@@ -8,13 +8,14 @@ const Base = require('./Validator');
 module.exports = class FileValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             imageOnly: false,
             minSize: 1,
             maxSize: null,
             extensions: null,
-            mimeTypes: null
-        }, config));
+            mimeTypes: null,
+            ...config
+        });
     }
 
     getMessage () {

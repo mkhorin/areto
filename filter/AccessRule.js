@@ -8,14 +8,15 @@ const Base = require('../base/Component');
 module.exports = class AccessRule extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             allow: true, // allow or deny rule result
             // actions: ['update'],
             // controllers: ['article'],
             // roles: ['?', '@', 'reader'], // RBAC items
             // verbs: ['GET', 'POST'],
             // denyPromise: async (action, user)
-        }, config));
+            ...config
+        });
     }
 
     async can (action, user) {

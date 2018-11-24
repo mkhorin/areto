@@ -14,15 +14,16 @@ module.exports = class RateLimit extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            attempts: 3,
-            timeout: 0, // seconds
-            types: {}, // separate config for types
-            store: require('./MemoryRateLimitStore')
-        }, config));
+        super({
+            'attempts': 3,
+            'timeout': 0, // seconds
+            'types': {}, // separate config for types
+            'store': require('./MemoryRateLimitStore'),
+            ...config
+        });
         
         this.store = ClassHelper.createInstance(this.store, {
-            rateLimit: this
+            'rateLimit': this
         });
     }
 
@@ -39,7 +40,7 @@ module.exports = class RateLimit extends Base {
     }
 
     afterRateUpdate (model) {
-        return this.triggerWait(this.EVENT_AFTER_RATE_UPDATE, new Event({model}));
+        return this.trigger(this.EVENT_AFTER_RATE_UPDATE, new Event({model}));
     }
 
     getAttempts (type) {

@@ -8,14 +8,15 @@ const Base = require('../base/Base');
 module.exports = class DataProvider extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             pagination: {},
             sort: null,
             // controller: this,
             // allModels: [],
-            // totalCount: 100
-            // id: 'id'
-        }, config));
+            // totalCount: 100,
+            // id: 'id',
+            ...config
+        });
     }
 
     createPagination (config) {
@@ -23,9 +24,9 @@ module.exports = class DataProvider extends Base {
             return null;
         }
         let defaults = {
-            Class: require('./Pagination'),
-            controller: this.controller,
-            totalCount: this.totalCount
+            'Class': require('./Pagination'),
+            'controller': this.controller,
+            'totalCount': this.totalCount
         };
         if (this.id) {
             defaults.pageParam = `${this.id}-page`;
@@ -39,8 +40,8 @@ module.exports = class DataProvider extends Base {
             return null;
         }
         let defaults = {
-            Class: require('./Sort'),
-            controller: this.controller
+            'Class': require('./Sort'),
+            'controller': this.controller
         };
         if (this.id) {
             defaults.sortParam = `${this.id}-sort`;

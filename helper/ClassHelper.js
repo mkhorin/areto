@@ -91,7 +91,7 @@ module.exports = class ClassHelper {
             return chainProps;
         }
         let parentProps = this.getClassProps(targetClass, methodName, parentClass);
-        let props = Object.assign({}, parentProps, chainProps);
+        let props = {...parentProps, ...chainProps};
         if (chainClass[extendedMethodName] instanceof Function) {
             for (let name of chainClass[extendedMethodName]()) {
                 let prop = this.getExtendedClassProp(name, chainProps[name], parentProps[name]);
@@ -109,7 +109,7 @@ module.exports = class ClassHelper {
                 return [].concat(parentProp, childProp);
             }
             if (typeof childProp === 'object' && typeof parentProp === 'object') {
-                return Object.assign({}, parentProp, childProp);
+                return {...parentProp, ...childProp};
             }
         }
         return null;

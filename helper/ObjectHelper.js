@@ -72,10 +72,11 @@ module.exports = class ObjectHelper {
         return this.getAllPropNames(map).filter(item => typeof map[item] === 'function');
     }
 
-    static deleteEmptyProps (map) {
+    static deleteEmptyProps (map, isEmpty) {
         if (map) {
             for (let key of Object.keys(map)) {
-                if (map[key] === null || map[key] === '' || map[key] === undefined) {
+                let value = map[key];
+                if (isEmpty ? isEmpty(value) : (value === null || value === '' || value === undefined)) {
                     delete map[key];
                 }
             }

@@ -8,10 +8,11 @@ const Base = require('./RateLimitStore');
 module.exports = class DbRateLimitStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            db: config.rateLimit.module.getDb(),
-            table: 'rate_limit'
-        }, config));
+        super({
+            'db': config.rateLimit.module.getDb(),
+            'table': 'rate_limit',
+            ...config
+        });
     }
     
     async find (type, user) {
@@ -28,11 +29,11 @@ module.exports = class DbRateLimitStore extends Base {
         let query = this.getQuery().and({type});
         return user.isGuest()
             ? query.and({
-                ip: user.getIp(),
-                userId: null
+                'ip': user.getIp(),
+                'userId': null
             })
             : query.and({
-                userId: user.getId()
+                'userId': user.getId()
             });
     }
 

@@ -14,16 +14,16 @@ module.exports = class Logger extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            level: 'info', // and right types
-            typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
-            types: {},
-            LogType: LogType,
-            store: require('./FileLogStore'), // common store
-            consoleOutput: true,
-            processingTimeThreshold: 0 // ms
-        }, config));
-
+        super({
+            'level': 'info', // and right types
+            'typeNames': ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
+            'types': {},
+            'LogType': LogType,
+            'store': require('./FileLogStore'), // common store
+            'consoleOutput': true,
+            'processingTimeThreshold': 0, // ms
+            ...config
+        });
         this.store = ClassHelper.createInstance(this.store, {
             logger: this
         });
@@ -40,14 +40,14 @@ module.exports = class Logger extends Base {
         let errorOutputIndex = this.typeNames.indexOf('info');
         for (let i = 0; i < this.typeNames.length; ++i) {
             this.createType(this.typeNames[i], {
-                consoleMethod: i > errorOutputIndex ? 'error' : 'log'
+                'consoleMethod': i > errorOutputIndex ? 'error' : 'log'
             });
         }
     }
 
     createType (name, config) {
         let type = this.types[name];
-        config = Object.assign({
+        config = {
             'Class': this.LogType,
             'name': name,
             'logger': this,
@@ -56,9 +56,9 @@ module.exports = class Logger extends Base {
             'active': this.isActiveTypeName(name),
             'consoleOutput': this.consoleOutput,
             'exclusive': this.exclusive, // not copy to commonStore
-            'eventFire': this.eventFire
-        }, config);
-
+            'eventFire': this.eventFire,
+            ...config
+        };
         if (type instanceof LogType) {
             Object.assign(config, type);
             Object.assign(type, config);
@@ -141,8 +141,8 @@ module.exports = class Logger extends Base {
             let type = this.getType(name);
             if (type && type.counter) {
                 total.push({
-                    type: name,
-                    counter: type.counter
+                    'type': name,
+                    'counter': type.counter
                 });
             }
         }

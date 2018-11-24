@@ -8,10 +8,11 @@ const Base = require('./Validator');
 module.exports = class DefaultValueValidator extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             value: null,
-            skipOnEmpty: false
-        }, config));
+            skipOnEmpty: false,
+            ...config
+        });
     }
 
     validateAttr (model, attr) {

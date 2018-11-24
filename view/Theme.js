@@ -8,14 +8,14 @@ const Base = require('../base/Base');
 module.exports = class Theme extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // name: theme name
             // dir: theme dir
             // parent: new Theme
             // view: new View
-            L10nFileMap: require('./L10nFileMap')
-        }, config)); 
-        
+            L10nFileMap: require('./L10nFileMap'),
+            ...config
+        });        
         this.createTemplateMap();
         this.createModelMap();
     }

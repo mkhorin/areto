@@ -160,27 +160,27 @@ module.exports = class Module extends Base {
     // EVENTS
 
     beforeInit () {
-        return this.triggerWait(this.EVENT_BEFORE_INIT);
+        return this.trigger(this.EVENT_BEFORE_INIT);
     }
 
     afterComponentInit () {
-        return this.triggerWait(this.EVENT_AFTER_COMPONENT_INIT);
+        return this.trigger(this.EVENT_AFTER_COMPONENT_INIT);
     }
 
     afterModuleInit () {
-        return this.triggerWait(this.EVENT_AFTER_MODULE_INIT);
+        return this.trigger(this.EVENT_AFTER_MODULE_INIT);
     }
 
     afterInit () {
-        return this.triggerWait(this.EVENT_AFTER_INIT);
+        return this.trigger(this.EVENT_AFTER_INIT);
     }
 
     beforeAction (action) {
-        return this.triggerWait(this.EVENT_BEFORE_ACTION, new ActionEvent(action));
+        return this.trigger(this.EVENT_BEFORE_ACTION, new ActionEvent(action));
     }
 
     afterAction (action) {
-        return this.triggerWait(this.EVENT_AFTER_ACTION, new ActionEvent(action));
+        return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(action));
     }
 
     // EXPRESS SETUP QUEUES
@@ -242,8 +242,8 @@ module.exports = class Module extends Base {
     setForwarder (config) {
         if (config) {
             this.forwarder = ClassHelper.createInstance(Object.assign({
-                Class: require('../web/Forwarder'),
-                module: this
+                'Class': require('../web/Forwarder'),
+                'module': this,
             }, config));
         }
     }
@@ -283,8 +283,8 @@ module.exports = class Module extends Base {
 
     createRouter (config) {
         this.router = ClassHelper.createInstance(Object.assign({
-            Class: require('../web/Router'),
-            module: this
+            'Class': require('../web/Router'),
+            'module': this
         }, config));
     }
 
@@ -376,7 +376,7 @@ module.exports = class Module extends Base {
 
     createConnectionComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../db/Connection')
+            'Class': require('../db/Connection'),
         }, config)).init();
         return this.getDb(id).open();
     }
@@ -389,58 +389,58 @@ module.exports = class Module extends Base {
 
     createFormatterComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../i18n/Formatter'),
-            i18n: this.components.i18n
+            'Class': require('../i18n/Formatter'),
+            'i18n': this.components.i18n
         }, config));
     }
 
     createI18nComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../i18n/I18n'),
-            parent: this.parent ? this.parent.components.i18n : null
+            'Class': require('../i18n/I18n'),
+            'parent': this.parent ? this.parent.components.i18n : null
         }, config));
     }
 
     createLoggerComponent (id, config) {
         return this.createComponent(id, Object.assign({
-            Class: require('../log/Logger')
+            'Class': require('../log/Logger')
         }, config)).init();
     }
 
     createRateLimitComponent (id, config) {
         return this.createComponent(id, Object.assign({
-            Class: require('../web/rate-limit/RateLimit')
+            'Class': require('../web/rate-limit/RateLimit')
         }, config)).init();
     }
 
     createRbacComponent (id, config) {
         return this.createComponent(id, Object.assign({
-            Class: require('../rbac/Rbac')
+            'Class': require('../rbac/Rbac')
         }, config)).init();
     }
 
     createSchedulerComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../scheduler/Scheduler')
+            'Class': require('../scheduler/Scheduler')
         }, config));
     }
 
     createSessionComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../web/session/Session')
+            'Class': require('../web/session/Session')
         }, config));
     }
 
     createViewComponent (id, config) {
         return this.createComponent(id, Object.assign({
-            Class: require('../view/View'),
-            parent: this.parent ? this.parent.getComponent(id) : null
+            'Class': require('../view/View'),
+            'parent': this.parent ? this.parent.getComponent(id) : null
         }, config)).init();
     }
 
     createUserComponent (id, config) {
         this.createComponent(id, Object.assign({
-            Class: require('../web/User')
+            'Class': require('../web/User')
         }, config));
         this.appendToExpress('use', this.handleUser);
     }

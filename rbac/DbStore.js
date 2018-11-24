@@ -17,11 +17,12 @@ module.exports = class DbStore extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
-            db: config.rbac.module.getDb(),
-            tablePrefix: 'rbac_',
-            key: '_id'
-        }, config));
+        super({
+            'db': config.rbac.module.getDb(),
+            'tablePrefix': 'rbac_',
+            'key': '_id',
+            ...config
+        });
     }
     
     async load () {
@@ -84,10 +85,11 @@ module.exports = class DbStore extends Base {
             this.log('error', `Base class of ${data.classConfig.Class} must be Rule`);
             Class = Rule;
         }
-        return Object.assign({}, data.classConfig, {
-            Class,
-            name: data.name
-        });
+        return {
+            ...data.classConfig,
+            'Class': Class,
+            'name': data.name
+        };
     }
 
     getItemChildren (id, data) {
@@ -113,15 +115,21 @@ module.exports = class DbStore extends Base {
     }
 
     findRoleItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_ROLE});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_ROLE
+        });
     }
 
     findPermissionItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_PERMISSION});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_PERMISSION
+        });
     }
 
     findRouteItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_ROUTE});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_ROUTE
+        });
     }
 
     findItemChild () {
@@ -184,15 +192,11 @@ module.exports = class DbStore extends Base {
         if (!data) {
             return [];
         }
-        let items = [];
-        for (let name of Object.keys(data)) {
-            items.push(new this.rbac.Item({
-                name,
-                store: this,
-                data: data[name]
-            }));
-        }
-        return items;
+        return Object.keys(data).map(name => new this.rbac.Item({
+            'name': name,
+            'store': this,
+            'data': data[name]
+        }));
     }
 
     async createRules (data) {
@@ -208,7 +212,7 @@ module.exports = class DbStore extends Base {
         if (rule) {
             return this.log('warn', `Rule already exists: ${name}`);
         }
-        await this.findRule().insert(Object.assign({name}, data));
+        await this.findRule().insert({name, ...data});
     }
 
     async createAssignments (data) {

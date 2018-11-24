@@ -8,9 +8,10 @@ const Base = require('./MessageSource');
 module.exports = class JsMessageSource extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            basePath: config.i18n.basePath
-        }, config));
+        super({
+            basePath: config.i18n.basePath,
+            ...config
+        });
     }
     
     loadMessages (category, language) {

@@ -8,12 +8,12 @@ const Base = require('./ActionFilter');
 module.exports = class AccessControl extends Base {
 
     constructor (config) {
-        super(Object.assign({
+        super({
             // rules: [] rule configs
             // denyPromise: async (action, user)
-            AccessRule
-        }, config));
-        
+            AccessRule,
+            ...config
+        });
         this.createRules();
     }
 

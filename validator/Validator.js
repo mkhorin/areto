@@ -57,7 +57,7 @@ module.exports = class Validator extends Base {
     }
 
     constructor (config) {
-        super(Object.assign({
+        super({
             attrs: [],
             // on: [] // only scenarios
             // except: [] // excepted scenarios
@@ -68,8 +68,9 @@ module.exports = class Validator extends Base {
             isEmpty: null, // value => false/true
             when: null, // (model, attr)=> false/true
             // whenClient: null,
-            messageCategory: 'app'
-        }, config));
+            messageCategory: 'app',
+            ...config
+        });
     }
 
     createMessage (message, defaultMessage, params) {

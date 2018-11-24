@@ -9,15 +9,15 @@ const Base = require('./LogStore');
 module.exports = class FileLogStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            baseDir: config.logger.module.getPath(),
-            dir: 'log',
-            fileName: config.logType ? config.logType.name : 'common',
-            observePeriod: 60, // seconds, 0 - off
-            maxFileSize: 2, // megabytes
-            maxFiles: 1
-        }, config));
-
+        super({
+            'baseDir': config.logger.module.getPath(),
+            'dir': 'log',
+            'fileName': config.logType ? config.logType.name : 'common',
+            'observePeriod': 60, // seconds, 0 - off
+            'maxFileSize': 2, // megabytes
+            'maxFiles': 1,
+            ...config
+        });
         this.baseDir = path.join(this.baseDir, this.dir);
         this.file = this.getFile();
         this.maxFileSize *= MEGABYTE_SIZE;
@@ -101,5 +101,4 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
-const util = require('util');
 const Exception = require('../error/Exception');

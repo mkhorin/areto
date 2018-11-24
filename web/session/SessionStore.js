@@ -8,10 +8,10 @@ const Base = require('../../base/Base');
 module.exports = class SessionStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            userIdParam: '__id'
-        }, config));
-
+        super({
+            userIdParam: '__id',
+            ...config
+        });
         Store.call(this);
     }
 

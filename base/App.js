@@ -78,7 +78,7 @@ module.exports = class App extends Base {
     // EVENTS
 
     afterStart () {
-        return this.triggerWait(this.EVENT_AFTER_START);
+        return this.trigger(this.EVENT_AFTER_START);
     }
 
     // MIGRATION

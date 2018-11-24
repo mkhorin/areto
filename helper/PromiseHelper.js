@@ -22,7 +22,9 @@ module.exports = class PromiseHelper {
     }
 
     static callback (promise, callback) {
-        promise.then(result => callback(null, result), callback);
+        return callback
+            ? promise.then(result => callback(null, result), callback)
+            : promise;
     }
 
     static async each (items, handler) {

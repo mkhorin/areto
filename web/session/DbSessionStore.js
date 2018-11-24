@@ -8,29 +8,30 @@ const Base = require('./SessionStore');
 module.exports = class DbSessionStore extends Base {
 
     constructor (config) {
-        super(Object.assign({
-            db: config.session.module.getDb(),
-            table: 'session'
-        }, config));
+        super({
+            'db': config.session.module.getDb(),
+            'table': 'session',
+            ...config
+        });
     }
 
     get (sid, callback) {
         this.findBySid(sid).one().then(result => {
-            callback(null, result ? result.data : null);
+            callback(null, result ? result.data : undefined);
         }, callback);
     }
 
-    set (sid, session, callback) {
+    set (sid, data, callback) {
         PromiseHelper.callback(this.findBySid(sid).upsert({
-            'data': session,
-            'userId': session[this.userIdParam],
+            'data': data,
+            'userId': data[this.userIdParam],
             'updatedAt': new Date
         }), callback);
     }
 
-    touch (sid, session, callback) {
+    touch (sid, data, callback) {
         PromiseHelper.callback(this.findBySid(sid).update({
-            updatedAt: new Date
+            'updatedAt': new Date
         }), callback);
     }
 
@@ -39,19 +40,18 @@ module.exports = class DbSessionStore extends Base {
     }
 
     clear (callback) {
-        PromiseHelper.callback(this.find().remove(), callback);
+        PromiseHelper.callback(this.find().remove(), callback) ;
     }
 
     removeExpired (callback) {
-        if (!this.session.lifetime) {
-            return callback();
+        if (this.session.lifetime) {
+            let expired = new Date(Date.now() - this.session.lifetime);
+            return this.find(['<', 'updatedAt', expired]).remove();
         }
-        let expired = new Date(Date.now() - this.session.lifetime);
-        PromiseHelper.callback(this.find(['<', 'updatedAt', expired]).remove(), callback);
     }
 
-    removeByUserId (userId, callback) {
-        PromiseHelper.callback(this.find(['ID', 'userId', userId]).remove(), callback);
+    removeByUserId (userId) {
+        return this.find(['ID', 'userId', userId]).remove();
     }
 
     findBySid (sid) {
