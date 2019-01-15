@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,24 +9,21 @@ module.exports = class ViewAsset extends Base {
 
     constructor (config) {
         super(config);
-        this._bundleMap = {};
-        this._bundles = [];
+        this._bundles = new DataMap;
     }
 
     add (data) {
         if (typeof data !== 'string') {
             let item = this.manager.createBundle(data);
-            if (!this.hasBundle(item.name)) {
-                this._bundleMap[item.name] = item;
-                this._bundles.push(item);
+            if (!this._bundles.has(item.name)) {
+                this._bundles.set(item.name, item);
             }
-        } else if (!this.hasBundle(data)) {
+        } else if (!this._bundles.has(data)) {
             let item = this.manager.getBundle(data);
             if (!item) {
                 return this.log('error', `Unknown asset name: ${data}`);
             }
-            this._bundleMap[data] = item;
-            this._bundles.push(item);
+            this._bundles.set(data, item);
         }
     }
 
@@ -56,24 +53,20 @@ module.exports = class ViewAsset extends Base {
         return result;
     }
 
-    hasBundle (name) {
-        return Object.prototype.hasOwnProperty.call(this._bundleMap, name);
-    }
-
     getBundle (name) {
-        return this.hasBundle(name) ? this._bundleMap[name] : this.manager.getBundle(name);
+        return this._bundles.get(name) || this.manager.getBundle(name);
     }
 
     resolveBundles () {
         this._processedNames = {};
-        this._resolvedBundles = new Set;
+        this._resolvedBundles = [];
         for (let bundle of this._bundles) {
             this.processBundle(bundle);
         }
     }
 
     processBundle (bundle) {
-        if (this._resolvedBundles.has(bundle)) {
+        if (this._resolvedBundles.includes(bundle)) {
             return;
         }
         if (this._processedNames[bundle.name] === true) {
@@ -81,16 +74,20 @@ module.exports = class ViewAsset extends Base {
         }
         this._processedNames[bundle.name] = true;
         if (bundle.depends instanceof Array) {
-            for (let name of bundle.depends) {
-                let item = this.getBundle(name);
-                if (!item) {
-                    return this.log('error', `Unknown depends name: ${name}`);
-                }
-                this.processBundle(item);
-            }
+            this.processDepends(bundle.depends);
         }
         this._processedNames[bundle.name] = false;
-        this._resolvedBundles.add(bundle);
+        this._resolvedBundles.push(bundle);
+    }
+
+    processDepends (depends) {
+        for (let name of depends) {
+            let item = this.getBundle(name);
+            if (!item) {
+                return this.log('error', `Unknown depends name: ${name}`);
+            }
+            this.processBundle(item);
+        }
     }
 
     logCircularDependency (bundle) {
@@ -105,3 +102,4 @@ module.exports = class ViewAsset extends Base {
 };
 
 const CommonHelper = require('../../helper/CommonHelper');
+const DataMap = require('../../base/DataMap');

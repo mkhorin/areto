@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,43 +9,44 @@ module.exports = class AssetManager extends Base {
 
     constructor (config) {
         super({
-            bundles: [],
-            parentName: 'asset', // asset component from parent module
-            ViewAsset,
-            AssetBundle,
+            'bundles': [],
+            'parentName': 'asset', // asset component from parent module
+            'ViewAsset': require('./ViewAsset'),
+            'AssetBundle': require('./AssetBundle'),
             ...config
         });
+    }
 
-        this.parent = this.module.getComponentFromParent(this.parentName);
+    init () {
+        this.parent = this.module.getParentComponent(this.parentName);
         this.createBundles();
     }
 
     createViewAsset () {
-        return new this.ViewAsset({
+        return ClassHelper.createInstance(this.ViewAsset, {
             'manager': this
         });
     }
 
     hasBundle (name) {
-        return Object.prototype.hasOwnProperty.call(this._bundles, name);
+        return Object.prototype.hasOwnProperty.call(this._bundleMap, name);
     }
 
     getBundle (name) {
-        return this.hasBundle(name) ? this._bundles[name] : null;
+        return this.hasBundle(name) ? this._bundleMap[name] : null;
     }
 
     createBundles () {
-        this._bundles = this.parent ? {...this.parent._bundles} : {};
+        this._bundleMap = this.parent ? {...this.parent._bundleMap} : {};
         for (let data of this.bundles) {
-            this._bundles[data.name] = this.createBundle(data);
+            this._bundleMap[data.name] = this.createBundle(data);
         }
     }
 
     createBundle (data) {
         data.manager = this;
-        return new (data.Class || this.AssetBundle)(data);
+        return ClassHelper.createInstance(data.Class || this.AssetBundle, data);
     }
 };
 
-const ViewAsset = require('./ViewAsset');
-const AssetBundle = require('./AssetBundle');
+const ClassHelper = require('../../helper/ClassHelper');

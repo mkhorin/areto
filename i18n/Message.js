@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -8,7 +8,12 @@ const Base = require('../base/Base');
 module.exports = class Message extends Base {
 
     constructor (message, category, params, language) {
-        super({message, category, params, language});
+        super({
+            message, 
+            category, 
+            params, 
+            language
+        });
     }
 
     addParams (params) {

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,13 +9,13 @@ module.exports = class OrderBehavior extends Base {
 
     constructor (config) {
         super({
-            orderAttr: 'order',
-            start: 10,
-            step: 10,
-            filter: null,
+            'orderAttr': 'order',
+            'start': 10,
+            'step': 10,
+            'filter': null,
             ...config
         });        
-        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 
     async beforeInsert (event) {
@@ -29,7 +29,9 @@ module.exports = class OrderBehavior extends Base {
         if (this.filter instanceof Function) {
             this.filter(query, this.owner);
         } else if (typeof this.filter === 'string') {
-            query.and({[this.filter]: this.owner.get(this.filter)});
+            query.and({
+                [this.filter]: this.owner.get(this.filter)
+            });
         }
         query.order({
             [this.orderAttr]: this.step > 0 ? -1 : 1
@@ -41,7 +43,7 @@ module.exports = class OrderBehavior extends Base {
     }
 
     async updateAllByIds (ids) {
-        if (!(ids instanceof Array)) {
+        if (!Array.isArray(ids)) {
             return;
         }
         let map = await this.owner.findById(ids).index(this.owner.PK).all();

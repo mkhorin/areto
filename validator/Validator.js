@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -127,8 +127,8 @@ module.exports = class Validator extends Base {
     addError (model, attr, message) {
         let value = model.get(attr);
         message.addParams({
-            attr: model.getAttrLabel(attr),
-            value: value instanceof Array ? value.join() : value
+            'attr': model.getAttrLabel(attr),
+            'value': value instanceof Array ? value.join() : value
         });
         model.addError(attr, message);
     }

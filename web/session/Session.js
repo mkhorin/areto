@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -19,11 +19,14 @@ module.exports = class Session extends Base {
             ...config
         });
         this.lifetime *= 1000;
+    }
+
+    init () {
         this.store = ClassHelper.createInstance(this.store, {
             'session': this
         });
-        this.module.appendToExpress('use', session(this));
-        this.module.appendToExpress('use', flash());
+        this.module.addHandler('use', session(this));
+        this.module.addHandler('use', flash());
     }
 
     removeExpired () {

@@ -1,19 +1,19 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
 module.exports = class FileHelper {
+
+    static getRelativePath (file, root) {
+        return file.substring(root.length + 1);
+    }
 
     static removeExtension (file) {
         return file.substring(0, file.length - path.extname(file).length);
     }
 
     // DIR
-
-    static getNestedDir (file, root) {
-        return path.dirname(file).substring(root.length + 1);
-    }
 
     static handleChildDirs (dir, handler) {
         return this.handleChildren(dir, async file => {

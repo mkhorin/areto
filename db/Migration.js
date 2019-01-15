@@ -1,15 +1,21 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
-const Base = require('../base/Component');
+const Base = require('../base/Base');
 
 module.exports = class Migration extends Base {
 
     constructor (config) {
-        super(config);
-        this.db = this.db || this.module.getDb();
+        super({
+            // migrator: migrator
+            ...config
+        });
+    }
+
+    getDb (conection) {
+        return this.migrator.getDb(conection || this.connection);
     }
 
     apply () {

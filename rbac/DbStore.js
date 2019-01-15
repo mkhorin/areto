@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -18,11 +18,14 @@ module.exports = class DbStore extends Base {
 
     constructor (config) {
         super({
-            'db': config.rbac.module.getDb(),
             'tablePrefix': 'rbac_',
             'key': '_id',
             ...config
         });
+    }
+
+    getDb () {
+        return this.rbac.module.getDb();
     }
     
     async load () {
@@ -40,9 +43,9 @@ module.exports = class DbStore extends Base {
 
     prepare (data) {
         let result = {
-            items: {},
-            rules: {},
-            assignments: {}
+            'items': {},
+            'rules': {},
+            'assignments': {}
         };
         for (let id of Object.keys(data.ruleMap)) {
             let rule = this.prepareRule(data.ruleMap[id]);
@@ -75,7 +78,7 @@ module.exports = class DbStore extends Base {
             Class = require(Class);
         } catch (err) {
             try {
-                Class = this.rbac.module.app.require(Class);
+                Class = require(this.rbac.module.app.getPath(Class));
             } catch (err) {
                 this.log('error', `Not found rule class: ${Class}`);
                 Class = Rule;
@@ -103,7 +106,7 @@ module.exports = class DbStore extends Base {
     }
 
     find (table) {
-        return (new Query).db(this.db).from(`${this.tablePrefix}${table}`);
+        return (new Query).db(this.getDb()).from(`${this.tablePrefix}${table}`);
     }
 
     findItem () {
@@ -116,19 +119,19 @@ module.exports = class DbStore extends Base {
 
     findRoleItem () {
         return this.findItem().and({
-            type: this.rbac.Item.TYPE_ROLE
+            'type': this.rbac.Item.TYPE_ROLE
         });
     }
 
     findPermissionItem () {
         return this.findItem().and({
-            type: this.rbac.Item.TYPE_PERMISSION
+            'type': this.rbac.Item.TYPE_PERMISSION
         });
     }
 
     findRouteItem () {
         return this.findItem().and({
-            type: this.rbac.Item.TYPE_ROUTE
+            'type': this.rbac.Item.TYPE_ROUTE
         });
     }
 

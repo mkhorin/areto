@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,10 +9,11 @@ module.exports = class DbSessionStore extends Base {
 
     constructor (config) {
         super({
-            'db': config.session.module.getDb(),
+            // 'connection': 'connection',
             'table': 'session',
             ...config
         });
+                
     }
 
     get (sid, callback) {
@@ -59,7 +60,11 @@ module.exports = class DbSessionStore extends Base {
     }
 
     find (condition) {
-        return (new Query).db(this.db).from(this.table).where(condition);
+        return (new Query).db(this.getDb()).from(this.table).where(condition);
+    }
+
+    getDb () {
+        return this.session.module.getDb(this.connection);
     }
 };
 

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -20,12 +20,12 @@ module.exports = class MessageSource extends Base {
     translate (message, category, language) {
         return this.forceTranslation || language !== this.sourceLanguage
             ? this.translateMessage(message, category, language)
-            : message;
+            : null;
     }
 
     translateMessage (message, category, language) {
         if (!category) {
-            return message;
+            return null;
         }
         let key = `${language}/${category}`;
         if (!this._messages[key]) {
@@ -37,7 +37,7 @@ module.exports = class MessageSource extends Base {
         if (this.parent instanceof MessageSource) {
             return this.parent.translateMessage(message, category, language);
         }
-        return message;
+        return null;
     }
 
     loadMessages (category, language) {

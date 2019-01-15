@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -10,7 +10,7 @@ module.exports = class RouteRbac extends Base {
     async init () {
         await PromiseHelper.setImmediate();
         await this.load();
-        this.module.appendToExpress('use', this.handleRoute.bind(this));
+        this.module.addHandler('use', this.handleRoute.bind(this));
     }
 
     async load () {
@@ -37,9 +37,9 @@ module.exports = class RouteRbac extends Base {
             return user.loginRequired();
         }        
         user.can(item.name, req.query).then(access => {
-            access ? next() : next(new ForbiddenException)
+            access ? next() : next(new Forbidden)
         }).catch(err => {
-            next(new ServerErrorException(err));
+            next(new ServerError(err));
         });
     }
 
@@ -57,5 +57,5 @@ module.exports = class RouteRbac extends Base {
 };
 
 const PromiseHelper = require('../helper/PromiseHelper');
-const ServerErrorException = require('../error/ServerErrorHttpException');
-const ForbiddenException = require('../error/ForbiddenHttpException');
+const ServerError = require('../error/ServerErrorHttpException');
+const Forbidden = require('../error/ForbiddenHttpException');

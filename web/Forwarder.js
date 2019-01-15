@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -13,34 +13,54 @@ module.exports = class Forwarder extends Base {
             'items': {},
             ...config
         });
+        this.clear();
+    }
+
+    init () {
         this.setItems();
+        if (this._urls.length) {
+            this.module.express.attach('use', this.forward.bind(this));
+        }
+    }
+
+    isEmpty () {
+        return this._urls.length === 0;
     }
 
     setItems (items) {
         this._urls = [];
-        try {
-            for (let source of Object.keys(this.items)) {
-                let item = this.items[source];
-                item = item instanceof Object ? item : {target: item};
-                item.source = source;
-                this._urls.push(new this.Url(item));
-                this.log('trace', `${this.module.getFullName()}: forward ${item.source} to ${item.target}`);
-            }    
-        } catch (err) {
-            this.log('error', 'setItems', err);
-        }        
+        for (let source of Object.keys(this.items)) {
+            let data = this.items[source];
+            data = data instanceof Object ? data : {target: data};
+            data.source = source;
+            this._urls.push(ClassHelper.createInstance(this.Url, data));
+            this.log('trace', `${this.module.getFullName()}: forward ${data.source} to ${data.target}`);
+        }
     }
 
-    forward (req) {
-        let data = this.resolve(req.path, req.method);
+    resolveUrl (url) {
+        let newUrl = this.get(url);
+        if (!newUrl) {
+            newUrl = this.createSourceUrl(this.Url.parse(url));
+            if (!newUrl && this.module.parent) {
+                newUrl = this.module.parent.resolveUrl(url);
+            }
+            this.set(url, newUrl);
+        }
+        return newUrl;
+    }
+
+    forward (req, res, next) {
+        let data = this.resolvePath(req.path, req.method);
         if (data) {
             this.log('trace', `${this.module.getFullName()}: forward ${req.path} to ${data.path}`, data.params);
             Object.assign(req.query, data.params);
             req.url = data.path;
         }
+        next();
     }
 
-    resolve (path, method) {
+    resolvePath (path, method) {
         for (let url of this._urls) {
             let data = url.resolve(path, method);
             if (data) {
@@ -62,5 +82,19 @@ module.exports = class Forwarder extends Base {
             }
         }
         return null;
+    }
+
+    // CACHE
+
+    get (key) {
+        return Object.prototype.hasOwnProperty.call(this._cache, key) ? this._cache[key] : null;
+    }
+
+    set (key, value) {
+        this._cache[key] = value;
+    }
+
+    clear () {
+        this._cache = {};
     }
 };

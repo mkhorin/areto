@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -12,18 +12,18 @@ module.exports = class ActionView extends Base {
             POS_HEAD: 'head',
             POS_BODY_END: 'bodyEnd',
 
-            ArrayHelper: require('../helper/ArrayHelper'),
-            CommonHelper: require('../helper/CommonHelper'),
-            MongoHelper: require('../helper/MongoHelper'),
-            ObjectHelper: require('../helper/ObjectHelper'),
-            StringHelper: require('../helper/StringHelper')
+            'ArrayHelper': require('../helper/ArrayHelper'),
+            'CommonHelper': require('../helper/CommonHelper'),
+            'MongoHelper': require('../helper/MongoHelper'),
+            'ObjectHelper': require('../helper/ObjectHelper'),
+            'StringHelper': require('../helper/StringHelper')
         };
     }
 
     constructor (config) {
         super({
-            widgets: {},
-            data: {},
+            'widgets': {},
+            'data': {},
             ...config
         });
     }
@@ -104,11 +104,11 @@ module.exports = class ActionView extends Base {
 
     getAsset () {
         if (this._asset === undefined) {
-            let component = this.controller.module.getComponent('asset');  
-            if (!component) {
+            let asset = this.controller.module.get('asset');
+            if (!asset) {
                 return this.log('error', 'Not found asset component');
             }
-            this._asset = component.createViewAsset();
+            this._asset = asset.createViewAsset();
         }
         return this._asset;
     }

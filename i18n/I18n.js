@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -26,6 +26,42 @@ module.exports = class I18n extends Base {
         });
         this.createSources();
         this.createMessageFormatter();
+    }
+
+    format (message, params, language) {
+        return params
+            ? this.messageFormatter.format(message, params, language)
+            : message;
+    }
+
+    translate (message, category, params, language) {
+        let source = this.getMessageSource(category);
+        if (!source) {
+            return message;
+        }
+        language = language || this.language;
+        let result = source.translate(message, category, language);
+        return result === null
+            ? this.format(message, params, source.sourceLanguage)
+            : this.format(result, params, language);
+    }
+    
+    translateMessage (message) {
+        if (message instanceof Array) {
+            return this.translate.apply(this, message);
+        }
+        if (message instanceof Message) {
+            return message.translate(this);
+        }
+        return this.translate.apply(this, arguments);
+    }
+
+    translateMessageMap (map, category) {
+        map = {...map};
+        for (let key of Object.keys(map)) {
+            map[key] = this.translateMessage(map[key], category);
+        }
+        return map;
     }
 
     createSources () {
@@ -73,46 +109,10 @@ module.exports = class I18n extends Base {
 
     createMessageFormatter () {
         this.messageFormatter = ClassHelper.createInstance(this.MessageFormatter, {
-            i18n: this
+            'i18n': this
         });
     }
-
-    format (message, params, language) {
-        return params
-            ? this.messageFormatter.format(message, params, language)
-            : message;
-    }
-
-    translate (message, category, params, language) {
-        let source = this.getMessageSource(category);
-        if (!source) {
-            return message;
-        }
-        language = language || this.language;
-        let result = source.translate(message, category, language);
-        return result === null
-            ? this.format(message, params, source.sourceLanguage)
-            : this.format(result, params, language);
-    }
-
-    translateMessageMap (map, category) {
-        map = {...map};
-        for (let key of Object.keys(map)) {
-            map[key] = this.translateMessage(map[key], category);
-        }
-        return map;
-    }
-
-    translateMessage (message, category) {
-        if (message instanceof Array) {
-            return this.translate.apply(this, message);
-        }
-        if (message instanceof Message) {
-            return message.translate(this);
-        }
-        return this.translate.apply(this, arguments);
-    }
-
+    
     getActiveNotSourceLanguage () {
         return this.language !== this.sourceLanguage ? this.language : null;
     }

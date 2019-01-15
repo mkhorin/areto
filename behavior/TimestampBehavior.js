@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,13 +9,13 @@ module.exports = class TimestampBehavior extends Base {
 
     constructor (config) {
         super({
-            format: null, // 'YYYY-MM-DD HH:mm:ss';
-            createdAttr: 'createdAt', // or false
-            updatedAttr: 'updatedAt',
+            'format': null, // 'YYYY-MM-DD HH:mm:ss';
+            'createdAttr': 'createdAt', // or false
+            'updatedAttr': 'updatedAt',
             ...config
         });
-        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
-        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
     beforeInsert (event) {

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -32,18 +32,18 @@ module.exports = class Controller extends Base {
             EVENT_AFTER_ACTION: 'afterAction',
             DEFAULT_ACTION: 'index',
             // inherited from module by default
-            // VIEW_CLASS: require('./ActionView'),
+            // ACTION_VIEW: require('./ActionView'),
             // VIEW_LAYOUT: 'default',
-            // INLINE_ACTION_CLASS: require('./InlineAction')
+            // INLINE_ACTION: require('./InlineAction')
         };
     }
 
     static getStatics () {
         return {
             // prevent to get value from parent classes
-            _MODEL_CLASS: undefined,
-            _NESTED_DIR: undefined,
-            _VIEW_DIR: undefined
+            '_MODEL_CLASS': undefined,
+            '_NESTED_DIR': undefined,
+            '_VIEW_DIR': undefined
         };
     }
     
@@ -76,7 +76,8 @@ module.exports = class Controller extends Base {
 
     static getNestedDir () {
         if (this._NESTED_DIR === undefined) {
-            this._NESTED_DIR = FileHelper.getNestedDir(this.CLASS_FILE, this.module.getControllerDir());
+            let currentDir = path.dirname(this.CLASS_FILE);
+            this._NESTED_DIR = FileHelper.getRelativePath(currentDir, this.module.getControllerDir());
         }
         return this._NESTED_DIR;
     }
@@ -94,8 +95,8 @@ module.exports = class Controller extends Base {
         super(config);
         this.response = new Response;
         this.response.controller = this;
-        this.i18n = this.module.components.i18n;
-        this.formatter = this.module.components.formatter;
+        this.i18n = this.module.components.get('i18n');
+        this.formatter = this.module.components.get('formatter');
     }
 
     getModelClass () {
@@ -155,10 +156,10 @@ module.exports = class Controller extends Base {
     createInlineAction (name) {
         let method = `action${StringHelper.idToCamel(name)}`;
         if (typeof this[method] === 'function') {
-            return ClassHelper.createInstance(this.INLINE_ACTION_CLASS || this.module.INLINE_ACTION_CLASS, {
-                name,
-                controller: this,
-                method: this[method]
+            return ClassHelper.createInstance(this.INLINE_ACTION || this.module.InlineAction, {
+                'name': name,
+                'controller': this,
+                'method': this[method]
             });
         }
     }
@@ -166,8 +167,8 @@ module.exports = class Controller extends Base {
     createMapAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
             return ClassHelper.createInstance(this.ACTIONS[name], {
-                name,
-                controller: this
+                'name': name,
+                'controller': this
             });
         }
     }
@@ -300,7 +301,7 @@ module.exports = class Controller extends Base {
     }
 
     createView (params) {
-        return new (this.VIEW_CLASS || this.module.VIEW_CLASS)({
+        return ClassHelper.createInstance(this.ACTION_VIEW || this.module.ActionView, {
             'controller': this,
             'theme': this.module.get('view').getTheme(),
             ...params
@@ -349,7 +350,7 @@ module.exports = class Controller extends Base {
     }
 
     createUrl (data) {        
-        return this.module.app.resolveUrl(Url.create(data, this.module, this));
+        return this.module.resolveUrl(this.createSimpleUrl(data));
     }
     
     createSimpleUrl (data) {
@@ -360,7 +361,7 @@ module.exports = class Controller extends Base {
 
     async can (name, params) {
         if (!await this.user.can(name, params)) {
-            throw new ForbiddenHttpException;
+            throw new Forbidden;
         }
     }
 
@@ -369,10 +370,10 @@ module.exports = class Controller extends Base {
     translate (message, category = 'app', params) {
         if (message instanceof Array) {
             return this.translate.apply(this, message);
-        }       
+        }
         if (message instanceof Message) {
             return message.translate(this.i18n, this.language);
-        }    
+        }
         return category
             ? this.i18n.translate(message, category, params, this.language)
             : this.i18n.format(message, params, this.language);
@@ -395,9 +396,10 @@ module.exports = class Controller extends Base {
 };
 module.exports.init();
 
+const path = require('path');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
-const ForbiddenHttpException = require('../error/ForbiddenHttpException');
+const Forbidden = require('../error/ForbiddenHttpException');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
 const Message = require('../i18n/Message');

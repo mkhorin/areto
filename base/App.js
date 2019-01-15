@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -18,14 +18,12 @@ module.exports = class App extends Base {
         };
     }
 
-    constructor () {
-        super();
+    constructor (config) {
+        super({
+            ...config
+        });
+        this.mainExpress = this.createExpress();
         this._urlCache = {};
-        this._baseExpress = express();
-    }
-
-    setParent () {
-        this.app = this;
     }
 
     async init (config) {
@@ -40,23 +38,27 @@ module.exports = class App extends Base {
         return url ? `${this._route}/${url}` : this._route;
     }
 
+    setParent () {
+        this.app = this;
+    }
+
     start () {
-        this.assignExpressQueue();
+        this.attachHandlers();
         return this.createServer();
     }
 
-    useBaseExpressHandler () {
-        this._baseExpress.use.apply(this._baseExpress, arguments);
+    afterStart () {
+        return this.trigger(this.EVENT_AFTER_START);
     }
 
-    assignExpressQueue () {
-        super.assignExpressQueue();
-        this._baseExpress.use(this.mountPath, this._express);
+    attachHandlers () {
+        super.attachHandlers();
+        this.mainExpress.attachChild(this.mountPath, this.express);
     }
 
     createServer () {
         return new Promise((resolve, reject)=> {
-            this.server = http.createServer(this._baseExpress).on('error', err => {
+            this.server = this.mainExpress.createServer().on('error', err => {
                 this.log('error', 'Server error', err);
                 reject(err);
             }).listen(this.getConfig('port'), ()=> {
@@ -66,45 +68,5 @@ module.exports = class App extends Base {
             });
         });
     }
-
-    getUrlFromCache (key) {
-        return this._urlCache[key];
-    }
-
-    setUrlToCache (url, key) {
-        this._urlCache[key] = url;
-    }
-
-    // EVENTS
-
-    afterStart () {
-        return this.trigger(this.EVENT_AFTER_START);
-    }
-
-    // MIGRATION
-    // node bin/migrate.js --action apply --file migrations/MigrationClass
-
-    async migrate (action, files) {
-        if (action !== 'apply' && action !== 'revert') {
-            throw new Error(`Migration action (apply or revert) is not set: ${action}`);
-        }
-        if (!(files instanceof Array)) {
-            return this.createMigration(files, action);
-        }
-        for (let file of files) {
-            await this.createMigration(file, action);
-        }
-    }
-
-    async createMigration (file, action) {
-        this.log('info', `Start to ${action} ${file}`);
-        let Migration = require(this.getPath(file));
-        let migration = new Migration;
-        await migration[action]();
-        this.log('info', `Done: ${file}`);
-    }
 };
 module.exports.init();
-
-const express = require('express');
-const http = require('http');

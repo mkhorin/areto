@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -12,10 +12,10 @@ module.exports = class ThemeSet extends Base {
             // dir: base dir
             // parent: new ThemeMap
             // theme: theme name
-            defaultThemeDir: 'view',
-            themeDir: 'theme',
-            modulePriority: false,
-            Theme: require('./Theme'),
+            'defaultThemeDir': 'view',
+            'themeDir': 'theme',
+            'modulePriority': false,
+            'Theme': require('./Theme'),
             ...config
         });
         this.defaultThemeDir = path.join(this.dir, this.defaultThemeDir);
@@ -27,7 +27,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     has (name) {
-        return Object.prototype.hasOwnProperty.call(this._themes, name);
+        return this._themes[name] instanceof this.Theme;
     }
 
     get (name) {

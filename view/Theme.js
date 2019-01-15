@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -13,7 +13,7 @@ module.exports = class Theme extends Base {
             // dir: theme dir
             // parent: new Theme
             // view: new View
-            L10nFileMap: require('./L10nFileMap'),
+            'L10nFileMap': require('./L10nFileMap'),
             ...config
         });        
         this.createTemplateMap();
@@ -22,16 +22,16 @@ module.exports = class Theme extends Base {
 
     createTemplateMap () {
         this._templates = ClassHelper.createInstance(this.L10nFileMap, {
-            baseDir: path.join(this.dir, 'template'),
-            localDir: path.join(this.dir, 'localization/template')
+            'baseDir': path.join(this.dir, 'template'),
+            'localDir': path.join(this.dir, 'localization/template')
         });
     }
 
     createModelMap () {
         this._models = ClassHelper.createInstance(this.L10nFileMap, {
-            baseDir: path.join(this.dir, 'model'),
-            localDir: path.join(this.dir, 'localization/model'),
-            required: true
+            'baseDir': path.join(this.dir, 'model'),
+            'localDir': path.join(this.dir, 'localization/model'),
+            'required': true
         });
     }
 

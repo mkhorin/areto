@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -11,11 +11,11 @@ module.exports = class RelationChangeBehavior extends Base {
         super(config);        
         this._changes = {};
         this._relations = {};        
-        this.assign(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
-        this.assign(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
-        this.assign(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);
-        this.assign(ActiveRecord.EVENT_AFTER_INSERT, this.afterSave);
-        this.assign(ActiveRecord.EVENT_AFTER_UPDATE, this.afterSave);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
+        this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);
+        this.setHandler(ActiveRecord.EVENT_AFTER_INSERT, this.afterSave);
+        this.setHandler(ActiveRecord.EVENT_AFTER_UPDATE, this.afterSave);
     }
 
     beforeValidate () {

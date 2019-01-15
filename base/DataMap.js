@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -25,6 +25,15 @@ module.exports = class DataMap {
         delete this._data[key];
     }
 
+    clear () {
+        this._data = {};
+    }
+
+    assign (map) {
+        map = map instanceof DataMap ? map._data : map;
+        Object.assign(this._data, map);
+    }
+
     keys () {
         return Object.keys(this._data);
     }
@@ -39,5 +48,25 @@ module.exports = class DataMap {
 
     size () {
         return this.values().length;
+    }
+
+    each (handler, context) {
+        return this.values().forEach(handler, context);
+    }
+
+    filter (handler, context) {
+        return this.values().filter(handler, context);
+    }
+
+    map (handler, context) {
+        return this.values().map(handler, context);
+    }
+
+    sort (handler) {
+        return this.values().sort(handler);
+    }
+
+    [Symbol.iterator] () {
+        return this.values()[Symbol.iterator]();
     }
 };

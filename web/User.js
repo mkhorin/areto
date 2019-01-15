@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,6 +9,7 @@ module.exports = class User extends Base {
 
     constructor (config) {
         super({
+            depends: ['cookie', 'session'],
             UserModel: null,
             WebUser: require('./WebUser'),
             enableSession: true,
@@ -35,13 +36,21 @@ module.exports = class User extends Base {
         }
     }
 
-    createWebUser (req, res, next) {
-        return new this.WebUser({
-            req,
-            res,
-            next,
-            owner: this
+    init () {
+        this.module.addHandler('use', this.handleUser.bind(this));
+    }
+
+    handleUser (req, res, next) {
+        res.locals.user = new this.WebUser({
+            'req': req,
+            'res': res,
+            'next': next,
+            'config': this,
+            'module': res.locals.module,
+            'session': req.session
         });
+        // try to identify the user immediately, otherwise have to do a callback for isGuest and etc
+        PromiseHelper.callback(res.locals.user.ensureIdentity(), next);
     }
 
     findUserModel (id) {
@@ -49,3 +58,5 @@ module.exports = class User extends Base {
     }
 };
 module.exports.init();
+
+const PromiseHelper = require('../helper/PromiseHelper');

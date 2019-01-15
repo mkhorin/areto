@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -7,35 +7,15 @@ const Base = require('./Base');
 
 module.exports = class Configuration extends Base {
 
-    constructor (dir, name) {
-        super();
-        this._dir = dir;
+    constructor (config) {
+        super({
+            // dir
+            // name
+            ...config
+        });
+        this.name = this.name || process.env.NODE_ENV;
         this._names = [];
         this._sources = [];
-        this.init(name);
-    }
-
-    init (name) {
-        if (!this.load(name || process.env.NODE_ENV)) {
-            this.load('default');
-        }
-        this._sources.push({});
-        this._data = AssignHelper.deepAssign.apply(AssignHelper, this._sources.reverse());
-    }
-
-    load (name) {
-        if (this._names.includes(name)) {
-            throw new Error(`Configuration already loaded: ${name}`);
-        }
-        let data = this.readFiles(name);
-        if (data) {
-            this._sources.push(data);
-            this._names.push(name);
-            if (data.parent) {
-                this.load(data.parent);
-            }
-            return true;
-        }
     }
 
     get (key, defaults) {
@@ -46,6 +26,34 @@ module.exports = class Configuration extends Base {
         return this._names.join('.');
     }
 
+    includesIfArray (key, value) {
+        let items = ObjectHelper.getNestedValue(key, this._data);
+        return !(items instanceof Array) || items.includes(value);
+    }
+
+    load () {
+        if (!this.loadByName(this.name)) {
+            this.loadByName('default');
+        }
+        this._sources.push({});
+        this._data = AssignHelper.deepAssign.apply(AssignHelper, this._sources.reverse());
+    }
+
+    loadByName (name) {
+        if (this._names.includes(name)) {
+            throw new Error(`Configuration already loaded: ${name}`);
+        }
+        let data = this.readFiles(name);
+        if (data) {
+            this._sources.push(data);
+            this._names.push(name);
+            if (data.parent) {
+                this.loadByName(data.parent);
+            }
+            return true;
+        }
+    }
+
     readFiles (name) {
         let base = this.readFile(name);
         if (base) {
@@ -54,8 +62,12 @@ module.exports = class Configuration extends Base {
     }
 
     readFile (name) {
-        let file = path.join(this._dir, `${name}.js`);
+        let file = path.join(this.dir, `${name}.js`);
         return fs.existsSync(file) ? require(file) : null;
+    }
+
+    deepAssign (data) {
+        AssignHelper.deepAssign(this._data, data);
     }
 };
 

@@ -1,12 +1,12 @@
 {
   "name": "areto",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "MVC Node.js Framework",
   "author": {
     "name": "Maxim Khorin",
-    "email": "<maksimovichu@gmail.com>"
+    "email": "maksimovichu@gmail.com"
   },
-  "license": "BSD",
+  "license": "Apache License 2.0",
   "engines": {
     "node": "10.7.0"
   },
@@ -19,19 +19,19 @@
     "body-parser": "^1.18.3",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
-    "express": "^4.16.3",
+    "express": "^4.16.4",
     "express-session": "^1.15.6",
     "gm": "^1.23.1",
     "mkdirp": "^0.5.1",
-    "moment": "^2.22.2",
-    "mongodb": "^3.1.4",
+    "moment": "^2.23.0",
+    "mongodb": "^3.1.10",
     "mysql": "^2.16.0",
-    "path-to-regexp": "^2.4.0"
+    "path-to-regexp": "^3.0.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2"
+    "chai": "^4.2.0"
   },
   "scripts": {
-    "test": "echo: \"Error: no test specified\" && exit 1"
+    "test": "mocha test/run --recursive"
   }
 }

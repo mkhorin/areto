@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,11 +9,11 @@ module.exports = class ActionFilter extends Base {
 
     constructor (config) {
         super({
-            only: null,
-            except: [],
+            'only': null,
+            'except': [],
             ...config
         });
-        this.assign(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
+        this.setHandler(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
     }
 
     async beforeFilter (event) {
@@ -22,7 +22,7 @@ module.exports = class ActionFilter extends Base {
         }
         await this.beforeAction(event.action);
         // use afterFilter on beforeFilter success only
-        this.assign(Controller.EVENT_AFTER_ACTION, this.afterFilter);
+        this.setHandler(Controller.EVENT_AFTER_ACTION, this.afterFilter);
         this.attachHandler(Controller.EVENT_AFTER_ACTION);
     }
 

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -87,7 +87,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     updateAll (table, condition, data) {
-        throw new Error(this.wrapClassMessage('Need to do'));
+        throw new Error(this.wrapClassMessage('TODO'));
     }
 
     remove (table, condition) {

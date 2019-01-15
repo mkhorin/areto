@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -18,13 +18,16 @@ module.exports = class Component extends Base {
     }
 
     constructor (config) {
-        super(config);
+        super({
+            // depends: ['#start', '#end', 'component id'] // order init
+            ...config
+        });
         this.events = ClassHelper.createInstance(this.eventManager || EventManager, {
-            owner: this
+            'owner': this
         });
         this.behaviors = ClassHelper.createInstance(this.behaviorManager || BehaviorManager, {
-            owner: this,
-            autoAttachedItems: this.BEHAVIORS
+            'owner': this,
+            'autoAttachedItems': this.BEHAVIORS
         });
     }
 
@@ -72,8 +75,16 @@ module.exports = class Component extends Base {
         this.behaviors.ensure.call(this.behaviors);
     }
 
+    translate () {
+        return this.module.translate.apply(this.module, arguments);
+    }
+
     log (type, message, data) {
         CommonHelper.log(type, message, data, this.constructor.name, this.module);
+    }
+
+    logError () {
+        this.log.apply(this, ['error'].concat(arguments));
     }
 };
 

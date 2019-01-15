@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -16,7 +16,7 @@ module.exports = class Behavior extends Base {
         return Object.prototype.hasOwnProperty.call(this._handlers, eventName);
     }
 
-    assign (eventName, method) {
+    setHandler (eventName, method) {
         this._handlers[eventName] = method.bind(this);
     }
 

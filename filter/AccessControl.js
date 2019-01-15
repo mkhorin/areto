@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -48,9 +48,9 @@ module.exports = class AccessControl extends Base {
         if (this.denyPromise) {
             return this.denyPromise(action, user);
         }
-        throw new ForbiddenHttpException;
+        throw new Forbidden;
     }
 };
 
 const AccessRule = require('./AccessRule');
-const ForbiddenHttpException = require('../error/ForbiddenHttpException');
+const Forbidden = require('../error/ForbiddenHttpException');

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -15,6 +15,7 @@ module.exports = class Logger extends Base {
 
     constructor (config) {
         super({
+            'depends': '#start',
             'level': 'info', // and right types
             'typeNames': ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
             'types': {},
@@ -107,7 +108,7 @@ module.exports = class Logger extends Base {
     }
 
     traceProcessingTime () {
-        this.module.appendToExpress('use', this.startProcessingTime);
+        this.module.addHandler('use', this.startProcessingTime);
         this.module.on(this.module.EVENT_AFTER_ACTION, this.endProcessingTime.bind(this));
     }
 
