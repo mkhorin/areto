@@ -93,7 +93,8 @@ module.exports = class WebUser extends Base {
         if (this.req.xhr || !this.getLoginUrl()) {
             return this.next(new Forbidden);
         }
-        (controller || this.res).redirect(Url.create(this.getLoginUrl(), this.module));
+        let url = this.module.components.get('url').resolve(this.getLoginUrl(), this.module);
+        (controller || this.res).redirect(url);
     }
 
     // EVENTS

@@ -69,6 +69,15 @@ module.exports = class Configuration extends Base {
     deepAssign (data) {
         AssignHelper.deepAssign(this._data, data);
     }
+
+    deepAssignUndefinedByKey (key, data) {
+        let value = this.get(key);
+        if (!(value instanceof Object)) {
+            value = {};
+            ObjectHelper.setNestedValue(key, value, this._data);
+        }
+        AssignHelper.deepAssignUndefined(value, data);
+    }
 };
 
 const fs = require('fs');

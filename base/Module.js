@@ -19,6 +19,7 @@ module.exports = class Module extends Base {
             NAME: this.getName(),
             DEFAULT_COMPONENTS: {
                 'router': {},
+                'url': {},
                 'view': {}
             },
             COMPONENT_CONFIG: {
@@ -59,11 +60,17 @@ module.exports = class Module extends Base {
                 'session': {
                     Class: require('../web/session/Session')
                 },
+                'url': {
+                    Class: require('../web/UrlManager')
+                },
                 'user': {
                     Class: require('../web/User')
                 }
             },
-            FORWARDER_COMPONENT: 'forwarder',
+            INHERITED_UNDEFINED_CONFIG_KEYS: [
+                'params',
+                'widgets'
+            ],
             EVENT_BEFORE_INIT: 'beforeInit',
             EVENT_BEFORE_COMPONENT_INIT: 'beforeComponentInit',
             EVENT_AFTER_COMPONENT_INIT: 'afterComponentInit',
@@ -91,10 +98,12 @@ module.exports = class Module extends Base {
         this.modules = new DataMap;
         this.components = new DataMap; // all components (with inherited)
         this.moduleComponents = new DataMap; // own module components
-        this.params = {}; // inherited from parent
-        this.widgets = {}; // inherited from parent
         this.express = this.createExpress();
         this.setParent();
+    }
+
+    getTitle () {
+        return this.config.get('title') || this.NAME;
     }
 
     get (id) {
@@ -199,10 +208,6 @@ module.exports = class Module extends Base {
         return this.params.homeUrl || '/';
     }
 
-    resolveUrl (url) {
-        return this.forwarder ? this.forwarder.resolveUrl(url) : url;
-    }
-
     // EVENTS
 
     beforeInit () {
@@ -214,7 +219,6 @@ module.exports = class Module extends Base {
     }
 
     afterComponentInit () {
-        this.forwarder = this.components.get(this.FORWARDER_COMPONENT);
         return this.trigger(this.EVENT_AFTER_COMPONENT_INIT);
     }
 
@@ -240,7 +244,8 @@ module.exports = class Module extends Base {
         Object.assign(this, config);
         await this.beforeInit();
         await this.createConfiguration();
-        this.assignParams();
+        this.inheritUndefinedConfig();
+        this.extractConfig();
         this.setMountPath();
         this.attachStaticSource(this.getParam('static'));
         this.addViewEngine(this.getParam('template'));
@@ -255,22 +260,26 @@ module.exports = class Module extends Base {
         this.log('info', `Configured as ${this.config.getTitle()}`);
     }
 
-    createConfiguration () {
+    async createConfiguration () {
         this.config = ClassHelper.createInstance(this.Configuration, {
             'module': this,
             'dir': this.getPath('config'),
-            'name': this.configName
+            'name': this.configName,
+            'parent': this.parent && this.parent.config
         });
-        return this.config.load();
+        await this.config.load();
     }
 
-    assignParams () {
-        Object.assign(this.params, this.getConfig('params'));
-        Object.assign(this.widgets, this.getConfig('widgets'));
+    inheritUndefinedConfig () {
         if (this.parent) {
-            AssignHelper.deepAssignUndefined(this.params, this.parent.params);
-            AssignHelper.deepAssignUndefined(this.widgets, this.parent.widgets);
+            this.INHERITED_UNDEFINED_CONFIG_KEYS.forEach(key => {
+                this.config.deepAssignUndefinedByKey(key, this.parent.getConfig(key));
+            });
         }
+    }
+
+    extractConfig () {
+        this.params = this.getConfig('params') || {};
     }
 
     setMountPath () {

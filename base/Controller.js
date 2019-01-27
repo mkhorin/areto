@@ -232,7 +232,9 @@ module.exports = class Controller extends Base {
     }
 
     getFlash (key) {
-        return typeof this.req.flash === 'function' ? this.req.flash(key) : null;
+        return typeof this.req.flash === 'function'
+            ? this.req.flash(key)
+            : null;
     }
     
     // RESPONSE
@@ -350,11 +352,7 @@ module.exports = class Controller extends Base {
     }
 
     createUrl (data) {        
-        return this.module.resolveUrl(this.createSimpleUrl(data));
-    }
-    
-    createSimpleUrl (data) {
-        return Url.create(data, this.module, this);
+        return this.module.components.get('url').resolve(data, this);
     }
 
     // SECURITY

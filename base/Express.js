@@ -12,7 +12,12 @@ module.exports = class Express extends Base {
             ...config
         });
         this._express = express();
+        this._express.disable('x-powered-by');
         this._handlers = []; // for deferred assign
+    }
+
+    getExpress () {
+        return this._express;
     }
 
     add (method, ...args) {

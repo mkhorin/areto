@@ -95,8 +95,8 @@ module.exports = class MongoQueryBuilder extends Base {
             // operator format: operator, operand 1, operand 2
             let operator = condition[0];
             return CONDITION_BUILDERS.hasOwnProperty(operator)
-                ? this[CONDITION_BUILDERS[operator]](operator, condition.slice(1))
-                : this.buildSimpleCondition(operator, condition.slice(1));
+                ? this[CONDITION_BUILDERS[operator]](condition.slice(1), operator)
+                : this.buildSimpleCondition(condition.slice(1), operator);
         }
         // hash format: {'column1': 'value1'}
         return this.buildHashCondition(condition);
@@ -113,7 +113,7 @@ module.exports = class MongoQueryBuilder extends Base {
         return condition;
     }
 
-    buildSimpleCondition (operator, operands) {
+    buildSimpleCondition (operands, operator) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('Simple requires 2 operands'));
         }
@@ -123,17 +123,18 @@ module.exports = class MongoQueryBuilder extends Base {
         return {[this.getFieldName(operands[0])]: {[SIMPLE_OPERATORS[operator]]: operands[1]}};
     }
 
-    buildLogicCondition (operator, operands) {
+    buildLogicCondition (operands, operator) {
         let parts = [];
         if (operands instanceof Array) {
             for (let operand of operands) {
                 parts.push(this.buildCondition(operand));
             }
         }
-        return {[operator === 'AND' ? '$and' : operator === 'OR' ? '$or' : '$nor']: parts};
+        operator = operator === 'AND' ? '$and' : operator === 'OR' ? '$or' : '$nor';
+        return {[operator]: parts};
     }
 
-    buildNotEqualCondition (operator, operands) {
+    buildNotEqualCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT EQUAL requires 2 operands'));
         }
@@ -142,25 +143,25 @@ module.exports = class MongoQueryBuilder extends Base {
 
     // IN
 
-    buildInCondition (operator, operands) {
+    buildInCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('IN requires 2 operands'));
         }
-        return {[this.getFieldName(operands[0])]:
-                operands[1] instanceof Array ? {$in: operands[1]} : operands[1]};
+        let value = operands[1] instanceof Array ? {$in: operands[1]} : operands[1];
+        return {[this.getFieldName(operands[0])]: value};
     }
 
-    buildNotInCondition (operator, operands) {
+    buildNotInCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT IN requires 2 operands'));
         }
-        return {[this.getFieldName(operands[0])]:
-                operands[1] instanceof Array ? {$nin: operands[1]} : {$ne: operands[1]}};
+        let value = operands[1] instanceof Array ? {$nin: operands[1]} : {$ne: operands[1]};
+        return {[this.getFieldName(operands[0])]: value};
     }
 
     // LIKE
 
-    buildLikeCondition (operator, operands) {
+    buildLikeCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('LIKE requires 2 operands'));
         }
@@ -177,7 +178,7 @@ module.exports = class MongoQueryBuilder extends Base {
         return new RegExp(value, 'i');
     }
 
-    buildNotLikeCondition (operator, operands) {
+    buildNotLikeCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT LIKE requires 2 operands'));
         }
@@ -186,7 +187,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     // BETWEEN
 
-    buildBetweenCondition (operator, operands) {
+    buildBetweenCondition (operands) {
         if (operands.length !== 3) {
             throw new Error(this.wrapClassMessage('BETWEEN requires 3 operands'));
         }
@@ -195,44 +196,50 @@ module.exports = class MongoQueryBuilder extends Base {
         return {$and: [{[field]: {$gte: operands[1]}}, {[field]: {$lte: operands[2]}}]};
     }
 
-    buildNotBetweenCondition (operator, operands) {
-        return {$not: this.buildBetweenCondition(operator, operands)};
+    buildNotBetweenCondition (operands) {
+        return {$not: this.buildBetweenCondition(operands, operator)};
     }
 
     // ID
 
-    buildIdCondition (operator, operands) {
+    buildIdCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('ID requires 2 operands'));
         }
         let value = this.db.constructor.normalizeId(operands[1]);
-        return {[operands[0]]: value instanceof Array ? {$in: value} : value};
+        value = value instanceof Array ? {$in: value} : value;
+        return {[this.getFieldName(operands[0])]: value};
     }
 
-    buildNotIdCondition (operator, operands) {
+    buildNotIdCondition (operands) {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT ID requires 2 operands'));
         }
-        let value = this.db.constructor.normalizeId(operands[1]);
-        return {[operands[0]]: value instanceof Array ? {$nin: value} : {$ne: value}};
+        let value = operands[1];
+        let field = this.getFieldName(operands[0]);
+        if (value === null) {
+            return {$or: [{[field]: {$ne: null}}, {[field]: {$exists: false}}]};
+        }
+        value = this.db.constructor.normalizeId(value);
+        return {[field]: value instanceof Array ? {$nin: value} : {$ne: value}};
     }
 
     // FALSE
 
-    buildFalseCondition (operator, operands) {
+    buildFalseCondition () {
         return {_id: false};
     }
 
     // NULL
 
-    buildNullCondition (operator, operands) {
+    buildNullCondition (operands) {
         if (operands.length !== 1) {
             throw new Error(this.wrapClassMessage('NULL requires 1 operand'));
         }
         return {[this.getFieldName(operands[0])]: {$type: 10}};
     }
 
-    buildNotNullCondition (operator, operands) {
+    buildNotNullCondition (operands) {
         if (operands.length !== 1) {
             throw new Error(this.wrapClassMessage('NOT NULL requires 1 operand'));
         }
@@ -241,14 +248,14 @@ module.exports = class MongoQueryBuilder extends Base {
 
     // EXISTS
 
-    buildExistsCondition (operator, operands) {
+    buildExistsCondition (operands) {
         if (operands.length !== 1) {
             throw new Error(this.wrapClassMessage('EXISTS requires 1 operand'));
         }
         return {[this.getFieldName(operands[0])]: {$exists: true}};
     }
 
-    buildNotExistsCondition (operator, operands) {
+    buildNotExistsCondition (operands) {
         if (operands.length !== 1) {
             throw new Error(this.wrapClassMessage('NOT EXISTS requires 1 operand'));
         }

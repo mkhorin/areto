@@ -22,6 +22,10 @@ module.exports = class Widget extends Base {
         }
     }
 
+    getCacheKey () {
+        return `widget-${this.module.NAME}-${this.id}`;
+    }
+
     async run () {
         return 'Place widget content here';
     }
@@ -29,15 +33,17 @@ module.exports = class Widget extends Base {
     async execute (renderParams) {
         this.content = '';
         this.renderParams = renderParams;
-        if (!this.disabled) {
-            this.log('trace', `Execute widget: ${this.id}`);
-            this.content = this.cache
-                ? await this.cache.use(`widget-${this.id}`, this.run.bind(this), this.cacheDuration)
-                : await this.run();    
+        if (this.disabled) {
+            this.log('trace', `Widget disabled: ${this.id}`);
+            return this.content;
         }
+        this.log('trace', `Execute widget: ${this.id}`);
+        return this.content = this.cache
+            ? await this.cache.use(this.getCacheKey(), this.run.bind(this), this.cacheDuration)
+            : await this.run();
     }
 
-    render (template, params) {
+    renderTemplate (template, params) {
         return this.view.renderTemplate(this.view.get(template), {
             '_widget': this,
             ...this.renderParams, 

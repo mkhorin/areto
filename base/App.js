@@ -10,9 +10,10 @@ module.exports = class App extends Base {
     static getConstants () {
         return {
             DEFAULT_COMPONENTS: {
+                'bodyParser': {},
                 'formatter': {},
-                'view': {},
-                'bodyParser': {}
+                'url': {},
+                'view': {}
             },
             EVENT_AFTER_START: 'afterStart'
         };

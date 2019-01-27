@@ -41,16 +41,29 @@ describe('ObjectHelper', ()=> {
 
     it('getNestedValue', ()=> {
         let data = {
-            key11: {
-                key21: {
-                    key31: 5
+            k11: {
+                k21: {
+                    k31: 5
                 }
             }
         };
-        let res = ObjectHelper.getNestedValue('key11.key21.key31', data);
+        let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
         expect(res).to.eql(5);
-        res = ObjectHelper.getNestedValue('key11.key21.none', data, 'def');
+        res = ObjectHelper.getNestedValue('k11.k21.none', data, 'def');
         expect(res).to.eql('def');
+    });
+
+    it('setNestedValue', ()=> {
+        let data = {};
+        ObjectHelper.setNestedValue('k11.k21.k31', 5, data);
+        let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
+        expect(res).to.eql(5);
+        data = {
+            k11: 'not object'
+        };
+        ObjectHelper.setNestedValue('k11.k21', 5, data);
+        res = ObjectHelper.getNestedValue('k11.k21', data);
+        expect(res).to.eql(5);
     });
 
     it('getAllPropNames', ()=> {

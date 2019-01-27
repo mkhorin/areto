@@ -50,6 +50,10 @@ module.exports = class ActionView extends Base {
         return Class ? new Class(config) : null;
     }
 
+    log (type, message, data) {
+        CommonHelper.log(type, message, data, this.constructor.name, this.controller);
+    }
+
     // RENDER
 
     async render (template, params) {
@@ -115,16 +119,10 @@ module.exports = class ActionView extends Base {
 
     // WIDGET
 
-    createWidget (params) {
-        let anchor = params.id;
-        if (this.widgets[anchor]) {
-            this.log('error', `Widget already exists: ${params.id}`);
-            return '';
+    anchorWidget (anchor, params) {
+        if (!this.widgets.hasOwnProperty(anchor)) {
+            this.widgets[anchor] = params || {};
         }
-        if (!params.configId) {
-            params.configId = params.id;
-        }
-        this.widgets[anchor] = params;
         return `#{${anchor}}`;
     }
 
@@ -139,21 +137,27 @@ module.exports = class ActionView extends Base {
         return this.insertWidgetContent(content);
     }
 
-    renderWidget (anchor, renderParams) {
-        let params = this.widgets[anchor];
-        let widget = this.controller.module.widgets[params.configId];
+    renderWidget (anchor, params) {
+        let widget = this.createWidget(anchor, this.widgets[anchor]);
         if (!widget) {
-            delete this.widgets[anchor];
-            this.log('error', `Widget config not found: ${params.configId}`);
-            return Promise.resolve();
+            return delete this.widgets[anchor];
         }
-        widget = ClassHelper.createInstance({
+        this.widgets[anchor] = widget;
+        return widget.execute(params);
+    }
+
+    createWidget (anchor, params) {
+        let key = params && params.id || anchor;
+        let widget = this.controller.module.getConfig(`widgets.${key}`);
+        if (!widget) {
+            return this.log('error', `Widget config not found: ${key}`);
+        }
+        return ClassHelper.createInstance({
             'view': this,
+            'id': anchor,
             ...widget,
             ...params
         });
-        this.widgets[anchor] = widget;
-        return widget.execute(renderParams);
     }
 
     insertWidgetContent (content) {
@@ -164,10 +168,6 @@ module.exports = class ActionView extends Base {
         return content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> {
             return this.widgets[anchor].content;
         });
-    }
-
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.controller);
     }
 };
 module.exports.init();

@@ -17,8 +17,9 @@ module.exports = class Forwarder extends Base {
     }
 
     init () {
-        this.setItems();
-        if (this._urls.length) {
+        this.urlManager = this.module.get('url');
+        this.createItems();
+        if (!this.isEmpty()) {
             this.module.express.attach('use', this.forward.bind(this));
         }
     }
@@ -27,7 +28,7 @@ module.exports = class Forwarder extends Base {
         return this._urls.length === 0;
     }
 
-    setItems (items) {
+    createItems (items) {
         this._urls = [];
         for (let source of Object.keys(this.items)) {
             let data = this.items[source];
@@ -38,18 +39,6 @@ module.exports = class Forwarder extends Base {
         }
     }
 
-    resolveUrl (url) {
-        let newUrl = this.get(url);
-        if (!newUrl) {
-            newUrl = this.createSourceUrl(this.Url.parse(url));
-            if (!newUrl && this.module.parent) {
-                newUrl = this.module.parent.resolveUrl(url);
-            }
-            this.set(url, newUrl);
-        }
-        return newUrl;
-    }
-
     forward (req, res, next) {
         let data = this.resolvePath(req.path, req.method);
         if (data) {
@@ -58,6 +47,18 @@ module.exports = class Forwarder extends Base {
             req.url = data.path;
         }
         next();
+    }
+
+    resolve (url) {
+        let newUrl = this.get(url);
+        if (!newUrl) {
+            newUrl = this.createSourceUrl(this.urlManager.parse(url));
+            if (!newUrl && this.module.parent) {
+                newUrl = this.module.parent.resolveUrl(url);
+            }
+            this.set(url, newUrl);
+        }
+        return newUrl;
     }
 
     resolvePath (path, method) {
@@ -87,7 +88,9 @@ module.exports = class Forwarder extends Base {
     // CACHE
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._cache, key) ? this._cache[key] : null;
+        return Object.prototype.hasOwnProperty.call(this._cache, key)
+            ? this._cache[key]
+            : null;
     }
 
     set (key, value) {

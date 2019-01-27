@@ -6,73 +6,6 @@
 const Base = require('../base/Base');
 
 module.exports = class Url extends Base {
-    /**
-     * @url - ['action', { param1: param1, param2: param2 }]
-     * '/module/controller/action' - relative app
-     * 'controller/action' - relative module
-     * 'action' - relative controller     
-     */
-    static create (url, module, controller) {
-        let params, anchor;
-        if (url instanceof Array) {
-            params = url[1];
-            url = url[0];
-        }
-        let index = url.indexOf('/');
-        if (index === -1) { // relative controller
-            url = module.getRoute(controller ? `${controller.NAME}/${url}` : url);
-        } else if (index === 0) { // relative app
-            if (module.app.mountPath !== '/') {
-                if (url.substring(0, module.app.mountPath.length) !== module.app.mountPath) {
-                    url = module.app.mountPath + url;
-                }
-            }
-        } else if (url.substring(0, 4) !== 'http') { // relative module
-            url = module.getRoute(url);
-        }
-        if (params instanceof ActiveRecord) {
-            params = `id=${params.getId()}`;
-        } else if (typeof params === 'object' && params) {
-            anchor = params['#'];
-            delete params['#'];
-            params = this.serializeParams(params);
-        }
-        if (params) {
-            url = url +'?'+ params;
-        }
-        if (anchor !== undefined) {
-            url = url +'#'+ anchor;
-        }
-        return url;
-    }
-
-    static serializeParams (params) {
-        if (!params) {
-            return '';
-        }
-        let result = [];
-        for (let key of Object.keys(params)) {
-            if (params[key] !== undefined && params[key] !== null) {
-                result.push(key +'='+ params[key]);
-            }
-        }
-        return result.join('&');
-    }
-
-    static parse (url) {
-        let parts = url.split('?');        
-        let segments = parts[0].replace(/^\/|\/$/g, '').split('/');
-        let params = {}, anchor;
-        if (parts[1]) {
-            parts = parts[1].split('#');
-            anchor = parts[1];
-            for (let param of parts[0].split('&')) {
-                parts = param.split('=');
-                params[parts[0]] = parts[1];
-            }
-        }        
-        return {segments, params, anchor};
-    }
 
     constructor (config) {
         super(config);
@@ -83,8 +16,8 @@ module.exports = class Url extends Base {
         this.sourceParamNames = this.getParamNames(sources);
         this.targetParamNames = this.getParamNames(targets);
 
-        this.sourceRegexp = pathToRegexp.tokensToRegExp(sources);
-        this.targetRegexp = pathToRegexp.tokensToRegExp(targets);
+        this.sourceRegExp = pathToRegexp.tokensToRegExp(sources);
+        this.targetRegExp = pathToRegexp.tokensToRegExp(targets);
         this.createSource = pathToRegexp.tokensToFunction(sources);
         this.createTarget = pathToRegexp.tokensToFunction(targets);
             
@@ -102,7 +35,7 @@ module.exports = class Url extends Base {
         if (this.methods && !this.methods.includes(method)) {
             return null;
         }
-        let result = this.sourceRegexp.exec(url);
+        let result = this.sourceRegExp.exec(url);
         if (!result) {
             return null;
         }
@@ -117,7 +50,7 @@ module.exports = class Url extends Base {
     }
 
     createSourceUrl (data) {
-        let result = this.targetRegexp.exec(data.path);
+        let result = this.targetRegExp.exec(data.path);
         if (!result) {
             return null;
         }
@@ -160,6 +93,5 @@ module.exports = class Url extends Base {
 };
 
 const pathToRegexp = require('path-to-regexp');
-const ActiveRecord = require('../db/ActiveRecord');
 const ArrayHelper = require('../helper/ArrayHelper');
 const ObjectHelper = require('../helper/ObjectHelper');

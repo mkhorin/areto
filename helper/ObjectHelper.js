@@ -42,17 +42,29 @@ module.exports = class ObjectHelper {
         if (index < 1) {
             return defaults;
         }
-        let targetKey = key.substring(0, index);
-        if (!Object.prototype.hasOwnProperty.call(map, targetKey)) {
+        let token = key.substring(0, index);
+        if (!Object.prototype.hasOwnProperty.call(map, token)) {
             return defaults;
         }
         key = key.substring(index + 1);
-        map = map[targetKey];
+        map = map[token];
         if (map instanceof Array) {
             return map.map(item => this.getNestedValue(key, item, defaults));
         }
         return map ? this.getNestedValue(key, map, defaults)
-                   : defaults;
+            : defaults;
+    }
+
+    static setNestedValue (key, value, map) { // key: 'prop1.prop2.prop3'
+        let index = key.indexOf('.');
+        if (index ===  -1) {
+            return map[key] = value;
+        }
+        let token = key.substring(0, index);
+        if (!Object.prototype.hasOwnProperty.call(map, token) || !(map[token] instanceof Object)) {
+            map[token] = {};
+        }
+        this.setNestedValue(key.substring(index + 1), value, map[token]);
     }
 
     static getAllPropNames (map) {

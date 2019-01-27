@@ -13,9 +13,11 @@ module.exports = class EventManager extends Base {
     }
 
     // OBJECT-LEVEL EVENTS
-
     /**
-     * @data - comes only with this handler
+     * @param name
+     * @param handler
+     * @param data - comes only with this handler
+     * @param prepend
      */
     on (name, handler, data, prepend) {
         if (!name) {
@@ -35,7 +37,7 @@ module.exports = class EventManager extends Base {
 
     off (name, handler) {
         this.owner.ensureBehaviors();
-        if (!(this._events[name] instanceof Array)) {
+        if (!Array.isArray(this._events[name])) {
             return false;
         }
         if (!handler) {
@@ -54,7 +56,7 @@ module.exports = class EventManager extends Base {
 
     trigger (name, event) {
         this.owner.ensureBehaviors();
-        if (!(this._events[name] instanceof Array)) {
+        if (!Array.isArray(this._events[name])) {
             return Event.trigger(this.owner, name, event); // invoke class-level handlers
         }
         event = Event.create(event, this.owner, name);
@@ -66,7 +68,7 @@ module.exports = class EventManager extends Base {
 
     hasHandler (name) {
         this.owner.ensureBehaviors();
-        return this._events[name] instanceof Array || Event.hasHandler(this.owner, name);
+        return Array.isArray(this._events[name]) || Event.hasHandler(this.owner, name);
     }
 };
 
