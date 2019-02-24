@@ -53,7 +53,7 @@ module.exports = class QueryHelper {
         relation.primaryModel = null;
         if (childName) { // sub-relations -> order.customer.address...
             relation._with[childName] = handler;
-        } else if (handler) {
+        } else if (typeof handler === 'function') {
             handler(relation);
         }
         return [name, relation];

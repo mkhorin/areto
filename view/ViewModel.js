@@ -39,12 +39,12 @@ module.exports = class ViewModel extends Base {
         this._attrs = {};
     }
 
-    getData () {
-        return {};
+    async getTemplateData () {
+        return Object.assign(this.data, await this.resolveTemplateData());
     }
 
-    async prepare () {
-        return Object.assign(this.data, await this.getData());
+    resolveTemplateData () {
+        return {}; // to override
     }
 
     getAttrLabel (name) {

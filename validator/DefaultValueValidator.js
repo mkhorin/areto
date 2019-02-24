@@ -20,7 +20,7 @@ module.exports = class DefaultValueValidator extends Base {
             return;
         }
         if (typeof this.value === 'function') {
-            return this.value.call(this, model, attr);
+            return this.value.call(this, model, attr, this);
         }
         model.set(attr, this.value);
     }

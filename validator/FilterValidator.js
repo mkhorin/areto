@@ -7,48 +7,56 @@ const Base = require('./Validator');
 
 module.exports = class FilterValidator extends Base {
 
-    static getConstants () {
-        return {
-            FILTERS: {
-                'boolean': async value => {
-                    return typeof value === 'boolean' ? value : value === 'on';
-                },
-                'json': async value => {
-                    if (!value || typeof value === 'object') {
-                        return value;
-                    }
-                    value = CommonHelper.parseJson(value);
-                    return value === undefined
-                        ? this.createMessage(this.message, 'Invalid JSON')
-                        : value;
-                },
-                'split': async value => {
-                    return value instanceof Array ? value
-                        : (typeof value === 'string' ? value.split(this.separator) : []);
-                }
-            }
-        };
+    static async filterBoolean (value) {
+        return typeof value === 'boolean' ? value : value === 'on';
+    }
+
+    static async filterJson (value, model, attr, validator) {
+        if (!value || typeof value === 'object') {
+            return value;
+        }
+        value = CommonHelper.parseJson(value);
+        return value === undefined ? validator.getJsonMessage() : value;
+    }
+
+    static async filterSplit (value, model, attr, validator) {
+        return Array.isArray(value) ? value : typeof value === 'string' ? value.split(validator.separator) : [];
+    }
+
+    static async filterTrim (value) {
+        return typeof value === 'string' ? value.trim() : '';
     }
 
     constructor (config) {
         super({
-            filter: null,
-            skipOnEmpty: false,
-            skipOnArray: false,
-            separator: ',',
+            'filter': null,
+            'skipOnEmpty': false,
+            'skipOnArray': false,
+            'separator': ',',
             ...config
         });
+        this.prepareFilter();
+    }
 
-        if (this.filter === null) {
+    prepareFilter () {
+        let filter = this.filter;
+        if (filter === null) {
             throw new Error(this.wrapClassMessage('Filter property must be set'));
         }
-        if (typeof this.filter === 'string') {
-            if (Object.prototype.hasOwnProperty.call(this.FILTERS, this.filter)) {
-                this.filter = this.FILTERS[this.filter];
+        if (typeof filter === 'string') {
+            filter = `filter${StringHelper.toFirstUpperCase(filter)}`;
+            filter = this.constructor[filter];
+            if (typeof filter !== 'function') {
+                throw new Error(this.wrapClassMessage(`Not found inline filter: ${this.filter}`));
             }
-        } else if (typeof this.filter !== 'function') {
+        } else if (typeof filter !== 'function') {
             throw new Error(this.wrapClassMessage('Filter must be function'));
         }
+        this.filter = filter;
+    }
+
+    getJsonMessage () {
+        return this.createMessage(this.message, 'Invalid JSON');
     }
 
     async validateAttr (model, attr) {
@@ -57,7 +65,7 @@ module.exports = class FilterValidator extends Base {
             return;
         }
         if (typeof this.filter === 'function') {
-            let result = await this.filter(value, model, attr);
+            let result = await this.filter(value, model, attr, this);
             return result instanceof Message
                 ? this.addError(model, attr, result)
                 : model.set(attr, result);
@@ -66,7 +74,7 @@ module.exports = class FilterValidator extends Base {
             return;
         }
         if (typeof value[this.filter] !== 'function') {
-            throw new Error(`Not found inline filter '${this.filter}' of '${value.constructor.name}'`);
+            throw new Error(`Not found inline filter '${this.filter}' in '${value.constructor.name}'`);
         }
         return model.set(attr, value[this.filter]());
     }
@@ -74,4 +82,5 @@ module.exports = class FilterValidator extends Base {
 module.exports.init();
 
 const CommonHelper = require('../helper/CommonHelper');
+const StringHelper = require('../helper/StringHelper');
 const Message = require('../i18n/Message');

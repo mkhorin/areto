@@ -51,7 +51,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getTitle () {
-        return this.getId();
+        return String(this.getId());
     }
 
     toString () {
@@ -146,9 +146,7 @@ module.exports = class ActiveRecord extends Base {
     // FIND
 
     static find (condition) {
-        return (new this.QUERY_CLASS({
-            model: new this
-        })).and(condition);
+        return (new this.QUERY_CLASS({'model': new this})).and(condition);
     }
 
     static findById (id) {
@@ -478,9 +476,7 @@ module.exports = class ActiveRecord extends Base {
             } else {
                 model.set(rel.refKey, null);
             }
-            return remove ? model.remove() : model.forceSave();
-        }
-        if (link instanceof Array) {
+        } else if (link instanceof Array) {
             let index = MongoHelper.indexOf(ref, link);
             if (index !== -1) {
                 link.splice(index, 1);
@@ -488,7 +484,7 @@ module.exports = class ActiveRecord extends Base {
         } else {
             this.set(rel.linkKey, null);
         }
-        return remove ? this.remove() : this.forceSave();
+        return remove ? model.remove() : model.forceSave();
     }
 
     async unlinkAll (name, remove) {

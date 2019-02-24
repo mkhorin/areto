@@ -50,20 +50,6 @@ module.exports = class CommonHelper {
         let all = data.links.concat(data.unlinks, data.removes);
         return all.length === ArrayHelper.unique(all).length ? data : false;
     }
-    
-    // DATE
-
-    static isValidDate (date) {
-        return date
-            ? !isNaN((date instanceof Date ? date : new Date(date)).getTime())
-            : false;
-    }
-
-    static getValidDate (date) {
-        return !this.isValidDate(date)
-            ? null
-            : date instanceof Date ? date : new Date(date);
-    }
 
     // ESCAPE
 

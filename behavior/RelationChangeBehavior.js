@@ -33,8 +33,7 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     getChanges (name) {
-        return Object.prototype.hasOwnProperty.call(this._changes, name)
-            ? this._changes[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._changes, name) ? this._changes[name] : null;
     }
 
     getRelation (name) {
@@ -145,16 +144,12 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     async checkRefExist (rel, doc) {
-        let ids = await this.owner.find({
-            [rel.linkKey]: doc[rel.refKey]
-        }).limit(2).column(this.owner.PK);
+        let ids = await this.owner.find({[rel.linkKey]: doc[rel.refKey]}).limit(2).column(this.owner.PK);
         return this.checkExistId(this.owner.getId(), ids);
     }
 
     async checkBackRefExist (rel, doc) {
-        let ids = await rel.model.find({
-            [rel.refKey]: this.owner.get(rel.linkAttr)
-        }).limit(2).column(rel.model.PK);
+        let ids = await rel.model.find({[rel.refKey]: this.owner.get(rel.linkAttr)}).limit(2).column(rel.model.PK);
         return this.checkExistId(doc[rel.model.PK], ids);
     }
 

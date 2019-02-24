@@ -78,7 +78,7 @@ module.exports = class Task extends Base {
         if (!date) {
             return this._nextDate = null;
         }
-        if (CommonHelper.isValidDate(date)) {
+        if (DateHelper.isValid(date)) {
             return this._nextDate = new Date(date);
         }
         this.log('error', `Invalid next date: ${date}`);
@@ -98,7 +98,7 @@ module.exports = class Task extends Base {
 
     formatStartTime () {
         let date = `${moment().format('YYYY-MM-DD')} ${this.startTime}`;
-        if (!CommonHelper.isValidDate(date)) {
+        if (!DateHelper.isValid(date)) {
             return this.log('error', `Invalid start time: ${date}`);
         }
         date = (new Date(date)).getTime();
@@ -189,4 +189,5 @@ module.exports.init();
 const moment = require('moment');
 const CommonHelper = require('../helper/CommonHelper');
 const ClassHelper = require('../helper/ClassHelper');
+const DateHelper = require('../helper/DateHelper');
 const Event = require('../base/Event');

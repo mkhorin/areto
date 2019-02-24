@@ -180,7 +180,7 @@ module.exports = class Module extends Base {
 
     translate (message) {
         let i18n = this.components.get('i18n');
-        return i18n ? i18n.translateMessage.apply(this, arguments) : message;
+        return i18n ? i18n.translateMessage.apply(i18n, arguments) : message;
     }
 
     // ROUTE

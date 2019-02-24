@@ -29,21 +29,6 @@ describe('CommonHelper', ()=> {
         expect(res).to.eql(undefined);
     });
 
-    it('isValidDate', ()=> {
-        expect(CommonHelper.isValidDate(new Date)).to.eql(true);
-        expect(CommonHelper.isValidDate('12-10-1905')).to.eql(true);
-        expect(CommonHelper.isValidDate('test')).to.eql(false);
-        expect(CommonHelper.isValidDate('12-40-1905')).to.eql(false);
-    });
-
-    it('getValidDate', ()=> {
-        let now = new Date;
-        expect(CommonHelper.getValidDate(now)).to.eql(now);
-        let dateText = '12-10-2015';
-        expect(CommonHelper.getValidDate(dateText).getTime()).to.eql(new Date(dateText).getTime());
-        expect(CommonHelper.getValidDate('12-40-2015')).to.eql(null);
-    });
-
     it('escapeRegExp: set special symbols as simple string', ()=> {
         let result = CommonHelper.escapeRegExp('^test{1}$');
         result = (new RegExp(result)).test('^test{1}$');

@@ -117,6 +117,16 @@ module.exports = class Controller extends Base {
         return ids;
     }
 
+    assignSource (controller) {
+        this.req = controller.req;
+        this.res = controller.res;
+        this.err = controller.err;
+        this.user = controller.user;
+        this.language = controller.language;
+        this.timestamp = controller.timestamp;
+        return this;
+    }
+
     assign (req, res, err) {
         this.req = req;
         this.res = res;
@@ -281,7 +291,7 @@ module.exports = class Controller extends Base {
     }
 
     async renderViewModel (model, template, send) {
-        let data = await model.prepare();
+        let data = await model.getTemplateData();
         return this.renderTemplate(template, data, send);
     }
 
@@ -355,6 +365,10 @@ module.exports = class Controller extends Base {
         return this.module.components.get('url').resolve(data, this);
     }
 
+    getHostUrl () {
+        return this.req.protocol +'://'+ this.req.get('host');
+    }
+
     // SECURITY
 
     async can (name, params) {
@@ -367,7 +381,7 @@ module.exports = class Controller extends Base {
 
     translate (message, category = 'app', params) {
         if (message instanceof Array) {
-            return this.translate.apply(this, message);
+            return this.translate.apply(this, message); // message as arguments
         }
         if (message instanceof Message) {
             return message.translate(this.i18n, this.language);
@@ -386,10 +400,10 @@ module.exports = class Controller extends Base {
     }
 
     format (value, type, params) {
-        return this.formatter.format(value, type, this.language ? {
+        return this.formatter.format(value, type, !this.language ? params : {
             'language': this.language,
             ...params
-        } : params);
+        });
     }
 };
 module.exports.init();
@@ -401,4 +415,3 @@ const Forbidden = require('../error/ForbiddenHttpException');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
 const Message = require('../i18n/Message');
-const Url = require('../web/Url');

@@ -9,7 +9,7 @@ module.exports = class OrderBehavior extends Base {
 
     constructor (config) {
         super({
-            'orderAttr': 'order',
+            'orderAttr': 'orderNumber',
             'start': 10,
             'step': 10,
             'filter': null,
@@ -20,38 +20,34 @@ module.exports = class OrderBehavior extends Base {
 
     async beforeInsert (event) {
         if (CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
-            this.owner.set(this.orderAttr, await this.findNextOrder());
+            this.owner.set(this.orderAttr, await this.getNextOrderNumber());
         }
     }
 
-    async findNextOrder () {
+    async getNextOrderNumber () {
         let query = this.owner.constructor.find();
         if (this.filter instanceof Function) {
             this.filter(query, this.owner);
         } else if (typeof this.filter === 'string') {
-            query.and({
-                [this.filter]: this.owner.get(this.filter)
-            });
+            query.and({[this.filter]: this.owner.get(this.filter)});
         }
-        query.order({
-            [this.orderAttr]: this.step > 0 ? -1 : 1
-        });
+        query.order({[this.orderAttr]: this.step > 0 ? -1 : 1});
         let last = await query.scalar(this.orderAttr);
         return CommonHelper.isEmpty(last)
             ? this.start
             : (parseInt(last) + this.step);
     }
 
-    async updateAllByIds (ids) {
+    async updateAll (ids) {
         if (!Array.isArray(ids)) {
             return;
         }
-        let map = await this.owner.findById(ids).index(this.owner.PK).all();
         let index = 0;
+        let map = await this.owner.findById(ids).select(this.orderAttr).index(this.owner.PK).asRaw().all();
         for (let id of ids) {
-            if (map[id] instanceof this.owner.constructor) {
-                map[id].set(this.orderAttr, ++index * this.step);
-                await map[id].forceSave();
+            let pos = ++index * this.step;
+            if (map.hasOwnProperty(id) && map[id][this.orderAttr] !== pos) {
+                await this.owner.findById(id).update({[this.orderAttr]: pos});
             }
         }
     }

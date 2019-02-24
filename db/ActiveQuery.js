@@ -156,10 +156,15 @@ module.exports = class ActiveQuery extends Base {
             } else if (typeof arg === 'object') {
                 Object.assign(this._with, arg);
             } else {
-                this._with[arg] = null;
+                this._with[arg] = true;
             }
         }
         return this;
+    }
+
+    withOnly (...args) {
+        this._with = {};
+        return this.with.apply(this, args);
     }
 
     via (name, filter) {

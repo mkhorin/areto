@@ -92,12 +92,6 @@ module.exports = class Formatter extends Base {
 
     // DATE
 
-    asDuration (value, params = {}) {
-        return value
-            ? moment.duration(value, params.units).locale(params.language || this.language).humanize()
-            : this.asRaw(value, params);
-    }
-
     asDate (value, params = {}) {
         return value
             ? moment(value).locale(params.language || this.language).format(params.format || this.dateFormat)
@@ -109,6 +103,12 @@ module.exports = class Formatter extends Base {
             'format': this.dateLongFormat,
             ...params
         });
+    }
+
+    asDuration (value, params = {}) {
+        return value
+            ? moment.duration(value, params.units).locale(params.language || this.language).humanize()
+            : this.asRaw(value, params);
     }
 
     asTime (value, params) {
@@ -164,8 +164,15 @@ module.exports = class Formatter extends Base {
     }
 
     asIso (value, params) {
-        return value ? moment(value).toISOString()
-            : this.asRaw(value, params);
+        return value ? moment(value).toISOString() : this.asRaw(value, params);
+    }
+
+    asClientDate (value, params = {}) {
+        if (!value) {
+            return this.asRaw(value, params);
+        }
+        value = value instanceof Date ? value.toISOString() : moment(value).toISOString();
+        return `<time datetime="${value}" data-format="${params.format || ''}" data-utc="${params.utc || ''}">${value}</time>`;
     }
 };
 module.exports.init();

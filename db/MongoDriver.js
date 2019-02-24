@@ -21,11 +21,11 @@ module.exports = class MongoDriver extends Base {
             : this.normalizeObjectId(value);
     }
 
-    static normalizeObjectId (id) {
-        return id instanceof this.ObjectId
-            ? id
-            : this.ObjectId.isValid(id)
-                ? this.ObjectId(id)
+    static normalizeObjectId (value) {
+        return value instanceof this.ObjectId
+            ? value
+            : this.ObjectId.isValid(value)
+                ? this.ObjectId(value)
                 : null;
     }
 
@@ -173,7 +173,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     async queryColumn (query, key) {
-        let docs = await this.queryAll(query.asRaw().select({[key]: 1}));
+        let docs = await this.queryAll(query.asRaw().select(key));
         return docs.map(doc => doc[key]);
     }
 
@@ -183,7 +183,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     async queryScalar (query, key) {
-        let docs = await this.queryAll(query.asRaw().select({[key]: 1}).limit(1));
+        let docs = await this.queryAll(query.asRaw().select(key).limit(1));
         return docs.length ? docs[0][key] : undefined;
     }
 

@@ -136,12 +136,12 @@ module.exports = class MysqlDriver extends Base {
     }
 
     async queryColumn (query, key) {
-        let docs = await this.queryAll(query.asRaw().select({[key]: 1}));
+        let docs = await this.queryAll(query.asRaw().select(key));
         return docs.map(doc => doc[key]);
     }
 
     async queryScalar (query, key) {
-        let docs = await this.queryAll(query.asRaw().select({[key]: 1}).limit(1));
+        let docs = await this.queryAll(query.asRaw().select(key).limit(1));
         return docs.length ? docs[0] : undefined;
     }
 

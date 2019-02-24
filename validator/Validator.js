@@ -39,7 +39,6 @@ module.exports = class Validator extends Base {
     }
 
     static createValidator (type, model, attrs, config = {}) {
-        config.attrs = attrs instanceof Array ? attrs : [attrs];
         if (Object.prototype.hasOwnProperty.call(this.BUILTIN, type)) {
             type = this.BUILTIN[type];
         } else if (typeof type === 'function' || typeof model[type] === 'function') {
@@ -50,9 +49,11 @@ module.exports = class Validator extends Base {
         } else if (type) {
             Object.assign(config, type);
             type = type.Class;
-        } else {
-            throw new Error(this.wrapClassMessage(`Invalid type: ${type}`));
         }
+        if (!type || !(type.prototype instanceof Validator)) {
+            throw new Error(this.wrapClassMessage(`Invalid type`));
+        }
+        config.attrs = Array.isArray(attrs) ? attrs : [attrs];
         return new type(config);
     }
 

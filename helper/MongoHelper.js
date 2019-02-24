@@ -13,6 +13,18 @@ module.exports = class MongoHelper {
         return ObjectID.isValid(id);
     }
 
+    static isValidIds (ids) {
+        if (!Array.isArray(ids)) {
+            return false;
+        }
+        for (let id of ids) {
+            if (!ObjectID.isValid(id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static createObjectId () {
         return new ObjectID;
     }
@@ -77,7 +89,7 @@ module.exports = class MongoHelper {
         for (let key of Object.keys(data)) {
             let value = data[key];
             if (!value || !(value instanceof Object)) {
-            } else if (CommonHelper.isValidDate(value.$date)) {
+            } else if (DateHelper.isValid(value.$date)) {
                 data[key] = new Date(value.$date);
             } else if (ObjectID.isValid(value.$oid)) {
                 data[key] = ObjectID(value.$oid);
@@ -90,4 +102,4 @@ module.exports = class MongoHelper {
 
 const ObjectID = require('mongodb').ObjectID;
 const ArrayHelper = require('./ArrayHelper');
-const CommonHelper = require('./CommonHelper');
+const DateHelper = require('./DateHelper');

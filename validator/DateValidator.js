@@ -9,23 +9,20 @@ module.exports = class DateValidator extends Base {
 
     constructor (config) {
         super({
-            min: null,
-            max: null,
+            'min': null,
+            'max': null,
             ...config
         });
-        this.initDate('min');
-        this.initDate('max');
+        this.min = this.min && this.resolveDate(this.min);
+        this.max = this.max && this.resolveDate(this.max);
     }
 
-    initDate (key) {
-        if (this[key] !== null) {
-            if (!(this[key] instanceof Date)) {
-                this[key] = new Date(this[key]);
-            }
-            if (isNaN(this[key].getTime())) {
-                throw new Error(this.wrapClassMessage(`Invalid ${key} date`));
-            }
+    resolveDate (src) {
+        let date = src instanceof Date ? src : src === 'now' ? new Date : new Date(src);
+        if (DateHelper.isValid(date)) {
+            return date;
         }
+        throw new Error(this.wrapClassMessage(`Invalid date: ${src}`));
     }
 
     getMessage () {
@@ -34,13 +31,13 @@ module.exports = class DateValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {
-            min: this.min
+            'min': this.min.toISOString()
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {
-            max: this.max
+            'max': this.max.toISOString()
         });
     }
 
@@ -48,22 +45,20 @@ module.exports = class DateValidator extends Base {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
         model.set(attr, value);
-        let message = this.validateValue(value);
-        if (message) {
-            this.addError(model, attr, message);
-        }
+        return super.validateAttr(model, attr);
     }
 
     validateValue (value) {
-        value = value instanceof Date ? value : new Date(value);
-        if (isNaN(value.getTime())) {
+        if (!DateHelper.isValid(value)) {
             return this.getMessage();
         }
-        if (this.min !== null && value < this.min) {
+        if (this.min && value < this.min) {
             return this.getTooSmallMessage();
         } 
-        if (this.max !== null && value > this.max) {
+        if (this.max && value > this.max) {
             return this.getTooBigMessage();
         }
     }
 };
+
+const DateHelper = require('areto/helper/DateHelper');

@@ -42,15 +42,28 @@ module.exports = class Query extends Base {
     
     // SELECT
 
-    select (attrs) {
-        this._select = attrs; // { attr1: 1, attr2: 0, ... }
+    select (data) {
+        if (data instanceof Array) {
+            data.forEach(this.addSelect, this);
+        } else if (typeof data === 'string') {
+            this._select = {[data]: 1};
+        } else {
+            this._select = data; // { attr1: 1, attr2: 0, ... }
+        }
         return this;
     }
 
-    addSelect (attrs) {
-        this._select
-            ? Object.assign(this._select, attrs)
-            : this.select(attrs);
+    addSelect (data) {
+        if (data instanceof Array) {
+            data.forEach(this.addSelect, this);
+        } else if (!this._select) {
+            return this.select(data);
+        }
+        if (typeof data === 'string') {
+            this._select[data] = 1;
+        } else {
+            Object.assign(this._select, data);
+        }
         return this;
     }
 

@@ -51,8 +51,7 @@ module.exports = class ObjectHelper {
         if (map instanceof Array) {
             return map.map(item => this.getNestedValue(key, item, defaults));
         }
-        return map ? this.getNestedValue(key, map, defaults)
-            : defaults;
+        return map ? this.getNestedValue(key, map, defaults) : defaults;
     }
 
     static setNestedValue (key, value, map) { // key: 'prop1.prop2.prop3'
