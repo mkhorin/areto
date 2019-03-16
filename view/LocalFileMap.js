@@ -5,7 +5,7 @@
 
 const Base = require('../base/Base');
 
-module.exports = class L10nFileMap extends Base {
+module.exports = class LocalFileMap extends Base {
 
     constructor (config) {
         super({

@@ -9,9 +9,9 @@ module.exports = class NumberValidator extends Base {
 
     constructor (config) {
         super({
-            integerOnly: false,
-            max: null,
-            min: null,
+            'integerOnly': false,
+            'max': null,
+            'min': null,
             ...config
         });
     }
@@ -26,13 +26,13 @@ module.exports = class NumberValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'Value must be no less than {min}', {
-            min: this.min
+            'min': this.min
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'Value must be no greater than {max}', {
-            max: this.max
+            'max': this.max
         });
     }
 
@@ -44,17 +44,19 @@ module.exports = class NumberValidator extends Base {
     }
 
     validateValue (value) {
-        value = parseFloat(value);
-        if (isNaN(value)) {
-            return this.getMessage();
+        let number = parseFloat(value);
+        if (isNaN(number) || String(number).length !== String(value).length) {
+            return this.integerOnly
+                ? this.getNotIntegerMessage()
+                : this.getMessage();
         }
-        if (this.integerOnly && value !== parseInt(value)) {
+        if (this.integerOnly && !Number.isInteger(number)) {
             return this.getNotIntegerMessage();
         }
-        if (this.min !== null && value < this.min) {
+        if (this.min !== null && number < this.min) {
             return this.getTooSmallMessage();
         } 
-        if (this.max !== null && value > this.max) {
+        if (this.max !== null && number > this.max) {
             return this.getTooBigMessage();
         }
     }

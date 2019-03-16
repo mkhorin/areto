@@ -47,6 +47,10 @@ module.exports = class ViewModel extends Base {
         return {}; // to override
     }
 
+    prepareModels (models) {
+        // to override
+    }
+
     getAttrLabel (name) {
         return Object.prototype.hasOwnProperty.call(this.ATTR_LABELS, name)
             ? this.ATTR_LABELS[name]

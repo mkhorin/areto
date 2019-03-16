@@ -60,7 +60,7 @@ module.exports = class ActiveQuery extends Base {
         }
         if (this._viaRelation) {
             return this._viaRelation._multiple
-                ? this.prepareViaRelationMultiple()
+                ? this.prepareViaMultipleRelation()
                 : this.prepareViaRelation();
         }
         this.prepareFilter([this.primaryModel]);
@@ -87,7 +87,7 @@ module.exports = class ActiveQuery extends Base {
         await this.execAfterPrepare();
     }
 
-    async prepareViaRelationMultiple () {
+    async prepareViaMultipleRelation () {
         let models = await this._viaRelation.all();
         this.primaryModel.populateRelation(this._viaRelationName, models);
         this.prepareFilter(models);
@@ -118,7 +118,7 @@ module.exports = class ActiveQuery extends Base {
             : this._asBackRef;
     }
 
-    isInlineArray () {
+    isInnerArray () {
         return this._viaArray && !this.isBackRef();
     }
 

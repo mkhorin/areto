@@ -204,7 +204,7 @@ module.exports = class Model extends Base {
     // LABELS
 
     generateAttrLabel (name) {
-        this.ATTR_LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
+        this.ATTR_LABELS[name] = StringHelper.toFirstUpperCase(StringHelper.camelToWords(name).toLowerCase());
         return this.ATTR_LABELS[name];
     }
 

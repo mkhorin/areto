@@ -308,11 +308,11 @@ module.exports = class ActiveRecord extends Base {
             return result;
         }
         result = result.filter(model => model instanceof ActiveRecord);
-        let relations = [];
+        let models = [];
         for (let model of result) {
-            relations.push(await model.findRelation(nestedName, renew));
+            models.push(await model.findRelation(nestedName, renew));
         }
-        return ArrayHelper.concatValues(relations);
+        return ArrayHelper.concatValues(models);
     }
 
     async findRelationOnly (name, renew) {
@@ -379,7 +379,7 @@ module.exports = class ActiveRecord extends Base {
 
     async link (name, model, extraColumns) {
         let rel = this.getRelation(name);
-        let link = (rel._viaRelation || rel._viaTable) ? this.linkVia : this.linkInline;
+        let link = (rel._viaRelation || rel._viaTable) ? this.linkVia : this.linkInner;
         await link.call(this, rel, model, extraColumns);
         if (!rel._multiple) {
             this._related[name] = model; // update lazily loaded related objects
@@ -412,7 +412,7 @@ module.exports = class ActiveRecord extends Base {
         return viaModel.insert();
     }
 
-    linkInline (rel, model, extraColumns) {
+    linkInner (rel, model, extraColumns) {
         return rel.isBackRef()
             ? this.bindModels(rel.refKey, rel.linkKey, model, this, rel)
             : this.bindModels(rel.linkKey, rel.refKey, this, model, rel);
@@ -423,7 +423,7 @@ module.exports = class ActiveRecord extends Base {
         if (remove === undefined) {
             remove = rel._removeOnUnlink;
         }
-        let unlink = (rel._viaTable || rel._viaRelation) ? this.unlinkVia : this.unlinkInline;
+        let unlink = (rel._viaTable || rel._viaRelation) ? this.unlinkVia : this.unlinkInner;
         await unlink.call(this, rel, model, remove);
         this.unsetUnlinked(name, model, rel);
         await PromiseHelper.setImmediate();
@@ -464,27 +464,13 @@ module.exports = class ActiveRecord extends Base {
                       : via.model.find(condition).updateAll(nulls);
     }
 
-    unlinkInline (rel, model, remove) {
+    async unlinkInner (rel, model, remove) {
         let ref = model.get(rel.refKey);
         let link = this.get(rel.linkKey);
-        if (rel.isBackRef()) {             
-            if (ref instanceof Array) {
-                let index = MongoHelper.indexOf(link, ref);
-                if (index !== -1) {
-                    ref.splice(index, 1);
-                }
-            } else {
-                model.set(rel.refKey, null);
-            }
-        } else if (link instanceof Array) {
-            let index = MongoHelper.indexOf(ref, link);
-            if (index !== -1) {
-                link.splice(index, 1);
-            }
-        } else {
-            this.set(rel.linkKey, null);
-        }
-        return remove ? model.remove() : model.forceSave();
+        rel.isBackRef()
+            ? await QueryHelper.unlinkInner(ref, link, model, rel.refKey)
+            : await QueryHelper.unlinkInner(link, ref, this, rel.linkKey);
+        return remove ? model.remove() : null;
     }
 
     async unlinkAll (name, remove) {
@@ -495,7 +481,7 @@ module.exports = class ActiveRecord extends Base {
         if (remove === undefined) {
             remove = rel._removeOnUnlink;
         }
-        let unlink = (rel._viaRelation || rel._viaTable) ? this.unlinkViaAll : this.unlinkInlineAll;
+        let unlink = (rel._viaRelation || rel._viaTable) ? this.unlinkViaAll : this.unlinkInnerAll;
         await unlink.call(this, rel, remove);
         this.unsetRelation(name);
     }
@@ -523,7 +509,7 @@ module.exports = class ActiveRecord extends Base {
         }
     }
 
-    async unlinkInlineAll (rel, remove) {
+    async unlinkInnerAll (rel, remove) {
         // rel via array valued attr
         if (!remove && this.get(rel.linkKey) instanceof Array) { 
             this.set(rel.linkKey, []);
@@ -590,3 +576,4 @@ const MongoHelper = require('../helper/MongoHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
+const QueryHelper = require('../helper/QueryHelper');

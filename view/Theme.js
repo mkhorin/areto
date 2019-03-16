@@ -13,7 +13,7 @@ module.exports = class Theme extends Base {
             // dir: theme dir
             // parent: new Theme
             // view: new View
-            'L10nFileMap': require('./L10nFileMap'),
+            'LocalFileMap': require('./LocalFileMap'),
             ...config
         });        
         this.createTemplateMap();
@@ -21,16 +21,16 @@ module.exports = class Theme extends Base {
     }
 
     createTemplateMap () {
-        this._templates = ClassHelper.createInstance(this.L10nFileMap, {
+        this._templates = ClassHelper.createInstance(this.LocalFileMap, {
             'baseDir': path.join(this.dir, 'template'),
-            'localDir': path.join(this.dir, 'localization/template')
+            'localDir': path.join(this.dir, 'local/template')
         });
     }
 
     createModelMap () {
-        this._models = ClassHelper.createInstance(this.L10nFileMap, {
+        this._models = ClassHelper.createInstance(this.LocalFileMap, {
             'baseDir': path.join(this.dir, 'model'),
-            'localDir': path.join(this.dir, 'localization/model'),
+            'localDir': path.join(this.dir, 'local/model'),
             'required': true
         });
     }

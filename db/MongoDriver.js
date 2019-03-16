@@ -119,6 +119,16 @@ module.exports = class MongoDriver extends Base {
         return this.getCollection(table).updateMany(query, {$push: data});
     }
 
+    unset (table, query, data) {
+        this.logCommand('unset', {table, query, data});
+        return this.getCollection(table).updateOne(query, {$unset: data});
+    }
+
+    unsetAll (table, query, data) {
+        this.logCommand('unsetAll', {table, query, data});
+        return this.getCollection(table).updateMany(query, {$unset: data});
+    }
+
     remove (table, query = {}) {
         this.logCommand('remove', {table, query});
         return this.getCollection(table).deleteMany(query);

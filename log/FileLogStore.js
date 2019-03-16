@@ -13,7 +13,7 @@ module.exports = class FileLogStore extends Base {
             'baseDir': config.logger.module.getPath(),
             'dir': 'log',
             'fileName': config.logType ? config.logType.name : 'common',
-            'observePeriod': 60, // seconds, 0 - off
+            'observePeriod': 30, // seconds, 0 - off
             'maxFileSize': 2, // megabytes
             'maxFiles': 1,
             ...config
@@ -66,8 +66,8 @@ module.exports = class FileLogStore extends Base {
     rotate () {
         fs.closeSync(this.fd);
         let files = this.getFiles();
-        if (files.length > this.maxFiles) {
-            let unlinks = files.splice(0, files.length - this.maxFiles);
+        if (files.length >= this.maxFiles) {
+            let unlinks = files.splice(0, files.length - this.maxFiles + 1);
             for (let item of unlinks) {
                 fs.unlinkSync(item);
             }

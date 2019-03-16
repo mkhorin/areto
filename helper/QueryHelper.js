@@ -59,6 +59,18 @@ module.exports = class QueryHelper {
         return [name, relation];
     }
 
+    static unlinkInner (ref, link, model, key) {
+        if (ref instanceof Array) {
+            let index = MongoHelper.indexOf(link, ref);
+            if (index !== - 1) {
+                ref.splice(index, 1);
+            }
+        } else {
+            model.set(key, null);
+        }
+        return model.forceSave();
+    }
 };
 
+const MongoHelper = require('./MongoHelper');
 const ActiveRecord = require('../db/ActiveRecord');

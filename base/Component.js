@@ -83,8 +83,8 @@ module.exports = class Component extends Base {
         CommonHelper.log(type, message, data, this.constructor.name, this.module);
     }
 
-    logError () {
-        this.log.apply(this, ['error'].concat(arguments));
+    logError (...args) {
+        this.log.apply(this, ['error'].concat(args));
     }
 };
 

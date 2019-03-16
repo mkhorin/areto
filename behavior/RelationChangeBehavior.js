@@ -75,7 +75,7 @@ module.exports = class RelationChangeBehavior extends Base {
             return this.owner.set(name, value);
         }
         let rel = this.getRelation(name);
-        this.owner.set(name, rel.isInlineArray() ? [] : null);
+        this.owner.set(name, rel.isInnerArray() ? [] : null);
     }
 
     async resolveTypeChanges (type, attr) {

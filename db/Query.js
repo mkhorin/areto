@@ -7,7 +7,6 @@ const Base = require('../base/Base');
 
 module.exports = class Query extends Base {
 
-
     constructor (config) {
         super(config);
         this._index = null;
@@ -17,18 +16,22 @@ module.exports = class Query extends Base {
         this._where = null;
     }
 
-    getDb () {
-        return this._db;
-    }
-
     db (db) {
         this._db = db;
         return this;
     }
 
+    getDb () {
+        return this._db;
+    }
+
     from (table) {
         this._from = table;
         return this;
+    }
+
+    getTable () {
+        return this._from;
     }
 
     index (column) {
@@ -39,7 +42,7 @@ module.exports = class Query extends Base {
     asRaw () {
         return this;
     }
-    
+
     // SELECT
 
     select (data) {
@@ -72,6 +75,10 @@ module.exports = class Query extends Base {
     where (condition) {
         this._where = condition ? condition : null;
         return this;
+    }
+
+    getWhere (condition) {
+        return this._where;
     }
 
     and (condition) {
@@ -137,16 +144,26 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    // OFFSET
+    // LIMIT
 
     limit (limit) {
         this._limit = limit === null ? null : parseInt(limit);
         return this;
     }
 
+    getLimit () {
+        return this._limit;
+    }
+
+    // OFFSET
+
     offset (offset) {
         this._offset = offset === null ? null : parseInt(offset);
         return this;
+    }
+
+    getOffset () {
+        return this._offset;
     }
 
     // COMMAND

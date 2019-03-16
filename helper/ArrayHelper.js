@@ -51,6 +51,9 @@ module.exports = class ArrayHelper {
     }
 
     static removeValue (value, values) {
+        if (!(values instanceof Array)) {
+            return false;
+        }
         value = values.indexOf(value);
         if (value === -1) {
             return false;
@@ -67,9 +70,11 @@ module.exports = class ArrayHelper {
 
     static getObjectPropValues (items, prop) {
         let values = [];
-        for (let item of items) {
-            if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
-                values.push(item[prop]);
+        if (items instanceof Array) {
+            for (let item of items) {
+                if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
+                    values.push(item[prop]);
+                }
             }
         }
         return values;

@@ -54,6 +54,10 @@ module.exports = class DataMap {
         return this.values().forEach(handler, context);
     }
 
+    forEach (handler, context) {
+        return this.values().forEach(handler, context);
+    }
+
     filter (handler, context) {
         return this.values().filter(handler, context);
     }

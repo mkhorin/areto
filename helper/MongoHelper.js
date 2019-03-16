@@ -71,13 +71,9 @@ module.exports = class MongoHelper {
         for (let key of Object.keys(data)) {
             let value = data[key];
             if (value instanceof ObjectID) {
-                data[key] = {
-                    $oid: value.toString()
-                };
+                data[key] = {'$oid': value.toString()};
             } else if (value instanceof Date) {
-                data[key] = {
-                    $date: value.toISOString()
-                };
+                data[key] = {'$date': value.toISOString()};
             } else if (value instanceof Object) {
                 this.replaceMongoDataToJson(value);
             }

@@ -25,9 +25,7 @@ module.exports = class Logger extends Base {
             'processingTimeThreshold': 0, // ms
             ...config
         });
-        this.store = ClassHelper.createInstance(this.store, {
-            logger: this
-        });
+        this.store = ClassHelper.createInstance(this.store, {'logger': this});
         this.createTypes();
     }
 
@@ -38,11 +36,9 @@ module.exports = class Logger extends Base {
     }
 
     createTypes () {
-        let errorOutputIndex = this.typeNames.indexOf('info');
+        let errorOutputIndex = this.typeNames.indexOf('info');        
         for (let i = 0; i < this.typeNames.length; ++i) {
-            this.createType(this.typeNames[i], {
-                'consoleMethod': i > errorOutputIndex ? 'error' : 'log'
-            });
+            this.createType(this.typeNames[i], {'consoleMethod': i > errorOutputIndex ? 'error' : 'log'});
         }
     }
 

@@ -1,14 +1,14 @@
 {
   "name": "areto",
-  "version": "0.23.0",
-  "description": "MVC Node.js Framework",
+  "version": "0.24.0",
+  "description": "Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
     "email": "maksimovichu@gmail.com"
   },
-  "license": "Apache License 2.0",
+  "license": "Apache-2.0",
   "engines": {
-    "node": "10.7.0"
+    "node": "10.15.1"
   },
   "homepage": "https://github.com/mkhorin/areto",
   "repository": {

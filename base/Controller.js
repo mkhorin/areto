@@ -213,6 +213,12 @@ module.exports = class Controller extends Base {
         return this.req.get(name);
     }
 
+    getCurrentRoute () {
+        return this.req.baseUrl + this.req.path;
+    }
+
+    // REQUEST
+
     getQueryParam (key, defaults) {
         return ObjectHelper.getValue(key, this.req.query, defaults);
     }
@@ -221,16 +227,12 @@ module.exports = class Controller extends Base {
         return this.req.query;
     }
 
-    getBodyParam (key, defaults) {
+    getPostParam (key, defaults) {
         return ObjectHelper.getValue(key, this.req.body, defaults);
     }
 
-    getBodyParams () {
+    getPostParams () {
         return this.req.body;
-    }
-
-    getCurrentRoute () {
-        return this.req.baseUrl + this.req.path;
     }
 
     // FLASH MESSAGES
