@@ -34,7 +34,7 @@ module.exports = class Forwarder extends Base {
             let data = this.items[source];
             data = data instanceof Object ? data : {target: data};
             data.source = source;
-            this._urls.push(ClassHelper.createInstance(this.Url, data));
+            this._urls.push(ClassHelper.spawn(this.Url, data));
             this.log('trace', `${this.module.getFullName()}: forward ${data.source} to ${data.target}`);
         }
     }

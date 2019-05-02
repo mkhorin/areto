@@ -21,14 +21,14 @@ module.exports = class Theme extends Base {
     }
 
     createTemplateMap () {
-        this._templates = ClassHelper.createInstance(this.LocalFileMap, {
+        this._templates = ClassHelper.spawn(this.LocalFileMap, {
             'baseDir': path.join(this.dir, 'template'),
             'localDir': path.join(this.dir, 'local/template')
         });
     }
 
     createModelMap () {
-        this._models = ClassHelper.createInstance(this.LocalFileMap, {
+        this._models = ClassHelper.spawn(this.LocalFileMap, {
             'baseDir': path.join(this.dir, 'model'),
             'localDir': path.join(this.dir, 'local/model'),
             'required': true

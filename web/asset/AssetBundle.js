@@ -14,13 +14,13 @@ module.exports = class AssetBundle extends Base {
     constructor (config) {
         super(config);
 
-        if (this.css && !(this.css instanceof Array)) {
+        if (this.css && !Array.isArray(this.css)) {
             this.css = [this.css];
         }
-        if (this.js && !(this.js instanceof Array)) {
+        if (this.js && !Array.isArray(this.js)) {
             this.js = [this.js];
         }
-        if (this.depends && !(this.depends instanceof Array)) {
+        if (this.depends && !Array.isArray(this.depends)) {
             this.depends = [this.depends]; // ['asset name']
         }
         this.cssOptions = this.cssOptions || {}; // {media: 'print'}
@@ -31,9 +31,9 @@ module.exports = class AssetBundle extends Base {
         if (!this.name) {
             // set name as first item name
             if (this.css && this.css.length) {
-                this.name = this.css[0] instanceof Array ? this.css[0][0] : this.css[0];
+                this.name = Array.isArray(this.css[0]) ? this.css[0][0] : this.css[0];
             } else if (this.js && this.js.length) {
-                this.name = this.js[0] instanceof Array ? this.js[0][0] : this.js[0];
+                this.name = Array.isArray(this.js[0]) ? this.js[0][0] : this.js[0];
             } else {
                 this.name = '';
             }
@@ -57,7 +57,7 @@ module.exports = class AssetBundle extends Base {
     renderCss () {
         let result = '';
         for (let item of this.css) {
-            result += item instanceof Array
+            result += Array.isArray(item)
                 ? this.renderCssItem(item[0], {...this.cssOptions, ...item[1]})
                 : this.renderCssItem(item, this.cssOptions);
         }
@@ -68,7 +68,7 @@ module.exports = class AssetBundle extends Base {
         let result = '';
         for (let item of this.js) {
             let options = this.jsOptions;
-            if (item instanceof Array) {
+            if (Array.isArray(item)) {
                 options = {...this.jsOptions, ...item[1]};
                 item = item[0];
             }

@@ -9,23 +9,28 @@ module.exports = class Captcha extends Base {
 
     constructor (config) {
         super({
-            minLength: 5,
-            maxLength: 5,
-            width: 180,
-            height: 60,
-            backColor: '#ffffff00', // rgba
-            foreColor: '#00000000',
-            offset: -2,
-            symbolPool: '0123456789',
-            fontFile: path.join(__dirname, 'CaptchaFont.ttf'),
-            fixedVerifyCode: null,
-            quality: 30,
+            'minLength': 5,
+            'maxLength': 5,
+            'width': 180,
+            'height': 60,
+            'background': '#ffffff',
+            'foreground': '#666666',
+            'offset': -2,
+            'symbolPool': '0123456789',
+            'fixedVerifyCode': null,
+            'quality': 10,
+            'fontFamily': '',
+            'drawWidth': 300,
+            'drawHeight': 100,
+            'grid': true,
+            'median': 2,
             ...config
         });
     }
 
-    execute () {
-        return this.renderImage(this.getVerifyCode(true));
+    async execute () {
+        let buffer = await this.render(this.getVerifyCode(true));
+        this.controller.sendData(buffer, 'binary');
     }
 
     validate (value) {
@@ -57,44 +62,66 @@ module.exports = class Captcha extends Base {
         return buffer.join('');
     }
 
-    async renderImage (code) {
-        let w = this.width;
-        let h = this.height;
-        let image = gm(w, h, this.backColor);
-        this.drawImage(image, code, w, h);
-        image = image.setFormat('jpg').quality(this.quality);
-        let buffer = await PromiseHelper.promise(image.toBuffer.bind(image));
-        this.controller.sendData(buffer, "binary");
+    async render (code) {
+        return this.draw(code).jpeg({'quality': this.quality}).toBuffer();
     }
 
-    drawImage (image, code, w, h) {
-        image.fill(this.foreColor);
-        image.font(this.fontFile);
-        //image.affine(5,5);
-        let step = (w - 0) / code.length + this.offset;
+    draw (code) {
+        let data = {};
+        let cell = Math.round(this.drawWidth / code.length);
+        let posX = Math.round(cell / 2);
+        let posY = Math.round(this.drawHeight / 2);
+        let offsetX = Math.round(cell / 3);
+        let offsetY = Math.round(this.drawHeight / 2);
+        data.fill = this.foreground;
+        let content = '';
         for (let i = 0; i < code.length; ++i) {
-            image.fontSize(`${CommonHelper.getRandom(25, 65)}px`);
-            let angle = CommonHelper.getRandom(-16, 16);
-            this.drawText(image, i * step + 10, CommonHelper.getRandom(35, 60), code[i], angle);
+            data.text = code[i];
+            data.size = CommonHelper.getRandom(30, 65);
+            data.x = posX + CommonHelper.getRandom(-offsetX, offsetX);
+            data.y = posY + CommonHelper.getRandom(data.size - offsetY, data.size);
+            data.angle = CommonHelper.getRandom(-30, 30);
+            content += this.drawLetter(data);
+            posX += cell;
         }
-        let downB = 20, topB = 20; //частота сетки
-        for (let x = 4; x < w; x += step) {
-            image.drawLine(CommonHelper.getRandom(0, w), 0, CommonHelper.getRandom(0, w), h);
-            step = CommonHelper.getRandom(downB, topB);
+        if (this.grid) {
+            content += this.drawGrid();
         }
-        for (let y = 3; y < h; y += step) {
-            image.drawLine(0, CommonHelper.getRandom(0, w), w, CommonHelper.getRandom(0, w));
-            step = CommonHelper.getRandom(downB, topB);
+        let image = sharp(new Buffer(this.drawBack(content)));
+        if (this.median) {
+            image.median(this.median);
         }
-        //image.noise(1);
+        return image;
     }
 
-    drawText (image, x, y, text, angle) {
-        image.draw('skewX', angle, 'text', `${x},${y}`, `"${text}"`);
+    drawLetter ({text, x, y, size, angle, fill}) {
+        return `<text x="${x}" y="${y}" transform="rotate(${angle} ${x} ${y})" font-family="${this.fontFamily}" text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="${fill}">${text}</text>`;
+    }
+
+    drawGrid () {
+        let width = this.drawWidth;
+        let height = this.drawHeight;
+        let a = 20, b = 40, step;
+        let content= '';
+        for (let x = 0; x < width; x += CommonHelper.getRandom(a, b)) {
+            content += this.drawLine(CommonHelper.getRandom(0, width), 0, CommonHelper.getRandom(0, width), height);
+        }
+        for (let y = 0; y < height; y += CommonHelper.getRandom(a, b)) {
+            content += this.drawLine(0, CommonHelper.getRandom(0, height), width, CommonHelper.getRandom(0, width));
+        }
+        return content;
+    }
+
+    drawLine (x1, y1, x2, y2) {
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${this.foreground}"/>`;
+    }
+
+    drawBack (content) {
+        return `<svg width="${this.width}" height="${this.height}" viewBox="0 0 ${this.drawWidth} ${this.drawHeight}">
+            <rect width="100%" height="100%" fill="${this.background}"/>${content}</svg>`;
     }
 };
 
-const gm = require('gm');
 const path = require('path');
+const sharp = require('sharp');
 const CommonHelper = require('../helper/CommonHelper');
-const PromiseHelper = require('../helper/PromiseHelper');

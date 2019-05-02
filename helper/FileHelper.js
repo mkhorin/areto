@@ -5,12 +5,25 @@
 
 module.exports = class FileHelper {
 
-    static getRelativePath (file, root) {
-        return file.substring(root.length + 1);
+    static getRelativePathByDir (name, file) {
+        let root = this.getClosestDir(name, file);
+        return root ? this.getRelativePath(root, file) : file;
+    }
+
+    static getRelativePath (root, file) {
+        return file.indexOf(root) === 0 ? file.substring(root.length + 1) : file;
+    }
+
+    static getBasename (file) {
+        return path.basename(file, path.extname(file));
     }
 
     static removeExtension (file) {
         return file.substring(0, file.length - path.extname(file).length);
+    }
+
+    static removeFile (file) {
+        fs.existsSync(file) && fs.unlinkSync(file);
     }
 
     // DIR
@@ -46,6 +59,10 @@ module.exports = class FileHelper {
         }
     }
 
+    static createDir (dir, options) {
+        fs.mkdirSync(dir, {'recursive': true, ...options});
+    }
+
     static emptyDir (dir) {
         return this.handleChildren(dir, file => this.removeDeep(path.join(dir, file)));
     }
@@ -60,7 +77,7 @@ module.exports = class FileHelper {
         if (stat.isFile()) {
             return fs.unlinkSync(dir);
         }
-        await PromiseHelper.setImmediate();
+        await PromiseHelper.setImmediate(); // break calling stack
         await this.handleChildren(dir, file => this.removeDeep(path.join(dir, file)));
         fs.rmdirSync(dir);
     }
@@ -68,45 +85,46 @@ module.exports = class FileHelper {
     static async copyDeep (source, target) {
         let stat = fs.statSync(source);
         if (stat.isFile()) {
-            mkdirp.sync(path.dirname(target), {
-                mode: stat.mode
-            });
+            this.createDir(path.dirname(target), {'mode': stat.mode});
             return fs.copyFileSync(source, target);
         }
-        mkdirp.sync(target, {
-            mode: stat.mode
-        });
-        await PromiseHelper.setImmediate();
+        this.createDir(target, {'mode': stat.mode});
+        await PromiseHelper.setImmediate(); // break calling stack
         await this.handleChildren(source, file => {
             return this.copyDeep(path.join(source, file), path.join(target, file));
         });
     }
 
-    static getClosestDir (file, target) {
-        let dir = path.dirname(file);
-        if (dir === file) {
-            return null;
+    static getClosestDir (name, dir) {
+        let base = path.basename(dir);
+        while (base) {
+            if (base === name) {
+                return dir;
+            }
+            base = path.dirname(dir);
+            if (base === dir) {
+                break; // break root repeating
+            }
+            dir = base;
+            base = path.basename(dir);
         }
-        try {
-            fs.statSync(path.join(dir, target));
-            return dir;
-        } catch (err) {
-        }
-        return this.getClosestDir(dir, target);
     }
 
     // JSON
 
-    static isJsonExt (file) {
+    static isJsonExtension (file) {
         return path.extname(file).toLowerCase() === '.json';
     }
 
     static readJsonFile (file) {
         return JSON.parse(fs.readFileSync(file));
     }
+
+    static filterJsonFiles (files) {
+        return files.filter(this.isJsonExtension, this);
+    }
 };
 
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 const path = require('path');
 const PromiseHelper = require('./PromiseHelper');

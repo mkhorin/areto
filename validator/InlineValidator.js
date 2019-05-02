@@ -9,8 +9,8 @@ module.exports = class InlineValidator extends Base {
 
     constructor (config) {
         super({
-            method: null,
-            params: null,
+            'method': null,
+            'params': null,
             ...config
         });
     }

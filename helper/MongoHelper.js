@@ -40,7 +40,7 @@ module.exports = class MongoHelper {
     }
 
     static indexOf (id, values) {
-        if (!(values instanceof Array)) {
+        if (!Array.isArray(values)) {
             return -1;
         }
         if (!(id instanceof ObjectID)) {

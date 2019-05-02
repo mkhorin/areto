@@ -21,7 +21,7 @@ module.exports = class FileLogStore extends Base {
         this.baseDir = path.join(this.baseDir, this.dir);
         this.file = this.getFile();
         this.maxFileSize *= MEGABYTE_SIZE;
-        mkdirp.sync(this.baseDir);
+        fs.mkdirSync(this.baseDir, {'recursive': true});
         this.fd = fs.openSync(this.file, 'a');
         if (this.observePeriod) {
             this.observe();
@@ -98,7 +98,6 @@ module.exports = class FileLogStore extends Base {
 };
 
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
 const Exception = require('../error/Exception');

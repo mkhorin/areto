@@ -3,12 +3,16 @@
  */
 'use strict';
 
+const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
 
 module.exports = class Base {
 
     static init (nodeModule) {
-        ClassHelper.defineModuleClassProp(this, nodeModule);
+        if (nodeModule) {
+            ClassHelper.defineClassProp(this, 'CLASS_FILE', nodeModule.filename);
+            ClassHelper.defineClassProp(this, 'CLASS_DIR', path.dirname(nodeModule.filename));
+        }
         ClassHelper.defineConstantClassProps(this);
         ClassHelper.defineStaticClassProps(this);
         return this;
@@ -22,6 +26,19 @@ module.exports = class Base {
         if (config) {
             Object.assign(this, config);
         }
+    }
+
+    getClass (...args) {
+        return this.module.getClass(...args);
+    }
+
+    spawn (config, params) {
+        if (!params) {
+            params = {'module': this.module};
+        } else if (!params.module) {
+            params.module = this.module;
+        }
+        return ClassHelper.spawn(config || this.constructor, params);
     }
 
     wrapClassMessage (message) {

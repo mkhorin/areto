@@ -41,7 +41,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async execAfterPrepare () {
-        if (this._afterPrepareHandlers instanceof Array) {
+        if (Array.isArray(this._afterPrepareHandlers)) {
             for (let handler of this._afterPrepareHandlers) {
                 await handler(this);
             }
@@ -70,7 +70,7 @@ module.exports = class ActiveQuery extends Base {
     prepareViaArray () {
         let val = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
-        if (val === undefined || val === null || val instanceof Array) {
+        if (val === undefined || val === null || Array.isArray(val)) {
             if (this._orderByIn) {
                 this._orderByIn = val;
             }
@@ -151,7 +151,7 @@ module.exports = class ActiveQuery extends Base {
     with (...args) {
         for (let arg of args) {
             if (!arg) {
-            } else if (arg instanceof Array) {
+            } else if (Array.isArray(arg)) {
                 this.with.apply(this, arg);
             } else if (typeof arg === 'object') {
                 Object.assign(this._with, arg);
@@ -184,9 +184,9 @@ module.exports = class ActiveQuery extends Base {
 
     viaTable (tableName, refKey, linkKey, filter) {
         this._viaTable = new ActiveQuery({
-            refKey,
-            linkKey,
-            model: this.primaryModel
+            'refKey': refKey,
+            'linkKey': linkKey,
+            'model': this.primaryModel
         });
         this._viaTable._from = tableName;
         this._viaTable._multiple = true;
@@ -213,7 +213,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async findWith (relations, models) {
-        let primaryModel = new this.model.constructor;
+        let primaryModel = this.model.spawn();
         relations = QueryHelper.normalizeRelations(primaryModel, relations);
         for (let name of Object.keys(relations)) {
             let relation = relations[name];
@@ -237,7 +237,7 @@ module.exports = class ActiveQuery extends Base {
         }
         let models = [];
         for (let doc of docs) {
-            let model = new this.model.constructor;
+            let model = this.model.spawn();
             model.populateRecord(doc);
             models.push(model);
             await model.afterFind();
@@ -288,7 +288,7 @@ module.exports = class ActiveQuery extends Base {
         for (let pm of primaryModels) {
             let key = QueryHelper.getAttr(pm, linkKey);
             let value = this._multiple ? [] : null;
-            if (key instanceof Array) {
+            if (Array.isArray(key)) {
                 for (let k of key) {
                     if (Object.prototype.hasOwnProperty.call(buckets, k)) {
                         value = value.concat(buckets[k]);
@@ -297,7 +297,7 @@ module.exports = class ActiveQuery extends Base {
             } else if (Object.prototype.hasOwnProperty.call(buckets, key)) {
                 value = buckets[key];
             }
-            if (this._index && value instanceof Array) {
+            if (this._index && Array.isArray(value)) {
                 value = this._asRaw
                     ? QueryHelper.indexObjects(value, this._index)
                     : QueryHelper.indexModels(value, this._index);
@@ -356,7 +356,7 @@ module.exports = class ActiveQuery extends Base {
             let ref = QueryHelper.getAttr(model, this.refKey);
             if (map[ref]) {
                 for (let k of Object.keys(map[ref])) {
-                    if (buckets[k] instanceof Array) {
+                    if (Array.isArray(buckets[k])) {
                         buckets[k].push(model);
                     } else {
                         buckets[k] = [model];
@@ -371,7 +371,7 @@ module.exports = class ActiveQuery extends Base {
         let buckets = {};
         for (let model of models) {
             let key = QueryHelper.getAttr(model, this.refKey);
-            if (buckets[key] instanceof Array) {
+            if (Array.isArray(buckets[key])) {
                 buckets[key].push(model);
             } else {
                 buckets[key] = [model];
@@ -383,14 +383,14 @@ module.exports = class ActiveQuery extends Base {
     //
 
     filterByModels (models) {
-        if (!(models instanceof Array)) {
+        if (!Array.isArray(models)) {
             return;
         }    
         let attr = this.linkKey, values = [], value;
         let isActiveRecord = models[0] instanceof ActiveRecord;
         for (let model of models) {
             value = isActiveRecord ? model.get(attr) : model[attr];
-            if (value instanceof Array) {
+            if (Array.isArray(value)) {
                 values = values.concat(value);
             } else if (value !== undefined && value !== null && value !== '') {
                 values.push(value);

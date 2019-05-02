@@ -39,7 +39,7 @@ module.exports = class CompareValidator extends Base {
 
     validateAttr (model, attr) {
         let value = model.get(attr), compareAttr, compareValue;
-        if (value instanceof Array) {
+        if (Array.isArray(value)) {
             this.addError(model, attr, this.getInvalidValueMessage());
         } else if (this.compareValue !== null) {
             compareAttr = compareValue = this.compareValue;

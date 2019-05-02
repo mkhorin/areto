@@ -55,13 +55,13 @@ describe('ObjectHelper', ()=> {
 
     it('setNestedValue', ()=> {
         let data = {};
-        ObjectHelper.setNestedValue('k11.k21.k31', 5, data);
+        ObjectHelper.setNestedValue(5, 'k11.k21.k31', data);
         let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
         expect(res).to.eql(5);
         data = {
             k11: 'not object'
         };
-        ObjectHelper.setNestedValue('k11.k21', 5, data);
+        ObjectHelper.setNestedValue(5, 'k11.k21', data);
         res = ObjectHelper.getNestedValue('k11.k21', data);
         expect(res).to.eql(5);
     });

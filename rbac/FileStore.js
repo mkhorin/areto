@@ -48,7 +48,7 @@ module.exports = class FileStore extends Base {
         try {
             let assignments = require(path.join(this.basePath, 'assignments'));
             for (let id of Object.keys(assignments)) {
-                let items = assignments[id] instanceof Array ? assignments[id] : [assignments[id]];
+                let items = Array.isArray(assignments[id]) ? assignments[id] : [assignments[id]];
                 assignments[id] = {id, items};
             }
             return assignments;

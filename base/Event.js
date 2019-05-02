@@ -77,7 +77,7 @@ module.exports = class Event extends Base {
     }
 
     static hasHandler (sender, name) {
-        if (!(this._events[name] instanceof Array)) {
+        if (!Array.isArray(this._events[name])) {
             return false;
         }
         if (typeof sender !== 'function') {
@@ -106,10 +106,10 @@ module.exports = class Event extends Base {
     static resolveTasks (sender, name, event, tasks) {
         let id = sender.CLASS_FILE;
         while (id) {
-            if (this._events[name][id] instanceof Array) {
-                this._events[name][id].forEach(handler => {
-                    tasks.push(()=> handler[0](event, handler[1]));
-                });
+            if (Array.isArray(this._events[name][id])) {
+                for (let handler of this._events[name][id]) {
+                    tasks.push(handler[0].bind(this, event, handler[1]));
+                }
             }
             sender = Object.getPrototypeOf(sender); // get parent class
             id = sender ? sender.CLASS_FILE : null;

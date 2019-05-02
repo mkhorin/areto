@@ -2,8 +2,6 @@
  * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
-
-const Base = require('./Validator');
 /**
  * a1 needs to exist
  * ['a1', 'exist']
@@ -14,6 +12,8 @@ const Base = require('./Validator');
  * a1 and a2 need to exist together, only a1 will receive error message
  * ['a1', 'exist', {targetAttr: ['a1', 'a2']}]
  */
+const Base = require('./Validator');
+
 module.exports = class ExistValidator extends Base {
 
     constructor (config) {
@@ -41,7 +41,7 @@ module.exports = class ExistValidator extends Base {
     resolveValues (model, attr) {
         let values = {};
         let targetAttr = this.targetAttr || attr;
-        if (targetAttr instanceof Array) {
+        if (Array.isArray(targetAttr)) {
             for (let name of targetAttr) {
                 values[targetAttr] = model.get(attr);
             }
@@ -52,7 +52,8 @@ module.exports = class ExistValidator extends Base {
     }
 
     createQuery (values, model, attr) {
-        let query = (this.targetClass || model.constructor).find();
+        let queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
+        let query = queryModel.find();
         if (this.ignoreCase) {
             for (let name of Object.keys(values)) {
                 query.and(['LIKE', name, values[name]]);

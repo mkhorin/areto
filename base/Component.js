@@ -19,13 +19,14 @@ module.exports = class Component extends Base {
 
     constructor (config) {
         super({
-            // depends: ['#start', '#end', 'component id'] // order init
+            // depends: ['#start', '#end', '[component id]'] // init component order
+            // parent: [component from parent module]
             ...config
         });
-        this.events = ClassHelper.createInstance(this.eventManager || EventManager, {
+        this.events = ClassHelper.spawn(this.eventManager || EventManager, {
             'owner': this
         });
-        this.behaviors = ClassHelper.createInstance(this.behaviorManager || BehaviorManager, {
+        this.behaviors = ClassHelper.spawn(this.behaviorManager || BehaviorManager, {
             'owner': this,
             'autoAttachedItems': this.BEHAVIORS
         });
@@ -84,7 +85,7 @@ module.exports = class Component extends Base {
     }
 
     logError (...args) {
-        this.log.apply(this, ['error'].concat(args));
+        this.log('error', ...args);
     }
 };
 

@@ -60,7 +60,7 @@ module.exports = class QueryHelper {
     }
 
     static unlinkInner (ref, link, model, key) {
-        if (ref instanceof Array) {
+        if (Array.isArray(ref)) {
             let index = MongoHelper.indexOf(link, ref);
             if (index !== - 1) {
                 ref.splice(index, 1);

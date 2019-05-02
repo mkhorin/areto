@@ -47,13 +47,13 @@ module.exports = class I18n extends Base {
     }
     
     translateMessage (message) {
-        if (message instanceof Array) {
-            return this.translate.apply(this, message);
+        if (Array.isArray(message)) {
+            return this.translate(...message);
         }
         if (message instanceof Message) {
             return message.translate(this);
         }
-        return this.translate.apply(this, arguments);
+        return this.translate(...arguments);
     }
 
     translateMessageMap (map, category) {
@@ -93,7 +93,7 @@ module.exports = class I18n extends Base {
         if (data instanceof MessageSource) {
             return data;
         }
-        return ClassHelper.createInstance({
+        return ClassHelper.spawn({
             'Class': JsMessageSource,
             'parent': this.getSourceParent(category),
             'i18n': this,
@@ -108,9 +108,7 @@ module.exports = class I18n extends Base {
     }
 
     createMessageFormatter () {
-        this.messageFormatter = ClassHelper.createInstance(this.MessageFormatter, {
-            'i18n': this
-        });
+        this.messageFormatter = ClassHelper.spawn(this.MessageFormatter, {'i18n': this});
     }
     
     getActiveNotSourceLanguage () {

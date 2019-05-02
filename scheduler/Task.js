@@ -129,7 +129,7 @@ module.exports = class Task extends Base {
     }
 
     createJob () {
-        return ClassHelper.createInstance(this.job);
+        return this.spawn(this.job);
     }
 
     cancelJob () {
@@ -188,6 +188,5 @@ module.exports.init();
 
 const moment = require('moment');
 const CommonHelper = require('../helper/CommonHelper');
-const ClassHelper = require('../helper/ClassHelper');
 const DateHelper = require('../helper/DateHelper');
 const Event = require('../base/Event');

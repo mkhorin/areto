@@ -24,9 +24,7 @@ module.exports = class User extends Base {
             assignmentsParam: '__assignments',
             defaultAssignments: ['user'],
             guestAssignments: ['guest'],
-            identityCookie: {
-                'httpOnly': true
-            },
+            identityCookie: {'httpOnly': true},
             authTimeout: null, // in seconds (depends on last user activity)
             absoluteAuthTimeout: null, // in seconds (depends on last login)
             ...config
@@ -54,7 +52,11 @@ module.exports = class User extends Base {
     }
 
     findUserModel (id) {
-        return this.UserModel.findIdentity(id);
+        return this.createUserModel().findIdentity(id);
+    }
+
+    createUserModel (params) {
+        return this.module.spawn(this.UserModel, params);
     }
 };
 module.exports.init();

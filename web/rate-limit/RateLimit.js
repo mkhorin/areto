@@ -21,7 +21,7 @@ module.exports = class RateLimit extends Base {
             'store': require('./MemoryRateLimitStore'),
             ...config
         });        
-        this.store = ClassHelper.createInstance(this.store, {
+        this.store = ClassHelper.spawn(this.store, {
             'rateLimit': this
         });
     }
@@ -52,7 +52,7 @@ module.exports = class RateLimit extends Base {
 
     getParam (type, name) {
         if (this.types && Object.prototype.hasOwnProperty.call(this.types, type)) {
-            if (this.types[type] && this.types[type].hasOwnProperty(name)) {
+            if (this.types[type] && Object.prototype.hasOwnProperty.call(this.types[type], name)) {
                 return this.types[type][name];
             }
         }

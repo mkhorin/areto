@@ -16,7 +16,7 @@ module.exports = class CommonHelper {
             if (typeof item === 'string' && item.indexOf(keyPrefix) === 0) {
                 key = item.substring(keyPrefix.length);
             } else if (key !== undefined) {
-                if (result[key] instanceof Array) {
+                if (Array.isArray(result[key])) {
                     result[key].push(item);
                 } else if (result[key] !== undefined) {
                     result[key] = [result[key], item];

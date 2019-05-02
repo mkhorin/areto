@@ -9,11 +9,11 @@ module.exports = class FileValidator extends Base {
 
     constructor (config) {
         super({
-            imageOnly: false,
-            minSize: 1,
-            maxSize: null,
-            extensions: null,
-            mimeTypes: null,
+            'imageOnly': false,
+            'minSize': 1,
+            'maxSize': null,
+            'extensions': null,
+            'mimeTypes': null,
             ...config
         });
     }
@@ -28,25 +28,25 @@ module.exports = class FileValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'File size cannot be smaller than {limit}', {
-            limit: [this.minSize, 'bytes']
+            'limit': [this.minSize, 'bytes']
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'File size cannot exceed {limit}', {
-            limit: [this.maxSize, 'bytes']
+            'limit': [this.maxSize, 'bytes']
         });
     }
 
     getWrongExtensionMessage () {
         return this.createMessage(this.wrongExtension, 'Only these file extensions are allowed: {extensions}', {
-            extensions: this.extensions
+            'extensions': this.extensions
         });
     }
 
     getWrongMimeTypeMessage () {
         return this.createMessage(this.wrongMimeType, 'Only these file MIME types are allowed: {mimeTypes}', {
-            mimeTypes: this.mimeTypes
+            'mimeTypes': this.mimeTypes
         });
     }
 
@@ -68,11 +68,11 @@ module.exports = class FileValidator extends Base {
             if (this.maxSize && file.size > this.maxSize) {
                 return this.getTooBigMessage();
             }
-            if (this.extensions instanceof Array
+            if (Array.isArray(this.extensions) 
                 && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
                 return this.getWrongExtensionMessage();
             }
-            if (this.mimeTypes instanceof Array && (!file.mime || !this.mimeTypes.includes(file.mime))) {
+            if (Array.isArray(this.mimeTypes) && (!file.mime || !this.mimeTypes.includes(file.mime))) {
                 return this.getWrongMimeTypeMessage();
             }
         } catch (err) {

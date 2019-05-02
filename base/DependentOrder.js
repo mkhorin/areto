@@ -30,11 +30,11 @@ module.exports = class DependentOrder extends Base {
     createItems (items) {
         this._items = [];
         this._itemMap = {};
-        items.forEach((item, index)=> {
-            item = this.createItem(item, index);
+        for (let i = 0; i < items.length; ++i) {
+            let item = this.createItem(items[i], i);
             this._items.push(item);
             this._itemMap[item.id] = item;
-        });
+        }
     }
 
     createItem (item, index) {
@@ -47,9 +47,9 @@ module.exports = class DependentOrder extends Base {
     }
 
     setItemIndexes () {
-        this._items.forEach(item => {
+        for (let item of this._items) {
             item.index = this.getItemIndex(item);
-        });
+        }
     }
 
     getItemIndex (item) {

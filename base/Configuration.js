@@ -9,8 +9,9 @@ module.exports = class Configuration extends Base {
 
     constructor (config) {
         super({
-            // dir
-            // name
+            // dir: config dir,
+            // parent: parent config,
+            // origin: origin config,
             ...config
         });
         this.name = this.name || process.env.NODE_ENV;
@@ -23,12 +24,11 @@ module.exports = class Configuration extends Base {
     }
 
     getTitle () {
-        return this._names.join('.');
+        return this._names.join('.') || this.origin && this.origin.getTitle();
     }
 
-    includesIfArray (key, value) {
-        let items = ObjectHelper.getNestedValue(key, this._data);
-        return !(items instanceof Array) || items.includes(value);
+    includes (key, value) {
+        return ObjectHelper.includesNestedValue(value, key, this._data);
     }
 
     load () {
@@ -36,7 +36,10 @@ module.exports = class Configuration extends Base {
             this.loadByName('default');
         }
         this._sources.push({});
-        this._data = AssignHelper.deepAssign.apply(AssignHelper, this._sources.reverse());
+        this._data = AssignHelper.deepAssign(...this._sources.reverse());
+        if (this.origin) {
+            this._data = AssignHelper.deepAssign({}, this.origin._data, this._data);
+        }
     }
 
     loadByName (name) {
@@ -47,7 +50,7 @@ module.exports = class Configuration extends Base {
         if (data) {
             this._sources.push(data);
             this._names.push(name);
-            if (data.parent) {
+            if (data.parent) { // local parent file
                 this.loadByName(data.parent);
             }
             return true;
@@ -57,7 +60,7 @@ module.exports = class Configuration extends Base {
     readFiles (name) {
         let base = this.readFile(name);
         if (base) {
-            return AssignHelper.deepAssign(base, this.readFile(`${name}-local`));
+            return AssignHelper.deepAssign(base, this.readFile(`${name}.local`));
         }
     }
 
@@ -70,11 +73,19 @@ module.exports = class Configuration extends Base {
         AssignHelper.deepAssign(this._data, data);
     }
 
+    inheritUndefined (keys) {
+        if (this.parent) {
+            for (let key of keys) {
+                this.deepAssignUndefinedByKey(key, this.parent.get(key));
+            }
+        }
+    }
+
     deepAssignUndefinedByKey (key, data) {
         let value = this.get(key);
         if (!(value instanceof Object)) {
             value = {};
-            ObjectHelper.setNestedValue(key, value, this._data);
+            ObjectHelper.setNestedValue(value, key, this._data);
         }
         AssignHelper.deepAssignUndefined(value, data);
     }

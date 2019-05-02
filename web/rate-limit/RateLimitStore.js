@@ -26,7 +26,7 @@ module.exports = class RateLimitStore extends Base {
     }
 
     createModel (config) {
-        return ClassHelper.createInstance(this.model, {
+        return ClassHelper.spawn(this.model, {
             'store': this,
             ...config
         });

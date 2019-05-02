@@ -46,8 +46,10 @@ module.exports = class Query extends Base {
     // SELECT
 
     select (data) {
-        if (data instanceof Array) {
-            data.forEach(this.addSelect, this);
+        if (Array.isArray(data)) {
+            for (let item of data) {
+                this.addSelect(item);
+            }
         } else if (typeof data === 'string') {
             this._select = {[data]: 1};
         } else {
@@ -57,8 +59,10 @@ module.exports = class Query extends Base {
     }
 
     addSelect (data) {
-        if (data instanceof Array) {
-            data.forEach(this.addSelect, this);
+        if (Array.isArray(data)) {
+            for (let item of data) {
+                this.addSelect(item);
+            }
         } else if (!this._select) {
             return this.select(data);
         }
@@ -252,7 +256,7 @@ module.exports = class Query extends Base {
     }
 
     filterCondition (data) {
-        return data instanceof Array
+        return Array.isArray(data)
             ? this.filterOperatorCondition(data)
             : data ? this.filterHashCondition(data)
                    : null;
@@ -267,8 +271,7 @@ module.exports = class Query extends Base {
                 return this.filterSerialCondition();
             case 'BETWEEN':
             case 'NOT BETWEEN':
-                return !this.isEmptyValue(data[1]) && !this.isEmptyValue(data[2])
-                    ? data : null;
+                return !this.isEmptyValue(data[1]) && !this.isEmptyValue(data[2]) ? data : null;
         }
         return this.isEmptyValue(data[1]) ? null : data;
     }
@@ -299,7 +302,7 @@ module.exports = class Query extends Base {
     // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
     sortOrderByIn (docs) {
         let keys = this._orderByIn;
-        if (!(keys instanceof Array) || keys.length < 2) {
+        if (!Array.isArray(keys) || keys.length < 2) {
             return docs;
         }
         // docs can be with equals key
@@ -321,7 +324,7 @@ module.exports = class Query extends Base {
             if (prop && typeof prop === 'object') {
                 if (prop instanceof Query) {
                     target[key] = prop.clone();
-                } else if (prop instanceof Array) {
+                } else if (Array.isArray(prop)) {
                     target[key] = prop.slice();
                 } else if (!(prop instanceof Base)) {
                     target[key] = {...prop};

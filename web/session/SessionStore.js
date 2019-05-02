@@ -9,26 +9,31 @@ module.exports = class SessionStore extends Base {
 
     constructor (config) {
         super({
-            userIdParam: '__id',
+            'userIdParam': '__id',
             ...config
         });
         Store.call(this);
     }
 
-    createSession () {
-        return Store.prototype.createSession.apply(this, arguments);
+    createSession (...args) {
+        return Store.prototype.createSession.apply(this, args);
     }
 
-    load () {
-        return Store.prototype.load.apply(this, arguments);
+    save () {
+        return PromiseHelper.promise(Store.prototype.save.bind(this));
     }
 
-    regenerate () {
-        return Store.prototype.regenerate.apply(this, arguments);
+    load (...args) {
+        return Store.prototype.load.apply(this, args);
+    }
+
+    regenerate (...args) {
+        return Store.prototype.regenerate.apply(this, args);
     }
 };
 
 const session = require('express-session');
 const Store = session.Store;
+const PromiseHelper = require('../../helper/PromiseHelper');
 
 Object.assign(module.exports.prototype, Object.getPrototypeOf(Store.prototype));

@@ -178,7 +178,7 @@ module.exports = class MysqlDriver extends Base {
     // ESCAPES
 
     escapeId (id) {
-        return id instanceof Array 
+        return Array.isArray(id)
             ? id.map(id => this.escapeOneId(id)) 
             : this.escapeOneId(id);
     }
@@ -198,7 +198,7 @@ module.exports = class MysqlDriver extends Base {
         if (value instanceof Date) {
             value = moment(value).format('YYYY-MM-DD HH:mm:ss')
         }
-        if (value instanceof Array) {
+        if (Array.isArray(value)) {
             return this.escapeValueArray(value);
         }
         if (value instanceof Expression) {
@@ -218,8 +218,8 @@ module.exports = class MysqlDriver extends Base {
         return `'${value}'`;
     }
 
-    escapeValueArray (list) {
-        return list.map(item => item instanceof Array
+    escapeValueArray (items) {
+        return list.map(item => Array.isArray(item)
             ? this.escapeValueArray(item)
             : this.escape(item)
         ).join();

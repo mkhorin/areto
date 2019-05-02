@@ -75,7 +75,7 @@ module.exports = class Item extends Base {
         if (!this.data.children || !this.data.children.length) {
             return null;
         }
-        this.data.children = this.findRelatives('children');
+        this.data.children = await this.findRelatives('children');
         await this.store.findItemChild().and({
             'parent': this.data.itemId,
             'child': this.data.children
@@ -102,9 +102,9 @@ module.exports = class Item extends Base {
     }
 
     async findRelatives (relKey) {
-        let items = await this.store.findItemByName(this.name).one();
+        let item = await this.store.findItemByName(this.name).one();
         this.data.itemId = item ? item[this.store.key] : null;
-        items = await this.store.findItemByName(this.data[relKey]).all();
+        let items = await this.store.findItemByName(this.data[relKey]).all();
         if (items.length === this.data[relKey].length) {
             return items.map(item => item[this.store.key])
         }

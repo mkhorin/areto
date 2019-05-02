@@ -11,7 +11,7 @@ module.exports = class AccessControl extends Base {
         super({
             // rules: [] rule configs
             // denyPromise: async (action, user)
-            AccessRule,
+            'AccessRule': AccessRule,
             ...config
         });
         this.createRules();

@@ -10,7 +10,7 @@ module.exports = class EachValidator extends Base {
     constructor(config) {
         super({
             rule: null,
-            allowMessageFromRule: true,
+            allowRuleMessage: true,
             ...config
         });
         this._validator = null;
@@ -32,7 +32,7 @@ module.exports = class EachValidator extends Base {
             return this.rule;
         }
         if (!(model instanceof Model)) {
-            model = new Model; // mock up context model
+            model = this.spawn(Model); // mock up context model
         }
         return this.constructor.createValidator(this.rule, model, this.attrs, this.params);
     }
@@ -40,14 +40,14 @@ module.exports = class EachValidator extends Base {
     async validateAttr (model, attr) {
         let values = model.get(attr);
         let validator = this.getValidator();
-        if (!(validator instanceof FilterValidator && values instanceof Array)) {
+        if (!(validator instanceof FilterValidator && Array.isArray(values))) {
             this.getValidator(model); // ensure model context while validator creation
             return super.validateAttr(model, attr);
         }
         let filteredValues = [];
         model.set(attr, filteredValues);
         for (let value of values) {
-            if (!(value instanceof Array && validator.skipOnArray)) {
+            if (!(Array.isArray(value) && validator.skipOnArray)) {
                 let result = await validator.filter(value, model, attr);
                 filteredValues.push(result);
             }
@@ -55,14 +55,14 @@ module.exports = class EachValidator extends Base {
     }
 
     async validateValue (values) {
-        if (!(values instanceof Array)) {
+        if (!Array.isArray(values)) {
             return this.getMessage();
         }
         let validator = this.getValidator();
         for (let value of values) {
             let result = await validator.validateValue(value);
             if (result) {
-                return this.allowMessageFromRule ? result : this.getMessage();
+                return this.allowRuleMessage ? result : this.getMessage();
             }
         }
     }

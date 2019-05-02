@@ -75,14 +75,14 @@ module.exports = class RelationValidator extends Base {
     }
 
     filterChanges (data) {
-        if (this.allow instanceof Array) {
+        if (Array.isArray(this.allow)) {
             for (let key of Object.keys(data)) {
                 if (!this.allow.includes(key)) {
                     data[key] = [];
                 }
             }
         }
-        if (this.deny instanceof Array) {
+        if (Array.isArray(this.deny)) {
             for (let key of Object.keys(data)) {
                 if (this.deny.includes(key)) {
                     data[key] = [];

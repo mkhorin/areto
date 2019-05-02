@@ -8,7 +8,7 @@ module.exports = class AsyncHelper {
     // SERIES
 
     static series (items, callback) {
-        let result = items instanceof Array ? [] : {};
+        let result = Array.isArray(items) ? [] : {};
         if (!items) {
             return callback(null, result);
         }
@@ -20,7 +20,7 @@ module.exports = class AsyncHelper {
     }
 
     static eachSeries (items, handler, callback) {
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback();
         }
         (new this({items, handler, callback})).eachSeries();
@@ -39,7 +39,7 @@ module.exports = class AsyncHelper {
 
     static mapSeries (items, handler, callback) {
         let result = [];
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
         (new this({items, handler, callback, result})).mapSeries();
@@ -47,14 +47,14 @@ module.exports = class AsyncHelper {
 
     static filterSeries (items, handler, callback) {
         let result = [];
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
         (new this({items, handler, callback, result})).filterSeries();
     }
 
     static someSeries (items, handler, callback) {
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback(null, false);
         }
         (new this({items, handler, callback})).someSeries();
@@ -73,7 +73,7 @@ module.exports = class AsyncHelper {
     }
 
     static waterfall (items, callback) {
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback();
         }
         (new this({items, callback})).waterfall();
@@ -82,14 +82,14 @@ module.exports = class AsyncHelper {
     // PARALLEL
 
     static each (items, handler, callback) {
-        if (!(items instanceof Array) || !items.length) {
+        if (!Array.isArray(items) || !items.length) {
             return callback();
         }
         (new this({items, handler, callback, counter: 0})).each();
     }
 
     static parallel (items, callback) {
-        let result = items instanceof Array ? [] : {};
+        let result = Array.isArray(items) ? [] : {};
         if (!items) {
             return callback(null, result);
         }

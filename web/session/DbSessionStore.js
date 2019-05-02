@@ -13,7 +13,6 @@ module.exports = class DbSessionStore extends Base {
             'table': 'session',
             ...config
         });
-                
     }
 
     get (sid, callback) {
@@ -31,9 +30,7 @@ module.exports = class DbSessionStore extends Base {
     }
 
     touch (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).update({
-            'updatedAt': new Date
-        }), callback);
+        PromiseHelper.callback(this.findBySid(sid).update({'updatedAt': new Date}), callback);
     }
 
     destroy (sid, callback) {

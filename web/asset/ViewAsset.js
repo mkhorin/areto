@@ -73,7 +73,7 @@ module.exports = class ViewAsset extends Base {
             return this.logCircularDependency(bundle);
         }
         this._processedNames[bundle.name] = true;
-        if (bundle.depends instanceof Array) {
+        if (Array.isArray(bundle.depends)) {
             this.processDepends(bundle.depends);
         }
         this._processedNames[bundle.name] = false;

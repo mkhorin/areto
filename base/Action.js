@@ -16,7 +16,7 @@ module.exports = class Action extends Base {
     }
 
     getUniqueName () {
-        return this.controller.module.getRoute(this.getRelativeModuleName());
+        return this.module.getRoute(this.getRelativeModuleName());
     }
 
     // REQUEST
@@ -29,35 +29,35 @@ module.exports = class Action extends Base {
         return this.controller.isPost();
     }
 
-    getQueryParam () {
-        return this.controller.getQueryParam.apply(this.controller, arguments);
+    getQueryParam (...args) {
+        return this.controller.getQueryParam(...args);
     }
 
     getQueryParams () {
-        return this.controller.getQueryParams.apply(this.controller, arguments);
+        return this.controller.getQueryParams();
     }
 
-    getPostParam () {
-        return this.controller.getPostParam.apply(this.controller, arguments);
+    getPostParam (...args) {
+        return this.controller.getPostParam(...args);
     }
 
     getPostParams () {
-        return this.controller.getPostParams.apply(this.controller, arguments);
+        return this.controller.getPostParams();
     }
 
     // RENDER
 
-    render () {
-        return this.controller.render.apply(this.controller, arguments);
+    render (...args) {
+        return this.controller.render(...args);
     }
 
     // SEND
 
-    send () {
-        return this.controller.send.apply(this.controller, arguments);
+    send (...args) {
+        return this.controller.send(...args);
     }
 
-    sendText () {
-        return this.controller.sendText.apply(this.controller, arguments);
+    sendText (...args) {
+        return this.controller.sendText(...args);
     }
 };

@@ -59,7 +59,7 @@ module.exports = class ErrorMap {
             return false;
         }
         for (let key of Object.keys(data)) {
-            if (data[key] instanceof Array) {
+            if (Array.isArray(data[key])) {
                 for (let value of data[key]) {
                     this.add(key, value);
                 }

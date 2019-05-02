@@ -9,12 +9,12 @@ module.exports = class RangeValidator extends Base {
 
     constructor (config) {
         super({
-            range: null,
-            not: false,
-            allowArray: false,
+            'range': null,
+            'not': false,
+            'allowArray': false,
             ...config
         });
-        if (!(this.range instanceof Array)) {
+        if (!Array.isArray(this.range)) {
             throw new Error(this.wrapClassMessage('Range property must be array'));
         }
     }
@@ -24,11 +24,11 @@ module.exports = class RangeValidator extends Base {
     }
 
     validateValue (value) {
-        if (value instanceof Array && !this.allowArray) {
+        if (Array.isArray(value) && !this.allowArray) {
             return this.getMessage();
         }
         let inRange = true;
-        let values = value instanceof Array ? value : [value];
+        let values = Array.isArray(value) ? value : [value];
         for (let item of values) {
             if (!this.range.includes(item)) {
                 inRange = false;

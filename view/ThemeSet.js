@@ -45,7 +45,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createDefault () {
-        this._defaultTheme = ClassHelper.createInstance(this.Theme, {
+        this._defaultTheme = ClassHelper.spawn(this.Theme, {
             'name': null,
             'dir': this.defaultThemeDir,
             'parent': this.parent ? this.parent.get() : null,
@@ -66,7 +66,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createTheme (name, dir) {
-        this._themes[name] = ClassHelper.createInstance(this.Theme, {
+        this._themes[name] = ClassHelper.spawn(this.Theme, {
             'name': name,
             'dir': dir,
             'view': this

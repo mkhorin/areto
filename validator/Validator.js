@@ -59,17 +59,17 @@ module.exports = class Validator extends Base {
 
     constructor (config) {
         super({
-            attrs: [],
-            // on: [] // only scenarios
-            // except: [] // excepted scenarios
-            skipOnError: true,
-            skipOnAnyError: false,
-            skipOnEmpty: true,
-            enableClientValidation: true,
-            isEmpty: null, // value => false/true
-            when: null, // (model, attr)=> false/true
-            // whenClient: null,
-            messageCategory: 'app',
+            'attrs': [],
+            // 'on': [] // only scenarios
+            // 'except': [] // excepted scenarios
+            'skipOnError': true,
+            'skipOnAnyError': false,
+            'skipOnEmpty': true,
+            'when': null, // (model, attr)=> false/true
+            'isEmpty': null, // value => false/true
+            'messageCategory': 'app',
+            // 'enableClientValidation': true,
+            // 'whenClient': null,
             ...config
         });
     }
@@ -88,7 +88,7 @@ module.exports = class Validator extends Base {
     }
 
     async validateAttrs (model, attrs) {
-        attrs = attrs instanceof Array
+        attrs = Array.isArray(attrs)
             ? ArrayHelper.intersect(attrs, this.attrs)
             : this.attrs;
         attrs = attrs.filter(attr => {
@@ -129,7 +129,7 @@ module.exports = class Validator extends Base {
         let value = model.get(attr);
         message.addParams({
             'attr': model.getAttrLabel(attr),
-            'value': value instanceof Array ? value.join() : value
+            'value': Array.isArray(value) ? value.join() : value
         });
         model.addError(attr, message);
     }

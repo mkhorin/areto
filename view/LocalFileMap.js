@@ -21,7 +21,7 @@ module.exports = class LocalFileMap extends Base {
     }
 
     createBaseMap () {
-        this._base = ClassHelper.createInstance(FileMap, {
+        this._base = ClassHelper.spawn(FileMap, {
             'dir': path.join(this.baseDir),
             'required': this.required
         });
@@ -32,7 +32,7 @@ module.exports = class LocalFileMap extends Base {
         for (let name of fs.readdirSync(this.localDir)) {
             let dir = path.join(this.localDir, name);
             if (fs.lstatSync(dir).isDirectory()) {
-                let map = ClassHelper.createInstance(FileMap, {dir});
+                let map = ClassHelper.spawn(FileMap, {dir});
                 if (!map.isEmpty()) {
                     this._locals[name] = map;
                 }

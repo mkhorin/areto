@@ -66,16 +66,16 @@ module.exports = class ViewModel extends Base {
         return this.ATTR_LABELS[name];
     }
 
-    format () {
-        return this.controller.format.apply(this.controller, arguments);
+    format (...args) {
+        return this.controller.format(...args);
     }
 
-    translate () {
-        return this.controller.translate.apply(this.controller, arguments);
+    translate (...args) {
+        return this.controller.translate(...args);
     }
 
-    translateMessageMap () {
-        return this.controller.translateMessageMap.apply(this.controller, arguments);
+    translateMessageMap (...args) {
+        return this.controller.translateMessageMap(...args);
     }
 };
 module.exports.init();

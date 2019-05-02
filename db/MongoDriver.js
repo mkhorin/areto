@@ -16,8 +16,8 @@ module.exports = class MongoDriver extends Base {
     }
 
     static normalizeId (value) {
-        return value instanceof Array
-            ? value.map(this.normalizeObjectId.bind(this))
+        return Array.isArray(value)
+            ? value.map(this.normalizeObjectId, this)
             : this.normalizeObjectId(value);
     }
 
@@ -86,7 +86,7 @@ module.exports = class MongoDriver extends Base {
 
     async insert (table, data) {
         this.logCommand('insert', {table, data});
-        if (data instanceof Array) {
+        if (Array.isArray(data)) {
             let result = await this.getCollection(table).insertMany(data);
             return result.insertedIds;
         }
@@ -259,4 +259,5 @@ module.exports = class MongoDriver extends Base {
 };
 module.exports.init();
 
+const ArrayHelper = require('../helper/ArrayHelper');
 const MongoQueryBuilder = require('./MongoQueryBuilder');

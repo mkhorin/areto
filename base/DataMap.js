@@ -19,6 +19,7 @@ module.exports = class DataMap {
 
     set (key, value) {
         this._data[key] = value;
+        return this;
     }
 
     unset (key) {
@@ -50,20 +51,33 @@ module.exports = class DataMap {
         return this.values().length;
     }
 
-    each (handler, context) {
-        return this.values().forEach(handler, context);
+    each (...args) {
+        return this.forEach(...args);
     }
 
     forEach (handler, context) {
-        return this.values().forEach(handler, context);
+        for (let item of this.values()) {
+            handler.call(context, item)
+        }
+        return this;
     }
 
     filter (handler, context) {
-        return this.values().filter(handler, context);
+        let result = [];
+        for (let item of this.values()) {
+            if (handler.call(context, item)) {
+                result.push(item);
+            }
+        }
+        return result;
     }
 
     map (handler, context) {
-        return this.values().map(handler, context);
+        let result = [];
+        for (let item of this.values()) {
+            result.push(handler.call(context, item));
+        }
+        return result;
     }
 
     sort (handler) {

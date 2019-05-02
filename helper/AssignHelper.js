@@ -44,7 +44,7 @@ module.exports = class AssignHelper {
     static _assignProp (to, from, prop) {
         if (Object.prototype.hasOwnProperty.call(from, prop)) {
             from = from[prop];
-            if (from && typeof from === 'object' && !(from instanceof Array)) {
+            if (from && typeof from === 'object' && !Array.isArray(from)) {
                 if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] && typeof to[prop] === 'object') {
                     to[prop] = this._assign(to[prop], from);
                 } else {

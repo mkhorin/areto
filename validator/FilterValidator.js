@@ -61,7 +61,7 @@ module.exports = class FilterValidator extends Base {
 
     async validateAttr (model, attr) {
         let value = model.get(attr);
-        if (value instanceof Array && this.skipOnArray) {
+        if (Array.isArray(value) && this.skipOnArray) {
             return;
         }
         if (typeof this.filter === 'function') {

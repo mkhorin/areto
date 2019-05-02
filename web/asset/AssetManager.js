@@ -10,7 +10,6 @@ module.exports = class AssetManager extends Base {
     constructor (config) {
         super({
             'bundles': [],
-            'parentName': 'asset', // asset component from parent module
             'ViewAsset': require('./ViewAsset'),
             'AssetBundle': require('./AssetBundle'),
             ...config
@@ -18,14 +17,11 @@ module.exports = class AssetManager extends Base {
     }
 
     init () {
-        this.parent = this.module.getParentComponent(this.parentName);
         this.createBundles();
     }
 
     createViewAsset () {
-        return ClassHelper.createInstance(this.ViewAsset, {
-            'manager': this
-        });
+        return ClassHelper.spawn(this.ViewAsset, {'manager': this});
     }
 
     hasBundle (name) {
@@ -45,7 +41,7 @@ module.exports = class AssetManager extends Base {
 
     createBundle (data) {
         data.manager = this;
-        return ClassHelper.createInstance(data.Class || this.AssetBundle, data);
+        return ClassHelper.spawn(data.Class || this.AssetBundle, data);
     }
 };
 

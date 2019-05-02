@@ -93,7 +93,7 @@ module.exports = class MysqlQueryBuilder extends Base {
     }
 
     buildCondition (condition) {
-        if (!(condition instanceof Array)) {
+        if (!Array.isArray(condition)) {
             return this.buildHashCondition(condition);    
         }
         let operator = condition[0];
@@ -109,7 +109,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         let result = [];
         for (let key of Object.keys(condition)) {
             let field = this.getFieldName(key);
-            if (condition[key] instanceof Array) {
+            if (Array.isArray(condition[key])) {
                 result.push(`field IN (${this.db.escape(condition[key])})`);
             } else if (condition[key] === null) {
                 result.push(`${field} IS NULL`);
@@ -135,7 +135,7 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     buildLogicCondition (operands, operator) {
         let parts = [];
-        if (operands instanceof Array) {
+        if (Array.isArray(operands)) {
             for (let operand of operands) {
                 parts.push(this.buildCondition(operand));
             }
@@ -147,7 +147,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT EQUAL requires 2 operands'));
         }
-        return operands[1] instanceof Array 
+        return Array.isArray(operands[1]) 
             ? this.buildNotInCondition() 
             : `${this.getFieldName(operands[0])}!=${this.db.escape(operands[1])}`;
     }
@@ -158,7 +158,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('IN requires 2 operands'));
         }
-        return (operands[1] instanceof Array && operands[1].length === 0) 
+        return (Array.isArray(operands[1]) && operands[1].length === 0) 
             ? 'FALSE'
             : `${this.getFieldName(operands[0])} IN (${this.db.escape(operands[1])})`;
     }
@@ -167,7 +167,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT IN requires 2 operands'));
         }
-        return (operands[1] instanceof Array && operands[1].length === 0) 
+        return (Array.isArray(operands[1]) && operands[1].length === 0) 
             ? 'TRUE'
             : `${this.getFieldName(operands[0])} NOT IN (${this.db.escape(operands[1])})`;
     }
@@ -214,7 +214,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (value === null || value === undefined) {
             return this.buildNullCondition(operands.slice(0, 1));
         }
-        return  operands[1] instanceof Array 
+        return Array.isArray(operands[1]) 
             ? `${this.getFieldName(operands[0])} IN (${this.db.escape(value)})`
             : `${this.getFieldName(operands[0])}=${this.db.escape(value)}`;
     }
@@ -227,7 +227,7 @@ module.exports = class MysqlQueryBuilder extends Base {
         if (value === null || value === undefined) {
             return this.buildNotNullCondition(operands.slice(0, 1));
         }
-        return  operands[1] instanceof Array
+        return Array.isArray(operands[1])
             ? `${this.getFieldName(operands[0])} NOT IN (${this.db.escape(value)})`
             : `${this.getFieldName(operands[0])}=${this.db.escape(value)}`;
     }

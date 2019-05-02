@@ -10,10 +10,20 @@ module.exports = class FileMap extends Base {
     constructor (config) {
         super({
             // dir: path,
-            required: false, // require files
+            'required': false, // require files
             ...config
         });
         this.indexFiles();
+    }
+
+    isEmpty () {
+        return Object.values(this._files).length === 0;
+    }
+
+    get (name) {
+        if (Object.prototype.hasOwnProperty.call(this._files, name)) {
+            return this._files[name];
+        }
     }
 
     indexFiles () {
@@ -32,13 +42,12 @@ module.exports = class FileMap extends Base {
             if (fs.lstatSync(file).isDirectory()) {
                 this.indexDirFiles(file);
             } else {
-                let name = this.getRelativeName(file);
-                this._files[name] = file;
+                this._files[this.getKey(file)] = file;
             }
         }
     }
 
-    getRelativeName (file) {
+    getKey (file) {
         let relative = file.substring(this.dir.length + 1);
         let parts = relative.split(path.sep);
         let last = parts.pop();
@@ -56,16 +65,6 @@ module.exports = class FileMap extends Base {
                 delete this._files[key];
             }
         }
-    }
-
-    get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._files, name)) {
-            return this._files[name];
-        }
-    }
-
-    isEmpty () {
-        return Object.values(this._files).length === 0;
     }
 };
 

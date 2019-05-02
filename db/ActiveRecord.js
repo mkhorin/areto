@@ -22,11 +22,7 @@ module.exports = class ActiveRecord extends Base {
             //UNLINK_ON_REMOVE: [], // unlink relations after model remove
         };
     }
-
-    static getDb () {
-        return this.module.getDb();
-    }
-
+    
     constructor (config) {
         super(config);
         this._isNewRecord = true;
@@ -35,7 +31,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getDb () {
-        return this.constructor.getDb();
+        return this.module.getDb();
     }
 
     isNew () {
@@ -76,7 +72,7 @@ module.exports = class ActiveRecord extends Base {
         if (rel instanceof ActiveRecord) {
             return rel.get(nested);
         }
-        if (rel instanceof Array) {
+        if (Array.isArray(rel)) {
             return rel.map(item => item instanceof ActiveRecord
                 ? item.get(nested)
                 : item ? item[nested] : item
@@ -100,29 +96,53 @@ module.exports = class ActiveRecord extends Base {
     // EVENTS
 
     afterFind () {
+        // call await super.afterFind() if override this method
         return this.trigger(this.EVENT_AFTER_FIND);
     }
 
     beforeSave (insert) {
-        return this.trigger(insert ? this.EVENT_BEFORE_INSERT : this.EVENT_BEFORE_UPDATE);
+        // call await super.beforeSave(insert) if override this method
+        return insert ? this.beforeInsert() : this.beforeUpdate();
+    }
+
+    beforeInsert () {
+        // call await super.beforeInsert() if override this method
+        return this.trigger(this.EVENT_BEFORE_INSERT);
+    }
+
+    beforeUpdate () {
+        // call await super.beforeUpdate() if override this method
+        return this.trigger(this.EVENT_BEFORE_UPDATE);
     }
 
     afterSave (insert) {
-        this.assignOldAttrs();
-        return this.trigger(insert ? this.EVENT_AFTER_INSERT : this.EVENT_AFTER_UPDATE);
+        // call await super.afterSave(insert) if override this method
+        return insert ? this.afterInsert() : this.afterUpdate();
+    }
+
+    afterInsert () {
+        // call await super.afterInsert() if override this method
+        return this.trigger(this.EVENT_AFTER_INSERT);
+    }
+
+    afterUpdate () {
+        // call await super.afterUpdate() if override this method
+        return this.trigger(this.EVENT_AFTER_UPDATE);
     }
 
     beforeRemove () {
+        // call await super.beforeRemove() if override this method
         return this.trigger(this.EVENT_BEFORE_REMOVE);
     }
 
     async afterRemove () {
-        if (this.UNLINK_ON_REMOVE instanceof Array) {
+        // call await super.afterRemove() if override this method
+        if (Array.isArray(this.UNLINK_ON_REMOVE)) {
             for (let relation of this.UNLINK_ON_REMOVE) {
                 await this.unlinkAll(relation);
             }
         }
-        await this.trigger(this.EVENT_AFTER_REMOVE);
+        return this.trigger(this.EVENT_AFTER_REMOVE);
     }
 
     // POPULATE
@@ -144,21 +164,13 @@ module.exports = class ActiveRecord extends Base {
     }
 
     // FIND
-
-    static find (condition) {
-        return (new this.QUERY_CLASS({'model': new this})).and(condition);
-    }
-
-    static findById (id) {
-        return this.find(['ID', this.PK, id instanceof ActiveRecord ? id.getId() : id]);
-    }
-
-    find () {
-        return this.constructor.find.apply(this.constructor, arguments);
-    }
-
+    
     findById (id) {
-        return this.constructor.findById(id === undefined ? this.getId() : id);
+        return this.find(['ID', this.PK, id === undefined ? this.getId() : id]);
+    }
+
+    find (condition) {
+        return (new this.QUERY_CLASS({'model': this})).and(condition);
     }
 
     // SAVE
@@ -176,30 +188,28 @@ module.exports = class ActiveRecord extends Base {
 
     async insert () {
         await this.beforeSave(true);
-        this.set(this.PK, await this.constructor.find().insert(this.filterAttrs()));
+        this.set(this.PK, await this.find().insert(this.filterAttrs()));
         this._isNewRecord = false;
         await this.afterSave(true);
+        this.assignOldAttrs();
     }
 
     async update () {
         await this.beforeSave(false);
         await this.findById().update(this.filterAttrs());
         await this.afterSave(false);
+        this.assignOldAttrs();
     }
 
     /**
      * will not perform data validation and will not trigger events
      */
-    updateAttrs (attrs) {
-        Object.assign(this._attrs, attrs);
+    directUpdate (data) {
+        Object.assign(this._attrs, data);
         return this.findById().update(this.filterAttrs());
     }
 
     // REMOVE
-
-    static async removeById (id) {
-        return this.remove(await this.findById(id).all());
-    }
 
     static async remove (models) {
         for (let model of models) {
@@ -288,7 +298,7 @@ module.exports = class ActiveRecord extends Base {
         if (rel instanceof ActiveRecord) {
             return rel.rel(nestedName);
         }
-        if (rel instanceof Array) {
+        if (Array.isArray(rel)) {
             return rel.map(item => item instanceof ActiveRecord ? item.rel(nestedName) : null);
         }
         return undefined;
@@ -304,7 +314,7 @@ module.exports = class ActiveRecord extends Base {
         if (result instanceof ActiveRecord) {
             return result.findRelation(nestedName, renew);
         }
-        if (!(result instanceof Array)) {
+        if (!Array.isArray(result)) {
             return result;
         }
         result = result.filter(model => model instanceof ActiveRecord);
@@ -357,18 +367,18 @@ module.exports = class ActiveRecord extends Base {
     }
 
     hasOne (RefClass, refKey, linkKey) {
-        return RefClass.find().hasOne(this, refKey, linkKey);
+        return this.spawn(RefClass).find().hasOne(this, refKey, linkKey);
     }
 
     hasMany (RefClass, refKey, linkKey) {
-        return RefClass.find().hasMany(this, refKey, linkKey);
+        return this.spawn(RefClass).find().hasMany(this, refKey, linkKey);
     }
 
     // LINK
 
     linkViaModel (rel, targets, model) {
         if (!model) {
-            model = new rel._viaRelation.model.constructor;
+            model = this.spawn(rel._viaRelation.model.constructor);
         } else if (!(model instanceof rel._viaRelation.model.constructor)) {
             throw new Error(this.wrapMessage('linkViaModel: Invalid link model'));
         }
@@ -407,7 +417,7 @@ module.exports = class ActiveRecord extends Base {
         }
         // unset rel so that it can be reloaded to reflect the change
         this.unsetRelation(rel._viaRelationName);
-        let viaModel = new via.model.constructor;
+        let viaModel = this.spawn(via.model.constructor);
         viaModel.assignAttrs(columns);
         return viaModel.insert();
     }
@@ -433,7 +443,7 @@ module.exports = class ActiveRecord extends Base {
         if (!rel.isMultiple()) {
             return this.unsetRelation(name);
         }
-        if (this._related[name] instanceof Array) {
+        if (Array.isArray(this._related[name])) {
             for (let i = this._related[name].length - 1; i >= 0; --i) {
                 if (MongoHelper.isEqual(model.getId(), this._related[name][i].getId())) {
                     this._related[name].splice(i, 1);
@@ -496,7 +506,7 @@ module.exports = class ActiveRecord extends Base {
         if (via._where) {
             condition = ['AND', condition, via._where];
         }
-        if (!(rel.remove instanceof Array)) {
+        if (!Array.isArray(rel.remove)) {
             condition = this.getDb().buildCondition(condition);
             remove ? await this.getDb().remove(via._from, condition)
                    : await this.getDb().update(via._from, condition, nulls);
@@ -511,7 +521,7 @@ module.exports = class ActiveRecord extends Base {
 
     async unlinkInnerAll (rel, remove) {
         // rel via array valued attr
-        if (!remove && this.get(rel.linkKey) instanceof Array) { 
+        if (!remove && Array.isArray(this.get(rel.linkKey))) { 
             this.set(rel.linkKey, []);
             return this.forceSave();
         }
@@ -540,7 +550,7 @@ module.exports = class ActiveRecord extends Base {
             foreignModel.set(foreignKey, value);
             return foreignModel.forceSave();
         }
-        if (!(foreignModel.get(foreignKey) instanceof Array)) {
+        if (!Array.isArray(foreignModel.get(foreignKey))) {
             foreignModel.set(foreignKey, []);
         }
         if (MongoHelper.indexOf(value, foreignModel.get(foreignKey)) === -1) {

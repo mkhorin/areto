@@ -91,7 +91,7 @@ module.exports = class MongoQueryBuilder extends Base {
     }
 
     buildCondition (condition) {
-        if (condition instanceof Array) {
+        if (Array.isArray(condition)) {
             // operator format: operator, operand 1, operand 2
             let operator = condition[0];
             return CONDITION_BUILDERS.hasOwnProperty(operator)
@@ -105,7 +105,7 @@ module.exports = class MongoQueryBuilder extends Base {
     buildHashCondition (condition) {
         if (condition) {
             for (let key of Object.keys(condition)) {
-                if (condition[key] instanceof Array) {
+                if (Array.isArray(condition[key])) {
                     condition[key] = {$in: condition[key]};
                 }
             }
@@ -125,7 +125,7 @@ module.exports = class MongoQueryBuilder extends Base {
 
     buildLogicCondition (operands, operator) {
         let parts = [];
-        if (operands instanceof Array) {
+        if (Array.isArray(operands)) {
             for (let operand of operands) {
                 parts.push(this.buildCondition(operand));
             }
@@ -147,7 +147,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('IN requires 2 operands'));
         }
-        let value = operands[1] instanceof Array ? {$in: operands[1]} : operands[1];
+        let value = Array.isArray(operands[1]) ? {$in: operands[1]} : operands[1];
         return {[this.getFieldName(operands[0])]: value};
     }
 
@@ -155,7 +155,7 @@ module.exports = class MongoQueryBuilder extends Base {
         if (operands.length !== 2) {
             throw new Error(this.wrapClassMessage('NOT IN requires 2 operands'));
         }
-        let value = operands[1] instanceof Array ? {$nin: operands[1]} : {$ne: operands[1]};
+        let value = Array.isArray(operands[1]) ? {$nin: operands[1]} : {$ne: operands[1]};
         return {[this.getFieldName(operands[0])]: value};
     }
 
@@ -207,7 +207,7 @@ module.exports = class MongoQueryBuilder extends Base {
             throw new Error(this.wrapClassMessage('ID requires 2 operands'));
         }
         let value = this.db.constructor.normalizeId(operands[1]);
-        value = value instanceof Array ? {$in: value} : value;
+        value = Array.isArray(value) ? {$in: value} : value;
         return {[this.getFieldName(operands[0])]: value};
     }
 
@@ -221,7 +221,7 @@ module.exports = class MongoQueryBuilder extends Base {
             return {$or: [{[field]: {$ne: null}}, {[field]: {$exists: false}}]};
         }
         value = this.db.constructor.normalizeId(value);
-        return {[field]: value instanceof Array ? {$nin: value} : {$ne: value}};
+        return {[field]: Array.isArray(value) ? {$nin: value} : {$ne: value}};
     }
 
     // FALSE

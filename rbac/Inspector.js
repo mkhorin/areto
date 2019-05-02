@@ -35,7 +35,11 @@ module.exports = class Inspector extends Base {
         if (Object.prototype.hasOwnProperty.call(this._ruleCache, rule.name)) {
             return this._ruleCache[rule.name];
         }
-        let model = new rule.Class(rule);
+        let model = new rule.Class({
+            ...rule,
+            'inspector': this,
+            'module': this.module
+        });
         model.params = rule.params
             ? {...rule.params, ...this.params}
             : this.params;

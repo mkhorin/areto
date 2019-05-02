@@ -44,7 +44,11 @@ module.exports = class RouteRbac extends Base {
     }
 
     getRouteItemByPath (path) {
-        path = path.split('?')[0].toLowerCase();
+        let index = path.indexOf('?');
+        if (index !== -1) {
+            path = path.substring(0, index);    
+        }
+        path = path.toLowerCase();
         while (!Object.prototype.hasOwnProperty.call(this.routeMap, path)) {
             if (path.length < 2) {
                 return null;

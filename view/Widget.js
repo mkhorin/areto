@@ -16,7 +16,6 @@ module.exports = class Widget extends Base {
             ...config
         });
         this.controller = this.view.controller;
-        this.module = this.controller.module;
         if (this.caching && !this.cache) {
             this.cache = this.module.get(this.cacheComponentId);
         }

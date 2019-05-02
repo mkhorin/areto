@@ -90,17 +90,17 @@ module.exports = class RelationChangeBehavior extends Base {
             return;
         }
         delete this._changes[name];
-        if (data.removes instanceof Array) {
+        if (Array.isArray(data.removes)) {
             for (let model of data.removes) {
                 await model.remove();
             }
         }
-        if (data.unlinks instanceof Array) {
+        if (Array.isArray(data.unlinks)) {
             for (let model of data.unlinks) {
                 await this.owner.unlink(name, model);
             }
         }
-        if (data.links instanceof Array) {
+        if (Array.isArray(data.links)) {
             for (let model of data.links) {
                 await this.owner.link(name, model);
             }
@@ -115,11 +115,17 @@ module.exports = class RelationChangeBehavior extends Base {
         let relation = this.getRelation(name);
         let docs = await relation.asRaw().all();
         let map = {};
-        docs.forEach(doc => map[doc[relation.model.PK]] = doc);
+        for (let doc of docs) {
+            map[doc[relation.model.PK]] = doc;
+        }
         let data = this._changes[name];
         if (data) {
-            data.links.forEach(model => map[model.getId()] = model.getAttrs());
-            data.unlinks.concat(data.removes).forEach(model => delete map[model.getId()]);
+            for (let model of data.links) {
+                map[model.getId()] = model.getAttrs();
+            }
+            for (let model of data.unlinks.concat(data.removes)) {
+                delete map[model.getId()];
+            }
         }
         return this._linkedDocs = Object.values(map);
     }

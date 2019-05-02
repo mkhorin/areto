@@ -6,7 +6,6 @@
 const Base = require('./Component');
 const ClassHelper = require('../helper/ClassHelper');
 const StringHelper = require('../helper/StringHelper');
-const CONTROLLER_SUFFIX = 'Controller';
 
 module.exports = class Controller extends Base {
 
@@ -20,17 +19,19 @@ module.exports = class Controller extends Base {
     static getConstants () {
         return {
             NAME: this.getName(),
-            // declares allow methods for action if not set then all, name: [ 'GET', 'POST' ]
+            // declare allowed methods for action if not set then all
             METHODS: {
                 // 'logout': ['POST']
             },
-            // declares external actions for the controller
+            // declare external actions for the controller
             ACTIONS: {
                 // 'captcha': { Class: require('areto/captcha/CaptchaAction'), ... }
             },
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction',
             DEFAULT_ACTION: 'index',
+            CONTROLLER_DIR: 'controller',
+            MODEL_DIR: 'model',
             // inherited from module by default
             // ACTION_VIEW: require('./ActionView'),
             // VIEW_LAYOUT: 'default',
@@ -38,19 +39,10 @@ module.exports = class Controller extends Base {
         };
     }
 
-    static getStatics () {
-        return {
-            // prevent to get value from parent classes
-            '_MODEL_CLASS': undefined,
-            '_NESTED_DIR': undefined,
-            '_VIEW_DIR': undefined
-        };
-    }
-    
     static getName () {
-        let index = this.name.lastIndexOf(CONTROLLER_SUFFIX);
-        if (index === -1 || this.name.substring(index) !== CONTROLLER_SUFFIX) {
-            throw new Error(this.wrapClassMessage('Invalid class name'));
+        let index = this.name.lastIndexOf('Controller');
+        if (index === -1) {
+            throw new Error(this.wrapClassMessage(`Invalid controller name: ${this.name}`));
         }
         return StringHelper.camelToId(this.name.substring(0, index));
     }
@@ -59,36 +51,43 @@ module.exports = class Controller extends Base {
         return this.module.getFullName(separator) + separator + this.NAME;
     }
 
-    static getModelClass () {
-        if (this._MODEL_CLASS === undefined) {
-            try {
-                this._MODEL_CLASS = this.module.require('model', this.getNestedDir(), this.getModelClassName());
-            } catch (err) {
-                this._MODEL_CLASS = null;
+    static getActionKeys () {
+        let keys = Object.keys(this.ACTIONS);
+        for (let key of ObjectHelper.getAllFunctionNames(this.prototype)) {
+            if (key.indexOf('action') === 0) {
+                keys.push(StringHelper.camelToId(key.substring(6)));
             }
+        }
+        return keys;
+    }
+
+    static getModelClass () {
+        if (!this.hasOwnProperty('_MODEL_CLASS')) {
+            let closest = FileHelper.getClosestDir(this.CONTROLLER_DIR, this.CLASS_DIR);
+            let dir = path.join(this.MODEL_DIR, this.getNestedDir(), this.getModelClassName());
+            this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
         }
         return this._MODEL_CLASS;
     }
 
     static getModelClassName () {
-        return this.name.substring(0, this.name.lastIndexOf(CONTROLLER_SUFFIX));
-    }
-
-    static getNestedDir () {
-        if (this._NESTED_DIR === undefined) {
-            let currentDir = path.dirname(this.CLASS_FILE);
-            this._NESTED_DIR = FileHelper.getRelativePath(currentDir, this.module.getControllerDir());
-        }
-        return this._NESTED_DIR;
+        return this.name.substring(0, this.name.lastIndexOf('Controller'));
     }
 
     static getViewDir () {
-        if (this._VIEW_DIR === undefined) {
+        if (!this.hasOwnProperty('_VIEW_DIR')) {
             this._VIEW_DIR = this.getNestedDir()
                 ? `${this.getNestedDir()}/${this.NAME}/`
                 : `${this.NAME}/`;
         }
         return this._VIEW_DIR;
+    }
+
+    static getNestedDir () {
+        if (!this.hasOwnProperty('_NESTED_DIR')) {
+            this._NESTED_DIR = FileHelper.getRelativePathByDir(this.CONTROLLER_DIR, this.CLASS_DIR);
+        }
+        return this._NESTED_DIR;
     }
 
     constructor (config) {
@@ -97,43 +96,26 @@ module.exports = class Controller extends Base {
         this.response.controller = this;
         this.i18n = this.module.components.get('i18n');
         this.formatter = this.module.components.get('formatter');
+        this.language = this.language || (this.i18n && this.i18n.getActiveNotSourceLanguage());
+        this.timestamp = Date.now();
+    }
+
+    createModel (params) {
+        return this.spawn(this.getModelClass(), {'user': this.user, ...params});
     }
 
     getModelClass () {
         return this.constructor.getModelClass();
     }
 
-    createModel (params) {
-        return new (this.getModelClass())(params);
-    }
-
-    getActionIds () {
-        let ids = Object.keys(this.ACTIONS);
-        for (let id of ObjectHelper.getAllFunctionNames(this)) {
-            if (id.indexOf('action') === 0) {
-                ids.push(StringHelper.camelToId(id.substring(6)));
-            }
-        }
-        return ids;
-    }
-
     assignSource (controller) {
+        this.module = controller.module;
         this.req = controller.req;
         this.res = controller.res;
         this.err = controller.err;
         this.user = controller.user;
         this.language = controller.language;
         this.timestamp = controller.timestamp;
-        return this;
-    }
-
-    assign (req, res, err) {
-        this.req = req;
-        this.res = res;
-        this.err = err;
-        this.user = res.locals.user;
-        this.language = res.locals.language || (this.i18n && this.i18n.getActiveNotSourceLanguage());
-        this.timestamp = Date.now();
         return this;
     }
 
@@ -158,6 +140,8 @@ module.exports = class Controller extends Base {
         this.response.end();
     }
 
+    // ACTION
+
     createAction (name) {
         name = name || this.DEFAULT_ACTION;
         return this.createInlineAction(name) || this.createMapAction(name);
@@ -166,9 +150,10 @@ module.exports = class Controller extends Base {
     createInlineAction (name) {
         let method = `action${StringHelper.idToCamel(name)}`;
         if (typeof this[method] === 'function') {
-            return ClassHelper.createInstance(this.INLINE_ACTION || this.module.InlineAction, {
-                'name': name,
+            return ClassHelper.spawn(this.INLINE_ACTION || this.module.InlineAction, {
                 'controller': this,
+                'module': this.module,
+                'name': name,
                 'method': this[method]
             });
         }
@@ -176,9 +161,10 @@ module.exports = class Controller extends Base {
 
     createMapAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
-            return ClassHelper.createInstance(this.ACTIONS[name], {
-                'name': name,
-                'controller': this
+            return ClassHelper.spawn(this.ACTIONS[name], {
+                'controller': this,
+                'module': this.module,
+                'name': name
             });
         }
     }
@@ -237,10 +223,10 @@ module.exports = class Controller extends Base {
 
     // FLASH MESSAGES
 
-    setFlash (key, msg) {
+    setFlash (key, message) {
         typeof this.req.flash === 'function'
-            ? this.req.flash(key, msg)
-            : this.log('error', 'Session flash not found', msg);
+            ? this.req.flash(key, message)
+            : this.log('error', 'Session flash not found', message);
     }
 
     getFlash (key) {
@@ -277,10 +263,8 @@ module.exports = class Controller extends Base {
         return this;
     }
 
-    setHttpHeader (name, value) {
-        typeof name === 'string'
-            ? this.res.set(name, value)
-            : this.res.set(name);
+    setHttpHeader (...args) {
+        this.res.set(...args);
         return this;
     }
 
@@ -315,7 +299,8 @@ module.exports = class Controller extends Base {
     }
 
     createView (params) {
-        return ClassHelper.createInstance(this.ACTION_VIEW || this.module.ActionView, {
+        return ClassHelper.spawn(this.ACTION_VIEW || this.module.ActionView, {
+            'module': this.module,
             'controller': this,
             'theme': this.module.get('view').getTheme(),
             ...params
@@ -326,9 +311,7 @@ module.exports = class Controller extends Base {
         if (typeof name !== 'string') {
             name = String(name);
         }
-        return name.indexOf('/') === -1 && name.indexOf(':') === -1
-            ? this.constructor.getViewDir() + name
-            : name;
+        return path.isAbsolute(name) ? name : (this.constructor.getViewDir() + name);
     }
 
     // SEND
@@ -364,7 +347,7 @@ module.exports = class Controller extends Base {
     }
 
     createUrl (data) {        
-        return this.module.components.get('url').resolve(data, this);
+        return this.module.components.get('url').resolve(data, this.NAME);
     }
 
     getHostUrl () {
@@ -382,8 +365,8 @@ module.exports = class Controller extends Base {
     // I18N
 
     translate (message, category = 'app', params) {
-        if (message instanceof Array) {
-            return this.translate.apply(this, message); // message as arguments
+        if (Array.isArray(message)) {
+            return this.translate(...message);
         }
         if (message instanceof Message) {
             return message.translate(this.i18n, this.language);

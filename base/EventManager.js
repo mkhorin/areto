@@ -60,9 +60,10 @@ module.exports = class EventManager extends Base {
             return Event.trigger(this.owner, name, event); // invoke class-level handlers
         }
         event = Event.create(event, this.owner, name);
-        let tasks = this._events[name].map(handler => {
-            return handler[0].bind(this, event, handler[1]);
-        });
+        let tasks = [];
+        for (let handler of this._events[name]) {
+            tasks.push(handler[0].bind(this, event, handler[1]));
+        }
         return Event.trigger(this.owner, name, event, tasks);
     }
 

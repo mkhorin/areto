@@ -20,14 +20,14 @@ module.exports = class Migrator extends Base {
     }
 
     getPath (...args) {
-        return this.module.getPath.apply(this.module, args);
+        return this.module.getPath(...args);
     }
 
     async migrate (action, files) {
         if (action !== 'apply' && action !== 'revert') {
             throw new Error(`Migration action (apply/revert) is not set: ${action}`);
         }
-        if (!(files instanceof Array)) {
+        if (!Array.isArray(files)) {
             return this.createMigration(files, action);
         }
         for (let file of files) {
@@ -38,9 +38,7 @@ module.exports = class Migrator extends Base {
     async createMigration (file, action) {
         this.log('info', `Start to ${action}: ${file}`);
         let Migration = require(this.getPath(file));
-        let migration = new Migration({
-            'migrator': this
-        });
+        let migration = this.spawn(Migration, {'migrator': this});
         await migration[action]();
         this.log('info', `Done: ${file}`);
     }

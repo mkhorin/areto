@@ -9,7 +9,6 @@ module.exports = class UserStampBehavior extends Base {
 
     constructor (config) {
         super({
-            'format': null, // 'YYYY-MM-DD HH:mm:ss';
             'creatorAttr': 'creator', // or false
             'editordAttr': 'editor',
             ...config

@@ -35,7 +35,7 @@ module.exports = class AccessRule extends Base {
     }
 
     async match (user) {
-        if (!(this.roles instanceof Array)) {
+        if (!Array.isArray(this.roles)) {
             return;
         }
         let roles = [];

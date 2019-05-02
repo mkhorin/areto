@@ -1,4 +1,4 @@
-# Areto
+# Areto Framework
 
 ## Node.js MVC Framework
 

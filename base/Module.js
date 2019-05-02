@@ -23,49 +23,23 @@ module.exports = class Module extends Base {
                 'view': {}
             },
             COMPONENT_CONFIG: {
-                'asset': {
-                    Class: require('../web/asset/AssetManager')
-                },
+                'asset': {'Class': require('../web/asset/AssetManager')},
                 'bodyParser': {
-                    Class: require('../web/BodyParser'),
-                    extended: true
+                    'Class': require('../web/BodyParser'),
+                    'extended': true
                 },
-                'cache': {
-                    Class: require('../cache/Cache')
-                },
-                'connection': {
-                    Class: require('../db/Connection')
-                },
-                'cookie': {
-                    Class: require('../web/Cookie')
-                },
-                'forwarder': {
-                    Class: require('../web/Forwarder'),
-                },
-                'logger': {
-                    Class: require('../log/Logger')
-                },
-                'rateLimit': {
-                    Class: require('../web/rate-limit/RateLimit')
-                },
-                'rbac': {
-                    Class: require('../rbac/Rbac')
-                },
-                'router': {
-                    Class: require('../web/Router')
-                },
-                'scheduler': {
-                    Class: require('../scheduler/Scheduler')
-                },
-                'session': {
-                    Class: require('../web/session/Session')
-                },
-                'url': {
-                    Class: require('../web/UrlManager')
-                },
-                'user': {
-                    Class: require('../web/User')
-                }
+                'cache': {'Class': require('../cache/Cache')},
+                'connection': {'Class': require('../db/Connection')},
+                'cookie': {'Class': require('../web/Cookie')},
+                'forwarder': {'Class': require('../web/Forwarder')},
+                'logger': {'Class': require('../log/Logger')},
+                'rateLimit': {'Class': require('../web/rate-limit/RateLimit')},
+                'rbac': {'Class': require('../rbac/Rbac')},
+                'router': {'Class': require('../web/Router')},
+                'scheduler': {'Class': require('../scheduler/Scheduler')},
+                'session': {'Class': require('../web/session/Session')},
+                'url': {'Class': require('../web/UrlManager')},
+                'user': {'Class': require('../web/User')}
             },
             INHERITED_UNDEFINED_CONFIG_KEYS: [
                 'params',
@@ -89,23 +63,25 @@ module.exports = class Module extends Base {
     constructor (config) {
         super({
             'ActionView': require('../view/ActionView'),
+            'ClassMapper': require('./ClassMapper'),
             'Configuration':  require('./Configuration'),
             'DependentOrder':  require('./DependentOrder'),
             'Express': require('./Express'),
             'InlineAction': require('./InlineAction'),
             ...config
         });
+        this.module = this;
         this.modules = new DataMap;
         this.components = new DataMap; // all components (with inherited)
-        this.moduleComponents = new DataMap; // own module components
+        this.ownComponents = new DataMap; // own module components
+        this.app = this.parent ? this.parent.app : this;
         this.express = this.createExpress();
-        this.setParent();
     }
 
     getTitle () {
         return this.config.get('title') || this.NAME;
     }
-
+    
     get (id) {
         return this.components.get(id);
     }
@@ -118,9 +94,13 @@ module.exports = class Module extends Base {
         let connection = this.components.get(id);
         return connection && connection.driver;
     }
+    
+    getClass (...args) {
+        return this.classMapper.get(...args);
+    }
 
-    getConfig () {
-        return this.config.get.apply(this.config, arguments);
+    getConfig (...args) {
+        return this.config.get(...args);
     }
 
     getParam (key, defaults) {
@@ -134,15 +114,18 @@ module.exports = class Module extends Base {
     }
 
     getPath (...args) {
-        return path.join.apply(path, [path.dirname(this.CLASS_FILE)].concat(args));
+        return path.join(this.CLASS_DIR, ...args);
     }
 
     require (...args) {
-        return require(this.getPath.apply(this, args));
+        try {
+            return require(this.getPath.apply(this, args));
+        } catch (err) {}
+        return require(path.join.apply(path, args));
     }
 
     getRelativePath (file) {
-        return file.substring(this.getPath().length + 1);
+        return FileHelper.getRelativePath(this.getPath(), file);
     }
 
     getControllerDir () {
@@ -167,11 +150,6 @@ module.exports = class Module extends Base {
         }
         module = this.modules.get(name.substring(0, pos));
         return module ? module.getModule(name.substring(pos + 1)) : null;
-    }
-
-    setParent () {
-        this.parent = ClassHelper.getParentModule(this);
-        this.app = this.parent.app;
     }
 
     log (type, message, data) {
@@ -241,11 +219,11 @@ module.exports = class Module extends Base {
     // INIT
 
     async init (config) {
-        Object.assign(this, config);
         await this.beforeInit();
+        await this.createOrigin();
         await this.createConfiguration();
-        this.inheritUndefinedConfig();
-        this.extractConfig();
+        await this.createClassMapper();
+        this.extractConfigProps();
         this.setMountPath();
         this.attachStaticSource(this.getParam('static'));
         this.addViewEngine(this.getParam('template'));
@@ -260,30 +238,37 @@ module.exports = class Module extends Base {
         this.log('info', `Configured as ${this.config.getTitle()}`);
     }
 
-    async createConfiguration () {
-        this.config = ClassHelper.createInstance(this.Configuration, {
-            'module': this,
-            'dir': this.getPath('config'),
-            'name': this.configName,
-            'parent': this.parent && this.parent.config
-        });
-        await this.config.load();
-    }
-
-    inheritUndefinedConfig () {
-        if (this.parent) {
-            this.INHERITED_UNDEFINED_CONFIG_KEYS.forEach(key => {
-                this.config.deepAssignUndefinedByKey(key, this.parent.getConfig(key));
-            });
+    async createOrigin () {
+        if (this.origin) {
+            this.origin = this.spawn(this.origin);
+            await this.origin.createConfiguration();
+            await this.origin.createClassMapper();
+            this.origin.extractConfigProps();
         }
     }
 
-    extractConfig () {
+    async createConfiguration () {
+        this.config = this.spawn(this.Configuration, {
+            'dir': this.getPath('config'),
+            'name': this.configName,
+            'parent': this.parent && this.parent.config,
+            'origin': this.origin && this.origin.config
+        });
+        await this.config.load();
+        this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIG_KEYS);
+    }
+
+    extractConfigProps () {
         this.params = this.getConfig('params') || {};
     }
 
     setMountPath () {
         this.mountPath = this.getConfig('mountPath', this.parent ? `/${this.NAME}` : '/');
+    }
+
+    async createClassMapper () {
+        this.classMapper = this.spawn(this.ClassMapper);
+        await this.classMapper.init();
     }
 
     // MODULES
@@ -298,9 +283,17 @@ module.exports = class Module extends Base {
         if (!config) {
             return this.log('info', `Module skipped: ${id}`);
         }
-        let module = require(this.getPath('module', id, 'module'));
+        if (!config.Class) {
+            config.Class = this.getModuleClass(id) || this.origin && this.origin.getModuleClass(id);
+        }
+        let module = ClassHelper.spawn(config, {'parent': this});
         this.modules.set(id, module);
-        return module.init(config);
+        return module.init();
+    }
+
+    getModuleClass (id) {
+        const file = this.getPath('module', id, 'Module.js');
+        return fs.existsSync(file) ? require(file) : null;
     }
 
     // COMPONENTS
@@ -323,8 +316,8 @@ module.exports = class Module extends Base {
         for (let id of Object.keys(data)) {
             let component = this.createComponent(id, data[id]);
             if (component) {
-                this.moduleComponents.set(id, component);
-                this.components.set(id, component);
+                this.ownComponents.set(id, component);
+                this.components.set(id, component); // with inherited components
             }
         }
     }
@@ -337,17 +330,17 @@ module.exports = class Module extends Base {
             ...this.COMPONENT_CONFIG[id],
             ...config
         };
-        config.module = config.module || this;
         config.id = id;
+        config.parent = this.getParentComponent(id);
         let name = StringHelper.idToCamel(config.componentMethodName || config.id);
         let method = `create${name}Component`;
         return typeof this[method] === 'function'
             ? this[method](config)
-            : ClassHelper.createInstance(config);
+            : this.spawn(config);
     }
 
     createFormatterComponent (config) {
-        return ClassHelper.createInstance({
+        return this.spawn({
             'Class': require('../i18n/Formatter'),
             'i18n': this.components.get('i18n'),
             ...config
@@ -355,17 +348,17 @@ module.exports = class Module extends Base {
     }
 
     createI18nComponent (config) {
-        return ClassHelper.createInstance({
+        return this.spawn({
             'Class': require('../i18n/I18n'),
-            'parent': this.getParentComponent(config.id),
             ...config
         });
     }
 
     createViewComponent (config) {
-        return ClassHelper.createInstance({
+        let origin = this.origin && this.origin.createViewComponent(config);
+        return this.spawn({
             'Class': require('../view/View'),
-            'parent': this.getParentComponent(config.id),
+            'origin': origin,
             ...config
         });
     }
@@ -373,13 +366,13 @@ module.exports = class Module extends Base {
     // INIT COMPONENT
 
     async initComponents () {
-        for (let component of this.orderComponents()) {
+        for (let component of this.sortComponents()) {
             await this.initComponent(component);
         }
     }
 
-    orderComponents () {
-        return ClassHelper.createInstance(this.DependentOrder).sort(this.moduleComponents.values());
+    sortComponents () {
+        return this.spawn(this.DependentOrder).sort(this.ownComponents.values());
     }
 
     async initComponent (component) {
@@ -400,14 +393,11 @@ module.exports = class Module extends Base {
     // EXPRESS
 
     createExpress (params) {
-        return ClassHelper.createInstance(this.Express, {
-            'module': this,
-            ...params
-        });
+        return this.spawn(this.Express, params);
     }
 
-    addHandler () {
-        this.express.add.apply(this.express, arguments);
+    addHandler (...args) {
+        this.express.add(...args);
     }
 
     addViewEngine (data) {
@@ -416,11 +406,18 @@ module.exports = class Module extends Base {
 
     attachStaticSource (data) {
         if (data) {
-            let dir = this.getPath(data.dir || 'web');
-            if (fs.existsSync(dir)) {
-                // use static content handlers before others
-                this.app.mainExpress.attachStatic(this.getRoute(), dir, data.options);
+            this.attachStaticByModule(this, data);
+            if (this.origin) {
+                this.attachStaticByModule(this.origin, data);
             }
+        }
+    }
+
+    attachStaticByModule (module, data) {
+        let dir = module.getPath('web');
+        if (fs.existsSync(dir)) {
+            // use static content handlers before others
+            this.app.mainExpress.attachStatic(this.getRoute(), dir, data.options);
         }
     }
 
@@ -450,6 +447,7 @@ module.exports.init();
 const fs = require('fs');
 const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
+const FileHelper = require('../helper/FileHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const AssignHelper = require('../helper/AssignHelper');

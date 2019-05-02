@@ -47,7 +47,7 @@ module.exports = class Scheduler extends Base {
         }
         try {
             config.Class = config.Class || Task;
-            let task = ClassHelper.createInstance(config, {
+            let task = this.spawn(config, {
                 'name': name,
                 'scheduler': this
             });
@@ -128,5 +128,4 @@ module.exports = class Scheduler extends Base {
 };
 module.exports.init();
 
-const ClassHelper = require('../helper/ClassHelper');
 const Task = require('./Task');

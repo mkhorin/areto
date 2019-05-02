@@ -26,8 +26,8 @@ module.exports = class Driver extends Base {
         this.builder = new this.QueryBuilder(this);
     }
 
-    normalizeId () {
-        return this.constructor.normalizeId.apply(this.constructor, arguments);
+    normalizeId (id) {
+        return this.constructor.normalizeId(id);
     }
 
     getUri (withPassword) {

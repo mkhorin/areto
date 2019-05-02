@@ -28,6 +28,8 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
                 // [['attr1'], 'unsafe'] - skip to load
             ],
+            CONTROLLER_DIR: 'controller',
+            MODEL_DIR: 'model',
             DEFAULT_SCENARIO: 'default',
             SCENARIOS: {
                 // default: ['attr1', 'attr2']
@@ -63,24 +65,6 @@ module.exports = class Model extends Base {
 
     // ATTRIBUTES
 
-    has (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrs, name);
-    }
-
-    get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
-            return this._attrs[name];
-        }
-    }
-
-    set (name, value) {
-        this._attrs[name] = value;
-    }
-
-    unset (name) {
-        delete this._attrs[name];
-    }
-
     isAttrActive (name) {
         return this.getActiveAttrNames().includes(name);
     }
@@ -96,6 +80,16 @@ module.exports = class Model extends Base {
             }
         }
         return false;
+    }
+
+    has (name) {
+        return Object.prototype.hasOwnProperty.call(this._attrs, name);
+    }
+
+    get (name) {
+        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
+            return this._attrs[name];
+        }
     }
 
     getAttrLabel (name) {
@@ -137,13 +131,13 @@ module.exports = class Model extends Base {
 
     getScenarioAttrNames (scenario) {
         let names = {};
-        let only = this.SCENARIOS[scenario] instanceof Array
+        let only = Array.isArray(this.SCENARIOS[scenario])
             ? this.SCENARIOS[scenario]
             : this.SCENARIOS[this.DEFAULT_SCENARIO];
         for (let validator of this.getValidators()) {
             if (validator.isActive(scenario)) {
                 for (let name of validator.attrs) {
-                    if (!(only instanceof Array) || only.includes(name)) {
+                    if (!Array.isArray(only) || only.includes(name)) {
                         names[name] = true;
                     }
                 }
@@ -164,6 +158,14 @@ module.exports = class Model extends Base {
         return values;
     }
 
+    set (name, value) {
+        this._attrs[name] = value;
+    }
+
+    setFromModel (name, model) {
+        this._attrs[name] = model.get(name);
+    }
+
     setSafeAttrs (data) {
         if (data) {
             for (let name of this.getSafeAttrNames()) {
@@ -178,7 +180,7 @@ module.exports = class Model extends Base {
         data = data instanceof Model ? data._attrs : data;
         if (data) {
             for (let key of Object.keys(data)) {
-                if (except instanceof Array ? !except.includes(key) : (except !== key)) {
+                if (Array.isArray(except) ? !except.includes(key) : (except !== key)) {
                     this._attrs[key] = data[key];
                 }
             }
@@ -187,6 +189,10 @@ module.exports = class Model extends Base {
 
     assignAttrs (data) {
         Object.assign(this._attrs, data instanceof Model ? data._attrs : data);
+    }
+
+    unset (name) {
+        delete this._attrs[name];
     }
 
     // VIEW ATTRIBUTES
@@ -262,7 +268,7 @@ module.exports = class Model extends Base {
     addErrors (data) {
         if (data) {
             for (let attr of Object.keys(data)) {
-                if (data[attr] instanceof Array) {
+                if (Array.isArray(data[attr])) {
                     for (let value of data[attr]) {
                         this.addError(attr, value);
                     }
@@ -293,12 +299,12 @@ module.exports = class Model extends Base {
     // EVENTS
 
     beforeValidate () {
-        // await super.beforeValidate() if override this method
+        // call await super.beforeValidate() if override this method
         return this.trigger(this.EVENT_BEFORE_VALIDATE);
     }
 
     afterValidate () {
-        // await super.afterValidate() if override this method
+        // call await super.afterValidate() if override this method
         return this.trigger(this.EVENT_AFTER_VALIDATE);
     }
 
@@ -312,6 +318,13 @@ module.exports = class Model extends Base {
         }
         await this.afterValidate();
         return !this.hasError();
+    }
+
+    addValidator (rule) {
+        rule = this.createValidator(rule);
+        if (rule) {
+            this.getValidators().push(rule);
+        }
     }
 
     getValidators () {
@@ -347,13 +360,6 @@ module.exports = class Model extends Base {
         }
     }
 
-    addValidator (rule) {
-        rule = this.createValidator(rule);
-        if (rule) {
-            this.getValidators().push(rule);
-        }
-    }
-
     createValidators () {
         let validators = [];
         for (let rule of this.RULES) {
@@ -369,7 +375,7 @@ module.exports = class Model extends Base {
         if (rule instanceof Validator) {
             return rule;
         }
-        if (rule instanceof Array && rule[0] && rule[1]) {
+        if (Array.isArray(rule) && rule[0] && rule[1]) {
             return Validator.createValidator(rule[1], this, rule[0], rule[2]);
         }
         this.log('error', 'Invalid validation rule', rule);
@@ -377,16 +383,39 @@ module.exports = class Model extends Base {
 
     // MODEL CONTROLLER
 
-    getControllerClass () {
-        return require(this.module.getPath('controller', `${this.NAME}Controller`));
+    static getControllerClass () {
+        if (!this.hasOwnProperty('_CONTROLLER_CLASS')) {
+            let closest = FileHelper.getClosestDir(this.MODEL_DIR, this.CLASS_DIR);
+            let dir = path.join(this.CONTROLLER_DIR, this.getNestedDir(), this.getControllerClassName());
+            this._CONTROLLER_CLASS = require(path.join(path.dirname(closest), dir));
+        }
+        return this._CONTROLLER_CLASS;
     }
 
-    createController (params) {
-        return new (this.getControllerClass())(params);
+    static getControllerClassName () {
+        return this.NAME + 'Controller';
+    }
+
+    static getNestedDir () {
+        if (!this.hasOwnProperty('_NESTED_DIR')) {
+            this._NESTED_DIR = FileHelper.getRelativePathByDir(this.MODEL_DIR, this.CLASS_DIR);
+        }
+        return this._NESTED_DIR;
+    }
+
+    getControllerClass () {
+        return this.constructor.getControllerClass();
+    }
+
+    createController (config) {
+        return this.spawn(this.getControllerClass(), config);
     }
 };
 module.exports.init();
 
+const path = require('path');
+const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
+const Event = require('../base/Event');
 const Validator = require('../validator/Validator');

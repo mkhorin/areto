@@ -50,7 +50,7 @@ module.exports = class Pagination extends Base {
             return this.pageSize = null;
         }
         value = parseInt(value);
-        if (this.pageSizeLimit instanceof Array && this.pageSizeLimit.length === 2) {
+        if (Array.isArray(this.pageSizeLimit) && this.pageSizeLimit.length === 2) {
             if (value < this.pageSizeLimit[0]) {
                 value = this.pageSizeLimit[0];
             } else if (value > this.pageSizeLimit[1]) {

@@ -3,29 +3,30 @@
  */
 'use strict';
 
-const MODULE_FILENAME = 'module.js';
 const CONSTANT_METHOD = 'getConstants';
 const STATIC_METHOD = 'getStatics';
 
 module.exports = class ClassHelper {
 
-    static normalizeInstanceConfig (config, params) {
-        return Object.assign(typeof config === 'function'
-            ? {Class: config}
-            : config, params);
-    }
-
-    static createInstance (config, params) {
+    static spawn (config, params) {
         if (typeof config === 'function') {
             return new config(params);
         }
+        if (typeof config === 'string') {
+            return new (params.module.getClass(config))(params);
+        }
         if (params) {
-            Object.assign(config, params);
+            config = {...config, ...params};
         }
-        if (config && config.Class) {
-            return new config.Class(config);
-        }
-        throw new Error(`Invalid class config: ${util.inspect(config)}`);
+        return typeof config.Class === 'string'
+            ? new (config.module.getClass(config.Class))(config)
+            : new config.Class(config);
+    }
+
+    static normalizeConfig (config, params) {
+        return Object.assign(typeof config === 'function'
+            ? {Class: config}
+            : config, params);
     }
 
     static resolveConfigClass (config, module) {
@@ -38,34 +39,6 @@ module.exports = class ClassHelper {
     static defineClassProp (Class, name, value, writable) {
         Object.defineProperty(Class, name, {value, writable});
         Object.defineProperty(Class.prototype, name, {value, writable});
-    }
-
-    static defineModuleClassProp (Class, nodeModule, moduleFileName = MODULE_FILENAME) {
-        if (nodeModule) {
-            this.defineClassProp(Class, 'CLASS_FILE', nodeModule.filename);
-            if (path.basename(nodeModule.filename) !== moduleFileName) {
-                this.defineClassProp(Class, 'module', this.getClosestModule(nodeModule.filename, moduleFileName));
-            }
-        }
-    }
-
-    static getClosestModule (file, moduleFileName = MODULE_FILENAME) {
-        let dir = FileHelper.getClosestDir(file, moduleFileName);
-        let Module = require('../base/Module');
-        let module = require(path.join(dir, moduleFileName));
-        return module instanceof Module
-            ? module
-            : this.getClosestModule(dir, moduleFileName);
-    }
-
-    static getParentModule (module, moduleFileName = MODULE_FILENAME) {
-        try {
-            let parent = require(path.join(module.CLASS_FILE, '../../../', moduleFileName));
-            let Module = require('../base/Module');
-            return parent instanceof Module && parent !== module ? parent : null;
-        } catch (err) {
-            return null;
-        }
     }
 
     static defineConstantClassProps (Class, methodName = CONSTANT_METHOD) {
@@ -105,7 +78,7 @@ module.exports = class ClassHelper {
 
     static getExtendedClassProp (name, childProp, parentProp) {
         if (childProp && parentProp) {
-            if (childProp instanceof Array && parentProp instanceof Array) {
+            if (Array.isArray(childProp) && Array.isArray(parentProp)) {
                 return [].concat(parentProp, childProp);
             }
             if (typeof childProp === 'object' && typeof parentProp === 'object') {
@@ -116,6 +89,4 @@ module.exports = class ClassHelper {
     }
 };
 
-const path = require('path');
 const util = require('util');
-const FileHelper = require('./FileHelper');

@@ -28,7 +28,7 @@ module.exports = class PromiseHelper {
     }
 
     static async each (items, handler) {
-        if (items instanceof Array) {
+        if (Array.isArray(items)) {
             for (let item of items) {
                 await handler(item);
             }
@@ -44,7 +44,7 @@ module.exports = class PromiseHelper {
     }
 
     static async eachMethod (items, method) {
-        if (items instanceof Array) {
+        if (Array.isArray(items)) {
             for (let item of items) {
                 await item[method]();
             }
@@ -53,7 +53,7 @@ module.exports = class PromiseHelper {
 
     static async map (items, handler) {
         let result = [];
-        if (items instanceof Array) {
+        if (Array.isArray(items)) {
             for (let item of items) {
                 result.push(await handler(item));
             }

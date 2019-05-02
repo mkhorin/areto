@@ -22,6 +22,7 @@ module.exports = class Behavior extends Base {
 
     attach (owner) {
         this.owner = owner;
+        this.module = owner.module;
         for (let name of Object.keys(this._handlers)) {
             this.owner.on(name, this._handlers[name]);
         }

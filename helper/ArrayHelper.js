@@ -42,7 +42,7 @@ module.exports = class ArrayHelper {
 
     static flip (values) {
         let map = {};
-        if (values instanceof Array) {
+        if (Array.isArray(values)) {
             for (let i = 0; i < values.length; ++i) {
                 map[values[i]] = i;
             }
@@ -51,7 +51,7 @@ module.exports = class ArrayHelper {
     }
 
     static removeValue (value, values) {
-        if (!(values instanceof Array)) {
+        if (!Array.isArray(values)) {
             return false;
         }
         value = values.indexOf(value);
@@ -63,14 +63,12 @@ module.exports = class ArrayHelper {
     }
 
     static concatValues (values) {
-        return values instanceof Array
-            ? Array.prototype.concat.apply([], values)
-            : values;
+        return Array.isArray(values) ? Array.prototype.concat.apply([], values) : values;
     }
 
     static getObjectPropValues (items, prop) {
         let values = [];
-        if (items instanceof Array) {
+        if (Array.isArray(items)) {
             for (let item of items) {
                 if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
                     values.push(item[prop]);
@@ -81,7 +79,7 @@ module.exports = class ArrayHelper {
     }
 
     static searchByProp (value, searchProp, items, returnProp) {
-        if (items instanceof Array) {
+        if (Array.isArray(items)) {
             for (let item of items) {
                 if (item && item[searchProp] === value) {
                     return returnProp === undefined ? item : item[returnProp];
@@ -94,7 +92,7 @@ module.exports = class ArrayHelper {
 
     static indexObjects (docs, keyProp, valueProp) {
         let map = {};
-        if (!(docs instanceof Array)) {
+        if (!Array.isArray(docs)) {
             return map;
         }
         for (let doc of docs) {
@@ -105,7 +103,7 @@ module.exports = class ArrayHelper {
             let key = doc[keyProp];
             if (!Object.prototype.hasOwnProperty.call(map, key)) {
                 map[key] = value;
-            } else if (map[key] instanceof Array) {
+            } else if (Array.isArray(map[key])) {
                 map[key].push(value);
             } else {
                 map[key] = [map[key], value];
@@ -116,7 +114,7 @@ module.exports = class ArrayHelper {
 
     static indexUniqueKeyObjects (docs, keyProp, valueProp) {
         let map = {};
-        if (!(docs instanceof Array)) {
+        if (!Array.isArray(docs)) {
             return map;
         }
         for (let doc of docs) {
@@ -131,7 +129,7 @@ module.exports = class ArrayHelper {
 
     static indexModels (models, keyAttr, valueAttr) {
         let map = {};
-        if (!(models instanceof Array)) {
+        if (!Array.isArray(models)) {
             return map;
         }
         for (let model of models) {
@@ -139,7 +137,7 @@ module.exports = class ArrayHelper {
             let key = model.get(keyAttr);
             if (!Object.prototype.hasOwnProperty.call(map, key)) {
                 map[key] = value;
-            } else if (map[key] instanceof Array) {
+            } else if (Array.isArray(map[key])) {
                 map[key].push(value);
             } else {
                 map[key] = [map[key], value];
@@ -150,7 +148,7 @@ module.exports = class ArrayHelper {
 
     static indexUniqueKeyModels (models, keyAttr, valueAttr) {
         let map = {};
-        if (!(models instanceof Array)) {
+        if (!Array.isArray(models)) {
             return map;
         }
         for (let model of models) {
@@ -164,13 +162,13 @@ module.exports = class ArrayHelper {
     // RANDOM
 
     static getRandom (values) {
-        if (values instanceof Array && values.length) {
+        if (Array.isArray(values) && values.length) {
             return values[Math.floor(Math.random() * values.length)];
         }
     }
 
     static shuffle (values) {
-        if (values instanceof Array) {
+        if (Array.isArray(values)) {
             let i = values.length;
             while (i) {
                 let j = Math.floor((i--) * Math.random());
@@ -189,7 +187,7 @@ module.exports = class ArrayHelper {
         for (let item of items) {
             if (!item[parentProp]) {
                 result.push(item);
-            } else if (map[item[parentProp]] instanceof Array) {
+            } else if (Array.isArray(map[item[parentProp]])) {
                 map[item[parentProp]].push(item);
             } else {
                 map[item[parentProp]] = [item];
@@ -197,7 +195,7 @@ module.exports = class ArrayHelper {
         }
         for (let i = 0; i < result.length; ++i) {
             let item = result[i];
-            if (map[item[idProp]] instanceof Array) {
+            if (Array.isArray(map[item[idProp]])) {
                 result = result.concat(map[item[idProp]]);
             }
         }

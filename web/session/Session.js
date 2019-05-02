@@ -22,9 +22,7 @@ module.exports = class Session extends Base {
     }
 
     init () {
-        this.store = ClassHelper.createInstance(this.store, {
-            'session': this
-        });
+        this.store = ClassHelper.spawn(this.store, {'session': this});
         this.module.addHandler('use', session(this));
         this.module.addHandler('use', flash());
     }

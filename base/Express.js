@@ -37,12 +37,13 @@ module.exports = class Express extends Base {
     }
 
     attach (method, ...args) {
-        this._express[method].apply(this._express, args);
+        this._express[method](...args);
         this.log('trace', method, args[0]);
     }
 
     attachStatic (route, dir, options) {
-        return this.attach('use', route, express.static(dir, options));
+        this.attach('use', route, express.static(dir, options));
+        this.log('trace', 'static', dir);
     }
 
     attachChild (mountPath, express) {
@@ -64,7 +65,6 @@ module.exports = class Express extends Base {
     }
 };
 
-const fs = require('fs');
 const express = require('express');
 const http = require('http');
 const CommonHelper = require('../helper/CommonHelper');

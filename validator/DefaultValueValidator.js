@@ -9,19 +9,18 @@ module.exports = class DefaultValueValidator extends Base {
 
     constructor (config) {
         super({
-            value: null,
-            skipOnEmpty: false,
+            'value': null,
+            'skipOnEmpty': false,
             ...config
         });
     }
 
-    validateAttr (model, attr) {
+    async validateAttr (model, attr) {
         if (!this.isEmptyValue(model.get(attr))) {
             return;
         }
-        if (typeof this.value === 'function') {
-            return this.value.call(this, model, attr, this);
-        }
-        model.set(attr, this.value);
+        model.set(attr, typeof this.value === 'function'
+            ? await this.value.call(this, model, attr, this)
+            : this.value);
     }
 };

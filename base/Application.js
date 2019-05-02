@@ -5,13 +5,14 @@
 
 const Base = require('./Module');
 
-module.exports = class App extends Base {
+module.exports = class Application extends Base {
 
     static getConstants () {
         return {
             DEFAULT_COMPONENTS: {
                 'bodyParser': {},
                 'formatter': {},
+                'router': {},
                 'url': {},
                 'view': {}
             },
@@ -27,8 +28,8 @@ module.exports = class App extends Base {
         this._urlCache = {};
     }
 
-    async init (config) {
-        await super.init(config);
+    async init () {
+        await super.init();
         this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
     }
 
@@ -37,10 +38,6 @@ module.exports = class App extends Base {
             this._route = this.mountPath === '/' ? '' : this.mountPath;
         }
         return url ? `${this._route}/${url}` : this._route;
-    }
-
-    setParent () {
-        this.app = this;
     }
 
     start () {

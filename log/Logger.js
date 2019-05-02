@@ -25,7 +25,7 @@ module.exports = class Logger extends Base {
             'processingTimeThreshold': 0, // ms
             ...config
         });
-        this.store = ClassHelper.createInstance(this.store, {'logger': this});
+        this.store = ClassHelper.spawn(this.store, {'logger': this});
         this.createTypes();
     }
 
@@ -60,7 +60,7 @@ module.exports = class Logger extends Base {
             Object.assign(config, type);
             Object.assign(type, config);
         } else {
-            type = ClassHelper.createInstance(Object.assign(config, type));
+            type = ClassHelper.spawn(Object.assign(config, type));
         }
         this.types[name] = type;
         this.setTypeShortcut(name);
@@ -133,7 +133,7 @@ module.exports = class Logger extends Base {
 
     getTotal (typeNames) {
         let total = [];
-        typeNames = typeNames instanceof Array ? typeNames : this.typeNames;
+        typeNames = Array.isArray(typeNames) ? typeNames : this.typeNames;
         for (let name of typeNames) {
             let type = this.getType(name);
             if (type && type.counter) {

@@ -17,10 +17,6 @@ module.exports = class UrlManager extends Base {
         this.forwarder = this.module.get('forwarder');
     }
 
-    /**
-     * @param url
-     * @param root - controller or module
-     */
     resolve (url, root) {
         return this.forward(this.create(url, root));
     }
@@ -34,17 +30,17 @@ module.exports = class UrlManager extends Base {
      *  /module/controller/action - relative app
      *  controller/action - relative module
      *  action - relative controller
-     * @param root - controller or module
+     * @param root - controller or module name
      */
     create (url, root) {
         let params, anchor;
-        if (url instanceof Array) {
+        if (Array.isArray(url)) {
             params = url[1];
             url = url[0];
         }
         let index = url.indexOf('/');
         if (index === -1) { // relative root
-            url = this.module.getRoute(root ? `${root.NAME}/${url}` : url);
+            url = this.module.getRoute(root ? `${root}/${url}` : url);
         } else if (index === 0) { // relative app
             let root = this.module.app.mountPath;
             if (root !== '/') {
@@ -85,15 +81,22 @@ module.exports = class UrlManager extends Base {
     }
 
     parse (url) {
-        let parts = url.split('?');
-        let segments = parts[0].replace(/^\/|\/$/g, '').split('/');
+        let index = url.indexOf('?');
+        let path = index !== -1 ? url.substring(0, index) : url;
+        let segments = path.replace(/^\/|\/$/g, '').split('/');
         let params = {}, anchor;
-        if (parts[1]) {
-            parts = parts[1].split('#');
-            anchor = parts[1];
-            for (let param of parts[0].split('&')) {
-                parts = param.split('=');
-                params[parts[0]] = parts[1];
+        if (index !== -1) {
+            url = url.substring(index + 1);
+            index = url.indexOf('#');
+            if (index !== -1) {
+                anchor = url.substring(index + 1);
+                url = url.substring(0, index);
+            }
+            for (let param of url.split('&')) {
+                index = param.indexOf('=');
+                if (index !== -1) {
+                    params[param.substring(0, index)] = param.substring(index + 1);
+                }
             }
         }
         return {segments, params, anchor};

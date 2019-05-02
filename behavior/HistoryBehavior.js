@@ -27,7 +27,7 @@ module.exports = class HistoryBehavior extends Base {
     }
 
     async createHistory (attr) {
-        let model = ClassHelper.createInstance(this.History);
+        let model = ClassHelper.spawn(this.History);
         model.setTargetData(this.owner, attr);
         await model.save();
         if (model.hasError()) {
@@ -41,9 +41,9 @@ module.exports = class HistoryBehavior extends Base {
     }
 
     getAttrNames () {
-        return this.includes instanceof Array
+        return Array.isArray(this.includes)
             ? this.includes
-            : this.excludes instanceof Array 
+            : Array.isArray(this.excludes) 
                 ? ArrayHelper.diff(this.owner.ATTRS, this.excludes)
                 : [];
     }

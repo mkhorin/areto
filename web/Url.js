@@ -26,7 +26,7 @@ module.exports = class Url extends Base {
         if (names.length !== this.targetParamNames.length) {
             throw new Error(this.wrapClassMessage(`Invalid params: Source: ${this.source}: Target: ${this.target}`));
         }
-        if (this.methods && !(this.methods instanceof Array)) {
+        if (this.methods && !Array.isArray(this.methods)) {
             throw new Error(this.wrapClassMessage(`Invalid methods: ${this.methods}`));
         }
     }

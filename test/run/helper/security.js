@@ -12,10 +12,10 @@ describe('SecurityHelper', ()=> {
         let password = 'password';
         let hash = SecurityHelper.encryptPassword(password);
         let fakeHash = SecurityHelper.encryptPassword('fake');
-        expect(SecurityHelper.validatePassword(password, hash)).to.true;
-        expect(SecurityHelper.validatePassword(password, fakeHash)).to.false;
-        expect(SecurityHelper.validatePassword(password)).to.false;
-        expect(SecurityHelper.validatePassword()).to.false;
+        expect(SecurityHelper.validatePassword(password, hash)).to.eql(true);
+        expect(SecurityHelper.validatePassword(password, fakeHash)).to.eql(false);
+        expect(SecurityHelper.validatePassword(password)).to.eql(false);
+        expect(SecurityHelper.validatePassword()).to.eql(false);
     });
 
     it('generateRandomString', async ()=> {

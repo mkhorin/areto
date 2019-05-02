@@ -32,7 +32,7 @@ module.exports = class DataProvider extends Base {
             defaults.pageParam = `${this.id}-page`;
             defaults.pageSizeParam = `${this.id}-page-size`;
         }
-        return ClassHelper.createInstance(Object.assign(defaults, config));
+        return ClassHelper.spawn(Object.assign(defaults, config));
     }
 
     createSort (config) {
@@ -46,7 +46,7 @@ module.exports = class DataProvider extends Base {
         if (this.id) {
             defaults.sortParam = `${this.id}-sort`;
         }
-        return ClassHelper.createInstance(Object.assign(defaults, config));
+        return ClassHelper.spawn(Object.assign(defaults, config));
     }
    
     async prepare () {

@@ -45,8 +45,9 @@ module.exports = class ActionView extends Base {
     }
 
     createViewModel (name, config = {}) {
-        config.view = this;
         let Class = this.getViewModelClass(name);
+        config.view = this;
+        config.module = this.module;
         return Class ? new Class(config) : null;
     }
 
@@ -60,7 +61,7 @@ module.exports = class ActionView extends Base {
         params = this.getRenderParams(params);
         this.layout = params.viewLayout
             || this.controller.VIEW_LAYOUT
-            || this.controller.module.VIEW_LAYOUT;
+            || this.module.VIEW_LAYOUT;
         let content = await this.renderTemplate(this.get(template), params);
         content = await this.renderWidgets(content, params);
         return this._asset ? this._asset.render(content) : content;
@@ -73,12 +74,13 @@ module.exports = class ActionView extends Base {
 
     getRenderParams (params) {
         params = {
-            '_view': this,
+            '_module': this.module,
             '_controller': this.controller,
+            '_view': this,
             '_t': this.controller.translate.bind(this.controller),
             '_format': this.controller.format.bind(this.controller),
             '_url': this.controller.createUrl.bind(this.controller),
-            '_baseUrl': this.controller.module.app.baseUrl,
+            '_baseUrl': this.module.app.baseUrl,
             '_data': null,
             ...params
         };
@@ -108,7 +110,7 @@ module.exports = class ActionView extends Base {
 
     getAsset () {
         if (this._asset === undefined) {
-            let asset = this.controller.module.get('asset');
+            let asset = this.module.get('asset');
             if (!asset) {
                 return this.log('error', 'Not found asset component');
             }
@@ -148,11 +150,12 @@ module.exports = class ActionView extends Base {
 
     createWidget (anchor, params) {
         let key = params && params.id || anchor;
-        let widget = this.controller.module.getConfig(`widgets.${key}`);
+        let widget = this.module.getConfig(`widgets.${key}`);
         if (!widget) {
             return this.log('error', `Widget config not found: ${key}`);
         }
-        return ClassHelper.createInstance({
+        return ClassHelper.spawn({
+            'module': this.module,
             'view': this,
             'id': anchor,
             ...widget,

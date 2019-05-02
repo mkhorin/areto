@@ -75,14 +75,10 @@ module.exports = class DbStore extends Base {
     prepareRule (data) {
         let Class = data.classConfig && data.classConfig.Class;
         try {
-            Class = require(Class);
+            Class = this.rbac.module.require(Class);
         } catch (err) {
-            try {
-                Class = require(this.rbac.module.app.getPath(Class));
-            } catch (err) {
-                this.log('error', `Not found rule class: ${Class}`);
-                Class = Rule;
-            }
+            this.log('error', `Invalid rule class: ${Class}`);
+            Class = Rule;
         }
         if (!(Class.prototype instanceof Rule) && Class !== Rule) {
             this.log('error', `Base class of ${data.classConfig.Class} must be Rule`);
@@ -227,16 +223,16 @@ module.exports = class DbStore extends Base {
     }
 
     async createAssignment (names, user) {
-        let items = await this.findItemByName(items).column(this.key);
+        let items = await this.findItemByName(names).column(this.key);
         if (items.length !== names.length) {
             throw new Error(`RBAC: Not found assignment item: ${names}`);
         }
-        let model = this.rbac.findUserModel(user).one();
+        let model = await this.rbac.findUserModel(user).one();
         if (!model) {
             throw new Error(`RBAC: Not found user: ${user}`);
         }
         user = model.getId();
-        for (let item of item) {
+        for (let item of items) {
             if (!await this.findAssignment().and({user, item}).one()) {
                 await this.findAssignment().insert({user, item});
             }

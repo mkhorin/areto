@@ -24,7 +24,7 @@ module.exports = class LogType extends Base {
         if (!this.store) {
             this.store = this.commonStore;
         } else if (!(this.store instanceof LogStore)) {
-            this.store = ClassHelper.createInstance(this.store, {
+            this.store = ClassHelper.spawn(this.store, {
                 'logger': this.logger,
                 'logType': this
             });
