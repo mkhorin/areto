@@ -25,8 +25,8 @@ module.exports = class Connection extends Base {
             throw new Error(this.wrapClassMessage(`Unknown driver: ${this.schema}`));
         }
         return ClassHelper.spawn(driver, {
-            'module': this.module,
-            'settings': this.settings
+            module: this.module,
+            settings: this.settings
         });
     }
 };

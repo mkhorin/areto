@@ -40,13 +40,7 @@ describe('ObjectHelper', ()=> {
     });
 
     it('getNestedValue', ()=> {
-        let data = {
-            k11: {
-                k21: {
-                    k31: 5
-                }
-            }
-        };
+        let data = {k11: {k21: {k31: 5}}};
         let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
         expect(res).to.eql(5);
         res = ObjectHelper.getNestedValue('k11.k21.none', data, 'def');
@@ -58,9 +52,7 @@ describe('ObjectHelper', ()=> {
         ObjectHelper.setNestedValue(5, 'k11.k21.k31', data);
         let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
         expect(res).to.eql(5);
-        data = {
-            k11: 'not object'
-        };
+        data = {k11: 'not object'};
         ObjectHelper.setNestedValue(5, 'k11.k21', data);
         res = ObjectHelper.getNestedValue('k11.k21', data);
         expect(res).to.eql(5);
@@ -100,47 +92,47 @@ describe('ObjectHelper', ()=> {
 
     it('deleteEmptyProps', ()=> {
         let res = {
-            'key1': 0,
-            'key2': null,
-            'key3': undefined,
-            'key4': '',
-            'key5': []
+            key1: 0,
+            key2: null,
+            key3: undefined,
+            key4: '',
+            key5: []
         };
         ObjectHelper.deleteEmptyProps(res);
         expect(res).to.eql({
-            'key1': 0,
-            'key5': []
+            key1: 0,
+            key5: []
         });
     });
 
     it('deleteProps', ()=> {
         let res = {
-            'key1': 0,
-            'key2': null,
-            'key3': 'test',
-            'key4': '',
-            'key5': []
+            key1: 0,
+            key2: null,
+            key3: 'test',
+            key4: '',
+            key5: []
         };
         ObjectHelper.deleteProps(['key2', 'key4'], res);
         expect(res).to.eql({
-            'key1': 0,
-            'key3': 'test',
-            'key5': []
+            key1: 0,
+            key3: 'test',
+            key5: []
         });
     });
 
     it('deletePropsExcept', ()=> {
         let res = {
-            'key1': 0,
-            'key2': null,
-            'key3': 'test',
-            'key4': '',
-            'key5': []
+            key1: 0,
+            key2: null,
+            key3: 'test',
+            key4: '',
+            key5: []
         };
         ObjectHelper.deletePropsExcept(['key2', 'key4'], res);
         expect(res).to.eql({
-            'key2': null,
-            'key4': ''
+            key2: null,
+            key4: ''
         });
     });
 

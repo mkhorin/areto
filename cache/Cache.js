@@ -9,9 +9,9 @@ module.exports = class Cache extends Base {
 
     constructor (config) {
         super({
-            'keyPrefix': null,
-            'duration': 100, // seconds
-            'serializer': null,
+            keyPrefix: null,
+            duration: 100, // seconds
+            serializer: null,
             ...config
         });
     }

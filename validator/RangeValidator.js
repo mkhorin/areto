@@ -9,9 +9,9 @@ module.exports = class RangeValidator extends Base {
 
     constructor (config) {
         super({
-            'range': null,
-            'not': false,
-            'allowArray': false,
+            range: null,
+            not: false,
+            allowArray: false,
             ...config
         });
         if (!Array.isArray(this.range)) {

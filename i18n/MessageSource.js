@@ -9,9 +9,9 @@ module.exports = class MessageSource extends Base {
 
     constructor (config) {
         super({
-            'forceTranslation': false,
-            'sourceLanguage': config.i18n.sourceLanguage,
-            'parent': null,
+            forceTranslation: false,
+            sourceLanguage: config.i18n.sourceLanguage,
+            parent: null,
             ...config
         });
         this.clearCache();

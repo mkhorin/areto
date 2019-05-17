@@ -11,7 +11,7 @@ module.exports = class Component extends Base {
         return {
             // BEHAVIORS: { // auto-attached behaviors
                 // behavior1: require('./UserBehavior1'),
-                // behavior2: { Class: require('./UserBehavior2'), prop1: ..., prop2: ... }
+                // behavior2: { Class: require('./UserBehavior2'), property1: ..., property2: ... }
                 // behavior3: new BehaviorClass,
             // }
         };
@@ -24,60 +24,60 @@ module.exports = class Component extends Base {
             ...config
         });
         this.events = ClassHelper.spawn(this.eventManager || EventManager, {
-            'owner': this
+            owner: this
         });
         this.behaviors = ClassHelper.spawn(this.behaviorManager || BehaviorManager, {
-            'owner': this,
-            'autoAttachedItems': this.BEHAVIORS
+            owner: this,
+            autoAttachedItems: this.BEHAVIORS
         });
     }
 
     on () {
-        this.events.on.apply(this.events, arguments);
+        this.events.on(...arguments);
     }
 
     off () {
-        this.events.off.apply(this.events, arguments);
+        this.events.off(...arguments);
     }
 
     trigger () {
-        return this.events.trigger.apply(this.events, arguments);
+        return this.events.trigger(...arguments);
     }
 
-    getBehavior () {
-        return this.behaviors.get.apply(this.behaviors, arguments);
+    getBehavior (name) {
+        return this.behaviors.get(name);
     }
 
     attachBehavior () {
-        return this.behaviors.attach.apply(this.behaviors, arguments);
+        return this.behaviors.attach(...arguments);
     }
 
     attachBehaviorOnce () {
-        return this.behaviors.attachOnce.apply(this.behaviors, arguments);
+        return this.behaviors.attachOnce(...arguments);
     }
 
-    detachBehavior () {
-        return this.behaviors.detach.apply(this.behaviors, arguments);
+    detachBehavior (name) {
+        return this.behaviors.detach(name);
     }
 
     getAllBehaviors () {
-        return this.behaviors.getAll.apply(this.behaviors, arguments);
+        return this.behaviors.getAll();
     }
 
-    attachAllBehaviors () {
-        this.behaviors.attachAll.apply(this.behaviors, arguments);
+    attachAllBehaviors (data) {
+        this.behaviors.attachAll(data);
     }
 
     detachAllBehaviors () {
-        this.behaviors.detachAll.apply(this.behaviors, arguments);
+        this.behaviors.detachAll();
     }
 
     ensureBehaviors () {
-        this.behaviors.ensure.call(this.behaviors);
+        this.behaviors.ensure();
     }
 
-    translate () {
-        return this.module.translate.apply(this.module, arguments);
+    translate (...args) {
+        return this.module.translate(...args);
     }
 
     log (type, message, data) {

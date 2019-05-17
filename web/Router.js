@@ -9,8 +9,8 @@ module.exports = class Router extends Base {
 
     constructor (config) {
         super({
-            'depends': '#end',
-            'defaultController': 'default',
+            depends: '#end',
+            defaultController: 'default',
             ...config
         });
     }
@@ -101,11 +101,11 @@ module.exports = class Router extends Base {
     addAction (id, Controller, route) {
         let action = function (req, res, next) {
             (new Controller({
-                'req': req,
-                'res': res,
-                'module': res.locals.module,
-                'user': res.locals.user,
-                'language': res.locals.language
+                req,
+                res,
+                module: res.locals.module,
+                user: res.locals.user,
+                language: res.locals.language
             })).execute(id).catch(next);
         };
         let methods = Controller.METHODS[id] || ['all'];
@@ -133,12 +133,12 @@ module.exports = class Router extends Base {
                 return next(err);
             }
             let controller= new Controller({
-                'req': req,
-                'res': res,
-                'err': err,
-                'module': this.module,
-                'user': res.locals.user,
-                'language': res.locals.language
+                req,
+                res,
+                err,
+                module: this.module,
+                user: res.locals.user,
+                language: res.locals.language
             });
             controller.execute(config.action || 'error').catch(next);
         });

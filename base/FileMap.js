@@ -9,8 +9,8 @@ module.exports = class FileMap extends Base {
 
     constructor (config) {
         super({
-            // dir: path,
-            'required': false, // require files
+            // dir: [path],
+            required: false, // require files
             ...config
         });
         this.indexFiles();

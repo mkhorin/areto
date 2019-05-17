@@ -9,11 +9,11 @@ module.exports = class FileValidator extends Base {
 
     constructor (config) {
         super({
-            'imageOnly': false,
-            'minSize': 1,
-            'maxSize': null,
-            'extensions': null,
-            'mimeTypes': null,
+            imageOnly: false,
+            minSize: 1,
+            maxSize: null,
+            extensions: null,
+            mimeTypes: null,
             ...config
         });
     }
@@ -28,71 +28,67 @@ module.exports = class FileValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'File size cannot be smaller than {limit}', {
-            'limit': [this.minSize, 'bytes']
+            limit: [this.minSize, 'bytes']
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'File size cannot exceed {limit}', {
-            'limit': [this.maxSize, 'bytes']
+            limit: [this.maxSize, 'bytes']
         });
     }
 
     getWrongExtensionMessage () {
         return this.createMessage(this.wrongExtension, 'Only these file extensions are allowed: {extensions}', {
-            'extensions': this.extensions
+            extensions: this.extensions
         });
     }
 
     getWrongMimeTypeMessage () {
         return this.createMessage(this.wrongMimeType, 'Only these file MIME types are allowed: {mimeTypes}', {
-            'mimeTypes': this.mimeTypes
+            mimeTypes: this.mimeTypes
         });
     }
 
-    validateValue (file) { // file {path, size, extension, mime}
+    async validateValue (file) { // file {path, size, extension, mime}
         if (!file || !file.path) {
             return this.getMessage();
         }
         if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
             return this.getNotImageMessage();
         }
-        try {
-            let stats = fs.statSync(file.path);
-            if (!stats.isFile()) {
-                return this.getMessage();
-            }
-            if (this.minSize && file.size < this.minSize) {
-                return this.getTooSmallMessage();
-            }
-            if (this.maxSize && file.size > this.maxSize) {
-                return this.getTooBigMessage();
-            }
-            if (Array.isArray(this.extensions) 
-                && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
-                return this.getWrongExtensionMessage();
-            }
-            if (Array.isArray(this.mimeTypes) && (!file.mime || !this.mimeTypes.includes(file.mime))) {
-                return this.getWrongMimeTypeMessage();
-            }
-        } catch (err) {
+        let stat = await FileHelper.getStat(file.path);
+        if (!stat || !stat.isFile()) {
             return this.getMessage();
+        }
+        if (this.minSize && file.size < this.minSize) {
+            return this.getTooSmallMessage();
+        }
+        if (this.maxSize && file.size > this.maxSize) {
+            return this.getTooBigMessage();
+        }
+        if (Array.isArray(this.extensions)
+            && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
+            return this.getWrongExtensionMessage();
+        }
+        if (Array.isArray(this.mimeTypes) && (!file.mime || !this.mimeTypes.includes(file.mime))) {
+            return this.getWrongMimeTypeMessage();
         }
     }
 
     getParams () {
         return {
-            'imageOnly': this.imageOnly,
-            'minSize': this.minSize,
-            'maxSize': this.maxSize,
-            'extensions': this.extensions,
-            'mimeTypes': this.mimeTypes,
-            'tooSmall': this.tooSmall,
-            'tooBig': this.tooBig,
-            'wrongExtension': this.wrongExtension,
-            'wrongMimeType': this.wrongMimeType
+            imageOnly: this.imageOnly,
+            minSize: this.minSize,
+            maxSize: this.maxSize,
+            extensions: this.extensions,
+            mimeTypes: this.mimeTypes,
+            tooSmall: this.tooSmall,
+            tooBig: this.tooBig,
+            wrongExtension: this.wrongExtension,
+            wrongMimeType: this.wrongMimeType
         };
     }
 };
 
-const fs = require('fs');
+const FileHelper = require('../helper/FileHelper');

@@ -43,10 +43,7 @@ module.exports = class Url extends Base {
         if (this.defaults) {
             params = {...this.defaults, ...params};
         }
-        return {
-            'path': this.createTarget(params),
-            'params': params
-        };
+        return {path: this.createTarget(params), params};
     }
 
     createSourceUrl (data) {

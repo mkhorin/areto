@@ -12,24 +12,24 @@ class TestClass extends Base {}
 describe('ClassHelper', ()=> {
 
     it('spawn', ()=> {
-        let res = ClassHelper.spawn(TestClass, {'test': 'value'});
+        let res = ClassHelper.spawn(TestClass, {test: 'value'});
         expect(res).to.be.an.instanceof(TestClass);
         expect(res.test).to.eql('value');
 
         res = ClassHelper.spawn({
-            'Class': TestClass,
-            'test': 'value'
+            Class: TestClass,
+            test: 'value'
         });
         expect(res).to.be.an.instanceof(TestClass);
         expect(res.test).to.eql('value');
     });
 
     it('normalizeConfig', ()=> {
-        let res = ClassHelper.normalizeConfig(TestClass, {'test': 'value'});
+        let res = ClassHelper.normalizeConfig(TestClass, {test: 'value'});
         expect(res.Class).to.eql(TestClass);
         expect(res.test).to.eql('value');
 
-        res = ClassHelper.normalizeConfig({'Class': TestClass}, {'test': 'value'});
+        res = ClassHelper.normalizeConfig({Class: TestClass}, {test: 'value'});
         expect(res.Class).to.eql(TestClass);
         expect(res.test).to.eql('value');
     });

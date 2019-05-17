@@ -14,7 +14,7 @@ module.exports = class AccessRule extends Base {
             // controllers: ['article'],
             // roles: ['?', '@', 'reader'], // RBAC items
             // verbs: ['GET', 'POST'],
-            // denyPromise: async (action, user)
+            // deny: [fn(action, user)]
             ...config
         });
     }

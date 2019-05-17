@@ -9,7 +9,7 @@ module.exports = class JsMessageSource extends Base {
 
     constructor (config) {
         super({
-            'basePath': config.i18n.basePath,
+            basePath: config.i18n.basePath,
             ...config
         });
     }

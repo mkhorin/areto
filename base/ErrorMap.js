@@ -5,9 +5,7 @@
 
 module.exports = class ErrorMap {
 
-    constructor () {
-        this._data = {};
-    }
+    _data = {};
 
     has (key) {
         return key

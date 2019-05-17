@@ -28,15 +28,4 @@ describe('CommonHelper', ()=> {
         res = CommonHelper.parseJson('non-json');
         expect(res).to.eql(undefined);
     });
-
-    it('escapeRegExp: set special symbols as simple string', ()=> {
-        let result = CommonHelper.escapeRegExp('^test{1}$');
-        result = (new RegExp(result)).test('^test{1}$');
-        expect(result).to.eql(true);
-    });
-
-    it('escapeHtml: set special symbols as simple string', ()=> {
-        let result = CommonHelper.escapeHtml('<div>test</div>');
-        expect(result).to.eql('&lt;div&gt;test&lt;/div&gt;');
-    });
 });

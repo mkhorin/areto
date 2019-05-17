@@ -9,20 +9,20 @@ module.exports = class Session extends Base {
 
     constructor (config) {
         super({            
-            'expressSession': session,
-            'resave': false,
-            'saveUninitialized': false,
-            'name': `${config.module.getFullName()}.sid`,
-            'store': require('./MemorySessionStore'),
-            'lifetime': 3600, // seconds
-            //'cookie': {maxAge: 3600 * 1000},
+            expressSession: session,
+            resave: false,
+            saveUninitialized: false,
+            name: `${config.module.getFullName()}.sid`,
+            store: require('./MemorySessionStore'),
+            lifetime: 3600, // seconds
+            // cookie: {maxAge: 3600 * 1000},
             ...config
         });
         this.lifetime *= 1000;
     }
 
     init () {
-        this.store = ClassHelper.spawn(this.store, {'session': this});
+        this.store = ClassHelper.spawn(this.store, {session: this});
         this.module.addHandler('use', session(this));
         this.module.addHandler('use', flash());
     }

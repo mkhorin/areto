@@ -7,11 +7,8 @@ const Base = require('./SessionStore');
 
 module.exports = class MemorySessionStore extends Base {
 
-    constructor (config) {
-        super(config);
-        this._sessions = {};
-        this._users = {};
-    }
+    _sessions = {};
+    _users = {};
 
     get (sid, callback) {
         if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
@@ -24,10 +21,7 @@ module.exports = class MemorySessionStore extends Base {
     }
 
     set (sid, data, callback) {
-        this._sessions[sid] = {
-            'data': data,
-            'updatedAt': new Date
-        };
+        this._sessions[sid] = {updatedAt: new Date, data};
         if (data[this.userIdParam]) {
             this._users[data[this.userIdParam]] = sid;
         }

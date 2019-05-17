@@ -206,11 +206,11 @@ module.exports = class AsyncHelper {
             }
             if (++pos === this.items.length) {
                 result.unshift(null);
-                return this.callback.apply(this, result);
+                return this.callback(...result);
             }
             this.waterfall(result, pos);
         });
-        this.items[pos].apply(this, result);
+        this.items[pos](...result);
     }
 
     // PARALLEL

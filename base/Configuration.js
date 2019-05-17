@@ -7,6 +7,9 @@ const Base = require('./Base');
 
 module.exports = class Configuration extends Base {
 
+    _names = [];
+    _sources = [];
+
     constructor (config) {
         super({
             // dir: config dir,
@@ -15,8 +18,6 @@ module.exports = class Configuration extends Base {
             ...config
         });
         this.name = this.name || process.env.NODE_ENV;
-        this._names = [];
-        this._sources = [];
     }
 
     get (key, defaults) {
@@ -31,7 +32,7 @@ module.exports = class Configuration extends Base {
         return ObjectHelper.includesNestedValue(value, key, this._data);
     }
 
-    load () {
+    async load () {
         if (!this.loadByName(this.name)) {
             this.loadByName('default');
         }

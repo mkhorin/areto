@@ -9,8 +9,8 @@ module.exports = class UserStampBehavior extends Base {
 
     constructor (config) {
         super({
-            'creatorAttr': 'creator', // or false
-            'editordAttr': 'editor',
+            creatorAttr: 'creator', // or false
+            editordAttr: 'editor', // or false
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);

@@ -9,8 +9,8 @@ module.exports = class MysqlDriver extends Base {
 
     constructor (config) {
         super({
-            'schema': 'mysql',
-            'QueryBuilder': MysqlQueryBuilder,
+            schema: 'mysql',
+            QueryBuilder: require('./MysqlQueryBuilder'),
             ...config
         });
         this.client = mysql.createPool(this.settings);
@@ -26,9 +26,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     getQueryData (data) {
-        return data.err
-            ? `${data.err.toString()}: ${data.sql}`
-            : data.sql;
+        return data.err ? `${data.err.toString()}: ${data.sql}` : data.sql;
     }
 
     logCommand (data) {
@@ -233,5 +231,4 @@ module.exports.init();
 const moment = require('moment');
 const mysql = require('mysql');
 const PromiseHelper = require('../helper/PromiseHelper');
-const MysqlQueryBuilder = require('./MysqlQueryBuilder');
 const Expression = require('./Expression');

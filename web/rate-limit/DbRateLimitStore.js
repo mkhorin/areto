@@ -9,8 +9,8 @@ module.exports = class DbRateLimitStore extends Base {
 
     constructor (config) {
         super({
-            'db': config.rateLimit.module.getDb(),
-            'table': 'rate_limit',
+            db: config.rateLimit.module.getDb(),
+            table: 'rate_limit',
             ...config
         });
     }
@@ -25,16 +25,15 @@ module.exports = class DbRateLimitStore extends Base {
         return this.getQueryBy(model.type, model.user).upsert(model.getData());
     }
 
-    getQueryBy (type, user) {
-        let query = this.getQuery().and({type});
-        return user.isGuest()
-            ? query.and({
-                'ip': user.getIp(),
-                'userId': null
-            })
-            : query.and({
-                'userId': user.getId()
-            });
+    getQueryBy (type, user) {        
+        return this.getQuery().and(user.isGuest() ? {
+            userId: null,
+            ip: user.getIp(),
+            type
+        } : {
+            userId: user.getId(),
+            type
+        });
     }
 
     getQuery () {

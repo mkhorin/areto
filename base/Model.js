@@ -55,15 +55,10 @@ module.exports = class Model extends Base {
         return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
-    constructor (config) {
-        super(config);
-        this._attrs = {};
-        this._viewAttrs = {};
-        this._errors = {};
-        this._validators = null;
-    }
-
-    // ATTRIBUTES
+    _attrs = {};
+    _viewAttrs = {};
+    _errors = {};
+    _validators = null;
 
     isAttrActive (name) {
         return this.getActiveAttrNames().includes(name);

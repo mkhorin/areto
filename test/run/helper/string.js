@@ -8,7 +8,17 @@ const StringHelper = require('../../../helper/StringHelper');
 
 describe('StringHelper', ()=> {
 
-    it('toWordFirstUpperCase: capitalize first letters', ()=> {
+    it('toFirstUpperCase: capitalize the first letter', ()=> {
+        let res = StringHelper.toFirstUpperCase('up first');
+        expect(res).to.eql('Up first');
+    });
+
+    it('toFirstLowerCase: lowercase the first letter', ()=> {
+        let res = StringHelper.toFirstLowerCase('Low first');
+        expect(res).to.eql('low first');
+    });
+
+    it('toWordFirstUpperCase: capitalize the first letters', ()=> {
         let res = StringHelper.toWordFirstUpperCase('up first letters');
         expect(res).to.eql('Up First Letters');
     });

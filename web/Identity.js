@@ -21,7 +21,7 @@ module.exports = class Identity extends Base {
     }
 
     setAuthKey () {
-        this.set('authKey', SecurityHelper.generateRandomString(16));
+        this.set('authKey', SecurityHelper.getRandomString(16));
     }
 };
 

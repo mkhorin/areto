@@ -77,13 +77,11 @@ module.exports = class Item extends Base {
         }
         this.data.children = await this.findRelatives('children');
         await this.store.findItemChild().and({
-            'parent': this.data.itemId,
-            'child': this.data.children
+            parent: this.data.itemId,
+            child: this.data.children
         }).remove();
-        await this.store.findItemChild().insert(this.data.children.map(id => ({
-            'parent': this.data.itemId,
-            'child': id
-        })));
+        let items = this.data.children.map(child => ({parent: this.data.itemId, child})); 
+        await this.store.findItemChild().insert(items);
     }
 
     async setParents () {
@@ -92,13 +90,11 @@ module.exports = class Item extends Base {
         }
         this.data.parents = await this.findRelatives('parents');
         await this.store.findItemChild().and({
-            'parent': this.data.parents,
-            'child': this.data.itemId
+            parent: this.data.parents,
+            child: this.data.itemId
         }).remove();
-        await this.store.findItemChild().insert(this.data.parents.map(id => ({
-            'parent': id,
-            'child': this.data.itemId
-        })));
+        let items = this.data.parents.map(parent => ({child: this.data.itemId, parent}));
+        await this.store.findItemChild().insert(items);
     }
 
     async findRelatives (relKey) {

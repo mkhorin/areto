@@ -9,21 +9,26 @@ module.exports = class Captcha extends Base {
 
     constructor (config) {
         super({
-            'minLength': 5,
-            'maxLength': 5,
-            'width': 180,
-            'height': 60,
-            'background': '#ffffff',
-            'foreground': '#666666',
-            'offset': -2,
-            'symbolPool': '0123456789',
-            'fixedVerifyCode': null,
-            'quality': 10,
-            'fontFamily': '',
-            'drawWidth': 300,
-            'drawHeight': 100,
-            'grid': true,
-            'median': 2,
+            minLength: 5,
+            maxLength: 5,
+            width: 180,
+            height: 60,
+            backColor: '#ffffff',
+            textColor: '#666666',
+            symbolPool: '0123456789',
+            fixedVerifyCode: null,
+            quality: 10,
+            fontFamily: 'Serif', // Serif Mono Sans
+            textSizeMin: 30,
+            textSizeMax: 65,
+            textAngleMin: -30,
+            textAngleMax: 30,
+            drawWidth: 300,
+            drawHeight: 100,
+            grid: true,
+            gridColors: ['#ffffff', '#666666'],
+            gridLineWidth: 2,
+            median: 0,
             ...config
         });
     }
@@ -63,27 +68,11 @@ module.exports = class Captcha extends Base {
     }
 
     async render (code) {
-        return this.draw(code).jpeg({'quality': this.quality}).toBuffer();
+        return this.draw(code).jpeg({quality: this.quality}).toBuffer();
     }
 
     draw (code) {
-        let data = {};
-        let cell = Math.round(this.drawWidth / code.length);
-        let posX = Math.round(cell / 2);
-        let posY = Math.round(this.drawHeight / 2);
-        let offsetX = Math.round(cell / 3);
-        let offsetY = Math.round(this.drawHeight / 2);
-        data.fill = this.foreground;
-        let content = '';
-        for (let i = 0; i < code.length; ++i) {
-            data.text = code[i];
-            data.size = CommonHelper.getRandom(30, 65);
-            data.x = posX + CommonHelper.getRandom(-offsetX, offsetX);
-            data.y = posY + CommonHelper.getRandom(data.size - offsetY, data.size);
-            data.angle = CommonHelper.getRandom(-30, 30);
-            content += this.drawLetter(data);
-            posX += cell;
-        }
+        let content = this.drawText(code);
         if (this.grid) {
             content += this.drawGrid();
         }
@@ -94,31 +83,51 @@ module.exports = class Captcha extends Base {
         return image;
     }
 
-    drawLetter ({text, x, y, size, angle, fill}) {
-        return `<text x="${x}" y="${y}" transform="rotate(${angle} ${x} ${y})" font-family="${this.fontFamily}" text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="${fill}">${text}</text>`;
-    }
-
-    drawGrid () {
-        let width = this.drawWidth;
-        let height = this.drawHeight;
-        let a = 20, b = 40, step;
-        let content= '';
-        for (let x = 0; x < width; x += CommonHelper.getRandom(a, b)) {
-            content += this.drawLine(CommonHelper.getRandom(0, width), 0, CommonHelper.getRandom(0, width), height);
-        }
-        for (let y = 0; y < height; y += CommonHelper.getRandom(a, b)) {
-            content += this.drawLine(0, CommonHelper.getRandom(0, height), width, CommonHelper.getRandom(0, width));
+    drawText (text) {
+        let data = {color: this.textColor};
+        let cell = Math.round(this.drawWidth / text.length);
+        let posX = Math.round(cell / 2);
+        let posY = Math.round(this.drawHeight / 2);
+        let offsetX = Math.round(cell / 3);
+        let offsetY = Math.round(this.drawHeight / 2);
+        let content = '';
+        for (let i = 0; i < text.length; ++i) {
+            data.text = text[i];
+            data.size = CommonHelper.getRandom(this.textSizeMin, this.textSizeMax);
+            data.x = posX + CommonHelper.getRandom(-offsetX, offsetX);
+            data.y = posY + CommonHelper.getRandom(data.size - offsetY, data.size);
+            data.angle = CommonHelper.getRandom(this.textAngleMin, this.textAngleMax);
+            content += this.drawLetter(data);
+            posX += cell;
         }
         return content;
     }
 
-    drawLine (x1, y1, x2, y2) {
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${this.foreground}"/>`;
+    drawLetter ({text, x, y, size, angle, color}) {
+        return `<text x="${x}" y="${y}" transform="rotate(${angle} ${x} ${y})" font-family="${this.fontFamily}" text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="${color}">${text}</text>`;
+    }
+
+    drawGrid () {
+        let w = this.drawWidth, h = this.drawHeight;
+        let a = 20, b = 40, color, content= '';
+        for (let x = 0; x < w; x += CommonHelper.getRandom(a, b)) {
+            color = this.gridColors[CommonHelper.getRandom(0, this.gridColors.length - 1)];
+            content += this.drawLine(CommonHelper.getRandom(0, w), 0, CommonHelper.getRandom(0, w), h, color);
+        }
+        for (let y = 0; y < h; y += CommonHelper.getRandom(a, b)) {
+            color = this.gridColors[CommonHelper.getRandom(0, this.gridColors.length - 1)];
+            content += this.drawLine(0, CommonHelper.getRandom(0, h), w, CommonHelper.getRandom(0, w), color);
+        }
+        return content;
+    }
+
+    drawLine (x1, y1, x2, y2, color) {
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${this.gridLineWidth}"/>`;
     }
 
     drawBack (content) {
         return `<svg width="${this.width}" height="${this.height}" viewBox="0 0 ${this.drawWidth} ${this.drawHeight}">
-            <rect width="100%" height="100%" fill="${this.background}"/>${content}</svg>`;
+            <rect width="100%" height="100%" fill="${this.backColor}"/>${content}</svg>`;
     }
 };
 

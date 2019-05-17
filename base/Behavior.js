@@ -7,10 +7,7 @@ const Base = require('./Base');
 
 module.exports = class Behavior extends Base {
 
-    constructor (config) {
-        super(config);
-        this._handlers = {};
-    }
+    _handlers = {};
 
     hasHandler (eventName) {
         return Object.prototype.hasOwnProperty.call(this._handlers, eventName);

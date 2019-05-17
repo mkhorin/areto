@@ -17,14 +17,15 @@ module.exports = class Scheduler extends Base {
 
     constructor (config) {
         super({
-            'tasks': {},
-            'refreshInterval': 60, // sec
+            tasks: {},
+            refreshInterval: 60, // sec
             ...config
         });
         this._taskMap = {};
         this._taskBeforeRunHandler = this.taskBeforeRun.bind(this);
         this._taskDoneHandler = this.taskDone.bind(this);
         this._taskFailHandler = this.taskFail.bind(this);
+
         this.addTasks(this.tasks);
         this.module.app.on(this.module.app.EVENT_AFTER_START, this.refresh.bind(this));
     }
@@ -47,10 +48,7 @@ module.exports = class Scheduler extends Base {
         }
         try {
             config.Class = config.Class || Task;
-            let task = this.spawn(config, {
-                'name': name,
-                'scheduler': this
-            });
+            let task = this.spawn(config, {scheduler: this, name});
             task.on(task.EVENT_BEFORE_RUN, this._taskBeforeRunHandler);
             task.on(task.EVENT_DONE, this._taskDoneHandler);
             task.on(task.EVENT_FAIL, this._taskFailHandler);

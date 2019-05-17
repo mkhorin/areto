@@ -9,13 +9,13 @@ module.exports = class ThemeSet extends Base {
 
     constructor (config) {
         super({
-            // dir: base dir
-            // parent: new ThemeMap
-            // theme: theme name
-            'defaultThemeDir': 'view',
-            'themeDir': 'theme',
-            'modulePriority': false,
-            'Theme': require('./Theme'),
+            // dir: [base dir]
+            // parent: [ThemeMap]
+            // theme: [theme name]
+            defaultThemeDir: 'view',
+            themeDir: 'theme',
+            modulePriority: false,
+            Theme: require('./Theme'),
             ...config
         });
         this.defaultThemeDir = path.join(this.dir, this.defaultThemeDir);
@@ -46,10 +46,10 @@ module.exports = class ThemeSet extends Base {
 
     createDefault () {
         this._defaultTheme = ClassHelper.spawn(this.Theme, {
-            'name': null,
-            'dir': this.defaultThemeDir,
-            'parent': this.parent ? this.parent.get() : null,
-            'view': this
+            name: null,
+            dir: this.defaultThemeDir,
+            parent: this.parent ? this.parent.get() : null,
+            view: this
         });
     }
 
@@ -66,11 +66,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createTheme (name, dir) {
-        this._themes[name] = ClassHelper.spawn(this.Theme, {
-            'name': name,
-            'dir': dir,
-            'view': this
-        });
+        this._themes[name] = ClassHelper.spawn(this.Theme, {view: this, name, dir});
     }
 
     setParents () {

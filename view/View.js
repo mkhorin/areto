@@ -11,8 +11,8 @@ module.exports = class View extends Base {
         super({
             // parent: new View
             // origin: new View
-            'theme': config.parent && config.parent.theme, // theme name
-            'ThemeSet': require('./ThemeSet'),
+            theme: config.parent && config.parent.theme, // theme name
+            ThemeSet: require('./ThemeSet'),
             ...config
         });
     }
@@ -27,9 +27,9 @@ module.exports = class View extends Base {
     
     createThemeMap () {
         this.themeSet = ClassHelper.spawn(this.ThemeSet, {
-            'theme': this.theme,
-            'parent': this.parent && this.parent.themeSet,
-            'dir': this.module.getPath()
+            theme: this.theme,
+            parent: this.parent && this.parent.themeSet,
+            dir: this.module.getPath()
         });
     }
 

@@ -10,19 +10,18 @@ module.exports = class RegExpValidator extends Base {
     static getConstants () {
         return {
             PATTERNS: {
-                'reservedFileNameChars': /[<>:"\/\\|?*\x00-\x1F]/g,
-                'reservedWindowsFileName': /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i,
+                reservedFileNameChars: /[<>:"\/\\|?*\x00-\x1F]/g,
+                reservedWindowsFileName: /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i
             }
         };
     }
 
     constructor (config) {
         super({
-            'pattern': null,
-            'not': false, // not match pattern
+            pattern: null,
+            not: false, // not match pattern
             ...config
         });
-
         if (!this.pattern) {
             throw new Error(this.wrapClassMessage('Not set pattern'));
         }

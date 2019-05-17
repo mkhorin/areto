@@ -7,15 +7,10 @@ const Base = require('./Query');
 
 module.exports = class ActiveQuery extends Base {
 
-    constructor (config) {
-        super(config);
-        this._asRaw = null;
-        this._with = {};
-        if (this.model) {
-            this._db = this.model.getDb();
-            this._from = this.model.TABLE;
-        }
-    }
+    _asRaw = null;
+    _with = {};
+    _db = this.model && this.model.getDb();
+    _from = this.model && this.model.TABLE;
 
     asRaw (value = true) {
         this._asRaw = value;
@@ -40,17 +35,9 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    async execAfterPrepare () {
-        if (Array.isArray(this._afterPrepareHandlers)) {
-            for (let handler of this._afterPrepareHandlers) {
-                await handler(this);
-            }
-        }
-    }
-
     prepare () {
         if (!this.primaryModel) {
-            return this.execAfterPrepare();
+            return this.afterPrepare();
         }
         if (this._viaArray) { // lazy loading of a relation
             return this.prepareViaArray();
@@ -64,7 +51,7 @@ module.exports = class ActiveQuery extends Base {
                 : this.prepareViaRelation();
         }
         this.prepareFilter([this.primaryModel]);
-        return this.execAfterPrepare();
+        return this.afterPrepare();
     }
 
     prepareViaArray () {
@@ -78,32 +65,40 @@ module.exports = class ActiveQuery extends Base {
         } else { // back ref to array
             this.and({[this.refKey]: val});
         }
-        return this.execAfterPrepare();
+        return this.afterPrepare();
     }
 
     async prepareViaTable () {
         let viaModels = await this._viaTable.findJunctionRows([this.primaryModel]);
         this.prepareFilter(viaModels);
-        await this.execAfterPrepare();
+        await this.afterPrepare();
     }
 
     async prepareViaMultipleRelation () {
         let models = await this._viaRelation.all();
         this.primaryModel.populateRelation(this._viaRelationName, models);
         this.prepareFilter(models);
-        await this.execAfterPrepare();
+        await this.afterPrepare();
     }
 
     async prepareViaRelation () {
         let model = await this._viaRelation.one();
         this.primaryModel.populateRelation(this._viaRelationName, model);
         this.prepareFilter(model ? [model] : []);
-        await this.execAfterPrepare();
+        await this.afterPrepare();
     }
 
     prepareFilter (models) {
         this._whereBeforeFilter = this._where;
         this.filterByModels(models);
+    }
+
+    async afterPrepare () {
+        if (Array.isArray(this._afterPrepareHandlers)) {
+            for (let handler of this._afterPrepareHandlers) {
+                await handler(this);
+            }
+        }
     }
 
     // RELATIONS
@@ -149,14 +144,16 @@ module.exports = class ActiveQuery extends Base {
     }
 
     with (...args) {
-        for (let arg of args) {
-            if (!arg) {
-            } else if (Array.isArray(arg)) {
-                this.with.apply(this, arg);
-            } else if (typeof arg === 'object') {
-                Object.assign(this._with, arg);
+        for (let data of args) {
+            if (!data) {
+            } else if (typeof data === 'string') {
+                this._with[data] = true;
+            } else if (Array.isArray(data)) {
+                this.with(...data);
+            } else if (data instanceof this.constructor) {
+                Object.assign(this._with, data._with);
             } else {
-                this._with[arg] = true;
+                Object.assign(this._with, data);
             }
         }
         return this;
@@ -164,29 +161,29 @@ module.exports = class ActiveQuery extends Base {
 
     withOnly (...args) {
         this._with = {};
-        return this.with.apply(this, args);
+        return this.with(...args);
     }
 
     via (name, filter) {
         this._viaRelation = this.primaryModel.getRelation(name);
-        if (this._viaRelation) {
-            this._viaRelationName = name;
-            if (typeof filter === 'function') {
-                filter(this._viaRelation);
-            } else if (filter) { // as condition
-                this._viaRelation.and(filter);
-            }
-        } else {
+        if (!this._viaRelation) {
             this.primaryModel.log('error', this.wrapClassMessage(`via: Relation not found: ${name}`));
+            return this;
+        }
+        this._viaRelationName = name;
+        if (typeof filter === 'function') {
+            filter(this._viaRelation);
+        } else if (filter) { // as condition
+            this._viaRelation.and(filter);
         }
         return this;
     }
 
     viaTable (tableName, refKey, linkKey, filter) {
         this._viaTable = new ActiveQuery({
-            'refKey': refKey,
-            'linkKey': linkKey,
-            'model': this.primaryModel
+            model: this.primaryModel,
+            refKey,
+            linkKey
         });
         this._viaTable._from = tableName;
         this._viaTable._multiple = true;

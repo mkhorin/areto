@@ -9,10 +9,10 @@ module.exports = class OrderBehavior extends Base {
 
     constructor (config) {
         super({
-            'orderAttr': 'orderNumber',
-            'start': 10,
-            'step': 10,
-            'filter': null,
+            orderAttr: 'orderNumber',
+            start: 10,
+            step: 10,
+            filter: null,
             ...config
         });        
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);

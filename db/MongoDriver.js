@@ -5,7 +5,6 @@
 
 const Base = require('./Driver');
 const mongodb = require('mongodb');
-const MongoClient = mongodb.MongoClient;
 
 module.exports = class MongoDriver extends Base {
 
@@ -29,14 +28,15 @@ module.exports = class MongoDriver extends Base {
                 : null;
     }
 
+    _collections = {};
+
     constructor (config) {
         super({
-            'client': MongoClient,
-            'schema': 'mongodb',
-            'QueryBuilder': MongoQueryBuilder,
+            client: mongodb.MongoClient,
+            schema: 'mongodb',
+            QueryBuilder: require('./MongoQueryBuilder'),
             ...config
         });
-        this._collections = {};
     }
 
     async openClient () {
@@ -260,4 +260,3 @@ module.exports = class MongoDriver extends Base {
 module.exports.init();
 
 const ArrayHelper = require('../helper/ArrayHelper');
-const MongoQueryBuilder = require('./MongoQueryBuilder');

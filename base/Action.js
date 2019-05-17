@@ -7,6 +7,8 @@ const Base = require('./Base');
 
 module.exports = class Action extends Base {
 
+    module = this.controller.module;
+
     execute () {
         throw new Error('Need to override');
     }

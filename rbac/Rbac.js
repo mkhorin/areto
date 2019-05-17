@@ -15,12 +15,12 @@ module.exports = class Rbac extends Base {
 
     constructor (config) {
         super({
-            'store': require('./FileStore'),
-            'Inspector': require('./Inspector'),
-            'Item': require('./Item'),
+            store: require('./FileStore'),
+            Inspector: require('./Inspector'),
+            Item: require('./Item'),
             ...config
         });
-        this.store = ClassHelper.spawn(this.store, {'rbac': this});
+        this.store = ClassHelper.spawn(this.store, {rbac: this});
     }
 
     async init () {
@@ -57,10 +57,7 @@ module.exports = class Rbac extends Base {
         this.resolveItemRules(data.items);
         this.itemMap = {};
         for (let name of Object.keys(data.items)) {
-            this.itemMap[name] = this.spawn(this.Item, {
-                ...data.items[name],
-                'rbac': this
-            });
+            this.itemMap[name] = this.spawn(this.Item, {...data.items[name], rbac: this});
         }
         for (let id of Object.keys(data.items)) {
             this.resolveItemLinks(this.itemMap[id]);
@@ -111,10 +108,7 @@ module.exports = class Rbac extends Base {
             || !assignments.length) {
             return false;
         }
-        let inspector = this.spawn(this.Inspector, {
-            'rbac': this,
-            'params': params
-        });
+        let inspector = this.spawn(this.Inspector, {rbac: this, params});
         for (let assignment of assignments) {
             if (Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
                 inspector.assignment = this.itemMap[assignment];

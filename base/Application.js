@@ -10,22 +10,21 @@ module.exports = class Application extends Base {
     static getConstants () {
         return {
             DEFAULT_COMPONENTS: {
-                'bodyParser': {},
-                'formatter': {},
-                'router': {},
-                'url': {},
-                'view': {}
+                bodyParser: {},
+                formatter: {},
+                router: {},
+                url: {},
+                view: {}
             },
             EVENT_AFTER_START: 'afterStart'
         };
     }
 
+    _urlCache = {};
+
     constructor (config) {
-        super({
-            ...config
-        });
+        super(config);
         this.mainExpress = this.createExpress();
-        this._urlCache = {};
     }
 
     async init () {

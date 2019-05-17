@@ -101,7 +101,7 @@ module.exports = class Controller extends Base {
     }
 
     createModel (params) {
-        return this.spawn(this.getModelClass(), {'user': this.user, ...params});
+        return this.spawn(this.getModelClass(), {user: this.user, ...params});
     }
 
     getModelClass () {
@@ -151,21 +151,16 @@ module.exports = class Controller extends Base {
         let method = `action${StringHelper.idToCamel(name)}`;
         if (typeof this[method] === 'function') {
             return ClassHelper.spawn(this.INLINE_ACTION || this.module.InlineAction, {
-                'controller': this,
-                'module': this.module,
-                'name': name,
-                'method': this[method]
+                controller: this,              
+                method: this[method], 
+                name                
             });
         }
     }
 
     createMapAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
-            return ClassHelper.spawn(this.ACTIONS[name], {
-                'controller': this,
-                'module': this.module,
-                'name': name
-            });
+            return ClassHelper.spawn(this.ACTIONS[name], {controller: this, name});
         }
     }
 
@@ -299,10 +294,9 @@ module.exports = class Controller extends Base {
     }
 
     createView (params) {
-        return ClassHelper.spawn(this.ACTION_VIEW || this.module.ActionView, {
-            'module': this.module,
-            'controller': this,
-            'theme': this.module.get('view').getTheme(),
+        return ClassHelper.spawn(this.ACTION_VIEW || this.module.ActionView, {            
+            controller: this,
+            theme: this.module.get('view').getTheme(),
             ...params
         });
     }
@@ -385,10 +379,10 @@ module.exports = class Controller extends Base {
     }
 
     format (value, type, params) {
-        return this.formatter.format(value, type, !this.language ? params : {
-            'language': this.language,
-            ...params
-        });
+        if (this.language) {
+          params = {language: this.language, ...params};  
+        } 
+        return this.formatter.format(value, type, params);
     }
 };
 module.exports.init();

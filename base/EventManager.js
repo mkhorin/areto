@@ -7,10 +7,7 @@ const Base = require('./Base');
 
 module.exports = class EventManager extends Base {
 
-    constructor (config) {
-        super(config);
-        this._events = {};
-    }
+    _events = {};
 
     // OBJECT-LEVEL EVENTS
     /**

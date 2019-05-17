@@ -9,13 +9,16 @@ module.exports = class DbLogStore extends Base {
 
     constructor (config) {
         super({
-            'db': config.logger.module.getDb(),
-            'table': 'log',
-            'key': '_id',
-            'observePeriod': 60, // seconds, null - off
-            'maxRows': 10000,
+            db: config.logger.module.getDb(),
+            table: 'log',
+            key: '_id',
+            observePeriod: 60, // seconds, null - off
+            maxRows: 10000,
             ...config
         });
+    }
+
+    init () {
         if (this.observePeriod) {
             this.observe();
         }
@@ -27,29 +30,33 @@ module.exports = class DbLogStore extends Base {
         });
     }
 
-    format (type, msg, data) {
-        if (msg instanceof Exception) {
-            msg = msg.toString();
-        } else if (msg instanceof Error) {
-            msg = `${msg.message} ${msg.stack}`;
+    format (type, message, data) {
+        if (message instanceof Exception) {
+            message = message.toString();
+        } else if (message instanceof Error) {
+            message = `${message.message} ${message.stack}`;
         }
-        return {
-            'type': type,
-            'message': msg,
-            'data': data,
-            'createdAt': new Date
+        return {            
+            type,
+            message,
+            data,
+            createdAt: new Date
         };
     }
 
     observe () {
-        setTimeout(async ()=> {            
-            try {
-                await this.truncate();
-                this.observe();
-            } catch (err) {
-                this.log('error', 'truncate', err);
-            }
+        setTimeout(async ()=> {
+            await this.checkout();
+            this.observe();
         }, this.observePeriod * 1000);
+    }
+
+    async checkout () {
+        try {
+            await this.truncate();
+        } catch (err) {
+            this.log('error', this.wrapClassMessage('checkout'), err);
+        }
     }
 
     async truncate () {
@@ -65,6 +72,5 @@ module.exports = class DbLogStore extends Base {
     }
 };
 
-const util = require('util');
 const Exception = require('../error/Exception');
 const Query = require('../db/Query');

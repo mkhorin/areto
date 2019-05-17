@@ -23,7 +23,7 @@ module.exports = class Driver extends Base {
     constructor (config) {
         super(config);
         this.connection = null;
-        this.builder = new this.QueryBuilder(this);
+        this.builder = this.spawn(this.QueryBuilder, {db: this});
     }
 
     normalizeId (id) {

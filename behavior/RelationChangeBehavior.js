@@ -7,10 +7,11 @@ const Base = require('../base/Behavior');
 
 module.exports = class RelationChangeBehavior extends Base {
 
+    _changes = {};
+    _relations = {};
+
     constructor (config) {
-        super(config);        
-        this._changes = {};
-        this._relations = {};        
+        super(config);
         this.setHandler(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeSave);
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeSave);

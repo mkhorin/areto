@@ -3,44 +3,54 @@
  */
 'use strict';
 
-const Base = require('./QueryBuilder');
-
-const CONDITION_BUILDERS = {
-    'AND': 'buildLogicCondition',
-    'OR': 'buildLogicCondition',
-    'NOT EQUAL': 'buildNotEqualCondition',
-    'BETWEEN': 'buildBetweenCondition',
-    'NOT BETWEEN':'buildNotBetweenCondition',
-    'IN': 'buildInCondition',
-    'NOT IN': 'buildNotInCondition',
-    'LIKE': 'buildLikeCondition',
-    'NOT LIKE': 'buildNotLikeCondition',
-    'ID': 'buildIdCondition',
-    'NOT ID': 'buildNotIdCondition',
-    'FALSE': 'buildFalseCondition',
-    'NULL': 'buildNullCondition',
-    'NOT NULL': 'buildNotNullCondition'
-};
-
-const SIMPLE_OPERATORS = {
-    '=': ' = ',
-    '!=': ' != ',
-    '>': ' > ',
-    '>=': ' >= ',
-    '<': ' < ',
-    '<=': ' <= '
-};
+const Base = require('../base/Base');
 
 module.exports = class MysqlQueryBuilder extends Base {
 
+    static getConstants () {
+        return {
+            CONDITION_BUILDERS: {
+                'AND': 'buildLogicCondition',
+                'OR': 'buildLogicCondition',
+                'NOT EQUAL': 'buildNotEqualCondition',
+                'BETWEEN': 'buildBetweenCondition',
+                'NOT BETWEEN': 'buildNotBetweenCondition',
+                'IN': 'buildInCondition',
+                'NOT IN': 'buildNotInCondition',
+                'LIKE': 'buildLikeCondition',
+                'NOT LIKE': 'buildNotLikeCondition',
+                'ID': 'buildIdCondition',
+                'NOT ID': 'buildNotIdCondition',
+                'FALSE': 'buildFalseCondition',
+                'NULL': 'buildNullCondition',
+                'NOT NULL': 'buildNotNullCondition'
+            },
+            SIMPLE_OPERATORS: {
+                '=': ' = ',
+                '!=': ' != ',
+                '>': ' > ',
+                '>=': ' >= ',
+                '<': ' < ',
+                '<=': ' <= '
+            }
+        };
+    }
+
+    normalizeField (field) {
+        if (typeof field !== 'string') {
+            throw new Error(this.wrapClassMessage('Invalid field name'));
+        }
+        return this.db.escapeId(field);
+    }
+
     build (query) {
         query.cmd = {
-            'from': this.db.escapeId(query._from),
-            'select': this.buildSelect(query._select),
-            'where': this.buildWhere(query._where),
-            'order': this.buildOrder(query._order),
-            'offset': query._offset,
-            'limit': query._limit,
+            from: this.db.escapeId(query._from),
+            select: this.buildSelect(query._select),
+            where: this.buildWhere(query._where),
+            order: this.buildOrder(query._order),
+            offset: query._offset,
+            limit: query._limit,
         };
         query.afterBuild();
         return query.cmd;
@@ -76,160 +86,120 @@ module.exports = class MysqlQueryBuilder extends Base {
         }
         return sql;
     }
-    
-    // WHERE
-
-    getFieldName (field) {
-        if (typeof field !== 'string') {
-            throw new Error(this.wrapClassMessage('Invalid field name'));
-        }
-        return this.db.escapeId(field);
-    }
 
     buildWhere (condition) {
-        return  condition
-            ? (' WHERE '+ (typeof condition === 'object' ? this.buildCondition(condition) : condition))
-            : '';
-    }
-
-    buildCondition (condition) {
-        if (!Array.isArray(condition)) {
-            return this.buildHashCondition(condition);    
-        }
-        let operator = condition[0];
-        return Object.prototype.hasOwnProperty.call(CONDITION_BUILDERS, operator)
-            ? this[CONDITION_BUILDERS[operator]](condition.slice(1), operator)
-            : this.buildSimpleCondition(condition.slice(1), operator);
-    }
-
-    buildHashCondition (condition) {        
         if (!condition) {
             return '';
         }
+        if (typeof condition === 'object') {
+            condition = this.buildCondition(condition);
+        }
+        return ' WHERE '+ condition;
+    }
+
+    buildCondition (data) {
+        if (!Array.isArray(data)) {
+            return this.buildHashCondition(data);
+        }
+        return Object.prototype.hasOwnProperty.call(this.CONDITION_BUILDERS, data[0])
+            ? this[this.CONDITION_BUILDERS[data[0]]](...data)
+            : this.buildSimpleCondition(...data);
+    }
+
+    buildHashCondition (data) {
+        if (!data) {
+            return '';
+        }
         let result = [];
-        for (let key of Object.keys(condition)) {
-            let field = this.getFieldName(key);
-            if (Array.isArray(condition[key])) {
-                result.push(`field IN (${this.db.escape(condition[key])})`);
-            } else if (condition[key] === null) {
+        for (let key of Object.keys(data)) {
+            let field = this.normalizeField(key);
+            if (Array.isArray(data[key])) {
+                result.push(`field IN (${this.db.escape(data[key])})`);
+            } else if (data[key] === null) {
                 result.push(`${field} IS NULL`);
             } else {
-                result.push(`${field}=${this.db.escape(condition[key])}`);
+                result.push(`${field}=${this.db.escape(data[key])}`);
             }
         }
         return result.join(' AND ');
     }
 
-    buildSimpleCondition (operands, operator) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('Simple requires 2 operands'));
+    buildSimpleCondition (operator, field, value) {
+        if (!Object.prototype.hasOwnProperty.call(this.SIMPLE_OPERATORS, operator)) {
+            throw new Error(this.wrapClassMessage('Invalid simple operator'));
         }
-        if (!Object.prototype.hasOwnProperty.call(SIMPLE_OPERATORS, operator)) {
-            throw new Error(this.wrapClassMessage('Simple operator not found'));
-        }
-        let field = this.getFieldName(operands[0]);
-        return operands[1] === null
+        field = this.normalizeField(field);
+        return value === null
             ? field + (operator === '=' ? ' IS NULL' : ' IS NOT NULL')
-            : field + SIMPLE_OPERATORS[operator] + this.db.escape(operands[1]);
+            : field + this.SIMPLE_OPERATORS[operator] + this.db.escape(value);
     }
 
-    buildLogicCondition (operands, operator) {
-        let parts = [];
-        if (Array.isArray(operands)) {
-            for (let operand of operands) {
-                parts.push(this.buildCondition(operand));
-            }
+    buildLogicCondition (operator, ...operands) {
+        let items = [];
+        for (let operand of operands) {
+            items.push(this.buildCondition(operand));
         }
-        return '('+ parts.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
+        return '('+ items.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
     }
 
-    buildNotEqualCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('NOT EQUAL requires 2 operands'));
-        }
-        return Array.isArray(operands[1]) 
+    buildNotEqualCondition (operator, field, value) {
+        return Array.isArray(value)
             ? this.buildNotInCondition() 
-            : `${this.getFieldName(operands[0])}!=${this.db.escape(operands[1])}`;
+            : `${this.normalizeField(field)}!=${this.db.escape(value)}`;
     }
 
     // IN
 
-    buildInCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('IN requires 2 operands'));
-        }
-        return (Array.isArray(operands[1]) && operands[1].length === 0) 
+    buildInCondition (operator, field, value) {
+        return (Array.isArray(value) && value.length === 0)
             ? 'FALSE'
-            : `${this.getFieldName(operands[0])} IN (${this.db.escape(operands[1])})`;
+            : `${this.normalizeField(field)} IN (${this.db.escape(value)})`;
     }
 
-    buildNotInCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('NOT IN requires 2 operands'));
-        }
-        return (Array.isArray(operands[1]) && operands[1].length === 0) 
+    buildNotInCondition (operator, field, value) {
+        return (Array.isArray(value) && value.length === 0)
             ? 'TRUE'
-            : `${this.getFieldName(operands[0])} NOT IN (${this.db.escape(operands[1])})`;
+            : `${this.normalizeField(operands[0])} NOT IN (${this.db.escape(operands[1])})`;
     }
 
     // LIKE
 
-    buildLikeCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('LIKE requires 2 operands'));
-        }
-        return `${this.getFieldName(operands[0])} LIKE ${this.db.escape(operands[1])}`;
+    buildLikeCondition (operator, field, value) {
+        return `${this.normalizeField(field)} LIKE ${this.db.escape(value)}`;
     }
 
-    buildNotLikeCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('NOT LIKE requires 2 operands'));
-        }
-        return `${this.getFieldName(operands[0])} NOT LIKE ${this.db.escape(operands[1])}`;
+    buildNotLikeCondition (operator, field, value) {
+        return `${this.normalizeField(field)} NOT LIKE ${this.db.escape(value)}`;
     }
 
     // BETWEEN
 
-    buildBetweenCondition (operands) {
-        if (operands.length !== 3) {
-            throw new Error(this.wrapClassMessage('BETWEEN requires 3 operands'));
-        }
-        return `${this.getFieldName(operands[0])} BETWEEN ${this.db.escape(operands[1])} AND ${this.db.escape(operands[2])}`;
+    buildBetweenCondition (operator, field, min, max) {
+        return `${this.normalizeField(field)} BETWEEN ${this.db.escape(min)} AND ${this.db.escape(max)}`;
     }
 
-    buildNotBetweenCondition (operands) {
-        if (operands.length !== 3) {
-            throw new Error(this.wrapClassMessage('NOT BETWEEN requires 3 operands'));
-        }
-        return `${this.getFieldName(operands[0])} NOT BETWEEN ${this.db.escape(operands[1])} AND ${this.db.escape(operands[2])}`;
+    buildNotBetweenCondition (operator, field, min, max) {
+        return `${this.normalizeField(field)} NOT BETWEEN ${this.db.escape(min)} AND ${this.db.escape(max)}`;
     }
 
     // ID
 
-    buildIdCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('ID requires 2 operands'));
-        }
-        let value = operands[1];
+    buildIdCondition (operator, field, value) {
         if (value === null || value === undefined) {
-            return this.buildNullCondition(operands.slice(0, 1));
+            return this.buildNullCondition(operator, field);
         }
-        return Array.isArray(operands[1]) 
-            ? `${this.getFieldName(operands[0])} IN (${this.db.escape(value)})`
-            : `${this.getFieldName(operands[0])}=${this.db.escape(value)}`;
+        return Array.isArray(value)
+            ? `${this.normalizeField(field)} IN (${this.db.escape(value)})`
+            : `${this.normalizeField(field)}=${this.db.escape(value)}`;
     }
 
-    buildNotIdCondition (operands) {
-        if (operands.length !== 2) {
-            throw new Error(this.wrapClassMessage('NOT ID requires 2 operands'));
-        }
-        let value = operands[1];
+    buildNotIdCondition (operator, field, value) {
         if (value === null || value === undefined) {
-            return this.buildNotNullCondition(operands.slice(0, 1));
+            return this.buildNotNullCondition(operator, field);
         }
-        return Array.isArray(operands[1])
-            ? `${this.getFieldName(operands[0])} NOT IN (${this.db.escape(value)})`
-            : `${this.getFieldName(operands[0])}=${this.db.escape(value)}`;
+        return Array.isArray(value)
+            ? `${this.normalizeField(field)} NOT IN (${this.db.escape(value)})`
+            : `${this.normalizeField(field)}=${this.db.escape(value)}`;
     }
 
     // FALSE
@@ -240,17 +210,12 @@ module.exports = class MysqlQueryBuilder extends Base {
 
     // NULL
 
-    buildNullCondition (operands) {
-        if (operands.length !== 1) {
-            throw new Error(this.wrapClassMessage('NULL requires 1 operand'));
-        }
-        return `${this.getFieldName(operands[0])} IS NULL`;
+    buildNullCondition (operator, field) {
+        return `${this.normalizeField(field)} IS NULL`;
     }
 
-    buildNotNullCondition (operands, operator) {
-        if (operands.length !== 1) {
-            throw new Error(this.wrapClassMessage('NOT NULL requires 1 operand'));
-        }
-        return `${this.getFieldName(operands[0])} IS NOT NULL`;
+    buildNotNullCondition (operator, field) {
+        return `${this.normalizeField(field)} IS NOT NULL`;
     }
 };
+module.exports.init();

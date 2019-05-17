@@ -7,12 +7,6 @@ const Base = require('../base/Component');
 
 module.exports = class UrlManager extends Base {
 
-    constructor (config) {
-        super({
-            ...config
-        });
-    }
-
     init () {
         this.forwarder = this.module.get('forwarder');
     }

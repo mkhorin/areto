@@ -9,8 +9,8 @@ module.exports = class DefaultValueValidator extends Base {
 
     constructor (config) {
         super({
-            'value': null,
-            'skipOnEmpty': false,
+            value: null,
+            skipOnEmpty: false,
             ...config
         });
     }

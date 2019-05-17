@@ -7,10 +7,7 @@ const Base = require('../../base/Base');
 
 module.exports = class ViewAsset extends Base {
 
-    constructor (config) {
-        super(config);
-        this._bundles = new DataMap;
-    }
+    _bundles = new DataMap;
 
     add (data) {
         if (typeof data !== 'string') {

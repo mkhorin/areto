@@ -24,7 +24,7 @@ module.exports = class User extends Base {
             assignmentsParam: '__assignments',
             defaultAssignments: ['user'],
             guestAssignments: ['guest'],
-            identityCookie: {'httpOnly': true},
+            identityCookie: {httpOnly: true},
             authTimeout: null, // in seconds (depends on last user activity)
             absoluteAuthTimeout: null, // in seconds (depends on last login)
             ...config
@@ -39,13 +39,13 @@ module.exports = class User extends Base {
     }
 
     handleUser (req, res, next) {
-        res.locals.user = new this.WebUser({
-            'req': req,
-            'res': res,
-            'next': next,
-            'config': this,
-            'module': res.locals.module,
-            'session': req.session
+        res.locals.user = new this.WebUser({            
+            config: this,
+            module: res.locals.module,
+            session: req.session,
+            req,
+            res,
+            next
         });
         // try to identify the user immediately, otherwise have to do a callback for isGuest and etc
         PromiseHelper.callback(res.locals.user.ensureIdentity(), next);

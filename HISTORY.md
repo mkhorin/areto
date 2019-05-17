@@ -1,3 +1,16 @@
+## 0.26.0
+
+* base/Configuration
+    - show config file exception
+* captcha/CaptchaAction
+    - fix font configuration
+* helper/FileHelper
+    - promised file actions
+* log/FileLogStore
+    - non-blocking log rotation
+* db/QueryBuilder
+    - move query builders to base class
+
 ## 0.25.0
 
 * base/Base

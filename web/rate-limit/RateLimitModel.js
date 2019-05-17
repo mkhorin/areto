@@ -7,16 +7,13 @@ const Base = require('../../base/Base');
 
 module.exports = class RateLimitModel extends Base {
 
-    constructor (config) {
-        super(config);
-        this._data = {
-            'type': this.type,
-            'ip': this.user.getIp(),
-            'userId': this.user.getId(),
-            'counter': 0,
-            'blockedTill': null
-        };
-    }
+    _data = {
+        type: this.type,
+        ip: this.user.getIp(),
+        userId: this.user.getId(),
+        counter: 0,
+        blockedTill: null
+    };
 
     isLimited () {
         return this._data.counter >= this.getAttempts();

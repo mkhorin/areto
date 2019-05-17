@@ -14,7 +14,7 @@ describe('DateValidator', ()=> {
         let model = new Model;
         model.set('attr', '1997-45-10');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.true;
+        expect(model.hasError()).to.eql(true);
     });
 
     it('valid date', async ()=> {
@@ -24,28 +24,28 @@ describe('DateValidator', ()=> {
         await expect(model.hasError()).to.false;
         model.set('attr', '2001-10-05');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.false;
+        expect(model.hasError()).to.eql(false);
     });
 
     it('invalid min max', async ()=> {
         let model = new Model;
         let validator = new Validator({
-            'min': new Date('1996-11-05'),
-            'max': new Date('1998-05-11')
+            min: new Date('1996-11-05'),
+            max: new Date('1998-05-11')
         });
         model.set('attr', '1996-02-20');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.true;
+        expect(model.hasError()).to.eql(true);
     });
 
     it('valid min max', async ()=> {
         let model = new Model;
         let validator = new Validator({
-            'min': new Date('1996-11-05'),
-            'max': new Date('1998-05-11')
+            min: new Date('1996-11-05'),
+            max: new Date('1998-05-11')
         });
         model.set('attr', '1997-02-20');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.false;
+        expect(model.hasError()).to.eql(false);
     });
 });

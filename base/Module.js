@@ -23,23 +23,23 @@ module.exports = class Module extends Base {
                 'view': {}
             },
             COMPONENT_CONFIG: {
-                'asset': {'Class': require('../web/asset/AssetManager')},
+                'asset': {Class: require('../web/asset/AssetManager')},
                 'bodyParser': {
-                    'Class': require('../web/BodyParser'),
-                    'extended': true
+                    Class: require('../web/BodyParser'),
+                    extended: true
                 },
-                'cache': {'Class': require('../cache/Cache')},
-                'connection': {'Class': require('../db/Connection')},
-                'cookie': {'Class': require('../web/Cookie')},
-                'forwarder': {'Class': require('../web/Forwarder')},
-                'logger': {'Class': require('../log/Logger')},
-                'rateLimit': {'Class': require('../web/rate-limit/RateLimit')},
-                'rbac': {'Class': require('../rbac/Rbac')},
-                'router': {'Class': require('../web/Router')},
-                'scheduler': {'Class': require('../scheduler/Scheduler')},
-                'session': {'Class': require('../web/session/Session')},
-                'url': {'Class': require('../web/UrlManager')},
-                'user': {'Class': require('../web/User')}
+                'cache': {Class: require('../cache/Cache')},
+                'connection': {Class: require('../db/Connection')},
+                'cookie': {Class: require('../web/Cookie')},
+                'forwarder': {Class: require('../web/Forwarder')},
+                'logger': {Class: require('../log/Logger')},
+                'rateLimit': {Class: require('../web/rate-limit/RateLimit')},
+                'rbac': {Class: require('../rbac/Rbac')},
+                'router': {Class: require('../web/Router')},
+                'scheduler': {Class: require('../scheduler/Scheduler')},
+                'session': {Class: require('../web/session/Session')},
+                'url': {Class: require('../web/UrlManager')},
+                'user': {Class: require('../web/User')}
             },
             INHERITED_UNDEFINED_CONFIG_KEYS: [
                 'params',
@@ -119,9 +119,9 @@ module.exports = class Module extends Base {
 
     require (...args) {
         try {
-            return require(this.getPath.apply(this, args));
+            return require(this.getPath(...args));
         } catch (err) {}
-        return require(path.join.apply(path, args));
+        return require(path.join(...args));
     }
 
     getRelativePath (file) {
@@ -158,7 +158,7 @@ module.exports = class Module extends Base {
 
     translate (message) {
         let i18n = this.components.get('i18n');
-        return i18n ? i18n.translateMessage.apply(i18n, arguments) : message;
+        return i18n ? i18n.translateMessage(message) : message;
     }
 
     // ROUTE
@@ -249,10 +249,10 @@ module.exports = class Module extends Base {
 
     async createConfiguration () {
         this.config = this.spawn(this.Configuration, {
-            'dir': this.getPath('config'),
-            'name': this.configName,
-            'parent': this.parent && this.parent.config,
-            'origin': this.origin && this.origin.config
+            dir: this.getPath('config'),
+            name: this.configName,
+            parent: this.parent && this.parent.config,
+            origin: this.origin && this.origin.config
         });
         await this.config.load();
         this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIG_KEYS);
@@ -286,14 +286,15 @@ module.exports = class Module extends Base {
         if (!config.Class) {
             config.Class = this.getModuleClass(id) || this.origin && this.origin.getModuleClass(id);
         }
-        let module = ClassHelper.spawn(config, {'parent': this});
+        let module = ClassHelper.spawn(config, {parent: this});
         this.modules.set(id, module);
         return module.init();
     }
 
     getModuleClass (id) {
-        const file = this.getPath('module', id, 'Module.js');
-        return fs.existsSync(file) ? require(file) : null;
+        try {
+            return require(this.getPath('module', id, 'Module.js'));
+        } catch (err) {}
     }
 
     // COMPONENTS

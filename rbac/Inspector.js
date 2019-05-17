@@ -7,10 +7,7 @@ const Base = require('../base/Base');
 
 module.exports = class Inspector extends Base {
 
-    constructor (config) {
-        super(config);
-        this._ruleCache = {};
-    }
+    _ruleCache = {};
 
     async execute (item) {
         if (!item.rule || await this.checkRule(item.rule)) {
@@ -37,12 +34,10 @@ module.exports = class Inspector extends Base {
         }
         let model = new rule.Class({
             ...rule,
-            'inspector': this,
-            'module': this.module
+            inspector: this,
+            module: this.module
         });
-        model.params = rule.params
-            ? {...rule.params, ...this.params}
-            : this.params;
+        model.params = rule.params ? {...rule.params, ...this.params} : this.params;
         let passed = await model.execute();
         if (rule.name) {
             this._ruleCache[rule.name] = !!passed;

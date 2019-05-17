@@ -17,11 +17,11 @@ module.exports = class I18n extends Base {
 
     constructor (config) {
         super({
-            'language': config.parent ? config.parent.language : 'en',
-            'sourceLanguage': config.parent ? config.parent.sourceLanguage : 'en',
-            'sources': {},
-            'basePath': config.module.getPath('message'),
-            'MessageFormatter': MessageFormatter,
+            language: config.parent ? config.parent.language : 'en',
+            sourceLanguage: config.parent ? config.parent.sourceLanguage : 'en',
+            sources: {},
+            basePath: config.module.getPath('message'),
+            MessageFormatter: MessageFormatter,
             ...config
         });
         this.createSources();
@@ -94,9 +94,9 @@ module.exports = class I18n extends Base {
             return data;
         }
         return ClassHelper.spawn({
-            'Class': JsMessageSource,
-            'parent': this.getSourceParent(category),
-            'i18n': this,
+            Class: JsMessageSource,
+            parent: this.getSourceParent(category),
+            i18n: this,
             ...data
         });
     }
@@ -108,7 +108,7 @@ module.exports = class I18n extends Base {
     }
 
     createMessageFormatter () {
-        this.messageFormatter = ClassHelper.spawn(this.MessageFormatter, {'i18n': this});
+        this.messageFormatter = ClassHelper.spawn(this.MessageFormatter, {i18n: this});
     }
     
     getActiveNotSourceLanguage () {

@@ -9,9 +9,9 @@ module.exports = class AssetManager extends Base {
 
     constructor (config) {
         super({
-            'bundles': [],
-            'ViewAsset': require('./ViewAsset'),
-            'AssetBundle': require('./AssetBundle'),
+            bundles: [],
+            ViewAsset: require('./ViewAsset'),
+            AssetBundle: require('./AssetBundle'),
             ...config
         });
     }
@@ -21,7 +21,7 @@ module.exports = class AssetManager extends Base {
     }
 
     createViewAsset () {
-        return ClassHelper.spawn(this.ViewAsset, {'manager': this});
+        return ClassHelper.spawn(this.ViewAsset, {manager: this});
     }
 
     hasBundle (name) {

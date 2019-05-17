@@ -9,7 +9,7 @@ module.exports = class RateLimitStore extends Base {
 
     constructor (config) {
         super({
-           'model': require('./RateLimitModel'),
+           model: require('./RateLimitModel'),
             ...config
         });
     }
@@ -26,10 +26,7 @@ module.exports = class RateLimitStore extends Base {
     }
 
     createModel (config) {
-        return ClassHelper.spawn(this.model, {
-            'store': this,
-            ...config
-        });
+        return ClassHelper.spawn(this.model, {store: this, ...config});
     }
 };
 

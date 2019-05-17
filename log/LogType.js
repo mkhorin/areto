@@ -7,16 +7,15 @@ const Base = require('../base/Base');
 
 module.exports = class LogType extends Base {
 
+    _counter = 0;
+
     constructor (config) {
         super({
             exclusive: false, 
             consoleMethod: 'log',
-            dataStringifyOptions: {
-                'depth': 10
-            },
+            dataStringifyOptions: {depth: 10},
             ...config
         });
-        this.counter = 0;
         this.initStore();
     }
 
@@ -25,13 +24,17 @@ module.exports = class LogType extends Base {
             this.store = this.commonStore;
         } else if (!(this.store instanceof LogStore)) {
             this.store = ClassHelper.spawn(this.store, {
-                'logger': this.logger,
-                'logType': this
+                logger: this.logger,
+                logType: this
             });
         }
         if (this.exclusive || this.store === this.commonStore) {
             this.commonStore = null;
         }
+    }
+
+    getCounter () {
+        return this._counter;
     }
 
     log (message, data) {
@@ -48,7 +51,7 @@ module.exports = class LogType extends Base {
         if (this.commonStore) {
             this.commonStore.save(this.name, message, data);
         }
-        this.counter += 1;
+        this._counter += 1;
         this.logger.afterLog(this.name, message, data);
     }
 

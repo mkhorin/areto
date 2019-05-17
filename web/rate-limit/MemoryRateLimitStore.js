@@ -11,10 +11,7 @@ module.exports = class MemoryRateLimitStore extends Base {
         return user.getId() || user.getIp();
     }
 
-    constructor (config) {
-        super(config);
-        this._data = {};
-    }
+    _data = {};
 
     hasType (type) {
         return Object.prototype.hasOwnProperty.call(this._data, type);

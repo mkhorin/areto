@@ -9,9 +9,9 @@ module.exports = class HistoryBehavior extends Base {
 
     constructor (config) {
         super({
-            'History': null, // history ActiveRecord
-            'includes': null, // [] tracked attr names
-            'excludes': null, // [] tracked attr names
+            History: null, // history ActiveRecord
+            includes: null, // [] tracked attr names
+            excludes: null, // [] tracked attr names
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
@@ -20,7 +20,7 @@ module.exports = class HistoryBehavior extends Base {
 
     async beforeUpdate (event) {
         for (let name of this.getAttrNames()) {
-            if (this.owner.isAttrChanged(name)) {
+            if (this.owner.isChangedAttr(name)) {
                 await this.createHistory(name);
             }
         }

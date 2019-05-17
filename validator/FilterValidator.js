@@ -29,10 +29,10 @@ module.exports = class FilterValidator extends Base {
 
     constructor (config) {
         super({
-            'filter': null,
-            'skipOnEmpty': false,
-            'skipOnArray': false,
-            'separator': ',',
+            filter: null,
+            skipOnEmpty: false,
+            skipOnArray: false,
+            separator: ',',
             ...config
         });
         this.prepareFilter();

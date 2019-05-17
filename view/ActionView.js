@@ -12,18 +12,20 @@ module.exports = class ActionView extends Base {
             POS_HEAD: 'head',
             POS_BODY_END: 'bodyEnd',
 
-            'ArrayHelper': require('../helper/ArrayHelper'),
-            'CommonHelper': require('../helper/CommonHelper'),
-            'MongoHelper': require('../helper/MongoHelper'),
-            'ObjectHelper': require('../helper/ObjectHelper'),
-            'StringHelper': require('../helper/StringHelper')
+            ArrayHelper: require('../helper/ArrayHelper'),
+            CommonHelper: require('../helper/CommonHelper'),
+            MongoHelper: require('../helper/MongoHelper'),
+            ObjectHelper: require('../helper/ObjectHelper'),
+            StringHelper: require('../helper/StringHelper')
         };
     }
 
+    module = this.controller.module;
+    
     constructor (config) {
         super({
-            'widgets': {},
-            'data': {},
+            widgets: {},
+            data: {},
             ...config
         });
     }
@@ -47,7 +49,6 @@ module.exports = class ActionView extends Base {
     createViewModel (name, config = {}) {
         let Class = this.getViewModelClass(name);
         config.view = this;
-        config.module = this.module;
         return Class ? new Class(config) : null;
     }
 
@@ -74,14 +75,14 @@ module.exports = class ActionView extends Base {
 
     getRenderParams (params) {
         params = {
-            '_module': this.module,
-            '_controller': this.controller,
-            '_view': this,
-            '_t': this.controller.translate.bind(this.controller),
-            '_format': this.controller.format.bind(this.controller),
-            '_url': this.controller.createUrl.bind(this.controller),
-            '_baseUrl': this.module.app.baseUrl,
-            '_data': null,
+            _module: this.module,
+            _controller: this.controller,
+            _view: this,
+            _t: this.controller.translate.bind(this.controller),
+            _format: this.controller.format.bind(this.controller),
+            _url: this.controller.createUrl.bind(this.controller),
+            _baseUrl: this.module.app.baseUrl,
+            _data: null,
             ...params
         };
         params._data = new DataMap(params._data);
@@ -155,11 +156,10 @@ module.exports = class ActionView extends Base {
             return this.log('error', `Widget config not found: ${key}`);
         }
         return ClassHelper.spawn({
-            'module': this.module,
-            'view': this,
-            'id': anchor,
+            id: anchor,
             ...widget,
-            ...params
+            ...params,
+            view: this            
         });
     }
 

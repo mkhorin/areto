@@ -32,6 +32,8 @@ module.exports = class AssignHelper {
         return target;
     }
 
+    // INTERNAL
+
     static _assign (to, from) {
         if (from && typeof from === 'object') {
             for (let prop of Object.keys(from)) {

@@ -15,15 +15,13 @@ module.exports = class RateLimit extends Base {
 
     constructor (config) {
         super({
-            'attempts': 3,
-            'timeout': 0, // seconds
-            'types': {}, // separate config for types
-            'store': require('./MemoryRateLimitStore'),
+            attempts: 3,
+            timeout: 0, // seconds
+            types: {}, // separate config for types
+            store: require('./MemoryRateLimitStore'),
             ...config
         });        
-        this.store = ClassHelper.spawn(this.store, {
-            'rateLimit': this
-        });
+        this.store = ClassHelper.spawn(this.store, {rateLimit: this});
     }
 
     init () {

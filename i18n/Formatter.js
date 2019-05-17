@@ -16,6 +16,10 @@ module.exports = class Formatter extends Base {
         };
     }
 
+    static getMethodName (type) {
+        return `as${StringHelper.toFirstUpperCase(type)}`;
+    }
+
     constructor (config) {
         super({
             language: config.i18n ? config.i18n.language : 'en',
@@ -32,17 +36,15 @@ module.exports = class Formatter extends Base {
         });
     }
 
-    getMethodName (type) {
-        return `as${StringHelper.toFirstUpperCase(type)}`;
-    }
-
     format (value, type, params) {
-        let methodName = this.getMethodName(type);
-        if (typeof this[methodName] === 'function') {
-            return this[methodName](value, params);
+        if (type) {
+            let methodName = this.constructor.getMethodName(type);
+            if (typeof this[methodName] === 'function') {
+                return this[methodName](value, params);
+            }
+            this.log('error', `Unknown type: ${type}`);
         }
-        this.log('error', `Unknown type '${type}' for value '${value}'`);
-        return value;
+        return this.asRaw(value, params);
     }
 
     translate (message, category, language) {
@@ -90,6 +92,12 @@ module.exports = class Formatter extends Base {
         return `${value} ${unit}`;
     }
 
+    asUrl (value, params = {}) {
+        return value
+            ? `<a href="${value}" class="${params.css || ''}" target="${params.target || ''}">${params.text || value}</a>`
+            : this.asRaw(value, params);
+    }
+
     // DATE
 
     asDate (value, params = {}) {
@@ -99,10 +107,7 @@ module.exports = class Formatter extends Base {
     }
 
     asDateLong (value, params) {
-        return this.asDate(value, {
-            'format': this.dateLongFormat,
-            ...params
-        });
+        return this.asDate(value, {format: this.dateLongFormat, ...params});
     }
 
     asDuration (value, params = {}) {
@@ -112,31 +117,19 @@ module.exports = class Formatter extends Base {
     }
 
     asTime (value, params) {
-        return this.asDate(value, {
-            'format': this.timeFormat,
-            ...params
-        });
+        return this.asDate(value, {format: this.timeFormat, ...params});
     }
 
     asTimeLong (value, params) {
-        return this.asDate(value, {
-            'format': this.timeLongFormat,
-            ...params
-        });
+        return this.asDate(value, {format: this.timeLongFormat, ...params});
     }
 
     asDatetime (value, params) {
-        return this.asDate(value, {
-            'format': this.datetimeFormat,
-            ...params
-        });
+        return this.asDate(value, {format: this.datetimeFormat, ...params});
     }
 
     asTimestamp (value, params) {
-        return this.asDate(value, {
-            'format': this.timestampFormat,
-            ...params
-        });
+        return this.asDate(value, {format: this.timestampFormat, ...params});
     }
 
     asFromNow (value, params = {}) {

@@ -16,17 +16,18 @@ module.exports = class Task extends Base {
         };
     }
 
+    _counter = 0;
+
     constructor (config) {
         super({
-            'active': true,
-            'startDate': null, // new Date
-            'startTime': null, // 00:00:00
-            'period': 0, // seconds
-            'repeats': 0, // 0 - endless
-            'stopOnFail': true,
+            active: true,
+            startDate: null, // new Date
+            startTime: null, // 00:00:00
+            period: 0, // seconds
+            repeats: 0, // 0 - endless
+            stopOnFail: true,
             ...config
         });
-        this._counter = 0;
         if (this.active) {
             this.start();
         }

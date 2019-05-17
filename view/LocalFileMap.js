@@ -22,8 +22,8 @@ module.exports = class LocalFileMap extends Base {
 
     createBaseMap () {
         this._base = ClassHelper.spawn(FileMap, {
-            'dir': path.join(this.baseDir),
-            'required': this.required
+            dir: path.join(this.baseDir),
+            required: this.required
         });
     }
 

@@ -7,14 +7,11 @@ const Base = require('../base/Base');
 
 module.exports = class Query extends Base {
 
-    constructor (config) {
-        super(config);
-        this._index = null;
-        this._limit = null;
-        this._offset = null;
-        this._order = null;
-        this._where = null;
-    }
+    _index = null;
+    _limit = null;
+    _offset = null;
+    _order = null;
+    _where = null;
 
     db (db) {
         this._db = db;
@@ -124,7 +121,7 @@ module.exports = class Query extends Base {
             return this.and(conditions[0]);
         }
         if (conditions.length > 1) {
-            return this.and(['OR'].concat(conditions));
+            return this.and(['OR', ...conditions]);
         }
         return this;
     }
@@ -306,7 +303,7 @@ module.exports = class Query extends Base {
             return docs;
         }
         // docs can be with equals key
-        let map = ArrayHelper.indexObjects(docs, this.refKey);
+        let map = IndexHelper.indexObjects(docs, this.refKey);
         let result = [];
         for (let key of keys) {
             if (Object.prototype.hasOwnProperty.call(map, key)) {
@@ -320,14 +317,14 @@ module.exports = class Query extends Base {
     clone () {        
         let target = Object.assign(new this.constructor, this);
         for (let key of Object.keys(target)) {
-            let prop = target[key];
-            if (prop && typeof prop === 'object') {
-                if (prop instanceof Query) {
-                    target[key] = prop.clone();
-                } else if (Array.isArray(prop)) {
-                    target[key] = prop.slice();
-                } else if (!(prop instanceof Base)) {
-                    target[key] = {...prop};
+            let value = target[key];
+            if (value && typeof value === 'object') {
+                if (value instanceof Query) {
+                    target[key] = value.clone();
+                } else if (Array.isArray(value)) {
+                    target[key] = value.slice();
+                } else if (!(value instanceof Base)) {
+                    target[key] = {...value};
                 }
             }
         }
@@ -335,5 +332,5 @@ module.exports = class Query extends Base {
     }
 };
 
-const ArrayHelper = require('../helper/ArrayHelper');
+const IndexHelper = require('../helper/IndexHelper');
 const QueryHelper = require('../helper/QueryHelper');

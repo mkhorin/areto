@@ -9,8 +9,8 @@ module.exports = class Forwarder extends Base {
 
     constructor (config) {
         super({
-            'Url': require('./Url'),
-            'items': {},
+            Url: require('./Url'),
+            items: {},
             ...config
         });
         this.clear();

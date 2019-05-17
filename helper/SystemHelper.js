@@ -34,8 +34,8 @@ module.exports = class CommonHelper {
         }
         const childProcess = require('child_process');
         const sub = childProcess.spawn(command, args, {
-            'cwd': path,
-            'env': process.env
+            cwd: path,
+            env: process.env
         });
         sub.stdout.on('data', data => console.log(`${data}`));
         sub.stderr.on('data', data => console.error(`${data}`));

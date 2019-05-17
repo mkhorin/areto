@@ -8,9 +8,7 @@ const Base = require('../base/Base');
 module.exports = class Express extends Base {
 
     constructor (config) {
-        super({
-            ...config
-        });
+        super(config);
         this._express = express();
         this._express.disable('x-powered-by');
         this._handlers = []; // for deferred assign
@@ -52,7 +50,7 @@ module.exports = class Express extends Base {
 
     attachHandlers () {
         for (let item of this._handlers) {
-            this.attach.apply(this, [item.method].concat(item.args));
+            this.attach(item.method, ...item.args);
         }
     }
 

@@ -7,10 +7,7 @@ const Base = require('./Cache');
 
 module.exports = class MemoryCache extends Base {
 
-    constructor (config) {
-        super(config);
-        this._cache = {};
-    }
+    _cache = {};
 
     getValue (key) {
         let value = this._cache[key];

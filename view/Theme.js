@@ -9,11 +9,11 @@ module.exports = class Theme extends Base {
 
     constructor (config) {
         super({
-            // name: theme name
-            // dir: theme dir
-            // parent: new Theme
-            // view: new View
-            'LocalFileMap': require('./LocalFileMap'),
+            // name: [theme name]
+            // dir: [theme dir]
+            // parent: [new Theme]
+            // view: [new View]
+            LocalFileMap: require('./LocalFileMap'),
             ...config
         });        
         this.createTemplateMap();
@@ -22,16 +22,16 @@ module.exports = class Theme extends Base {
 
     createTemplateMap () {
         this._templates = ClassHelper.spawn(this.LocalFileMap, {
-            'baseDir': path.join(this.dir, 'template'),
-            'localDir': path.join(this.dir, 'local/template')
+            baseDir: path.join(this.dir, 'template'),
+            localDir: path.join(this.dir, 'local/template')
         });
     }
 
     createModelMap () {
         this._models = ClassHelper.spawn(this.LocalFileMap, {
-            'baseDir': path.join(this.dir, 'model'),
-            'localDir': path.join(this.dir, 'local/model'),
-            'required': true
+            baseDir: path.join(this.dir, 'model'),
+            localDir: path.join(this.dir, 'local/model'),
+            required: true
         });
     }
 

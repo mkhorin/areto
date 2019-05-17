@@ -4,7 +4,7 @@
 'use strict';
 
 const CONSTANT_METHOD = 'getConstants';
-const STATIC_METHOD = 'getStatics';
+const EXTENDED_CLASS_PROPS_METHOD = 'getExtendedClassProps';
 
 module.exports = class ClassHelper {
 
@@ -42,16 +42,9 @@ module.exports = class ClassHelper {
     }
 
     static defineConstantClassProps (Class, methodName = CONSTANT_METHOD) {
-        let props = this.getClassProps(Class, methodName, Class, 'getExtendedClassProps');
+        let props = this.getClassProps(Class, methodName, Class, EXTENDED_CLASS_PROPS_METHOD);
         for (let name of Object.keys(props)) {
             this.defineClassProp(Class, name, props[name], false);
-        }
-    }
-
-    static defineStaticClassProps (Class, methodName = STATIC_METHOD) {
-        let props = this.getClassProps(Class, methodName, Class, 'getExtendedClassProps');
-        for (let name of Object.keys(props)) {
-            this.defineClassProp(Class, name, props[name], true);
         }
     }
 
@@ -79,7 +72,7 @@ module.exports = class ClassHelper {
     static getExtendedClassProp (name, childProp, parentProp) {
         if (childProp && parentProp) {
             if (Array.isArray(childProp) && Array.isArray(parentProp)) {
-                return [].concat(parentProp, childProp);
+                return [...parentProp, ...childProp];
             }
             if (typeof childProp === 'object' && typeof parentProp === 'object') {
                 return {...parentProp, ...childProp};
@@ -88,5 +81,3 @@ module.exports = class ClassHelper {
         return null;
     }
 };
-
-const util = require('util');

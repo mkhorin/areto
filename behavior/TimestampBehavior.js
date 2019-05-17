@@ -9,9 +9,9 @@ module.exports = class TimestampBehavior extends Base {
 
     constructor (config) {
         super({
-            'format': null, // 'YYYY-MM-DD HH:mm:ss';
-            'createdAttr': 'createdAt', // or false
-            'updatedAttr': 'updatedAt',
+            format: null, // 'YYYY-MM-DD HH:mm:ss';
+            createdAttr: 'createdAt', // or false
+            updatedAttr: 'updatedAt',
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);

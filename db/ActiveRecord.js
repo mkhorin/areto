@@ -23,12 +23,9 @@ module.exports = class ActiveRecord extends Base {
         };
     }
     
-    constructor (config) {
-        super(config);
-        this._isNewRecord = true;
-        this._oldAttrs = {};
-        this._related = {};
-    }
+    _isNewRecord = true;
+    _oldAttrs = {};
+    _related = {};
 
     getDb () {
         return this.module.getDb();
@@ -81,12 +78,14 @@ module.exports = class ActiveRecord extends Base {
         return rel ? rel[nested] : rel;
     }
 
-    isAttrChanged (name) {
+    isChangedAttr (name) {
         return this.getOldAttr(name) !== this.get(name);
     }
     
     getOldAttr (name) {
-        return Object.prototype.hasOwnProperty.call(this._oldAttrs, name) ? this._oldAttrs[name] : undefined;
+        if (Object.prototype.hasOwnProperty.call(this._oldAttrs, name)) {
+            return this._oldAttrs[name];
+        }
     }       
     
     assignOldAttrs () {
@@ -170,7 +169,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     find (condition) {
-        return (new this.QUERY_CLASS({'model': this})).and(condition);
+        return (new this.QUERY_CLASS({model: this})).and(condition);
     }
 
     // SAVE
@@ -240,7 +239,7 @@ module.exports = class ActiveRecord extends Base {
 
     // RELATIONS
 
-    static async findRelation (models, name, renew) {
+    static async findRelation (name, models, renew) {
         let relations = [];
         for (let model of models) {
             relations.push(await model.findRelation(name, renew));
@@ -248,7 +247,7 @@ module.exports = class ActiveRecord extends Base {
         return relations;
     }
 
-    static async findRelations (models, names, renew) {
+    static async findRelations (names, models, renew) {
         let relations = [];
         for (let model of models) {
             relations.push(await model.findRelations(names, renew));

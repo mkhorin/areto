@@ -9,8 +9,8 @@ module.exports = class DateValidator extends Base {
 
     constructor (config) {
         super({
-            'min': null,
-            'max': null,
+            min: null,
+            max: null,
             ...config
         });
         this.min = this.min && this.resolveDate(this.min);
@@ -31,13 +31,13 @@ module.exports = class DateValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {
-            'min': this.min.toISOString()
+            min: this.min.toISOString()
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {
-            'max': this.max.toISOString()
+            max: this.max.toISOString()
         });
     }
 

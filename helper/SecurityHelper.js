@@ -9,6 +9,17 @@ const DEFAULT_SALT_LENGTH = 8;
 
 module.exports = class SecurityHelper {
 
+    static isHexString (data) {
+        return /^[a-f0-9]+$/.test(data)
+    }
+
+    static getRandomString (length) {
+        if (isNaN(length)) {
+            throw new Error('Length must be a number');
+        }
+        return crypto.randomBytes(length).toString('hex');
+    }
+
     static createSalt (length = DEFAULT_SALT_LENGTH) {
         if (length % 2) {
             throw new Error('length must be a multiple of 2');
@@ -20,22 +31,23 @@ module.exports = class SecurityHelper {
         return hash.substring(length);
     }
 
-    static validateHash (hash, hashLength = DEFAULT_HASH_LENGTH, saltLength = DEFAULT_SALT_LENGTH) {
-        let s = `^[0-9a-f]{${hashLength + saltLength}`+'}$';
-        return typeof hash === 'string' ? (new RegExp(s)).test(hash) : false;
+    static hashPassword (password) {
+        return !password ? '' : this.hashValue(password, this.createSalt());
     }
 
     static hashValue (value, salt, algo = DEFAULT_HASH_ALGO) {
         return crypto.createHmac(algo, salt).update(value).digest('hex') + salt;
     }
 
-    static hashFile (file, algo = DEFAULT_HASH_ALGO) {
-        let data = fs.readFileSync(file);
+    static async hashFile (file, algo = DEFAULT_HASH_ALGO) {
+        let data = await fs.promises.readFile(file);
         return crypto.createHash(algo).update(data).digest('hex');
     }
 
-    static encryptPassword (password) {
-        return !password ? '' : this.hashValue(password, this.createSalt());
+    static validateHash (hash, hashLength = DEFAULT_HASH_LENGTH, saltLength = DEFAULT_SALT_LENGTH) {
+        return typeof hash === 'string'
+            && hash.length === hashLength + saltLength
+            && this.isHexString(hash);
     }
 
     static validatePassword (password, hash) {
@@ -43,13 +55,6 @@ module.exports = class SecurityHelper {
             return false;
         }
         return this.hashValue(password, this.extractSalt(hash)) === hash;
-    }
-
-    static generateRandomString (length) {
-        if (isNaN(length)) {
-            throw new Error('Length must be a number');
-        }
-        return crypto.randomBytes(length).toString('hex');
     }
 };
 

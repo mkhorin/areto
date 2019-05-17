@@ -15,45 +15,46 @@ module.exports = class Logger extends Base {
 
     constructor (config) {
         super({
-            'depends': '#start',
-            'level': 'info', // and right types
-            'typeNames': ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
-            'types': {},
-            'LogType': LogType,
-            'store': require('./FileLogStore'), // common store
-            'consoleOutput': true,
-            'processingTimeThreshold': 0, // ms
+            depends: '#start',
+            level: 'info', // and right types
+            typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
+            types: {},
+            LogType,
+            store: require('./FileLogStore'), // common store
+            consoleOutput: true,
+            processingTimeThreshold: 0, // ms
             ...config
         });
-        this.store = ClassHelper.spawn(this.store, {'logger': this});
+        this.store = ClassHelper.spawn(this.store, {logger: this});
         this.createTypes();
     }
 
     async init () {
         if (this.isDebug()) {
             this.traceProcessingTime();
+            await this.store.init();
         }
     }
 
     createTypes () {
         let errorOutputIndex = this.typeNames.indexOf('info');        
         for (let i = 0; i < this.typeNames.length; ++i) {
-            this.createType(this.typeNames[i], {'consoleMethod': i > errorOutputIndex ? 'error' : 'log'});
+            this.createType(this.typeNames[i], {consoleMethod: i > errorOutputIndex ? 'error' : 'log'});
         }
     }
 
     createType (name, config) {
         let type = this.types[name];
         config = {
-            'Class': this.LogType,
-            'name': name,
-            'logger': this,
-            'commonStore': this.store,
-            'store': this.store,
-            'active': this.isActiveTypeName(name),
-            'consoleOutput': this.consoleOutput,
-            'exclusive': this.exclusive, // not copy to commonStore
-            'eventFire': this.eventFire,
+            Class: this.LogType,
+            logger: this,
+            commonStore: this.store,
+            store: this.store,
+            active: this.isActiveTypeName(name),
+            consoleOutput: this.consoleOutput,
+            exclusive: this.exclusive, // not copy to commonStore
+            eventFire: this.eventFire,
+            name,
             ...config
         };
         if (type instanceof LogType) {
@@ -136,10 +137,10 @@ module.exports = class Logger extends Base {
         typeNames = Array.isArray(typeNames) ? typeNames : this.typeNames;
         for (let name of typeNames) {
             let type = this.getType(name);
-            if (type && type.counter) {
+            if (type && type.getCounter()) {
                 total.push({
-                    'type': name,
-                    'counter': type.counter
+                    type: name,
+                    counter: type.getCounter()
                 });
             }
         }

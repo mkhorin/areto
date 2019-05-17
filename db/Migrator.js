@@ -38,7 +38,7 @@ module.exports = class Migrator extends Base {
     async createMigration (file, action) {
         this.log('info', `Start to ${action}: ${file}`);
         let Migration = require(this.getPath(file));
-        let migration = this.spawn(Migration, {'migrator': this});
+        let migration = this.spawn(Migration, {migrator: this});
         await migration[action]();
         this.log('info', `Done: ${file}`);
     }

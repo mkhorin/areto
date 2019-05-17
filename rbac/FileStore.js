@@ -9,7 +9,7 @@ module.exports = class FileStore extends Base {
 
     constructor (config) {
         super({
-            'basePath': config.rbac.module.getPath('rbac'),
+            basePath: config.rbac.module.getPath('rbac'),
             ...config
         });
     }

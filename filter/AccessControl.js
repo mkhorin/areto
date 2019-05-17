@@ -10,21 +10,22 @@ module.exports = class AccessControl extends Base {
     constructor (config) {
         super({
             // rules: [] rule configs
-            // denyPromise: async (action, user)
-            'AccessRule': AccessRule,
+            // deny: [fn(action, user)]
+            AccessRule,
             ...config
         });
         this.createRules();
     }
 
     createRules () {
-        this.rules = this.rules.map(rule => {
-            if (rule instanceof AccessRule) {
-                return rule;
+        let rules = [];
+        for (let rule of this.rules) {
+            if (!(rule instanceof AccessRule)) {
+                rule = this.spawn(rule.Class || this.AccessRule, rule);
             }
-            let RuleClass = rule.Class || this.AccessRule;
-            return new RuleClass(rule);
-        });
+            rules.push(rule);
+        }
+        this.rules = rules;
     }
 
     async beforeAction (action, complete) {
@@ -42,11 +43,11 @@ module.exports = class AccessControl extends Base {
     }
 
     async denyAccess (rule, action, user) {
-        if (rule.denyPromise) {
-            return rule.denyPromise(action, user);
+        if (rule.deny) {
+            return rule.deny(action, user);
         }
-        if (this.denyPromise) {
-            return this.denyPromise(action, user);
+        if (this.deny) {
+            return this.deny(action, user);
         }
         throw new Forbidden;
     }

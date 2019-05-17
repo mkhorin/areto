@@ -16,10 +16,7 @@ module.exports = class WebUser extends Base {
         };
     }
 
-    constructor (config) {
-        super(config);        
-        this._accessCache = {};
-    }
+    _accessCache = {};
 
     isGuest () {
         return !this.model;
@@ -168,9 +165,9 @@ module.exports = class WebUser extends Base {
     sendIdentityCookie (model, duration) {
         this.config.identityCookie.maxAge = duration * 1000;
         this.res.cookie(this.config.identityCookieParam, {
-            'id': model.getId(),
-            'key': model.getAuthKey(),
-            'duration': duration
+            id: model.getId(),
+            key: model.getAuthKey(),
+            duration
         }, this.config.identityCookie);
     }
 
@@ -240,10 +237,7 @@ module.exports = class WebUser extends Base {
     }
 
     async forceCan (name, params) {
-        params = {
-            'user': this,
-            ...params
-        };
+        params = {user: this, ...params};
         let access = await this.getRbac().can(this.assignments, name, params);
         return this._accessCache[name] = !!access;
     }

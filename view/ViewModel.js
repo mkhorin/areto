@@ -31,12 +31,14 @@ module.exports = class ViewModel extends Base {
         return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
+    _attrs = {};
+
     constructor (config) {
         super(config);
+        this.module = this.view.module;
         this.controller = this.view.controller;
         this.data = this.data || {};
         this.data._viewModel = this;
-        this._attrs = {};
     }
 
     async getTemplateData () {

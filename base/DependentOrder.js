@@ -9,8 +9,8 @@ module.exports = class DependentOrder extends Base {
 
     constructor (config) {
         super({
-            'keyAttr': 'id',
-            'dependsAttr': 'depends',
+            keyAttr: 'id',
+            dependsAttr: 'depends',
             ...config
         });
     }
@@ -37,12 +37,12 @@ module.exports = class DependentOrder extends Base {
         }
     }
 
-    createItem (item, index) {
+    createItem (source, index) {
         return {
-            'id': this.getItemId(item),
-            'depends': this.getItemDepends(item),
-            'index': index,
-            'source': item
+            id: this.getItemId(source),
+            depends: this.getItemDepends(source),            
+            source,
+            index
         };
     }
 

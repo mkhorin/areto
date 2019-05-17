@@ -9,7 +9,7 @@ module.exports = class SessionStore extends Base {
 
     constructor (config) {
         super({
-            'userIdParam': '__id',
+            userIdParam: '__id',
             ...config
         });
         Store.call(this);

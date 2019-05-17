@@ -18,8 +18,8 @@ module.exports = class DbStore extends Base {
 
     constructor (config) {
         super({
-            'tablePrefix': 'rbac_',
-            'key': '_id',
+            tablePrefix: 'rbac_',
+            key: '_id',
             ...config
         });
     }
@@ -34,18 +34,18 @@ module.exports = class DbStore extends Base {
 
     async loadData () {
         return {
-            'itemMap': await this.find(this.TABLE_ITEM).index(this.key).all(),
-            'ruleMap': await this.find(this.TABLE_RULE).index(this.key).all(),
-            'links': await this.find(this.TABLE_ITEM_CHILD).all(),
-            'assignments': await this.find(this.TABLE_ASSIGNMENT).all()
+            itemMap: await this.find(this.TABLE_ITEM).index(this.key).all(),
+            ruleMap: await this.find(this.TABLE_RULE).index(this.key).all(),
+            links: await this.find(this.TABLE_ITEM_CHILD).all(),
+            assignments: await this.find(this.TABLE_ASSIGNMENT).all()
         };
     }
 
     prepare (data) {
         let result = {
-            'items': {},
-            'rules': {},
-            'assignments': {}
+            items: {},
+            rules: {},
+            assignments: {}
         };
         for (let id of Object.keys(data.ruleMap)) {
             let rule = this.prepareRule(data.ruleMap[id]);
@@ -85,9 +85,9 @@ module.exports = class DbStore extends Base {
             Class = Rule;
         }
         return {
-            ...data.classConfig,
-            'Class': Class,
-            'name': data.name
+            ...data.classConfig, 
+            name: data.name, 
+            Class
         };
     }
 
@@ -114,21 +114,15 @@ module.exports = class DbStore extends Base {
     }
 
     findRoleItem () {
-        return this.findItem().and({
-            'type': this.rbac.Item.TYPE_ROLE
-        });
+        return this.findItem().and({type: this.rbac.Item.TYPE_ROLE});
     }
 
     findPermissionItem () {
-        return this.findItem().and({
-            'type': this.rbac.Item.TYPE_PERMISSION
-        });
+        return this.findItem().and({type: this.rbac.Item.TYPE_PERMISSION});
     }
 
     findRouteItem () {
-        return this.findItem().and({
-            'type': this.rbac.Item.TYPE_ROUTE
-        });
+        return this.findItem().and({type: this.rbac.Item.TYPE_ROUTE});
     }
 
     findItemChild () {
@@ -191,10 +185,10 @@ module.exports = class DbStore extends Base {
         if (!data) {
             return [];
         }
-        return Object.keys(data).map(name => new this.rbac.Item({
-            'name': name,
-            'store': this,
-            'data': data[name]
+        return Object.keys(data).map(name => new this.rbac.Item({            
+            store: this,
+            data: data[name],
+            name
         }));
     }
 

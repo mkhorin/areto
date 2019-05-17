@@ -7,12 +7,13 @@ const Base = require('./Cache');
 
 module.exports = class DbCache extends Base {
 
+    _cache = {};
+
     constructor (config) {
         super({
             table: 'cache',
             ...config
         });
-        this._cache = {};
     }
 
     async getValue (key) {
@@ -25,7 +26,7 @@ module.exports = class DbCache extends Base {
     setValue (key, value, duration) {
         let expiredAt = duration
             ? Math.trunc(Date.now() / 1000 + duration)
-            : 0;        
+            : 0;
         return this.getQuery().and({key}).upsert({key, value, expiredAt});
     }
 

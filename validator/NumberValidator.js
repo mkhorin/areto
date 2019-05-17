@@ -9,9 +9,9 @@ module.exports = class NumberValidator extends Base {
 
     constructor (config) {
         super({
-            'integerOnly': false,
-            'max': null,
-            'min': null,
+            integerOnly: false,
+            max: null,
+            min: null,
             ...config
         });
     }
@@ -25,15 +25,11 @@ module.exports = class NumberValidator extends Base {
     }
 
     getTooSmallMessage () {
-        return this.createMessage(this.tooSmall, 'Value must be no less than {min}', {
-            'min': this.min
-        });
+        return this.createMessage(this.tooSmall, 'Value must be no less than {min}', {min: this.min});
     }
 
     getTooBigMessage () {
-        return this.createMessage(this.tooBig, 'Value must be no greater than {max}', {
-            'max': this.max
-        });
+        return this.createMessage(this.tooBig, 'Value must be no greater than {max}', {max: this.max});
     }
 
     async validateAttr (model, attr) {

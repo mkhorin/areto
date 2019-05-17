@@ -9,8 +9,8 @@ module.exports = class DbSessionStore extends Base {
 
     constructor (config) {
         super({
-            // 'connection': 'connection',
-            'table': 'session',
+            // connection: 'connection',
+            table: 'session',
             ...config
         });
     }
@@ -22,15 +22,15 @@ module.exports = class DbSessionStore extends Base {
     }
 
     set (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).upsert({
-            'data': data,
-            'userId': data[this.userIdParam],
-            'updatedAt': new Date
+        PromiseHelper.callback(this.findBySid(sid).upsert({            
+            userId: data[this.userIdParam],
+            updatedAt: new Date,
+            data
         }), callback);
     }
 
     touch (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).update({'updatedAt': new Date}), callback);
+        PromiseHelper.callback(this.findBySid(sid).update({updatedAt: new Date}), callback);
     }
 
     destroy (sid, callback) {

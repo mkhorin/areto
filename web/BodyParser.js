@@ -9,7 +9,7 @@ module.exports = class BodyParser extends Base {
 
     constructor (config) {
         super({
-            'depends': '#start',
+            depends: '#start',
             ...config
         });
         this.jsonParser = bodyParser.json();

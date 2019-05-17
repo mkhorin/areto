@@ -9,8 +9,8 @@ module.exports = class ActionFilter extends Base {
 
     constructor (config) {
         super({
-            'only': null,
-            'except': [],
+            only: null,
+            except: [],
             ...config
         });
         this.setHandler(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);

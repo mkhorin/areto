@@ -110,7 +110,7 @@ module.exports = class ObjectHelper {
     }
 
     static deleteProps (names, map) {
-        if (Array.isArray(names) && map) {
+        if (map && Array.isArray(names)) {
             for (let name of names) {
                 if (Object.prototype.hasOwnProperty.call(map, name)) {
                     delete map[name];
@@ -120,7 +120,7 @@ module.exports = class ObjectHelper {
     }
 
     static deletePropsExcept (names, map) {
-        if (Array.isArray(names) && map) {
+        if (map && Array.isArray(names)) {
             for (let key of Object.keys(map)) {
                 if (!names.includes(key)) {
                     delete map[key];

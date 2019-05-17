@@ -10,11 +10,12 @@ module.exports = class Widget extends Base {
     constructor (config) {
         super({
             // disabled: true,
-            // caching: true,
-            cacheComponentId: 'cache',
+            // caching: true,            
             // cacheDuration: 60, // seconds
+            cacheComponentId: 'cache',
             ...config
         });
+        this.module = this.view.module;
         this.controller = this.view.controller;
         if (this.caching && !this.cache) {
             this.cache = this.module.get(this.cacheComponentId);
@@ -44,7 +45,7 @@ module.exports = class Widget extends Base {
 
     renderTemplate (template, params) {
         return this.view.renderTemplate(this.view.get(template), {
-            '_widget': this,
+            _widget: this,
             ...this.renderParams, 
             ...params
         });

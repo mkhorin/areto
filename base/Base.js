@@ -14,7 +14,6 @@ module.exports = class Base {
             ClassHelper.defineClassProp(this, 'CLASS_DIR', path.dirname(nodeModule.filename));
         }
         ClassHelper.defineConstantClassProps(this);
-        ClassHelper.defineStaticClassProps(this);
         return this;
     }
 
@@ -34,7 +33,7 @@ module.exports = class Base {
 
     spawn (config, params) {
         if (!params) {
-            params = {'module': this.module};
+            params = {module: this.module};
         } else if (!params.module) {
             params.module = this.module;
         }
