@@ -29,7 +29,8 @@ module.exports = class View extends Base {
         this.themeSet = ClassHelper.spawn(this.ThemeSet, {
             theme: this.theme,
             parent: this.parent && this.parent.themeSet,
-            dir: this.module.getPath()
+            dir: this.module.getPath(),
+            isOrigin: this.parent && this.parent === this.origin
         });
     }
 

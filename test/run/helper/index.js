@@ -35,6 +35,7 @@ describe('IndexHelper', ()=> {
         expect(res[10]).to.eql(items[0]);
         expect(res[15]).to.eql(items[1]);
         expect(res[20]).to.eql(items[2]);
+        
         res = IndexHelper.indexUniqueKeyObjects(items, 'val', 'id');
         expect(res[10]).to.eql(4);
         expect(res[15]).to.eql(5);

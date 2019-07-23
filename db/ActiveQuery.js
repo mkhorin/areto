@@ -7,13 +7,20 @@ const Base = require('./Query');
 
 module.exports = class ActiveQuery extends Base {
 
-    _asRaw = null;
-    _with = {};
     _db = this.model && this.model.getDb();
     _from = this.model && this.model.TABLE;
+    _raw = null;
 
-    asRaw (value = true) {
-        this._asRaw = value;
+    id () {
+        return this._db.queryScalar(this, this.model.PK);
+    }
+
+    ids () {
+        return this._db.queryColumn(this, this.model.PK);
+    }
+
+    raw (value = true) {
+        this._raw = value;
         return this;
     }
 
@@ -46,7 +53,7 @@ module.exports = class ActiveQuery extends Base {
             return this.prepareViaTable(); // via junction table
         }
         if (this._viaRelation) {
-            return this._viaRelation._multiple
+            return this._viaRelation.isMultiple()
                 ? this.prepareViaMultipleRelation()
                 : this.prepareViaRelation();
         }
@@ -101,10 +108,16 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    // RELATIONS
+    // RELATION
 
-    isMultiple () {
-        return this._multiple;
+    asBackRef (value = true) {
+        this._asBackRef = value;
+        return this;
+    }
+
+    multiple (value = true) {
+        this._multiple = value;
+        return this;
     }
 
     isBackRef () {
@@ -113,8 +126,36 @@ module.exports = class ActiveQuery extends Base {
             : this._asBackRef;
     }
 
+    isMultiple () {
+        return this._multiple;
+    }
+
     isInnerArray () {
         return this._viaArray && !this.isBackRef();
+    }
+
+    isOuterLink () {
+        return this._viaRelation || this._viaTable;
+    }
+
+    getViaArray () {
+        return this._viaArray;
+    }
+
+    getViaRelation () {
+        return this._viaRelation;
+    }
+
+    getViaRelationName () {
+        return this._viaRelationName;
+    }
+
+    getViaTable () {
+        return this._viaTable;
+    }
+
+    getRemoveOnUnlink () {
+        return this._removeOnUnlink;
     }
 
     hasOne (primaryModel, refKey, linkKey) {
@@ -133,17 +174,13 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    asBackRef (value = true) {
-        this._asBackRef = value;
-        return this;
-    }
-
     removeOnUnlink (value = true) {
         this._removeOnUnlink = value;
         return this;
     }
 
     with (...args) {
+        this._with = this._with || {};
         for (let data of args) {
             if (!data) {
             } else if (typeof data === 'string') {
@@ -159,9 +196,9 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    withOnly (...args) {
+    withOnly () {
         this._with = {};
-        return this.with(...args);
+        return this.with(...arguments);
     }
 
     via (name, filter) {
@@ -185,9 +222,7 @@ module.exports = class ActiveQuery extends Base {
             refKey,
             linkKey
         });
-        this._viaTable._from = tableName;
-        this._viaTable._multiple = true;
-        this._viaTable._asRaw = true;
+        this._viaTable.from(tableName).multiple().raw();
         if (typeof filter === 'function') {
             filter(this._viaTable);
         } else if (filter) { // as condition
@@ -209,17 +244,15 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    async findWith (relations, models) {
-        let primaryModel = this.model.spawn();
-        relations = QueryHelper.normalizeRelations(primaryModel, relations);
-        for (let name of Object.keys(relations)) {
-            let relation = relations[name];
-            if (relation._asRaw === null) { // relation is ActiveQuery
-                relation._asRaw = this._asRaw; // inherit from primary query
+    async findWith (data, models) {
+        data = QueryHelper.normalizeRelations(this.model.spawn(), data);
+        for (let name of Object.keys(data)) {
+            let relation = data[name];
+            if (relation.getRaw() === null) { // relation is ActiveQuery
+                relation.raw(this._raw); // inherit from primary query
             }
             await relation.populateRelation(name, models);
         }
-        return models;
     }
 
     findFor () {
@@ -229,7 +262,7 @@ module.exports = class ActiveQuery extends Base {
     // POPULATE
 
     async populate (docs) {
-        if (this._asRaw) {
+        if (this._raw) {
             return super.populate(docs);
         }
         let models = [];
@@ -243,7 +276,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async populateWith (models) {
-        if (models.length && Object.values(this._with).length) {
+        if (this._with && models.length) {
             await this.findWith(this._with, models);
         }
         return this._index
@@ -295,7 +328,7 @@ module.exports = class ActiveQuery extends Base {
                 value = buckets[key];
             }
             if (this._index && Array.isArray(value)) {
-                value = this._asRaw
+                value = this._raw
                     ? QueryHelper.indexObjects(value, this._index)
                     : QueryHelper.indexModels(value, this._index);
             }
@@ -314,8 +347,8 @@ module.exports = class ActiveQuery extends Base {
             viaModels = await viaQuery.findJunctionRows(viaModels);
         }
         if (this._viaRelation) {
-            if (this._viaRelation._asRaw === null) {
-                this._viaRelation._asRaw = this._asRaw; // inherit from primary query
+            if (this._viaRelation.getRaw() === null) {
+                this._viaRelation.raw(this._raw); // inherit from primary query
             }
             this._viaRelation.primaryModel = null;
             viaQuery = this._viaRelation;
@@ -404,7 +437,7 @@ module.exports = class ActiveQuery extends Base {
             return [];
         }
         this.filterByModels(primaryModels);
-        return this.asRaw().all();
+        return this.raw().all();
     }
 };
 

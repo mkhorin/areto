@@ -49,7 +49,8 @@ module.exports = class ThemeSet extends Base {
             name: null,
             dir: this.defaultThemeDir,
             parent: this.parent ? this.parent.get() : null,
-            view: this
+            view: this,
+            isOrigin: this.isOrigin
         });
     }
 

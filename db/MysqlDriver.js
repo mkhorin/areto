@@ -22,7 +22,7 @@ module.exports = class MysqlDriver extends Base {
     }
 
     async closeClient () {
-        await PromiseHelper.promise(this.client.end.bind(this.client));
+        await PromiseHelper.promise(this.client.end, this.client);
     }
 
     getQueryData (data) {
@@ -36,7 +36,7 @@ module.exports = class MysqlDriver extends Base {
     // OPERATIONS
 
     async getConnection () {
-        let connection = await PromiseHelper.promise(this.client.getConnection.bind(this.client));
+        let connection = await PromiseHelper.promise(this.client.getConnection, this.client);
         if (connection) {
             connection.release();
         }
@@ -46,7 +46,7 @@ module.exports = class MysqlDriver extends Base {
     async execute (sql) {
         let connection = await this.getConnection();
         this.logCommand({sql});
-        let result = await PromiseHelper.promise(connection.query.bind(connection));
+        let result = await PromiseHelper.promise(connection.query, connection);
         connection.release();
         return result;
     }
@@ -134,12 +134,12 @@ module.exports = class MysqlDriver extends Base {
     }
 
     async queryColumn (query, key) {
-        let docs = await this.queryAll(query.asRaw().select(key));
+        let docs = await this.queryAll(query.raw().select(key));
         return docs.map(doc => doc[key]);
     }
 
     async queryScalar (query, key) {
-        let docs = await this.queryAll(query.asRaw().select(key).limit(1));
+        let docs = await this.queryAll(query.raw().select(key).limit(1));
         return docs.length ? docs[0] : undefined;
     }
 

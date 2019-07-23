@@ -45,22 +45,47 @@ module.exports = class Theme extends Base {
     // TEMPLATE
 
     getTemplate (name, language) {
-        return this._templates.get(name, language)
-            || this.parent && this.parent.getTemplate(name, language)
+        return this._templates.get(...arguments)
+            || this.parent && this.parent.getTemplate(...arguments)
             || name;
     }
 
-    getOwnTemplate (name, language) {
-        return this._templates.get(name, language);
+    getOwnTemplate () {
+        return this._templates.get(...arguments);
     }
 
-    getParentTemplate (name, language) {
-        return this.parent && this.parent.getTemplate(name, language);
+    getOwnTemplateWithOrigin () {
+        return this._templates.get(...arguments)
+            || this.isOrigin && this.parent && this.parent.getOwnTemplate(...arguments);
     }
 
-    getViewOwnTemplate (name, language) {
-        return this._templates.get(name, language)
-            || this.parent && this.parent.view === this.view && this.parent.getViewOwnTemplate(name, language);
+    getParentTemplate () {
+        return this.parent && this.parent.getTemplate(...arguments);
+    }
+
+    getViewOwnTemplate () {
+        return this._templates.get(...arguments)
+            || this.parent && this.parent.view === this.view && this.parent.getViewOwnTemplate(...arguments);
+    }
+
+    getViewOwnTemplateWithOrigin () {
+        return this._templates.get(...arguments) || this.parent
+            && (this.isOrigin || this.parent.view === this.view) && this.parent.getViewOwnTemplate(...arguments);
+    }
+
+    getClosestAncestorTemplate () {
+        let ancestor = this, current, closest;
+        while (ancestor) {
+            if (current) {
+                closest = ancestor.getOwnTemplate(...arguments);
+                if (closest && current !== closest) {
+                    return closest;
+                }
+            } else {
+                current = ancestor.getOwnTemplate(...arguments);
+            }
+            ancestor = ancestor.parent;
+        }
     }
 
     // MODEL

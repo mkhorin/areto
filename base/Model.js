@@ -26,7 +26,7 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], {validator class} ]
                 // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
                 // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
-                // [['attr1'], 'unsafe'] - skip to load
+                // [['attr1'], 'unsafe'] // skip attribute loading
             ],
             CONTROLLER_DIR: 'controller',
             MODEL_DIR: 'model',
@@ -55,9 +55,9 @@ module.exports = class Model extends Base {
         return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
-    _attrs = {};
-    _viewAttrs = {};
-    _errors = {};
+    _attrMap = {};
+    _viewAttrMap = {};
+    _errorMap = {};
     _validators = null;
 
     isAttrActive (name) {
@@ -78,12 +78,12 @@ module.exports = class Model extends Base {
     }
 
     has (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrs, name);
+        return Object.prototype.hasOwnProperty.call(this._attrMap, name);
     }
 
     get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
-            return this._attrs[name];
+        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
+            return this._attrMap[name];
         }
     }
 
@@ -141,24 +141,16 @@ module.exports = class Model extends Base {
         return Object.keys(names);
     }
 
-    getAttrs () {
-        return {...this._attrs};
-    }
-
-    getAttrsByNames (names) {
-        let values = {};
-        for (let name of names) {
-            values[name] = this._attrs[name];
-        }
-        return values;
+    getAttrMap () {
+        return this._attrMap;
     }
 
     set (name, value) {
-        this._attrs[name] = value;
+        this._attrMap[name] = value;
     }
 
     setFromModel (name, model) {
-        this._attrs[name] = model.get(name);
+        this._attrMap[name] = model.get(name);
     }
 
     setSafeAttrs (data) {
@@ -172,34 +164,34 @@ module.exports = class Model extends Base {
     }
 
     setAttrs (data, except) {
-        data = data instanceof Model ? data._attrs : data;
+        data = data instanceof Model ? data.getAttrMap() : data;
         if (data) {
             for (let key of Object.keys(data)) {
                 if (Array.isArray(except) ? !except.includes(key) : (except !== key)) {
-                    this._attrs[key] = data[key];
+                    this._attrMap[key] = data[key];
                 }
             }
         }
     }
 
     assignAttrs (data) {
-        Object.assign(this._attrs, data instanceof Model ? data._attrs : data);
+        Object.assign(this._attrMap, data instanceof Model ? data.getAttrMap() : data);
     }
 
     unset (name) {
-        delete this._attrs[name];
+        delete this._attrMap[name];
     }
 
     // VIEW ATTRIBUTES
 
     getViewAttr (name) {
-        return Object.prototype.hasOwnProperty.call(this._viewAttrs, name)
-            ? this._viewAttrs[name]
+        return Object.prototype.hasOwnProperty.call(this._viewAttrMap, name)
+            ? this._viewAttrMap[name]
             : this.get(name);
     }
 
     setViewAttr (name, value) {
-        this._viewAttrs[name] = value;
+        this._viewAttrMap[name] = value;
     }
 
     // LABELS
@@ -220,31 +212,31 @@ module.exports = class Model extends Base {
     // ERRORS
 
     hasError (attr) {
-        return attr ? Object.prototype.hasOwnProperty.call(this._errors, attr)
-                    : Object.values(this._errors).length > 0;
+        return attr ? Object.prototype.hasOwnProperty.call(this._errorMap, attr)
+                    : Object.values(this._errorMap).length > 0;
     }
 
     getErrors (attr) {
-        return !attr ? this._errors : this.hasError(attr) ? this._errors[attr] : [];
+        return !attr ? this._errorMap : this.hasError(attr) ? this._errorMap[attr] : [];
     }
 
     getFirstError (attr) {
         if (attr) {
-            return this.hasError(attr) ? this._errors[attr][0] : '';
+            return this.hasError(attr) ? this._errorMap[attr][0] : '';
         }
-        for (let error of Object.values(this._errors)) {
-            if (error.length) {
-                return error[0];
+        for (let data of Object.values(this._errorMap)) {
+            if (data.length) {
+                return data[0];
             }
         }
         return '';
     }
 
-    getFirstErrors () {
+    getFirstErrorMap () {
         let result = {};
-        for (let attr of Object.keys(this._errors)) {
-            if (this._errors[attr].length) {
-                result[attr] = this._errors[attr][0];
+        for (let attr of Object.keys(this._errorMap)) {
+            if (this._errorMap[attr].length) {
+                result[attr] = this._errorMap[attr][0];
             }
         }
         return result;
@@ -255,9 +247,9 @@ module.exports = class Model extends Base {
             return false;
         }
         if (!this.hasError(attr)) {
-            this._errors[attr] = [];
+            this._errorMap[attr] = [];
         }
-        this._errors[attr].push(error);
+        this._errorMap[attr].push(error);
     }
 
     addErrors (data) {
@@ -275,9 +267,10 @@ module.exports = class Model extends Base {
     }
 
     clearErrors (attr) {
-        attr ? delete this._errors[attr]
-             : this._errors = {};
+        attr ? delete this._errorMap[attr]
+             : this._errorMap = {};
     }
+
     // LOAD
 
     static loadMultiple (models, data) {
@@ -412,5 +405,4 @@ const path = require('path');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
-const Event = require('../base/Event');
 const Validator = require('../validator/Validator');

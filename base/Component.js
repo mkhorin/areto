@@ -76,16 +76,16 @@ module.exports = class Component extends Base {
         this.behaviors.ensure();
     }
 
-    translate (...args) {
-        return this.module.translate(...args);
+    translate () {
+        return this.module.translate(...arguments);
     }
 
     log (type, message, data) {
         CommonHelper.log(type, message, data, this.constructor.name, this.module);
     }
 
-    logError (...args) {
-        this.log('error', ...args);
+    logError () {
+        this.log('error', ...arguments);
     }
 };
 

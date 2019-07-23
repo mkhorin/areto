@@ -5,7 +5,7 @@
 
 module.exports = class PromiseHelper {
 
-    static delay (timeout) {
+    static setTimeout (timeout) {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
@@ -13,9 +13,9 @@ module.exports = class PromiseHelper {
         return new Promise(resolve => setImmediate(resolve));
     }
 
-    static promise (callback) {
+    static promise (callback, context) {
         return new Promise((resolve, reject)=> {
-            callback((err, result)=> {
+            callback.call(context, (err, result)=> {
                 err ? reject(err) : resolve(result);
             });
         });
@@ -27,18 +27,18 @@ module.exports = class PromiseHelper {
             : promise;
     }
 
-    static async each (items, handler) {
+    static async each (items, handler, context) {
         if (Array.isArray(items)) {
             for (let item of items) {
-                await handler(item);
+                await handler.call(context, item);
             }
         }
     }
 
-    static async eachOf (data, handler) {
+    static async eachOf (data, handler, context) {
         if (data) {
             for (let key of Object.keys(data)) {
-                await handler(data[key], key);
+                await handler.call(context, data[key], key);
             }
         }
     }
@@ -51,21 +51,21 @@ module.exports = class PromiseHelper {
         }
     }
 
-    static async map (items, handler) {
+    static async map (items, handler, context) {
         let result = [];
         if (Array.isArray(items)) {
             for (let item of items) {
-                result.push(await handler(item));
+                result.push(await handler.call(context, item));
             }
         }
         return result;
     }
 
-    static async mapValues (data, handler) {
+    static async mapValues (data, handler, context) {
         let result = {};
         if (data) {
             for (let key of Object.keys(data)) {
-                result[key] = await handler(data[key], key);
+                result[key] = await handler.call(context, data[key], key);
             }
         }
         return result;

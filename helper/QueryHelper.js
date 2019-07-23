@@ -9,54 +9,48 @@ module.exports = class QueryHelper {
         return model instanceof ActiveRecord ? model.get(name) : model[name];
     }
 
-    static indexObjects (docs, data) {
+    static indexObjects (docs, key) {
         let result = {};
         for (let doc of docs) {
-            let key = typeof data === 'function' ? data(doc) : doc[data];
-            result[key] = doc;
+            result[typeof key === 'function' ? key(doc) : doc[key]] = doc;
         }
         return result;
     }
 
-    static indexModels (models, data) {
+    static indexModels (models, key) {
         let result = {};
         for (let model of models) {
-            let key = typeof data === 'function' ? data(model) : model.get(data);
-            result[key] = model;
+            result[typeof key === 'function' ? key(model) : model.get(key)] = model;
         }
         return result;
     }
 
-    static normalizeRelations (model, relations) {
-        let result = {}, relation;
-        for (let name in relations) {
-            if (Object.prototype.hasOwnProperty.call(relations, name)) {
-                [name, relation] = this.normalizeRelation(name, relations[name], model);
-                if (relation) {
-                    result[name] = relation;
+    static normalizeRelations (model, data) {
+        let result = {}, relation, value, pos, tail;
+        for (let name of Object.keys(data)) {
+            value = data[name];
+            pos = name.indexOf('.');
+            if (pos > 0) {
+                tail = name.substring(pos + 1);
+                name = name.substring(0, pos);
+            }
+            if (Object.prototype.hasOwnProperty.call(result, name)) {
+                relation = result[name];
+            } else {
+                relation = model.getRelation(name);
+                if (!relation) {
+                    continue;
                 }
+                relation.primaryModel = null;
+                result[name] = relation;
+            }
+            if (tail) { // sub-relations -> order.customer.address...
+                relation.with({[tail]: value});
+            } else if (typeof value === 'function') {
+                value(relation);
             }
         }
         return result;
-    }
-
-    static normalizeRelation (name, handler, model) {
-        let pos = name.indexOf('.'), childName;
-        if (pos > 0) {
-            childName = name.substring(pos + 1);
-            name = name.substring(0, pos);
-        }
-        let relation = model.getRelation(name);
-        if (!relation) {
-            return [];
-        }
-        relation.primaryModel = null;
-        if (childName) { // sub-relations -> order.customer.address...
-            relation._with[childName] = handler;
-        } else if (typeof handler === 'function') {
-            handler(relation);
-        }
-        return [name, relation];
     }
 
     static unlinkInner (ref, link, model, key) {

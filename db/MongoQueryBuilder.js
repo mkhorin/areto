@@ -171,8 +171,8 @@ module.exports = class MongoQueryBuilder extends Base {
         return {$and: [{[field]: {$gte: min}}, {[field]: {$lte: max}}]};
     }
 
-    buildNotBetweenCondition (...args) {
-        return {$not: this.buildBetweenCondition(...args)};
+    buildNotBetweenCondition () {
+        return {$not: this.buildBetweenCondition(...arguments)};
     }
 
     // ID

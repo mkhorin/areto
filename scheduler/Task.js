@@ -21,6 +21,7 @@ module.exports = class Task extends Base {
     constructor (config) {
         super({
             active: true,
+            startup: false, // run at server startup
             startDate: null, // new Date
             startTime: null, // 00:00:00
             period: 0, // seconds
@@ -28,6 +29,9 @@ module.exports = class Task extends Base {
             stopOnFail: true,
             ...config
         });
+        if (this.startup) {
+            this.startDate = new Date;
+        }
         if (this.active) {
             this.start();
         }
@@ -130,7 +134,7 @@ module.exports = class Task extends Base {
     }
 
     createJob () {
-        return this.spawn(this.job);
+        return this.spawn(this.job, {task: this});
     }
 
     cancelJob () {

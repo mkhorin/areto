@@ -135,7 +135,7 @@ module.exports = class WebUser extends Base {
             return false;
         }
         let returnUrl = this.getReturnUrl();
-        await PromiseHelper.promise(this.session.regenerate.bind(this.session)); // created new session instance
+        await PromiseHelper.promise(this.session.regenerate, this.session); // created new session instance
         this.session = this.req.session;
         this.setReturnUrl(returnUrl);
         if (model) {

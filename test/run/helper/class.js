@@ -24,12 +24,12 @@ describe('ClassHelper', ()=> {
         expect(res.test).to.eql('value');
     });
 
-    it('normalizeConfig', ()=> {
-        let res = ClassHelper.normalizeConfig(TestClass, {test: 'value'});
+    it('normalizeSpawn', ()=> {
+        let res = ClassHelper.normalizeSpawn(TestClass, {test: 'value'});
         expect(res.Class).to.eql(TestClass);
         expect(res.test).to.eql('value');
 
-        res = ClassHelper.normalizeConfig({Class: TestClass}, {test: 'value'});
+        res = ClassHelper.normalizeSpawn({Class: TestClass}, {test: 'value'});
         expect(res.Class).to.eql(TestClass);
         expect(res.test).to.eql('value');
     });

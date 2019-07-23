@@ -9,8 +9,9 @@ module.exports = class ActiveRecord extends Base {
 
     static getConstants () {        
         return {
-            TABLE: 'table_name',
+            TABLE: '[table_name]',
             PK: '_id', // primary key
+            LINKER_CLASS: require('./ActiveLinker'),
             QUERY_CLASS: require('./ActiveQuery'),
             EVENT_AFTER_REMOVE: 'afterRemove',
             EVENT_AFTER_FIND: 'afterFind',
@@ -19,17 +20,13 @@ module.exports = class ActiveRecord extends Base {
             EVENT_BEFORE_REMOVE: 'beforeRemove',
             EVENT_BEFORE_INSERT: 'beforeInsert',
             EVENT_BEFORE_UPDATE: 'beforeUpdate',
-            //UNLINK_ON_REMOVE: [], // unlink relations after model remove
+            // UNLINK_ON_REMOVE: [], // unlink relations after model remove
         };
     }
     
     _isNewRecord = true;
-    _oldAttrs = {};
+    _oldAttrMap = {};
     _related = {};
-
-    getDb () {
-        return this.module.getDb();
-    }
 
     isNew () {
         return this._isNewRecord;
@@ -37,6 +34,10 @@ module.exports = class ActiveRecord extends Base {
 
     isPrimaryKey (key) {
         return this.PK === key;
+    }
+
+    getDb () {
+        return this.module.getDb();
     }
 
     getId () {
@@ -54,28 +55,28 @@ module.exports = class ActiveRecord extends Base {
     // ATTRIBUTES
 
     get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrs, name)) {
-            return this._attrs[name];
+        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
+            return this._attrMap[name];
         }
         if (typeof name !== 'string') {
-            return undefined;
+            return;
         }
         let index = name.indexOf('.');
         if (index === -1) {
             return this.rel(name);
         }
-        let rel = this._related[name.substring(0, index)];
-        let nested = name.substring(index + 1);
-        if (rel instanceof ActiveRecord) {
-            return rel.get(nested);
+        let related = this._related[name.substring(0, index)];
+        name = name.substring(index + 1);
+        if (related instanceof ActiveRecord) {
+            return related.get(name);
         }
-        if (Array.isArray(rel)) {
-            return rel.map(item => item instanceof ActiveRecord
-                ? item.get(nested)
-                : item ? item[nested] : item
+        if (Array.isArray(related)) {
+            return related.map(item => item instanceof ActiveRecord
+                ? item.get(name)
+                : item ? item[name] : item
             );
         }
-        return rel ? rel[nested] : rel;
+        return related ? related[name] : related;
     }
 
     isChangedAttr (name) {
@@ -83,13 +84,13 @@ module.exports = class ActiveRecord extends Base {
     }
     
     getOldAttr (name) {
-        if (Object.prototype.hasOwnProperty.call(this._oldAttrs, name)) {
-            return this._oldAttrs[name];
+        if (Object.prototype.hasOwnProperty.call(this._oldAttrMap, name)) {
+            return this._oldAttrMap[name];
         }
     }       
     
     assignOldAttrs () {
-        this._oldAttrs = {...this._attrs};
+        this._oldAttrMap = {...this._attrMap};
     }
 
     // EVENTS
@@ -137,8 +138,9 @@ module.exports = class ActiveRecord extends Base {
     async afterRemove () {
         // call await super.afterRemove() if override this method
         if (Array.isArray(this.UNLINK_ON_REMOVE)) {
+            const linker = this.getLinker();
             for (let relation of this.UNLINK_ON_REMOVE) {
-                await this.unlinkAll(relation);
+                await linker.unlinkAll(relation);
             }
         }
         return this.trigger(this.EVENT_AFTER_REMOVE);
@@ -148,18 +150,18 @@ module.exports = class ActiveRecord extends Base {
 
     populateRecord (doc) {
         this._isNewRecord = false;
-        Object.assign(this._attrs, doc);
+        Object.assign(this._attrMap, doc);
         this.assignOldAttrs();
     }
 
     filterAttrs () {
-        let attrs = {};
+        let result = {};
         for (let key of this.ATTRS) {
-            if (Object.prototype.hasOwnProperty.call(this._attrs, key)) {
-                attrs[key] = this._attrs[key];    
+            if (Object.prototype.hasOwnProperty.call(this._attrMap, key)) {
+                result[key] = this._attrMap[key];
             }
         }
-        return attrs;
+        return result;
     }
 
     // FIND
@@ -204,7 +206,7 @@ module.exports = class ActiveRecord extends Base {
      * will not perform data validation and will not trigger events
      */
     directUpdate (data) {
-        Object.assign(this._attrs, data);
+        Object.assign(this._attrMap, data);
         return this.findById().update(this.filterAttrs());
     }
 
@@ -255,6 +257,48 @@ module.exports = class ActiveRecord extends Base {
         return relations;
     }
 
+    rel (name) {
+        return this.isRelationPopulated(name)
+            ? this._related[name]
+            : this.executeNestedRelationMethod('rel', name);
+    }
+
+    call (name, ...args) {
+        return typeof this[name] === 'function'
+            ? this[name](...args)
+            : this.executeNestedRelationMethod('call', name, ...args);
+    }
+
+    setViewRelation (name) {
+        this.setViewAttr(name, this.getRelationTitle(name));
+    }
+
+    isRelationPopulated (name) {
+        return Object.prototype.hasOwnProperty.call(this._related, name);
+    }
+
+    getRelationTitle (name) {
+        if (!this.isRelationPopulated(name)) {
+            return this.executeNestedRelationMethod('getRelationTitle', name) || this.get(name);
+        }
+        let related = this._related[name];
+        return Array.isArray(related)
+            ? related.map(model => model instanceof ActiveRecord ? model.getTitle() : null)
+            : related ? related.getTitle() : this.get(name);
+    }
+
+    getRelation (name) {
+        if (!name || typeof name !== 'string') {
+            return null;
+        }
+        name = 'rel' + StringHelper.toFirstUpperCase(name);
+        return this[name] ? this[name]() : null;
+    }
+
+    getPopulatedRelation (name) {
+        return this.isRelationPopulated(name) ? this._related[name] : null;
+    }
+
     getAllRelationNames () {
         let names = [];
         for (let id of ObjectHelper.getAllFunctionNames(this)) {
@@ -265,42 +309,22 @@ module.exports = class ActiveRecord extends Base {
         return names;
     }
 
-    getRelation (name) {
-        if (!name || typeof name !== 'string') {
-            return null;
-        }
-        name = `rel${StringHelper.toFirstUpperCase(name)}`;
-        return this[name] ? this[name]() : null;
-    }
-
-    isRelationPopulated (name) {
-        return Object.prototype.hasOwnProperty.call(this._related, name);
-    }
-    
-    getPopulatedRelation (name) {
-        return this.isRelationPopulated(name) ? this._related[name] : null;
-    }
-
-    rel (name) {
-        if (this.isRelationPopulated(name)) {
-            return this._related[name];
-        }
+    executeNestedRelationMethod (method, name, ...args) {
         if (typeof name !== 'string') {
-            return undefined;
+            return;
         }
         let index = name.indexOf('.');
         if (index < 1) {
-            return undefined;
+            return;
         }
-        let rel = this._related[name.substring(0, index)];
-        let nestedName = name.substring(index + 1);
-        if (rel instanceof ActiveRecord) {
-            return rel.rel(nestedName);
+        let related = this._related[name.substring(0, index)];
+        name = name.substring(index + 1);
+        if (related instanceof ActiveRecord) {
+            return related[method](name, ...args);
         }
-        if (Array.isArray(rel)) {
-            return rel.map(item => item instanceof ActiveRecord ? item.rel(nestedName) : null);
+        if (Array.isArray(related)) {
+            return related.map(item => item instanceof ActiveRecord ? item[method](name, ...args) : null);
         }
-        return undefined;
     }
 
     async findRelation (name, renew) {
@@ -356,13 +380,18 @@ module.exports = class ActiveRecord extends Base {
     }
 
     unsetRelation (name) {
-        if (this.isRelationPopulated(name)) {
-            delete this._related[name];
-        }
+        delete this._related[name];
     }
 
     populateRelation (name, data) {
         this._related[name] = data;
+    }
+
+    getLinker () {
+        if (!this._linker) {
+            this._linker = new this.LINKER_CLASS({owner: this});
+        }
+        return this._linker;
     }
 
     hasOne (RefClass, refKey, linkKey) {
@@ -373,202 +402,6 @@ module.exports = class ActiveRecord extends Base {
         return this.spawn(RefClass).find().hasMany(this, refKey, linkKey);
     }
 
-    // LINK
-
-    linkViaModel (rel, targets, model) {
-        if (!model) {
-            model = this.spawn(rel._viaRelation.model.constructor);
-        } else if (!(model instanceof rel._viaRelation.model.constructor)) {
-            throw new Error(this.wrapMessage('linkViaModel: Invalid link model'));
-        }
-        model.set(rel.linkKey, this.get(rel.refKey));
-        model.set(rel._viaRelation.refKey, this.get(rel._viaRelation.linkKey));
-        return model.save();
-    }
-
-    async link (name, model, extraColumns) {
-        let rel = this.getRelation(name);
-        let link = (rel._viaRelation || rel._viaTable) ? this.linkVia : this.linkInner;
-        await link.call(this, rel, model, extraColumns);
-        if (!rel._multiple) {
-            this._related[name] = model; // update lazily loaded related objects
-        } else if (this.isRelationPopulated(name)) {
-            if (rel._index) {
-                this._related[name][model._index] = model;
-            } else {
-                this._related[name].push(model);
-            }
-        }
-        await PromiseHelper.setImmediate();
-    }
-
-    linkVia (rel, model, extraColumns) {
-        let via = rel._viaTable || rel._viaRelation;
-        let columns = {
-            [via.refKey]: this.get(via.linkKey),
-            [rel.linkKey]: model.get(rel.refKey)                
-        };        
-        if (extraColumns) {
-            Object.assign(columns, extraColumns);
-        }
-        if (rel._viaTable) {
-            return this.getDb().insert(via._from, columns);
-        }
-        // unset rel so that it can be reloaded to reflect the change
-        this.unsetRelation(rel._viaRelationName);
-        let viaModel = this.spawn(via.model.constructor);
-        viaModel.assignAttrs(columns);
-        return viaModel.insert();
-    }
-
-    linkInner (rel, model, extraColumns) {
-        return rel.isBackRef()
-            ? this.bindModels(rel.refKey, rel.linkKey, model, this, rel)
-            : this.bindModels(rel.linkKey, rel.refKey, this, model, rel);
-    }
-
-    async unlink (name, model, remove) {
-        let rel = this.getRelation(name);
-        if (remove === undefined) {
-            remove = rel._removeOnUnlink;
-        }
-        let unlink = (rel._viaTable || rel._viaRelation) ? this.unlinkVia : this.unlinkInner;
-        await unlink.call(this, rel, model, remove);
-        this.unsetUnlinked(name, model, rel);
-        await PromiseHelper.setImmediate();
-    }
-
-    unsetUnlinked (name, model, rel) {
-        if (!rel.isMultiple()) {
-            return this.unsetRelation(name);
-        }
-        if (Array.isArray(this._related[name])) {
-            for (let i = this._related[name].length - 1; i >= 0; --i) {
-                if (MongoHelper.isEqual(model.getId(), this._related[name][i].getId())) {
-                    this._related[name].splice(i, 1);
-                }
-            }
-        }
-    }
-
-    unlinkVia (rel, model, remove) {
-        let via = rel._viaTable || rel._viaRelation;
-        let condition = {
-            [via.refKey]: this.get(via.linkKey),
-            [rel.linkKey]: model.get(rel.refKey)
-        };
-        let nulls = {
-            [via.refKey]: null,
-            [rel.linkKey]: null
-        };
-        if (remove === undefined) {
-            remove = via._removeOnUnlink;
-        }
-        if (rel._viaTable) {
-            return remove ? this.getDb().remove(via._from, condition)
-                          : this.getDb().update(via._from, condition, nulls);
-        }
-        this.unsetRelation(rel._viaRelationName);
-        return remove ? via.model.find(condition).remove()
-                      : via.model.find(condition).updateAll(nulls);
-    }
-
-    async unlinkInner (rel, model, remove) {
-        let ref = model.get(rel.refKey);
-        let link = this.get(rel.linkKey);
-        rel.isBackRef()
-            ? await QueryHelper.unlinkInner(ref, link, model, rel.refKey)
-            : await QueryHelper.unlinkInner(link, ref, this, rel.linkKey);
-        return remove ? model.remove() : null;
-    }
-
-    async unlinkAll (name, remove) {
-        let rel = this.getRelation(name);
-        if (!rel) {
-            return false;
-        }
-        if (remove === undefined) {
-            remove = rel._removeOnUnlink;
-        }
-        let unlink = (rel._viaRelation || rel._viaTable) ? this.unlinkViaAll : this.unlinkInnerAll;
-        await unlink.call(this, rel, remove);
-        this.unsetRelation(name);
-    }
-
-    async unlinkViaAll (rel, remove) {
-        let via = rel._viaTable || rel._viaRelation;
-        if (rel._viaRelation) {
-            this.unsetRelation(rel._viaRelationName);
-        }
-        let condition = {[via.refKey]: this.get(via.linkKey)};
-        let nulls = {[via.refKey]: null};
-        if (via._where) {
-            condition = ['AND', condition, via._where];
-        }
-        if (!Array.isArray(rel.remove)) {
-            condition = this.getDb().buildCondition(condition);
-            remove ? await this.getDb().remove(via._from, condition)
-                   : await this.getDb().update(via._from, condition, nulls);
-        } else if (remove) {
-            for (let model of await via.model.find(condition).all()) {
-                await model.remove();
-            }
-        } else {
-            await via.model.find(condition).updateAll(nulls);
-        }
-    }
-
-    async unlinkInnerAll (rel, remove) {
-        // rel via array valued attr
-        if (!remove && Array.isArray(this.get(rel.linkKey))) { 
-            this.set(rel.linkKey, []);
-            return this.forceSave();
-        }
-        let nulls = {[rel.refKey]: null};
-        let condition = {[rel.refKey]: this.get(rel.linkKey)};
-        if (rel._where) {
-            condition = ['AND', condition, rel._where];
-        }
-        if (remove) {
-            for (let model of await rel.all()) {
-                await model.remove();
-            }
-        } else if (rel._viaArray) {
-            await rel.model.getDb().updateAllPull(rel.model.TABLE, {}, condition);
-        } else {
-            await rel.model.find(condition).updateAll(nulls);
-        }
-    }
-
-    bindModels (foreignKey, primaryKey, foreignModel, primaryModel, rel) {
-        let value = primaryModel.get(primaryKey);
-        if (!value) {
-            throw new Error(this.wrapMessage('bindModels: primary key is null'));
-        }
-        if (!rel._viaArray) {
-            foreignModel.set(foreignKey, value);
-            return foreignModel.forceSave();
-        }
-        if (!Array.isArray(foreignModel.get(foreignKey))) {
-            foreignModel.set(foreignKey, []);
-        }
-        if (MongoHelper.indexOf(value, foreignModel.get(foreignKey)) === -1) {
-            foreignModel.get(foreignKey).push(value);
-            return foreignModel.forceSave();
-        }
-        return Promise.resolve(); // value is already exists
-    }
-
-    getHandler (name) {
-        if (typeof name === 'string') {
-            name = `handler${StringHelper.toFirstUpperCase(name)}`;
-            if (typeof this[name] === 'function') {
-                return this[name];
-            }
-        }
-        return null;
-    }
-
     wrapMessage (message) {
         return `${this.constructor.name}: ID: ${this.getId()}: ${message}`;
     }
@@ -576,13 +409,15 @@ module.exports = class ActiveRecord extends Base {
     log (type, message, data) {
         CommonHelper.log(type, message, data, `${this.constructor.name}: ID: ${this.getId()}`, this.module);
     }
+
+    logError () {
+        this.log('error', ...arguments);
+    }
 };
 module.exports.init();
 
 const ArrayHelper = require('../helper/ArrayHelper');
 const CommonHelper = require('../helper/CommonHelper');
-const MongoHelper = require('../helper/MongoHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
-const QueryHelper = require('../helper/QueryHelper');

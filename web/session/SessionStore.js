@@ -15,20 +15,20 @@ module.exports = class SessionStore extends Base {
         Store.call(this);
     }
 
-    createSession (...args) {
-        return Store.prototype.createSession.apply(this, args);
+    createSession () {
+        return Store.prototype.createSession.apply(this, arguments);
     }
 
     save () {
-        return PromiseHelper.promise(Store.prototype.save.bind(this));
+        return PromiseHelper.promise(Store.prototype.save, this);
     }
 
-    load (...args) {
-        return Store.prototype.load.apply(this, args);
+    load () {
+        return Store.prototype.load.apply(this, arguments);
     }
 
-    regenerate (...args) {
-        return Store.prototype.regenerate.apply(this, args);
+    regenerate () {
+        return Store.prototype.regenerate.apply(this, arguments);
     }
 };
 

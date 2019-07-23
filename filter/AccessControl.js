@@ -30,11 +30,11 @@ module.exports = class AccessControl extends Base {
 
     async beforeAction (action, complete) {
         let user = action.controller.user;
-        // check rules before the first result - allow or deny
+        // check rules until the first result [allow or deny]
         for (let rule of this.rules) {
-            let access = await rule.can(action, user);
+            let access = await rule.can(action);
             if (access === false) {
-                return this.denyAccess(rule, action, user);
+                return this.denyAccess(rule, action);
             }
             if (access === true) {
                 return;
@@ -42,12 +42,12 @@ module.exports = class AccessControl extends Base {
         }
     }
 
-    async denyAccess (rule, action, user) {
+    async denyAccess (rule, action) {
         if (rule.deny) {
-            return rule.deny(action, user);
+            return rule.deny(action);
         }
         if (this.deny) {
-            return this.deny(action, user);
+            return this.deny(action);
         }
         throw new Forbidden;
     }

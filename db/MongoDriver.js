@@ -183,7 +183,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     async queryColumn (query, key) {
-        let docs = await this.queryAll(query.asRaw().select(key));
+        let docs = await this.queryAll(query.raw().select(key));
         return docs.map(doc => doc[key]);
     }
 
@@ -193,7 +193,7 @@ module.exports = class MongoDriver extends Base {
     }
 
     async queryScalar (query, key) {
-        let docs = await this.queryAll(query.asRaw().select(key).limit(1));
+        let docs = await this.queryAll(query.raw().select(key).limit(1));
         return docs.length ? docs[0][key] : undefined;
     }
 

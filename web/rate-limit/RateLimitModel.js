@@ -20,7 +20,9 @@ module.exports = class RateLimitModel extends Base {
     }
 
     isBlocked () {
-        return this._data.blockedTill && this._data.blockedTill > new Date;
+        return this._data.blockedTill  
+            ? this._data.blockedTill > new Date 
+            : false;
     }
 
     getBlockedTill () {

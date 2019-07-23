@@ -25,13 +25,14 @@ module.exports = class Cache extends Base {
         return value;
     }
 
-    async get (key) {
+    async get (key, defaults) {
         key = this.buildKey(key);
         let value = await this.getValue(key);
-        if (value !== undefined) {
-            this.log('trace', `Get key: ${key}`);
-            return this.serializer ? this.serializer.parse(value) : value;
+        if (value === undefined) {
+            return defaults;
         }
+        this.log('trace', `Get key: ${key}`);
+        return this.serializer ? this.serializer.parse(value) : value;
     }
 
     set (key, value, duration) {

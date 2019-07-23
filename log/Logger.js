@@ -39,7 +39,8 @@ module.exports = class Logger extends Base {
     createTypes () {
         let errorOutputIndex = this.typeNames.indexOf('info');        
         for (let i = 0; i < this.typeNames.length; ++i) {
-            this.createType(this.typeNames[i], {consoleMethod: i > errorOutputIndex ? 'error' : 'log'});
+            let consoleMethod = i > errorOutputIndex ? 'error' : 'log';
+            this.createType(this.typeNames[i], {consoleMethod});
         }
     }
 
@@ -137,11 +138,9 @@ module.exports = class Logger extends Base {
         typeNames = Array.isArray(typeNames) ? typeNames : this.typeNames;
         for (let name of typeNames) {
             let type = this.getType(name);
-            if (type && type.getCounter()) {
-                total.push({
-                    type: name,
-                    counter: type.getCounter()
-                });
+            let counter = type && type.getCounter();
+            if (counter) {
+                total.push({type: name, counter});
             }
         }
         return total;

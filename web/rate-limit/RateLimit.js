@@ -50,8 +50,9 @@ module.exports = class RateLimit extends Base {
 
     getParam (type, name) {
         if (this.types && Object.prototype.hasOwnProperty.call(this.types, type)) {
-            if (this.types[type] && Object.prototype.hasOwnProperty.call(this.types[type], name)) {
-                return this.types[type][name];
+            type = this.types[type];
+            if (type && Object.prototype.hasOwnProperty.call(type, name)) {
+                return type[name];
             }
         }
         return this[name];

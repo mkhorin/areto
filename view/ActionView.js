@@ -42,6 +42,14 @@ module.exports = class ActionView extends Base {
         return this.theme.getParentTemplate(name, this.controller.language);
     }
 
+    getViewOwnTemplate (name) {
+        return this.theme.getViewOwnTemplate(name, this.controller.language);
+    }
+
+    getViewOwnTemplateWithOrigin (name) {
+        return this.theme.getViewOwnTemplateWithOrigin(name, this.controller.language);
+    }
+
     getViewModelClass (name) {
         return this.theme.getModel(name, this.controller.language);
     }
@@ -165,12 +173,9 @@ module.exports = class ActionView extends Base {
 
     insertWidgetContent (content) {
         let anchors = Object.keys(this.widgets).join('|');
-        if (anchors.length === 0) {
-            return content;
-        }
-        return content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> {
-            return this.widgets[anchor].content;
-        });
+        return anchors.length
+            ? content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> this.widgets[anchor].content)
+            : content;
     }
 };
 module.exports.init();

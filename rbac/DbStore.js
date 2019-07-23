@@ -42,60 +42,54 @@ module.exports = class DbStore extends Base {
     }
 
     prepare (data) {
-        let result = {
-            items: {},
-            rules: {},
-            assignments: {}
-        };
-        for (let id of Object.keys(data.ruleMap)) {
-            let rule = this.prepareRule(data.ruleMap[id]);
-            data.ruleMap[id] = rule;
-            result.rules[rule.name] = rule;
+        const {ruleMap, itemMap} = data;
+        const rules = {};
+        for (let id of Object.keys(ruleMap)) {
+            let rule = this.prepareRule(ruleMap[id]);
+            ruleMap[id] = rule;
+            rules[rule.name] = rule;
         }
-        for (let id of Object.keys(data.itemMap)) {
-            let item = data.itemMap[id];
+        const items = {};
+        for (let id of Object.keys(itemMap)) {
+            let item = itemMap[id];
             item.children = this.getItemChildren(id, data);
-            item.rule = data.ruleMap.hasOwnProperty(item.rule)
-                ? data.ruleMap[item.rule].name
-                : null;
-            result.items[item.name] = item;
+            item.rule = ruleMap.hasOwnProperty(item.rule) ? ruleMap[item.rule].name : null;
+            items[item.name] = item;
         }
-        for (let doc of data.assignments) {
-            let item = data.itemMap[doc.item];
+        const assignments = {};
+        for (let assignment of data.assignments) {
+            let item = itemMap[assignment.item];
             if (item) {
-                if (!result.assignments[doc.user]) {
-                    result.assignments[doc.user] = [];
+                if (!assignments[assignment.user]) {
+                    assignments[assignment.user] = [];
                 }
-                result.assignments[doc.user].push(item.name);
+                assignments[assignment.user].push(item.name);
             }
         }
-        return result;
+        return {rules, items, assignments};
     }
 
-    prepareRule (data) {
-        let Class = data.classConfig && data.classConfig.Class;
+    prepareRule ({name, spawnConfig}) {
+        const config = spawnConfig || {};
+        config.Class = config.Class || Rule;
         try {
-            Class = this.rbac.module.require(Class);
+            ClassHelper.resolveSpawn(config, this.rbac.module);
         } catch (err) {
-            this.log('error', `Invalid rule class: ${Class}`);
-            Class = Rule;
+            this.log('error', `Invalid rule file: ${config.Class}`);
+            config.Class = Rule;
         }
-        if (!(Class.prototype instanceof Rule) && Class !== Rule) {
-            this.log('error', `Base class of ${data.classConfig.Class} must be Rule`);
-            Class = Rule;
+        if (!(config.Class.prototype instanceof Rule) && config.Class !== Rule) {
+            this.log('error', `Base class of ${config.Class.name} must be Rule`);
+            config.Class = Rule;
         }
-        return {
-            ...data.classConfig, 
-            name: data.name, 
-            Class
-        };
+        return {...config, name};
     }
 
-    getItemChildren (id, data) {
-        let children = [];
-        for (let link of data.links) {
-            if (MongoHelper.isEqual(link.parent, id) && data.itemMap[link.child]) {
-                children.push(data.itemMap[link.child].name);
+    getItemChildren (id, {links, itemMap}) {
+        const children = [];
+        for (let link of links) {
+            if (MongoHelper.isEqual(link.parent, id) && itemMap[link.child]) {
+                children.push(itemMap[link.child].name);
             }
         }
         return children;
@@ -217,6 +211,9 @@ module.exports = class DbStore extends Base {
     }
 
     async createAssignment (names, user) {
+        if (!Array.isArray(names)) {
+            return false;
+        }
         let items = await this.findItemByName(names).column(this.key);
         if (items.length !== names.length) {
             throw new Error(`RBAC: Not found assignment item: ${names}`);
@@ -235,6 +232,7 @@ module.exports = class DbStore extends Base {
 };
 module.exports.init();
 
+const ClassHelper = require('../helper/ClassHelper');
 const MongoHelper = require('../helper/MongoHelper');
 const Query = require('../db/Query');
 const Rule = require('./Rule');

@@ -52,4 +52,3 @@ module.exports = class Behavior extends Base {
 };
 
 const CommonHelper = require('../helper/CommonHelper');
-

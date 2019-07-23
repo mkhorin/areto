@@ -27,8 +27,8 @@ module.exports = class Base {
         }
     }
 
-    getClass (...args) {
-        return this.module.getClass(...args);
+    getClass () {
+        return this.module.getClass(...arguments);
     }
 
     spawn (config, params) {

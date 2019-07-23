@@ -6,9 +6,9 @@
 module.exports = class IndexHelper {
 
     static indexObjects (docs, keyProp, valueProp) {
-        let map = {};
+        let result = {};
         if (!Array.isArray(docs)) {
-            return map;
+            return result;
         }
         for (let doc of docs) {
             if (doc === null || doc === undefined) {
@@ -16,61 +16,57 @@ module.exports = class IndexHelper {
             }
             let value = valueProp === undefined ? doc : doc[valueProp];
             let key = doc[keyProp];
-            if (!Object.prototype.hasOwnProperty.call(map, key)) {
-                map[key] = value;
-            } else if (Array.isArray(map[key])) {
-                map[key].push(value);
+            if (!Object.prototype.hasOwnProperty.call(result, key)) {
+                result[key] = value;
+            } else if (Array.isArray(result[key])) {
+                result[key].push(value);
             } else {
-                map[key] = [map[key], value];
+                result[key] = [result[key], value];
             }
         }
-        return map;
+        return result;
     }
 
-    static indexUniqueKeyObjects (docs, keyProp, valueProp) {
-        let map = {};
-        if (!Array.isArray(docs)) {
-            return map;
+    static indexUniqueKeyObjects (items, keyProp, valueProp) {
+        let result = {};
+        if (!Array.isArray(items)) {
+            return result;
         }
-        for (let doc of docs) {
-            if (doc !== null && doc !== undefined) {
-                map[doc[keyProp]] = valueProp === undefined
-                    ? doc
-                    : doc[valueProp];
+        for (let item of items) {
+            if (item !== null && item !== undefined) {
+                result[item[keyProp]] = valueProp === undefined ? item : item[valueProp];
             }
         }
-        return map;
+        return result;
     }
 
     static indexModels (models, keyAttr, valueAttr) {
-        let map = {};
+        let result = {};
         if (!Array.isArray(models)) {
-            return map;
+            return result;
         }
         for (let model of models) {
             let value = valueAttr ? model.get(valueAttr) : model;
             let key = model.get(keyAttr);
-            if (!Object.prototype.hasOwnProperty.call(map, key)) {
-                map[key] = value;
-            } else if (Array.isArray(map[key])) {
-                map[key].push(value);
+            if (!Object.prototype.hasOwnProperty.call(result, key)) {
+                result[key] = value;
+            } else if (Array.isArray(result[key])) {
+                result[key].push(value);
             } else {
-                map[key] = [map[key], value];
+                result[key] = [result[key], value];
             }
         }
-        return map;
+        return result;
     }
 
     static indexUniqueKeyModels (models, keyAttr, valueAttr) {
-        let map = {};
+        let result = {};
         if (!Array.isArray(models)) {
-            return map;
+            return result;
         }
         for (let model of models) {
-            map[model.get(keyAttr)] = valueAttr
-                ? model.get(valueAttr)
-                : model;
+            result[model.get(keyAttr)] = valueAttr ? model.get(valueAttr) : model;
         }
-        return map;
+        return result;
     }
 };

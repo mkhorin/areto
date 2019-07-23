@@ -51,8 +51,8 @@ module.exports = class DataMap {
         return this.values().length;
     }
 
-    each (...args) {
-        return this.forEach(...args);
+    each () {
+        return this.forEach(...arguments);
     }
 
     forEach (handler, context) {

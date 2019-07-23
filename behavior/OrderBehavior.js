@@ -20,11 +20,11 @@ module.exports = class OrderBehavior extends Base {
 
     async beforeInsert (event) {
         if (CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
-            this.owner.set(this.orderAttr, await this.getNextOrderNumber());
+            this.owner.set(this.orderAttr, await this.getNextNumber());
         }
     }
 
-    async getNextOrderNumber () {
+    async getNextNumber () {
         let query = this.owner.find();
         if (this.filter instanceof Function) {
             this.filter(query, this.owner);

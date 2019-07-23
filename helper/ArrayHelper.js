@@ -41,13 +41,13 @@ module.exports = class ArrayHelper {
     }
 
     static flip (values) {
-        let map = {};
+        let result = {};
         if (Array.isArray(values)) {
             for (let i = 0; i < values.length; ++i) {
-                map[values[i]] = i;
+                result[values[i]] = i;
             }
         }
-        return map;
+        return result;
     }
 
     static removeValue (value, values) {

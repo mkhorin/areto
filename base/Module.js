@@ -62,12 +62,12 @@ module.exports = class Module extends Base {
 
     constructor (config) {
         super({
-            'ActionView': require('../view/ActionView'),
-            'ClassMapper': require('./ClassMapper'),
-            'Configuration':  require('./Configuration'),
-            'DependentOrder':  require('./DependentOrder'),
-            'Express': require('./Express'),
-            'InlineAction': require('./InlineAction'),
+            ActionView: require('../view/ActionView'),
+            ClassMapper: require('./ClassMapper'),
+            Configuration: require('./Configuration'),
+            DependentOrder: require('./DependentOrder'),
+            Express: require('./Express'),
+            InlineAction: require('./InlineAction'),
             ...config
         });
         this.module = this;
@@ -90,17 +90,17 @@ module.exports = class Module extends Base {
         return this.parent ? this.parent.components.get(id) : defaults;
     }
 
-    getDb (id = 'connection') {
-        let connection = this.components.get(id);
-        return connection && connection.driver;
+    getDb (connection = 'connection') {
+        connection = this.components.get(connection);
+        return connection ? connection.driver : null;
     }
     
-    getClass (...args) {
-        return this.classMapper.get(...args);
+    getClass () {
+        return this.classMapper.get(...arguments);
     }
 
-    getConfig (...args) {
-        return this.config.get(...args);
+    getConfig () {
+        return this.config.get(...arguments);
     }
 
     getParam (key, defaults) {
@@ -113,15 +113,18 @@ module.exports = class Module extends Base {
             : this.NAME;
     }
 
-    getPath (...args) {
-        return path.join(this.CLASS_DIR, ...args);
+    getPath () {
+        return path.join(this.CLASS_DIR, ...arguments);
     }
 
-    require (...args) {
+    require () {
+        return this.requireInner(...arguments) || (this.origin && this.origin.requireInner(...arguments));
+    }
+
+    requireInner () {
         try {
-            return require(this.getPath(...args));
+            return require(this.getPath(...arguments));
         } catch (err) {}
-        return require(path.join(...args));
     }
 
     getRelativePath (file) {
@@ -150,6 +153,10 @@ module.exports = class Module extends Base {
         }
         module = this.modules.get(name.substring(0, pos));
         return module ? module.getModule(name.substring(pos + 1)) : null;
+    }
+
+    getModules () {
+        return this.modules;
     }
 
     log (type, message, data) {
@@ -284,17 +291,11 @@ module.exports = class Module extends Base {
             return this.log('info', `Module skipped: ${id}`);
         }
         if (!config.Class) {
-            config.Class = this.getModuleClass(id) || this.origin && this.origin.getModuleClass(id);
+            config.Class = this.require('module', id, 'Module.js');
         }
-        let module = ClassHelper.spawn(config, {parent: this});
+        const module = ClassHelper.spawn(config, {parent: this});
         this.modules.set(id, module);
         return module.init();
-    }
-
-    getModuleClass (id) {
-        try {
-            return require(this.getPath('module', id, 'Module.js'));
-        } catch (err) {}
     }
 
     // COMPONENTS
@@ -342,15 +343,15 @@ module.exports = class Module extends Base {
 
     createFormatterComponent (config) {
         return this.spawn({
-            'Class': require('../i18n/Formatter'),
-            'i18n': this.components.get('i18n'),
+            Class: require('../i18n/Formatter'),
+            i18n: this.components.get('i18n'),
             ...config
         });
     }
 
     createI18nComponent (config) {
         return this.spawn({
-            'Class': require('../i18n/I18n'),
+            Class: require('../i18n/I18n'),
             ...config
         });
     }
@@ -358,8 +359,8 @@ module.exports = class Module extends Base {
     createViewComponent (config) {
         let origin = this.origin && this.origin.createViewComponent(config);
         return this.spawn({
-            'Class': require('../view/View'),
-            'origin': origin,
+            Class: require('../view/View'),
+            origin,
             ...config
         });
     }
@@ -397,8 +398,8 @@ module.exports = class Module extends Base {
         return this.spawn(this.Express, params);
     }
 
-    addHandler (...args) {
-        this.express.add(...args);
+    addHandler () {
+        this.express.add(...arguments);
     }
 
     addViewEngine (data) {

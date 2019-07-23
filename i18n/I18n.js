@@ -20,7 +20,6 @@ module.exports = class I18n extends Base {
             language: config.parent ? config.parent.language : 'en',
             sourceLanguage: config.parent ? config.parent.sourceLanguage : 'en',
             sources: {},
-            basePath: config.module.getPath('message'),
             MessageFormatter: MessageFormatter,
             ...config
         });
@@ -74,7 +73,7 @@ module.exports = class I18n extends Base {
                 sources[this.CORE_CATEGORY] = this.parent.sources[this.CORE_CATEGORY];
             } else {
                 sources[this.CORE_CATEGORY] = this.createSource(this.CORE_CATEGORY, {
-                    'basePath': path.join(__dirname, 'message')
+                    basePath: path.join(__dirname, 'message')
                 });
             }
         }

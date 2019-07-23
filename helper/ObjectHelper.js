@@ -8,7 +8,7 @@ module.exports = class ObjectHelper {
     static push (value, key, map) {
         if (Array.isArray(map[key])) {
             map[key].push(value);
-        } else if(map) {
+        } else if (map) {
             map[key] = [value];
         }
     }
@@ -31,14 +31,107 @@ module.exports = class ObjectHelper {
         }
     }
 
-    static includesNestedValue (...args) {
-        return this.indexOfNestedValue(...args) !== -1;
+    static getKeysByValue (value, map) {
+        let keys = [];
+        if (map) {
+            for (let key of Object.keys(map)) {
+                if (map[key] === value) {
+                    keys.push(key);
+                }
+            }
+        }
+        return keys;
     }
 
-    static indexOfNestedValue (value, key, map) {
-        let values = this.getNestedValue(key, map);
-        return Array.isArray(values) ? values.indexOf(value) : -1;
+    static getAllPropNames (map) {
+        if (!map) {
+            return [];
+        }
+        let props = Object.getOwnPropertyNames(map);
+        for (let name of this.getAllPropNames(Object.getPrototypeOf(map))) {
+            if (props.includes(name) === false) {
+                props.push(name);
+            }
+        }
+        return props;
     }
+
+    static getAllFunctionNames (map) {
+        const result = [];
+        for (let item of this.getAllPropNames(map)) {
+            if (typeof map[item] === 'function') {
+                result.push(item);
+            }
+        }
+        return result;
+    }
+
+    static filterByKeys (keys, map) {
+        const result = {};
+        if (map) {
+            for (let key of keys) {
+                if (Object.prototype.hasOwnProperty.call(map, key)) {
+                    result[key] = map[key];
+                }
+            }
+        }
+        return result;
+    }
+
+    static sortByKeys (keys, map) {
+        return Object.assign(this.filterByKeys(keys, map), map);
+    }
+
+    // DELETE PROPS
+
+    static deleteEmptyProps (map, names) {
+        if (map) {
+            if (!names) {
+                names = Object.keys(map);
+            }
+            for (let name of names) {
+                let value = map[name];
+                if (value === null || value === '' || value === undefined) {
+                    delete map[name];
+                }
+            }
+        }
+    }
+
+    static deletePropsByValue (value, map, names) {
+        if (map) {
+            if (!names) {
+                names = Object.keys(map);
+            }
+            for (let name of names) {
+                if (typeof value === 'function' ? value(map[name]) : (map[name] === value)) {
+                    delete map[name];
+                }
+            }
+        }
+    }
+
+    static deleteProps (names, map) {
+        if (map && Array.isArray(names)) {
+            for (let name of names) {
+                if (Object.prototype.hasOwnProperty.call(map, name)) {
+                    delete map[name];
+                }
+            }
+        }
+    }
+
+    static deletePropsExcept (names, map) {
+        if (map && Array.isArray(names)) {
+            for (let name of Object.keys(map)) {
+                if (!names.includes(name)) {
+                    delete map[name];
+                }
+            }
+        }
+    }
+
+    // NESTED VALUE
 
     static getNestedValue (key, map, defaults) { // key: 'prop1.prop2.prop3'
         if (!map || typeof key !== 'string') {
@@ -65,7 +158,7 @@ module.exports = class ObjectHelper {
 
     static setNestedValue (value, key, map) { // key: 'prop1.prop2.prop3'
         let index = key.indexOf('.');
-        if (index ===  -1) {
+        if (index === -1) {
             return map[key] = value;
         }
         let token = key.substring(0, index);
@@ -73,60 +166,6 @@ module.exports = class ObjectHelper {
             map[token] = {};
         }
         this.setNestedValue(value, key.substring(index + 1), map[token]);
-    }
-
-    static getAllPropNames (map) {
-        if (!map) {
-            return [];
-        }
-        let props = Object.getOwnPropertyNames(map);
-        for (let name of this.getAllPropNames(Object.getPrototypeOf(map))) {
-            if (props.includes(name) === false) {
-                props.push(name);
-            }
-        }
-        return props;
-    }
-
-    static getAllFunctionNames (map) {
-        let result = [];
-        for (let item of this.getAllPropNames(map)) {
-            if (typeof map[item] === 'function') {
-                result.push(item);
-            }
-        }
-        return result;
-    }
-
-    static deleteEmptyProps (map, isEmpty) {
-        if (map) {
-            for (let key of Object.keys(map)) {
-                let value = map[key];
-                if (isEmpty ? isEmpty(value) : (value === null || value === '' || value === undefined)) {
-                    delete map[key];
-                }
-            }
-        }
-    }
-
-    static deleteProps (names, map) {
-        if (map && Array.isArray(names)) {
-            for (let name of names) {
-                if (Object.prototype.hasOwnProperty.call(map, name)) {
-                    delete map[name];
-                }
-            }
-        }
-    }
-
-    static deletePropsExcept (names, map) {
-        if (map && Array.isArray(names)) {
-            for (let key of Object.keys(map)) {
-                if (!names.includes(key)) {
-                    delete map[key];
-                }
-            }
-        }
     }
 
     static addKeyAsNestedValue (nestedKey, map) {
@@ -139,13 +178,14 @@ module.exports = class ObjectHelper {
         }
     }
 
-    static filterByKeys (keys, map) {
-        let result = {};
-        for (let key of keys) {
-            if (map && Object.prototype.hasOwnProperty.call(map, key)) {
-                result[key] = map[key];
-            }
-        }
-        return result;
+    static includesNestedValue () {
+        return this.indexOfNestedValue(...arguments) !== -1;
+    }
+
+    static indexOfNestedValue (value, key, map) {
+        let values = this.getNestedValue(key, map);
+        return Array.isArray(values) ? values.indexOf(value) : -1;
     }
 };
+
+const ArrayHelper = require('./ArrayHelper');

@@ -31,16 +31,16 @@ module.exports = class Action extends Base {
         return this.controller.isPost();
     }
 
-    getQueryParam (...args) {
-        return this.controller.getQueryParam(...args);
+    getQueryParam () {
+        return this.controller.getQueryParam(...arguments);
     }
 
     getQueryParams () {
         return this.controller.getQueryParams();
     }
 
-    getPostParam (...args) {
-        return this.controller.getPostParam(...args);
+    getPostParam () {
+        return this.controller.getPostParam(...arguments);
     }
 
     getPostParams () {
@@ -49,17 +49,17 @@ module.exports = class Action extends Base {
 
     // RENDER
 
-    render (...args) {
-        return this.controller.render(...args);
+    render () {
+        return this.controller.render(...arguments);
     }
 
     // SEND
 
-    send (...args) {
-        return this.controller.send(...args);
+    send () {
+        return this.controller.send(...arguments);
     }
 
-    sendText (...args) {
-        return this.controller.sendText(...args);
+    sendText () {
+        return this.controller.sendText(...arguments);
     }
 };

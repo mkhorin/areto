@@ -23,16 +23,16 @@ module.exports = class ClassHelper {
             : new config.Class(config);
     }
 
-    static normalizeConfig (config, params) {
-        return Object.assign(typeof config === 'function'
-            ? {Class: config}
-            : config, params);
+    static normalizeSpawn (config, params) {
+        config = typeof config === 'function' ? {Class: config} : config;
+        return Object.assign(config, params);
     }
 
-    static resolveConfigClass (config, module) {
+    static resolveSpawn (config, module) {
         if (config && typeof config.Class === 'string') {
-            config.Class = module.require(config.Class);
+            config.Class = module.getClass(config.Class) || module.require(config.Class) || require(config.Class);
         }
+        return config;
     }
 
     // to get value from Class[name] and (new Class)[name]
@@ -51,8 +51,8 @@ module.exports = class ClassHelper {
     static getClassProps (targetClass, methodName, chainClass, extendedMethodName) {
         let parentClass = Object.getPrototypeOf(chainClass);
         let chainProps = chainClass[methodName] && chainClass[methodName] !== parentClass[methodName]
-            ? chainClass[methodName].call(targetClass) : {};
-
+            ? chainClass[methodName].call(targetClass)
+            : {};
         if (!Object.getPrototypeOf(parentClass)) {
             return chainProps;
         }

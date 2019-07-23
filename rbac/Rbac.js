@@ -52,7 +52,7 @@ module.exports = class Rbac extends Base {
     build (data) {
         this.ruleMap = {};
         for (let name of Object.keys(data.rules)) {
-            this.ruleMap[name] = ClassHelper.normalizeConfig(data.rules[name], {name});
+            this.ruleMap[name] = ClassHelper.normalizeSpawn(data.rules[name], {name});
         }
         this.resolveItemRules(data.items);
         this.itemMap = {};
@@ -71,7 +71,7 @@ module.exports = class Rbac extends Base {
             if (rule) {
                 item.rule = Object.prototype.hasOwnProperty.call(this.ruleMap, rule)
                     ? this.ruleMap[rule]
-                    : ClassHelper.normalizeConfig(rule);
+                    : ClassHelper.normalizeSpawn(rule);
             }
         }
     }

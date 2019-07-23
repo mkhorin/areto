@@ -258,8 +258,8 @@ module.exports = class Controller extends Base {
         return this;
     }
 
-    setHttpHeader (...args) {
-        this.res.set(...args);
+    setHttpHeader () {
+        this.res.set(...arguments);
         return this;
     }
 

@@ -98,15 +98,15 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         if (Array.isArray(data.unlinks)) {
             for (let model of data.unlinks) {
-                await this.owner.unlink(name, model);
+                await this.owner.getLinker().unlink(name, model);
             }
         }
         if (Array.isArray(data.links)) {
             for (let model of data.links) {
-                await this.owner.link(name, model);
+                await this.owner.getLinker().link(name, model);
             }
         }
-        await PromiseHelper.setImmediate();
+        return PromiseHelper.setImmediate();
     }
 
     async getLinkedDocs (name) {
@@ -114,7 +114,7 @@ module.exports = class RelationChangeBehavior extends Base {
             return this._linkedDocs;
         }
         let relation = this.getRelation(name);
-        let docs = await relation.asRaw().all();
+        let docs = await relation.raw().all();
         let map = {};
         for (let doc of docs) {
             map[doc[relation.model.PK]] = doc;
@@ -122,13 +122,14 @@ module.exports = class RelationChangeBehavior extends Base {
         let data = this._changes[name];
         if (data) {
             for (let model of data.links) {
-                map[model.getId()] = model.getAttrs();
+                map[model.getId()] = model.getAttrMap();
             }
             for (let model of data.unlinks.concat(data.removes)) {
                 delete map[model.getId()];
             }
         }
-        return this._linkedDocs = Object.values(map);
+        this._linkedDocs = Object.values(map);
+        return this._linkedDocs;
     }
 
     // EXIST

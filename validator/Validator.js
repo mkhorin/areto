@@ -29,6 +29,7 @@ module.exports = class Validator extends Base {
                 'required': require('./RequiredValidator'),
                 'relation': require('./RelationValidator'),
                 'safe': require('./SafeValidator'),
+                'spawn': require('./SpawnValidator'),
                 'string': require('./StringValidator'),
                 'unique': require('./UniqueValidator'),
                 'unsafe': require('./UnsafeValidator'),

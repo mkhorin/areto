@@ -1,3 +1,19 @@
+## 0.27.0
+
+* db/ActiveLinker
+    - extract as separate entity
+* helper/QueryHelper
+    - fix query with multiple nested relations
+* i18n/I18n
+    - resolve message source with module origin
+* scheduler/Scheduler
+    - assign task module
+* validator/SpawnValidator
+    - validate spawn configuration JSON
+* view/Theme
+    - add isOrigin flag to template hierarchy
+    - get closest ancestor template (to call from overwritten one)
+
 ## 0.26.0
 
 * base/Configuration

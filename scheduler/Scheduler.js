@@ -34,21 +34,21 @@ module.exports = class Scheduler extends Base {
         return this._taskMap[name] instanceof Task ? this._taskMap[name] : null;
     }
 
-    addTasks (data) {
+    addTasks (data, params) {
         if (data) {
             for (let name of Object.keys(data)) {
-                this.addTask(name, data[name]);
+                this.addTask(name, data[name], params);
             }
         }
     }
 
-    addTask (name, config) {
+    addTask (name, config, params) {
         if (this.getTask(name)) {
             return this.log('error', `Task already exists: ${name}`);
         }
         try {
             config.Class = config.Class || Task;
-            let task = this.spawn(config, {scheduler: this, name});
+            let task = this.spawn(config, {...params, name, scheduler: this});
             task.on(task.EVENT_BEFORE_RUN, this._taskBeforeRunHandler);
             task.on(task.EVENT_DONE, this._taskDoneHandler);
             task.on(task.EVENT_FAIL, this._taskFailHandler);
@@ -115,7 +115,7 @@ module.exports = class Scheduler extends Base {
     }
 
     taskDone (event, data) {
-        this.log('info', `Task done: ${event.sender.name}:`, event.result);
+        this.log('info', `Task done: ${event.sender.name}`, event.result);
         this.trigger(this.EVENT_TASK_DONE, event);
     }
     

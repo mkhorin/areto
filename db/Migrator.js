@@ -19,8 +19,8 @@ module.exports = class Migrator extends Base {
         return this.module.getDb(connection || this.connection);
     }
 
-    getPath (...args) {
-        return this.module.getPath(...args);
+    getPath () {
+        return this.module.getPath(...arguments);
     }
 
     async migrate (action, files) {

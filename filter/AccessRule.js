@@ -12,20 +12,20 @@ module.exports = class AccessRule extends Base {
             allow: true, // allow or deny rule result
             // actions: ['update'],
             // controllers: ['article'],
-            // roles: ['?', '@', 'reader'], // RBAC items
+            // permissions: ['?', '@', 'reader'], // RBAC permission items
             // verbs: ['GET', 'POST'],
-            // deny: [fn(action, user)]
+            // deny: fn(action, user)
             ...config
         });
     }
 
-    async can (action, user) {
+    async can (action) {
         if ((this.actions && !this.actions.includes(action.name))
             || (this.verbs && !this.verbs.includes(action.controller.req.method))
             || (this.controllers && !this.controllers.includes(action.controller.NAME))) {
             return; // skip rule
         }
-        let access = await this.match(user);
+        let access = await this.match(action);
         if (access === true) {
             return this.allow;
         }
@@ -34,21 +34,22 @@ module.exports = class AccessRule extends Base {
         }
     }
 
-    async match (user) {
-        if (!Array.isArray(this.roles)) {
+    async match (action) {
+        if (!Array.isArray(this.permissions)) {
             return;
         }
-        let roles = [];
-        for (let item of this.roles) {
+        const permissions = [];
+        const user = action.controller.user;
+        for (let item of this.permissions) {
             if (item === '?') {
                 return user.isGuest();
             }
             if (item === '@') {
                 return !user.isGuest();
             }
-            roles.push(item);
+            permissions.push(item);
         }
-        for (let item of roles) {
+        for (let item of permissions) {
             if (await user.can(item)) {
                 return true;
             }

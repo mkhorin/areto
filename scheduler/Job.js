@@ -27,6 +27,10 @@ module.exports = class Job extends Base {
         await PromiseHelper.setImmediate();
         await this.run();
     }
+
+    log () {
+        this.task.log(...arguments);
+    }
 };
 
 const PromiseHelper = require('../helper/PromiseHelper');

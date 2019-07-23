@@ -31,8 +31,6 @@ module.exports = class ViewModel extends Base {
         return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
     }
 
-    _attrs = {};
-
     constructor (config) {
         super(config);
         this.module = this.view.module;
@@ -68,16 +66,16 @@ module.exports = class ViewModel extends Base {
         return this.ATTR_LABELS[name];
     }
 
-    format (...args) {
-        return this.controller.format(...args);
+    format () {
+        return this.controller.format(...arguments);
     }
 
-    translate (...args) {
-        return this.controller.translate(...args);
+    translate () {
+        return this.controller.translate(...arguments);
     }
 
-    translateMessageMap (...args) {
-        return this.controller.translateMessageMap(...args);
+    translateMessageMap () {
+        return this.controller.translateMessageMap(...arguments);
     }
 };
 module.exports.init();

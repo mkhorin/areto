@@ -37,10 +37,8 @@ module.exports = class UrlManager extends Base {
             url = this.module.getRoute(root ? `${root}/${url}` : url);
         } else if (index === 0) { // relative app
             let root = this.module.app.mountPath;
-            if (root !== '/') {
-                if (url.substring(0, root.length) !== root) {
-                    url = root + url;
-                }
+            if (root !== '/' && url.substring(0, root.length) !== root) {
+                url = root + url;
             }
         } else if (url.substring(0, 4) !== 'http') { // relative module
             url = this.module.getRoute(url);

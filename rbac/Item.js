@@ -42,17 +42,19 @@ module.exports = class Item extends Base {
 
     async create () {
         if (!this.constructor.isType(this.data.type)) {
-            throw new Error(`Invalid '${this.data.type}' type  for RBAC item: ${this.name}`);
+            throw new Error(`RBAC item: ${this.name}: Invalid type: ${this.data.type}`);
         }
         let item = await this.store.findItemByName(this.name).one();
         if (item) {
             return this.store.log('warn', `RBAC item already exists: ${this.name}`);
         }
-        let relations = await this.resolveRelations();
-        relations.name = this.name;
-        let doc = {...this.data, ...relations};
-        ObjectHelper.deleteProps(['children', 'parents'], doc);
-        await this.store.findItem().insert(doc);
+        let data = {
+            name: this.name,
+            ...this.data,
+            ...await this.resolveRelations()
+        };
+        ObjectHelper.deleteProps(['children', 'parents'], data);
+        await this.store.findItem().insert(data);
     }
 
     async resolveRelations () {

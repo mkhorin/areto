@@ -18,17 +18,9 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    getDb () {
-        return this._db;
-    }
-
     from (table) {
         this._from = table;
         return this;
-    }
-
-    getTable () {
-        return this._from;
     }
 
     index (column) {
@@ -36,8 +28,24 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    asRaw () {
+    raw () {
         return this;
+    }
+
+    getDb () {
+        return this._db;
+    }
+
+    getTable () {
+        return this._from;
+    }
+
+    getIndex () {
+        return this._index;
+    }
+
+    getRaw () {
+        return this._raw;
     }
 
     // SELECT
