@@ -23,12 +23,15 @@ module.exports = class ClassHelper {
             : new config.Class(config);
     }
 
-    static normalizeSpawn (config, params) {
+    static normalizeSpawn (config, params, defaults) {
         config = typeof config === 'function' ? {Class: config} : config;
+        if (defaults) {
+            config = {...defaults, ...config};
+        }
         return Object.assign(config, params);
     }
 
-    static resolveSpawn (config, module) {
+    static resolveSpawnClass (config, module) {
         if (config && typeof config.Class === 'string') {
             config.Class = module.getClass(config.Class) || module.require(config.Class) || require(config.Class);
         }
@@ -42,23 +45,23 @@ module.exports = class ClassHelper {
     }
 
     static defineConstantClassProps (Class, methodName = CONSTANT_METHOD) {
-        let props = this.getClassProps(Class, methodName, Class, EXTENDED_CLASS_PROPS_METHOD);
+        const props = this.getClassProps(Class, methodName, Class, EXTENDED_CLASS_PROPS_METHOD);
         for (let name of Object.keys(props)) {
             this.defineClassProp(Class, name, props[name], false);
         }
     }
 
     static getClassProps (targetClass, methodName, chainClass, extendedMethodName) {
-        let parentClass = Object.getPrototypeOf(chainClass);
-        let chainProps = chainClass[methodName] && chainClass[methodName] !== parentClass[methodName]
+        const parentClass = Object.getPrototypeOf(chainClass);
+        const chainProps = chainClass[methodName] && chainClass[methodName] !== parentClass[methodName]
             ? chainClass[methodName].call(targetClass)
             : {};
         if (!Object.getPrototypeOf(parentClass)) {
             return chainProps;
         }
-        let parentProps = this.getClassProps(targetClass, methodName, parentClass);
-        let props = {...parentProps, ...chainProps};
-        if (chainClass[extendedMethodName] instanceof Function) {
+        const parentProps = this.getClassProps(targetClass, methodName, parentClass);
+        const props = {...parentProps, ...chainProps};
+        if (typeof chainClass[extendedMethodName] === 'function') {
             for (let name of chainClass[extendedMethodName]()) {
                 let prop = this.getExtendedClassProp(name, chainProps[name], parentProps[name]);
                 if (prop) {

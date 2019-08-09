@@ -23,7 +23,7 @@ module.exports = class ActiveRecord extends Base {
             // UNLINK_ON_REMOVE: [], // unlink relations after model remove
         };
     }
-    
+
     _isNewRecord = true;
     _oldAttrMap = {};
     _related = {};
@@ -44,6 +44,10 @@ module.exports = class ActiveRecord extends Base {
         return this.get(this.PK);
     }
 
+    getTable () {
+        return this.TABLE;
+    }
+
     getTitle () {
         return String(this.getId());
     }
@@ -61,11 +65,11 @@ module.exports = class ActiveRecord extends Base {
         if (typeof name !== 'string') {
             return;
         }
-        let index = name.indexOf('.');
+        const index = name.indexOf('.');
         if (index === -1) {
             return this.rel(name);
         }
-        let related = this._related[name.substring(0, index)];
+        const related = this._related[name.substring(0, index)];
         name = name.substring(index + 1);
         if (related instanceof ActiveRecord) {
             return related.get(name);
@@ -96,47 +100,47 @@ module.exports = class ActiveRecord extends Base {
     // EVENTS
 
     afterFind () {
-        // call await super.afterFind() if override this method
+        // call await super.afterFind() if override it
         return this.trigger(this.EVENT_AFTER_FIND);
     }
 
     beforeSave (insert) {
-        // call await super.beforeSave(insert) if override this method
+        // call await super.beforeSave(insert) if override it
         return insert ? this.beforeInsert() : this.beforeUpdate();
     }
 
     beforeInsert () {
-        // call await super.beforeInsert() if override this method
+        // call await super.beforeInsert() if override it
         return this.trigger(this.EVENT_BEFORE_INSERT);
     }
 
     beforeUpdate () {
-        // call await super.beforeUpdate() if override this method
+        // call await super.beforeUpdate() if override it
         return this.trigger(this.EVENT_BEFORE_UPDATE);
     }
 
     afterSave (insert) {
-        // call await super.afterSave(insert) if override this method
+        // call await super.afterSave(insert) if override it
         return insert ? this.afterInsert() : this.afterUpdate();
     }
 
     afterInsert () {
-        // call await super.afterInsert() if override this method
+        // call await super.afterInsert() if override it
         return this.trigger(this.EVENT_AFTER_INSERT);
     }
 
     afterUpdate () {
-        // call await super.afterUpdate() if override this method
+        // call await super.afterUpdate() if override it
         return this.trigger(this.EVENT_AFTER_UPDATE);
     }
 
     beforeRemove () {
-        // call await super.beforeRemove() if override this method
+        // call await super.beforeRemove() if override it
         return this.trigger(this.EVENT_BEFORE_REMOVE);
     }
 
     async afterRemove () {
-        // call await super.afterRemove() if override this method
+        // call await super.afterRemove() if override it
         if (Array.isArray(this.UNLINK_ON_REMOVE)) {
             const linker = this.getLinker();
             for (let relation of this.UNLINK_ON_REMOVE) {
@@ -155,7 +159,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     filterAttrs () {
-        let result = {};
+        const result = {};
         for (let key of this.ATTRS) {
             if (Object.prototype.hasOwnProperty.call(this._attrMap, key)) {
                 result[key] = this._attrMap[key];
@@ -242,7 +246,7 @@ module.exports = class ActiveRecord extends Base {
     // RELATIONS
 
     static async findRelation (name, models, renew) {
-        let relations = [];
+        const relations = [];
         for (let model of models) {
             relations.push(await model.findRelation(name, renew));
         }
@@ -250,7 +254,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     static async findRelations (names, models, renew) {
-        let relations = [];
+        const relations = [];
         for (let model of models) {
             relations.push(await model.findRelations(names, renew));
         }
@@ -281,7 +285,7 @@ module.exports = class ActiveRecord extends Base {
         if (!this.isRelationPopulated(name)) {
             return this.executeNestedRelationMethod('getRelationTitle', name) || this.get(name);
         }
-        let related = this._related[name];
+        const related = this._related[name];
         return Array.isArray(related)
             ? related.map(model => model instanceof ActiveRecord ? model.getTitle() : null)
             : related ? related.getTitle() : this.get(name);
@@ -300,7 +304,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getAllRelationNames () {
-        let names = [];
+        const names = [];
         for (let id of ObjectHelper.getAllFunctionNames(this)) {
             if (/^rel[A-Z]{1}/.test(id)) {
                 names.push(id.substring(3));
@@ -313,11 +317,11 @@ module.exports = class ActiveRecord extends Base {
         if (typeof name !== 'string') {
             return;
         }
-        let index = name.indexOf('.');
+        const index = name.indexOf('.');
         if (index < 1) {
             return;
         }
-        let related = this._related[name.substring(0, index)];
+        const related = this._related[name.substring(0, index)];
         name = name.substring(index + 1);
         if (related instanceof ActiveRecord) {
             return related[method](name, ...args);
@@ -341,7 +345,7 @@ module.exports = class ActiveRecord extends Base {
             return result;
         }
         result = result.filter(model => model instanceof ActiveRecord);
-        let models = [];
+        const models = [];
         for (let model of result) {
             models.push(await model.findRelation(nestedName, renew));
         }
@@ -352,7 +356,7 @@ module.exports = class ActiveRecord extends Base {
         if (this.isRelationPopulated(name) && !renew) {
             return this._related[name];
         }
-        let relation = this.getRelation(name);
+        const relation = this.getRelation(name);
         if (relation) {
             this.populateRelation(name, await relation.findFor());
             await PromiseHelper.setImmediate();
@@ -365,7 +369,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     async findRelations (names, renew) {
-        let relations = [];
+        const relations = [];
         for (let name of names) {
             relations.push(await this.findRelation(name, renew));
         }
@@ -373,7 +377,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     async handleEachRelationModel (names, handler) {
-        let relations = await this.findRelations(names);
+        const relations = await this.findRelations(names);
         for (let model of ArrayHelper.concatValues(relations)) {
             await handler(model);
         }
@@ -406,12 +410,8 @@ module.exports = class ActiveRecord extends Base {
         return `${this.constructor.name}: ID: ${this.getId()}: ${message}`;
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, `${this.constructor.name}: ID: ${this.getId()}`, this.module);
-    }
-
-    logError () {
-        this.log('error', ...arguments);
+    log () {
+        CommonHelper.log(this.module, `${this.constructor.name}: ID: ${this.getId()}`, ...arguments);
     }
 };
 module.exports.init();

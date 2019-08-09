@@ -123,7 +123,7 @@ module.exports = class Sort extends Base {
         directions = this.enableMultiSort
             ? {[attr]: direction, ...directions}
             : {[attr]: direction};
-        let sorts = [];
+        const sorts = [];
         for (let attr in directions) {
             sorts.push(directions[attr] === this.DESC ? `-${attr}` : attr);
         }

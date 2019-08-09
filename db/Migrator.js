@@ -10,13 +10,12 @@ module.exports = class Migrator extends Base {
     constructor (config) {
         super({
             // module: application
-            // connection: connection
             ...config
         });
     }
 
-    getDb (connection) {
-        return this.module.getDb(connection || this.connection);
+    getDb (id) {
+        return this.module.getDb(id || this.db);
     }
 
     getPath () {
@@ -37,14 +36,14 @@ module.exports = class Migrator extends Base {
 
     async createMigration (file, action) {
         this.log('info', `Start to ${action}: ${file}`);
-        let Migration = require(this.getPath(file));
-        let migration = this.spawn(Migration, {migrator: this});
+        const Migration = require(this.getPath(file));
+        const migration = this.spawn(Migration, {migrator: this});
         await migration[action]();
         this.log('info', `Done: ${file}`);
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.module);
+    log () {        
+        CommonHelper.log(this.module, this.constructor.name, ...arguments);
     }
 };
 

@@ -32,7 +32,7 @@ describe('SecurityHelper', ()=> {
 
     it('hashPassword', ()=> {
         let hash = SecurityHelper.hashPassword('1234567890');
-        expect(SecurityHelper.validatePassword('1234567890', hash)).to.eql(true);
+        expect(SecurityHelper.checkPassword('1234567890', hash)).to.eql(true);
         expect(SecurityHelper.hashPassword('')).to.eql('');
         expect(SecurityHelper.hashPassword(null)).to.eql('');
         expect(SecurityHelper.hashPassword()).to.eql('');
@@ -41,7 +41,7 @@ describe('SecurityHelper', ()=> {
     it('hashValue', ()=> {
         let salt = SecurityHelper.createSalt();
         let hash = SecurityHelper.hashValue('1234567890', salt);
-        expect(SecurityHelper.validateHash(hash)).to.eql(true);
+        expect(SecurityHelper.checkHash(hash)).to.eql(true);
     });
 
     it('hashFile', async ()=> {
@@ -51,19 +51,19 @@ describe('SecurityHelper', ()=> {
         expect(hash1).to.eql(hash2);
     });
 
-    it('validateHash', ()=> {
+    it('checkHash', ()=> {
         let hash = 'e118f603cb920e058977c1069542751a69531cd162fb13f8ed48961f075a1ed43c00f3cb';
-        expect(SecurityHelper.validateHash(hash)).to.eql(true);
-        expect(SecurityHelper.validateHash('e118f')).to.eql(false);
+        expect(SecurityHelper.checkHash(hash)).to.eql(true);
+        expect(SecurityHelper.checkHash('e118f')).to.eql(false);
     });
 
-    it('validatePassword', ()=> {
+    it('checkPassword', ()=> {
         let password = 'password';
         let hash = SecurityHelper.hashPassword(password);
         let fakeHash = SecurityHelper.hashPassword('fakePassword');
-        expect(SecurityHelper.validatePassword(password, hash)).to.eql(true);
-        expect(SecurityHelper.validatePassword(password, fakeHash)).to.eql(false);
-        expect(SecurityHelper.validatePassword(password)).to.eql(false);
-        expect(SecurityHelper.validatePassword()).to.eql(false);
+        expect(SecurityHelper.checkPassword(password, hash)).to.eql(true);
+        expect(SecurityHelper.checkPassword(password, fakeHash)).to.eql(false);
+        expect(SecurityHelper.checkPassword(password)).to.eql(false);
+        expect(SecurityHelper.checkPassword()).to.eql(false);
     });
 });

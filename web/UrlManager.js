@@ -63,7 +63,7 @@ module.exports = class UrlManager extends Base {
         if (!params) {
             return '';
         }
-        let result = [];
+        const result = [];
         for (let key of Object.keys(params)) {
             if (params[key] !== undefined && params[key] !== null) {
                 result.push(key +'='+ params[key]);

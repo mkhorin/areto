@@ -34,7 +34,7 @@ module.exports = class Base {
     spawn (config, params) {
         if (!params) {
             params = {module: this.module};
-        } else if (!params.module) {
+        } else if (params.module === undefined) {
             params.module = this.module;
         }
         return ClassHelper.spawn(config || this.constructor, params);

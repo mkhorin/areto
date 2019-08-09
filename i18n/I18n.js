@@ -34,12 +34,12 @@ module.exports = class I18n extends Base {
     }
 
     translate (message, category, params, language) {
-        let source = this.getMessageSource(category);
+        const source = this.getMessageSource(category);
         if (!source) {
             return message;
         }
         language = language || this.language;
-        let result = source.translate(message, category, language);
+        const result = source.translate(message, category, language);
         return result === null
             ? this.format(message, params, source.sourceLanguage)
             : this.format(result, params, language);
@@ -64,7 +64,7 @@ module.exports = class I18n extends Base {
     }
 
     createSources () {
-        let sources = this.sources || {};
+        const sources = this.sources || {};
         for (let category of Object.keys(sources)) {
             sources[category] = this.createSource(category, sources[category]);
         }
@@ -92,8 +92,8 @@ module.exports = class I18n extends Base {
         if (data instanceof MessageSource) {
             return data;
         }
-        return ClassHelper.spawn({
-            Class: JsMessageSource,
+        return this.spawn({
+            Class: FileMessageSource,
             parent: this.getSourceParent(category),
             i18n: this,
             ...data
@@ -107,7 +107,7 @@ module.exports = class I18n extends Base {
     }
 
     createMessageFormatter () {
-        this.messageFormatter = ClassHelper.spawn(this.MessageFormatter, {i18n: this});
+        this.messageFormatter = this.spawn(this.MessageFormatter, {i18n: this});
     }
     
     getActiveNotSourceLanguage () {
@@ -115,7 +115,7 @@ module.exports = class I18n extends Base {
     }
 
     getMessageSource (category) {
-        let sources = this.sources;
+        const sources = this.sources;
         if (sources.hasOwnProperty(category)) {
             if (!(sources[category] instanceof MessageSource)) {
                 sources[category] = this.createSource(category, sources[category]);
@@ -145,8 +145,7 @@ module.exports = class I18n extends Base {
 module.exports.init();
 
 const path = require('path');
-const ClassHelper = require('../helper/ClassHelper');
 const MessageSource = require('./MessageSource');
-const JsMessageSource = require('./JsMessageSource');
+const FileMessageSource = require('./FileMessageSource');
 const MessageFormatter = require('./MessageFormatter');
 const Message = require('./Message');

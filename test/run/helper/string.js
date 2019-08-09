@@ -29,8 +29,8 @@ describe('StringHelper', ()=> {
     });
 
     it('camelToWords', ()=> {
-        let res = StringHelper.camelToWords('TestBlockOnline');
-        expect(res).to.eql('Test Block Online');
+        let res = StringHelper.camelToWords('TestBlock.online-now');
+        expect(res).to.eql('Test Block online now');
     });
 
     it('camelToId', ()=> {

@@ -22,7 +22,7 @@ module.exports = class Task extends Base {
         super({
             active: true,
             startup: false, // run at server startup
-            startDate: null, // new Date
+            startDate: null, // Date
             startTime: null, // 00:00:00
             period: 0, // seconds
             repeats: 0, // 0 - endless
@@ -32,6 +32,9 @@ module.exports = class Task extends Base {
         if (this.startup) {
             this.startDate = new Date;
         }
+    }
+
+    init () {
         if (this.active) {
             this.start();
         }
@@ -114,19 +117,19 @@ module.exports = class Task extends Base {
         if (this._nextDate && Date.now() > this._nextDate) {
             this.setNextDate(this.getPeriodTime());
             if (this.active) {
-                this.execute();
+                this.execute(); // no wait promise
             }
         }
     }
 
     async execute () {
         if (this.isRunning()) {
-            return this.fail('Job does not start. Previous one in progress');
+            return this.fail('Job not started. Previous one in progress');
         }
         try {
             this._job = this.createJob();
             await this.beforeRun();
-            this.processInternal();
+            this.processInternal(); // no wait promise
         } catch (error) {
             this._job = null;
             this.fail(error);
@@ -153,9 +156,10 @@ module.exports = class Task extends Base {
             return false;
         }
         try {
-            this.log('info', `Job start: ${this._job.CLASS_FILE}`);
+            const name = this.module.app.getRelativePath(this._job.CLASS_FILE);
+            this.log('info', `Job start: ${name}`);
             this._lastStartDate = new Date;
-            let result = await this._job.execute();
+            const result = await this._job.execute();
             if (this._job.isCanceled()) {
                 this.fail('Job canceled');
             } else {
@@ -185,8 +189,8 @@ module.exports = class Task extends Base {
         this.trigger(this.EVENT_FAIL, new Event({error}));
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.scheduler);
+    log () {
+        CommonHelper.log(this.scheduler, this.constructor.name, ...arguments);
     }
 };
 module.exports.init();

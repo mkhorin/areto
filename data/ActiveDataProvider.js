@@ -27,8 +27,8 @@ module.exports = class ActiveDataProvider extends Base {
     setSort (data) {
         super.setSort(data);
         if (this.sort) {
-            let model = this.query.model;
-            let names = Object.keys(this.sort.attrs);
+            const model = this.query.model;
+            const names = Object.keys(this.sort.attrs);
             names.length
                 ? this.setSortByNames(names, model)
                 : this.setSortByAttrNames(model);

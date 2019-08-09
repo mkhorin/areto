@@ -12,10 +12,10 @@ module.exports = class UniqueValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let targetClass = this.targetClass || model.constructor;
-        let values = this.resolveValues(model, attr);
-        let query = this.createQuery(values, model, attr);
-        let ids = await query.limit(2).column(targetClass.PK);
+        const targetClass = this.targetClass || model.constructor;
+        const values = this.resolveValues(model, attr);
+        const query = this.createQuery(values, model, attr);
+        const ids = await query.limit(2).column(targetClass.PK);
         if (this.checkExist(ids, model, targetClass)) {
             this.addError(model, attr, this.getMessage());
         }

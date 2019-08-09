@@ -3,14 +3,14 @@
  */
 'use strict';
 /**
- * a1 needs to exist
- * ['a1', 'exist']
- * a1 needs to exist, but its value will use a2 to check for the existence
- * ['a1', 'exist', {targetAttr: 'a2'}]
- * a1 and a2 need to exist together, and they both will receive error message
- * [['a1', 'a2'], 'exist', {targetAttr: ['a1', 'a2']}]
- * a1 and a2 need to exist together, only a1 will receive error message
- * ['a1', 'exist', {targetAttr: ['a1', 'a2']}]
+ * attr must exist
+ * ['attr', 'exist']
+ * attr must exist, but its value will use attr2 to check for existence
+ * ['attr', 'exist', {targetAttr: 'attr2'}]
+ * attr1 and attr2 must exist together, and they both will receive error message
+ * [['attr1', 'attr2'], 'exist', {targetAttr: ['attr1', 'attr2']}]
+ * attr1 and attr2 must exist together, only attr1 will receive error message
+ * ['attr1', 'exist', {targetAttr: ['a1', 'a2']}]
  */
 const Base = require('./Validator');
 
@@ -31,19 +31,19 @@ module.exports = class ExistValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let values = this.resolveValues(model, attr);
-        let query = this.createQuery(values, model, attr);
+        const values = this.resolveValues(model, attr);
+        const query = this.createQuery(values, model, attr);
         if (!await query.count()) {
             this.addError(model, attr, this.getMessage());
         }
     }
 
     resolveValues (model, attr) {
-        let values = {};
-        let targetAttr = this.targetAttr || attr;
+        const values = {};
+        const targetAttr = this.targetAttr || attr;
         if (Array.isArray(targetAttr)) {
             for (let name of targetAttr) {
-                values[targetAttr] = model.get(attr);
+                values[name] = model.get(attr);
             }
         } else {
             values[targetAttr] = model.get(attr);
@@ -52,8 +52,8 @@ module.exports = class ExistValidator extends Base {
     }
 
     createQuery (values, model, attr) {
-        let queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
-        let query = queryModel.find();
+        const queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
+        const query = queryModel.find();
         if (this.ignoreCase) {
             for (let name of Object.keys(values)) {
                 query.and(['LIKE', name, values[name]]);

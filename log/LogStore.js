@@ -10,12 +10,12 @@ module.exports = class LogStore extends Base {
     init () {
     }
 
-    save (type, message, data) {
+    save () {
         throw new Error(this.wrapClassMessage('Need to override'));
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.logger.module);
+    log () {
+        CommonHelper.log(this.logger.module, this.constructor.name, ...arguments);
     }
 };
 

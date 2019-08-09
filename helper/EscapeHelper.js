@@ -16,7 +16,7 @@ module.exports = class EscapeHelper {
 
     static escapeRegExp (text) {
         return typeof text === 'string'
-            ? String(text).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
+            ? String(text).replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&")
             : '';
     }
 };

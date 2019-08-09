@@ -106,12 +106,12 @@ module.exports = class Model extends Base {
     }
 
     getSafeAttrNames () {
-        let map = this.getUnsafeAttrMap();
+        const map = this.getUnsafeAttrMap();
         return this.getActiveAttrNames().filter(name => !Object.prototype.hasOwnProperty.call(map, name));
     }
 
     getUnsafeAttrMap () {
-        let map = {};
+        const map = {};
         for (let validator of this.getActiveValidatorsByClass(Validator.BUILTIN.unsafe)) {
             for (let attr of validator.attrs) {
                 map[attr] = true;
@@ -125,8 +125,8 @@ module.exports = class Model extends Base {
     }
 
     getScenarioAttrNames (scenario) {
-        let names = {};
-        let only = Array.isArray(this.SCENARIOS[scenario])
+        const names = {};
+        const only = Array.isArray(this.SCENARIOS[scenario])
             ? this.SCENARIOS[scenario]
             : this.SCENARIOS[this.DEFAULT_SCENARIO];
         for (let validator of this.getValidators()) {
@@ -233,7 +233,7 @@ module.exports = class Model extends Base {
     }
 
     getFirstErrorMap () {
-        let result = {};
+        const result = {};
         for (let attr of Object.keys(this._errorMap)) {
             if (this._errorMap[attr].length) {
                 result[attr] = this._errorMap[attr][0];
@@ -267,15 +267,14 @@ module.exports = class Model extends Base {
     }
 
     clearErrors (attr) {
-        attr ? delete this._errorMap[attr]
-             : this._errorMap = {};
+        if (attr) {
+            delete this._errorMap[attr]
+        } else {
+            this._errorMap = {};
+        }
     }
 
     // LOAD
-
-    static loadMultiple (models, data) {
-        // TODO...
-    }
 
     load (data) {        
         if (data) {
@@ -287,12 +286,12 @@ module.exports = class Model extends Base {
     // EVENTS
 
     beforeValidate () {
-        // call await super.beforeValidate() if override this method
+        // call await super.beforeValidate() if override it
         return this.trigger(this.EVENT_BEFORE_VALIDATE);
     }
 
     afterValidate () {
-        // call await super.afterValidate() if override this method
+        // call await super.afterValidate() if override it
         return this.trigger(this.EVENT_AFTER_VALIDATE);
     }
 
@@ -349,7 +348,7 @@ module.exports = class Model extends Base {
     }
 
     createValidators () {
-        let validators = [];
+        const validators = [];
         for (let rule of this.RULES) {
             rule = this.createValidator(rule);
             if (rule) {

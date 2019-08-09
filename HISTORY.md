@@ -1,3 +1,17 @@
+## 0.28.0
+
+* db/Database
+    - database components refactor
+* i18n/FileMessageSource
+    - file message source refactor
+* log/Logger
+    - logger refactor
+    - extract ActionProfiler as component
+* scheduler/Scheduler
+    - append initialize method
+* security/Auth
+    - authentication components refactor
+
 ## 0.27.0
 
 * db/ActiveLinker

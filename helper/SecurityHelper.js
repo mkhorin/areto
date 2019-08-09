@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const DEFAULT_HASH_ALGO = 'sha256';
+const DEFAULT_HASH_METHOD = 'sha256';
 const DEFAULT_HASH_LENGTH = 64;
 const DEFAULT_SALT_LENGTH = 8;
 
@@ -35,23 +35,23 @@ module.exports = class SecurityHelper {
         return !password ? '' : this.hashValue(password, this.createSalt());
     }
 
-    static hashValue (value, salt, algo = DEFAULT_HASH_ALGO) {
-        return crypto.createHmac(algo, salt).update(value).digest('hex') + salt;
+    static hashValue (value, salt, method = DEFAULT_HASH_METHOD) {
+        return crypto.createHmac(method, salt).update(value).digest('hex') + salt;
     }
 
-    static async hashFile (file, algo = DEFAULT_HASH_ALGO) {
-        let data = await fs.promises.readFile(file);
-        return crypto.createHash(algo).update(data).digest('hex');
+    static async hashFile (file, method = DEFAULT_HASH_METHOD) {
+        const data = await fs.promises.readFile(file);
+        return crypto.createHash(method).update(data).digest('hex');
     }
 
-    static validateHash (hash, hashLength = DEFAULT_HASH_LENGTH, saltLength = DEFAULT_SALT_LENGTH) {
+    static checkHash (hash, hashLength = DEFAULT_HASH_LENGTH, saltLength = DEFAULT_SALT_LENGTH) {
         return typeof hash === 'string'
             && hash.length === hashLength + saltLength
             && this.isHexString(hash);
     }
 
-    static validatePassword (password, hash) {
-        if (!password || !this.validateHash(hash)) {
+    static checkPassword (password, hash) {
+        if (!password || !this.checkHash(hash)) {
             return false;
         }
         return this.hashValue(password, this.extractSalt(hash)) === hash;

@@ -20,8 +20,6 @@ module.exports = class ActionView extends Base {
         };
     }
 
-    module = this.controller.module;
-    
     constructor (config) {
         super({
             widgets: {},
@@ -34,7 +32,7 @@ module.exports = class ActionView extends Base {
         return this.theme.getTemplate(name, this.controller.language);
     }
 
-    getInnerTemplate (name) {
+    getInternalTemplate (name) {
         return this.get(this.controller.getViewFileName(name));
     }
 
@@ -55,13 +53,13 @@ module.exports = class ActionView extends Base {
     }
 
     createViewModel (name, config = {}) {
-        let Class = this.getViewModelClass(name);
+        const Class = this.getViewModelClass(name);
         config.view = this;
         return Class ? new Class(config) : null;
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.controller);
+    log () {
+        CommonHelper.log(this.controller, this.constructor.name, ...arguments);
     }
 
     // RENDER
@@ -77,7 +75,7 @@ module.exports = class ActionView extends Base {
     }
 
     renderTemplate (template, params) {
-        let app = this.controller.res.app;
+        const app = this.controller.res.app;
         return PromiseHelper.promise(app.render.bind(app, template, params));
     }
 
@@ -119,7 +117,7 @@ module.exports = class ActionView extends Base {
 
     getAsset () {
         if (this._asset === undefined) {
-            let asset = this.module.get('asset');
+            const asset = this.module.get('asset');
             if (!asset) {
                 return this.log('error', 'Not found asset component');
             }
@@ -138,7 +136,7 @@ module.exports = class ActionView extends Base {
     }
 
     async renderWidgets (content, renderParams) {
-        let anchors = Object.keys(this.widgets);
+        const anchors = Object.keys(this.widgets);
         if (anchors.length === 0) {
             return content;
         }
@@ -149,7 +147,7 @@ module.exports = class ActionView extends Base {
     }
 
     renderWidget (anchor, params) {
-        let widget = this.createWidget(anchor, this.widgets[anchor]);
+        const widget = this.createWidget(anchor, this.widgets[anchor]);
         if (!widget) {
             return delete this.widgets[anchor];
         }
@@ -158,8 +156,8 @@ module.exports = class ActionView extends Base {
     }
 
     createWidget (anchor, params) {
-        let key = params && params.id || anchor;
-        let widget = this.module.getConfig(`widgets.${key}`);
+        const key = params && params.id || anchor;
+        const widget = this.module.getConfig(`widgets.${key}`);
         if (!widget) {
             return this.log('error', `Widget config not found: ${key}`);
         }
@@ -172,7 +170,7 @@ module.exports = class ActionView extends Base {
     }
 
     insertWidgetContent (content) {
-        let anchors = Object.keys(this.widgets).join('|');
+        const anchors = Object.keys(this.widgets).join('|');
         return anchors.length
             ? content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> this.widgets[anchor].content)
             : content;

@@ -10,23 +10,23 @@ module.exports = class UserStampBehavior extends Base {
     constructor (config) {
         super({
             creatorAttr: 'creator', // or false
-            editordAttr: 'editor', // or false
+            editorAttr: 'editor', // or false
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
     }
 
-    beforeInsert (event) {
+    beforeInsert () {
         if (this.creatorAttr) {
             this.owner.set(this.creatorAttr, this.getUserId());
         }
-        this.beforeUpdate(event);
+        this.beforeUpdate();
     }
 
-    beforeUpdate (event) {
-        if (this.editordAttr) {
-            this.owner.set(this.editordAttr, this.getUserId());
+    beforeUpdate () {
+        if (this.editorAttr) {
+            this.owner.set(this.editorAttr, this.getUserId());
         }
     }
 
@@ -38,4 +38,4 @@ module.exports = class UserStampBehavior extends Base {
 };
 
 const ActiveRecord = require('../db/ActiveRecord');
-const WebUser = require('../web/WebUser');
+const WebUser = require('../security/WebUser');

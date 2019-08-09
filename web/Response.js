@@ -7,6 +7,8 @@ const Base = require('../base/Base');
 
 module.exports = class Response extends Base {
 
+    code = 200;
+
     has () {
         return !!this.method;
     }
@@ -29,15 +31,14 @@ module.exports = class Response extends Base {
     }
 
     end () {
-        let res = this.controller.res;
+        const res = this.controller.res;
         if (res.headersSent) {
-            let req = this.controller.req;
-            return this.controller.log('error', `Headers already sent: ${req.method}: ${req.originalUrl}`);
+            const {method, originalUrl} = this.controller.req;
+            return this.controller.log('error', `Headers already sent: ${method}: ${originalUrl}`);
         }
         if (this.code) {
             res.status(this.code);
         }
-        let method = this.method || 'end';
         !this.method || this.method === 'end'
             ? res.end(this.data, this.encoding)
             : res[this.method](this.data);

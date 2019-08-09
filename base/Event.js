@@ -19,7 +19,7 @@ module.exports = class Event extends Base {
     // CLASS-LEVEL EVENTS
 
     static on (target, name, handler, data, prepend) {
-        let id = target.CLASS_FILE;
+        const id = target.CLASS_FILE;
         if (!id) {
             throw new Error(this.wrapClassMessage('Invalid event target'));
         }
@@ -39,8 +39,8 @@ module.exports = class Event extends Base {
     }
 
     static off (target, name, handler) {
-        let id = target.CLASS_FILE;
-        let event = this._events[name];
+        const id = target.CLASS_FILE;
+        const event = this._events[name];
         if (!id || !event || !event[id]) {
             return false;
         }

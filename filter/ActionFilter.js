@@ -39,7 +39,6 @@ module.exports = class ActionFilter extends Base {
 
     isActive (action) {
         let rid = action.getRelativeModuleName();
-        let uid = action.getUniqueName();
         let id = this.owner instanceof Module ? rid : action.name;
         return !this.except.includes(id) && (!this.only || this.only.includes(id));
     }

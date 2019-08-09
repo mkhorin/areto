@@ -46,8 +46,8 @@ module.exports = class Behavior extends Base {
         }
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.owner);
+    log () {
+        CommonHelper.log(this.owner, this.constructor.name, ...arguments);
     }
 };
 

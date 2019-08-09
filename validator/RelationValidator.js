@@ -54,11 +54,11 @@ module.exports = class RelationValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let behavior = model.getBehavior(this.behavior);
+        const behavior = model.getBehavior(this.behavior);
         if (!behavior) {
             throw new Error(this.wrapClassMessage('Not found relation behavior'));
         }
-        let data = behavior.getChanges(attr);
+        const data = behavior.getChanges(attr);
         if (data === false) {
             return this.addError(model, attr, this.getMessage());
         }
@@ -70,7 +70,7 @@ module.exports = class RelationValidator extends Base {
         }
         await this.checkCounter(behavior, model, attr);
         if (this.unique !== null) {
-            this.checkUnique(behavior, model, attr);
+            await this.checkUnique(behavior, model, attr);
         }
     }
 
@@ -95,7 +95,7 @@ module.exports = class RelationValidator extends Base {
         if (!this.required && !this.min && !this.max) {
             return;
         }
-        let docs = await behavior.getLinkedDocs(attr);
+        const docs = await behavior.getLinkedDocs(attr);
         if (this.required && docs.length < 1) {
             this.addError(model, attr, this.getRequiredMessage());
         }
@@ -108,7 +108,7 @@ module.exports = class RelationValidator extends Base {
     }
 
     async checkUnique (behavior, model, attr) {
-        let exist = await behavior.checkExist(attr);
+        const exist = await behavior.checkExist(attr);
         if (this.unique === true && exist === true) {
             this.addError(model, attr, this.getUniqueMessage());
         }

@@ -93,8 +93,8 @@ module.exports = class ViewAsset extends Base {
         this.log('error', `Circular dependency: ${names.join()},${bundle.name}`);
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.manager);
+    log () {
+        CommonHelper.log(this.manager, this.constructor.name, ...arguments);
     }
 };
 

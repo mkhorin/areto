@@ -19,7 +19,7 @@ module.exports = class Component extends Base {
 
     constructor (config) {
         super({
-            // depends: ['#start', '#end', '[component id]'] // init component order
+            // depends: ['#start', '#end', 'componentId'] // order of component init
             // parent: [component from parent module]
             ...config
         });
@@ -80,12 +80,8 @@ module.exports = class Component extends Base {
         return this.module.translate(...arguments);
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.module);
-    }
-
-    logError () {
-        this.log('error', ...arguments);
+    log () {
+        CommonHelper.log(this.module, this.constructor.name, ...arguments);
     }
 };
 

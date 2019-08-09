@@ -45,7 +45,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createDefault () {
-        this._defaultTheme = ClassHelper.spawn(this.Theme, {
+        this._defaultTheme = this.spawn(this.Theme, {
             name: null,
             dir: this.defaultThemeDir,
             parent: this.parent ? this.parent.get() : null,
@@ -67,7 +67,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createTheme (name, dir) {
-        this._themes[name] = ClassHelper.spawn(this.Theme, {view: this, name, dir});
+        this._themes[name] = this.spawn(this.Theme, {view: this, name, dir});
     }
 
     setParents () {
@@ -77,9 +77,9 @@ module.exports = class ThemeSet extends Base {
     }
 
     getParentByName (name) {
-        let pos = name.lastIndexOf('.');
+        const pos = name.lastIndexOf('.');
         if (pos > 0) {
-            let parentName = name.substring(0, pos);
+            const parentName = name.substring(0, pos);
             if (this.has(parentName)) {
                 return this._themes[parentName];
             }
@@ -110,4 +110,3 @@ module.exports = class ThemeSet extends Base {
 
 const fs = require('fs');
 const path = require('path');
-const ClassHelper = require('../helper/ClassHelper');

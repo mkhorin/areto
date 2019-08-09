@@ -23,7 +23,7 @@ module.exports = class DataProvider extends Base {
         if (!config) {
             return null;
         }
-        let defaults = {
+        const defaults = {
             Class: require('./Pagination'),
             controller: this.controller,
             totalCount: this.totalCount
@@ -39,7 +39,7 @@ module.exports = class DataProvider extends Base {
         if (!config) {
             return null;
         }
-        let defaults = {
+        const defaults = {
             Class: require('./Sort'),
             controller: this.controller
         };

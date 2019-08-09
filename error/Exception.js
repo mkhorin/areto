@@ -12,16 +12,17 @@ module.exports = class Exception {
             this.message = err.message;
             this.data = err.stack;
             this.error = err;
-        } else if (typeof err === 'object') {
-            this.message = '';
+        } else if (typeof err === 'string') {
+            this.message = err;
+            if (data !== undefined) {
+                this.data = data;
+            }
+        } else if (err !== undefined) {
             this.data = err;
-        } else {
-            this.message = err || '';
-            this.data = data;
         }
     }
 
     toString () {
-        return this.message;
+        return this.message || this.data;
     }
 };

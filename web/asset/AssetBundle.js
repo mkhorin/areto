@@ -80,23 +80,21 @@ module.exports = class AssetBundle extends Base {
     }
 
     renderCssItem (src, options) {
-        let media = options.media ? `media="${options.media}"` : '';
-        let version = options.version ? `?v=${options.version}` : '';
+        const media = options.media ? `media="${options.media}"` : '';
+        const version = options.version ? `?v=${options.version}` : '';
         return `<link href="${src}${version}" ${media} rel="stylesheet">\n`;
     }
 
     renderJsItem (src, options) {
-        let version = options.version ? `?v=${options.version}` : '';
+        const version = options.version ? `?v=${options.version}` : '';
         return `<script src="${src}${version}"></script>\n`;
     }
 
-    log (type, message, data) {
-        data = util.inspect([this.js, this.css]);
-        CommonHelper.log(type, message, data, this.constructor.name, this.manager);
+    log (type, message) {        
+        this.manager.log(type, this.wrapClassMessage(message), util.inspect([this.js, this.css]));
     }
 };
 
 const util = require('util');
-const CommonHelper = require('../../helper/CommonHelper');
 const ActionView = require('../../view/ActionView');
 

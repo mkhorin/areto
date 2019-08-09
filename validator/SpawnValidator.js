@@ -34,14 +34,14 @@ module.exports = class SpawnValidator extends Base {
             return this.addError(model, attr, this.getMessage());
         }
         try {
-            let Class = model.module.app.require(value.Class) || require(value.Class);
+            const Class = model.module.app.require(value.Class) || require(value.Class);
             if (this.BaseClass && !(Class.prototype instanceof this.BaseClass)) {
                 this.addError(model, attr, this.getBaseClassMessage());
             } else {
                 model.set(attr, value);
             }
         } catch (err) {
-            model.module.logError(this.constructor.name, err);
+            model.module.log('error', this.constructor.name, err);
             this.addError(model, attr, this.getInvalidFileMessage());
         }
     }

@@ -42,7 +42,7 @@ module.exports = class StringValidator extends Base {
         if (typeof value !== 'string') {
             return this.getMessage();
         }
-        let length = value.length;
+        const length = value.length;
         if (this.min !== null && length < this.min) {
             return this.getTooShortMessage();
         }

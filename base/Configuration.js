@@ -25,7 +25,7 @@ module.exports = class Configuration extends Base {
     }
 
     getTitle () {
-        return this._names.join('.') || this.origin && this.origin.getTitle();
+        return this._names.join('.') || (this.origin && this.origin.getTitle());
     }
 
     includes (key, value) {
@@ -47,7 +47,7 @@ module.exports = class Configuration extends Base {
         if (this._names.includes(name)) {
             throw new Error(`Configuration already loaded: ${name}`);
         }
-        let data = this.readFiles(name);
+        const data = this.readFiles(name);
         if (data) {
             this._sources.push(data);
             this._names.push(name);
@@ -59,14 +59,14 @@ module.exports = class Configuration extends Base {
     }
 
     readFiles (name) {
-        let base = this.readFile(name);
+        const base = this.readFile(name);
         if (base) {
             return AssignHelper.deepAssign(base, this.readFile(`${name}.local`));
         }
     }
 
     readFile (name) {
-        let file = path.join(this.dir, `${name}.js`);
+        const file = path.join(this.dir, `${name}.js`);
         return fs.existsSync(file) ? require(file) : null;
     }
 

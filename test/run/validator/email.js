@@ -14,13 +14,13 @@ describe('EmailValidator', ()=> {
         let model = new Model;
         model.set('attr', 'invalid-email');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.true;
+        expect(model.hasError()).to.eql(true);
     });
 
     it('valid', async ()=> {
         let model = new Model;
         model.set('attr', 'valid-email@com.com');
         await validator.validateAttr(model, 'attr');
-        expect(model.hasError()).to.false;
+        expect(model.hasError()).to.eql(false);
     });
 });

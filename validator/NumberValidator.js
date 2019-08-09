@@ -40,7 +40,7 @@ module.exports = class NumberValidator extends Base {
     }
 
     validateValue (value) {
-        let number = parseFloat(value);
+        const number = parseFloat(value);
         if (isNaN(number) || String(number).length !== String(value).length) {
             return this.integerOnly
                 ? this.getNotIntegerMessage()

@@ -7,6 +7,6 @@ const Base = require('./Validator');
 
 module.exports = class UnsafeValidator extends Base {
 
-    validateAttr (model, attr) {
+    validateAttr () {
     }
 };

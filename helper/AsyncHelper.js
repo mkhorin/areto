@@ -227,11 +227,6 @@ module.exports = class AsyncHelper {
     }
 
     parallel () {
-        let process = err => {
-            if (err || ++this.counter === this.items.length) {
-                this.callback(err);
-            }
-        };
         for (let key of this.keys) {
             this.items[key](this.processParallel.bind(this, key));
         }

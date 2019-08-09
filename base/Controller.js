@@ -4,7 +4,6 @@
 'use strict';
 
 const Base = require('./Component');
-const ClassHelper = require('../helper/ClassHelper');
 const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Controller extends Base {
@@ -25,7 +24,7 @@ module.exports = class Controller extends Base {
             },
             // declare external actions for the controller
             ACTIONS: {
-                // 'captcha': { Class: require('areto/captcha/CaptchaAction'), ... }
+                // 'captcha': { Class: require('areto/security/captcha/CaptchaAction'), ... }
             },
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction',
@@ -148,31 +147,31 @@ module.exports = class Controller extends Base {
     }
 
     createInlineAction (name) {
-        let method = `action${StringHelper.idToCamel(name)}`;
+        const method = `action${StringHelper.idToCamel(name)}`;
         if (typeof this[method] === 'function') {
-            return ClassHelper.spawn(this.INLINE_ACTION || this.module.InlineAction, {
-                controller: this,              
-                method: this[method], 
-                name                
+            return this.spawn(this.INLINE_ACTION || this.module.InlineAction, {
+                controller: this,
+                method: this[method],
+                name
             });
         }
     }
 
     createMapAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
-            return ClassHelper.spawn(this.ACTIONS[name], {controller: this, name});
+            return this.spawn(this.ACTIONS[name], {controller: this, name});
         }
     }
 
     // EVENTS
 
     beforeAction () {
-        // if override this method call - await super.beforeAction()
+        // call await super.beforeAction() if override it
         return this.trigger(this.EVENT_BEFORE_ACTION, new ActionEvent(this.action));
     }
 
     afterAction () {
-        // if override this method call - await super.afterAction()
+        // call await super.afterAction() if override it
         return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
     }
     
@@ -266,19 +265,21 @@ module.exports = class Controller extends Base {
     // RENDER
 
     render (template, data, send = true) {
-        let model = this.createViewModel(template, {data});
+        const model = this.createViewModel(template, {data});
         return model ? this.renderViewModel(model, template, send)
                      : this.renderTemplate(template, data, send);
     }
 
     async renderViewModel (model, template, send) {
-        let data = await model.getTemplateData();
+        const data = await model.getTemplateData();
         return this.renderTemplate(template, data, send);
     }
 
     async renderTemplate (template, data, send = true) {
-        let content = await this.getView().render(this.getViewFileName(template), data);
-        send && this.send(content);
+        const content = await this.getView().render(this.getViewFileName(template), data);
+        if (send) {
+            this.send(content);
+        }
         return content;
     }
 
@@ -294,7 +295,7 @@ module.exports = class Controller extends Base {
     }
 
     createView (params) {
-        return ClassHelper.spawn(this.ACTION_VIEW || this.module.ActionView, {            
+        return this.spawn(this.ACTION_VIEW || this.module.ActionView, {
             controller: this,
             theme: this.module.get('view').getTheme(),
             ...params
@@ -302,9 +303,7 @@ module.exports = class Controller extends Base {
     }
 
     getViewFileName (name) {
-        if (typeof name !== 'string') {
-            name = String(name);
-        }
+        name = typeof name !== 'string' ? String(name) : name;
         return path.isAbsolute(name) ? name : (this.constructor.getViewDir() + name);
     }
 

@@ -18,25 +18,25 @@ module.exports = class ImageValidator extends Base {
     }
 
     getOverHeightMessage () {
-        return this.createMessage(this.overHeight, 'The height cannot be larger than {limit} px', {
+        return this.createMessage(this.overHeight, 'Height cannot be larger than {limit} px', {
             limit: this.maxHeight
         });
     }
 
     getOverWidthMessage () {
-        return this.createMessage(this.overWidth, 'The width cannot be larger than {limit} px', {
+        return this.createMessage(this.overWidth, 'Width cannot be larger than {limit} px', {
             limit: this.maxWidth
         });
     }
 
     getUnderHeightMessage () {
-        return this.createMessage(this.underHeight, 'The height cannot be smaller than {limit} px', {
+        return this.createMessage(this.underHeight, 'Height cannot be smaller than {limit} px', {
             limit: this.minHeight
         });
     }
 
     getUnderWidthMessage () {
-        return this.createMessage(this.underWidth, 'The width cannot be smaller than {limit} px', {
+        return this.createMessage(this.underWidth, 'Width cannot be smaller than {limit} px', {
             limit: this.minWidth
         });
     }
@@ -47,8 +47,8 @@ module.exports = class ImageValidator extends Base {
 
     async validateImage (file) {
         try {
-            let image = sharp(file.path);
-            let data = await image.metadata();
+            const image = sharp(file.path);
+            const data = await image.metadata();
             if (this.minHeight && data.height < data.minHeight) {
                 return this.getUnderHeightMessage();
             }
@@ -83,4 +83,3 @@ module.exports = class ImageValidator extends Base {
 };
 
 const sharp = require('sharp');
-const PromiseHelper = require('../helper/PromiseHelper');

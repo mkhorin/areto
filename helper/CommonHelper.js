@@ -13,7 +13,7 @@ module.exports = class CommonHelper {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    static log (type, message, data, prefix, logger) {
+    static log (logger, prefix, type, message, data) {
         logger = logger || console;
         if (typeof message === 'string') {
             return logger.log(type, `${prefix}: ${message}`, data);

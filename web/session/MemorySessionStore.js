@@ -55,7 +55,7 @@ module.exports = class MemorySessionStore extends Base {
         if (!this.session.lifetime) {
             return null;
         }
-        let now = new Date;
+        const now = new Date;
         for (let sid of Object.keys(this._sessions)) {
             if (now - this._sessions[sid].updatedAt > this.session.lifetime) {
                 if (this._sessions[sid][this.userIdParam]) {

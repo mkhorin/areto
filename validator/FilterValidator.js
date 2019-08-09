@@ -60,12 +60,12 @@ module.exports = class FilterValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let value = model.get(attr);
+        const value = model.get(attr);
         if (Array.isArray(value) && this.skipOnArray) {
             return;
         }
         if (typeof this.filter === 'function') {
-            let result = await this.filter(value, model, attr, this);
+            const result = await this.filter(value, model, attr, this);
             return result instanceof Message
                 ? this.addError(model, attr, result)
                 : model.set(attr, result);

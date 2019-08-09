@@ -11,7 +11,7 @@ module.exports = class MessageFormatter extends Base {
         if (!params) {
             return message;
         }
-        let formatter = this.i18n.module.get('formatter');
+        const formatter = this.i18n.module.get('formatter');
         for (let key of Object.keys(params)) {
             let value = params[key];
             if (Array.isArray(value) && value[1] && formatter) {

@@ -7,12 +7,12 @@ const Base = require('../base/Base');
 
 module.exports = class Job extends Base {
 
-    async run () {
-        // place code here
-    }
-
     isCanceled () {
         return this._canceled;
+    }
+
+    async run () {
+        // place code here
     }
 
     cancel () {

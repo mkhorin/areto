@@ -23,6 +23,9 @@ module.exports = {
     'File size cannot be smaller than {limit}': 'Размер файла не может быть менее {limit}',
     'File size cannot exceed {limit}': 'Размер файла не может превышать {limit}',
 
+    'Height cannot be larger than {limit} px': 'Высота не может быть более {limit} пк',
+    'Height cannot be smaller than {limit} px': 'Высота не может быть менее {limit} пк',
+
     'Invalid date': 'Недействительная дата',
     'Invalid email': 'Неверный адрес электронной почты',
     'Invalid file': 'Неверный файл',
@@ -32,6 +35,7 @@ module.exports = {
     'Invalid range': 'Недопустимый диапазон',
     'Invalid relation request': 'Неправильный запрос связи',
     'Invalid value': 'Неверное значение',
+    'Invalid verification code': 'Неверный проверочный код',
     'Invalid url': 'Неверная ссылка',
 
     'No': 'Нет',
@@ -45,12 +49,6 @@ module.exports = {
 
     'Relation should contain at least {min} lnk.': 'Связанных значений должно быть не менее {min}',
     'Relation should contain at most {max} lnk.': 'Связанных значений должно быть не более {max}',
-
-    'The height cannot be larger than {limit} px': 'Высота не может быть более {limit} пк',
-    'The height cannot be smaller than {limit} px': 'Высота не может быть менее {limit} пк',
-    'The verification code is incorrect': 'Неверный проверочный код',
-    'The width cannot be larger than {limit} px': 'Ширина не может быть более {limit} пк',
-    'The width cannot be smaller than {limit} px': 'Ширина должна быть не менее {limit} пк',
 
     'Value cannot be blank': 'Значение не может быть пустым',
     'Value does not exist': 'Значение не существует',
@@ -73,6 +71,9 @@ module.exports = {
     'Value should contain at most {max} chr.': 'Значение должно содержать не более {max} симв.',
     'Value should contain {length} chr.': 'Значение должно содержать {length} симв.',
     'Verification code': 'Проверочный код',
+
+    'Width cannot be larger than {limit} px': 'Ширина не может быть более {limit} пк',
+    'Width cannot be smaller than {limit} px': 'Ширина должна быть не менее {limit} пк',
 
     'Yes': 'Да'
 };

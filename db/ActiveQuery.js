@@ -8,7 +8,7 @@ const Base = require('./Query');
 module.exports = class ActiveQuery extends Base {
 
     _db = this.model && this.model.getDb();
-    _from = this.model && this.model.TABLE;
+    _from = this.model && this.model.getTable();
     _raw = null;
 
     id () {
@@ -62,7 +62,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaArray () {
-        let val = this.primaryModel.get(this.linkKey);
+        const val = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
         if (val === undefined || val === null || Array.isArray(val)) {
             if (this._orderByIn) {
@@ -76,20 +76,20 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async prepareViaTable () {
-        let viaModels = await this._viaTable.findJunctionRows([this.primaryModel]);
+        const viaModels = await this._viaTable.findJunctionRows([this.primaryModel]);
         this.prepareFilter(viaModels);
         await this.afterPrepare();
     }
 
     async prepareViaMultipleRelation () {
-        let models = await this._viaRelation.all();
+        const models = await this._viaRelation.all();
         this.primaryModel.populateRelation(this._viaRelationName, models);
         this.prepareFilter(models);
         await this.afterPrepare();
     }
 
     async prepareViaRelation () {
-        let model = await this._viaRelation.one();
+        const model = await this._viaRelation.one();
         this.primaryModel.populateRelation(this._viaRelationName, model);
         this.prepareFilter(model ? [model] : []);
         await this.afterPrepare();
@@ -130,7 +130,7 @@ module.exports = class ActiveQuery extends Base {
         return this._multiple;
     }
 
-    isInnerArray () {
+    isInternalArray () {
         return this._viaArray && !this.isBackRef();
     }
 
@@ -217,7 +217,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     viaTable (tableName, refKey, linkKey, filter) {
-        this._viaTable = new ActiveQuery({
+        this._viaTable = new this.constructor({
             model: this.primaryModel,
             refKey,
             linkKey
@@ -265,7 +265,7 @@ module.exports = class ActiveQuery extends Base {
         if (this._raw) {
             return super.populate(docs);
         }
-        let models = [];
+        const models = [];
         for (let doc of docs) {
             let model = this.model.spawn();
             model.populateRecord(doc);
@@ -361,7 +361,7 @@ module.exports = class ActiveQuery extends Base {
     // BUCKETS
 
     getRelationBuckets (models, viaModels, viaQuery) {
-        let buckets = (viaModels && viaQuery)
+        const buckets = (viaModels && viaQuery)
             ? this.buildViaBuckets(models, viaModels, viaQuery.refKey)
             : this.buildBuckets(models, this.refKey);
         if (!this._multiple) {
@@ -373,7 +373,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     buildViaBuckets (models, viaModels, viaRefKey) {
-        let buckets = {}, map = {};
+        const buckets = {}, map = {};
         for (let vm of viaModels) {
             let ref = QueryHelper.getAttr(vm, viaRefKey);
             let link = QueryHelper.getAttr(vm, this.linkKey);
@@ -398,7 +398,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     buildBuckets (models) {
-        let buckets = {};
+        const buckets = {};
         for (let model of models) {
             let key = QueryHelper.getAttr(model, this.refKey);
             if (Array.isArray(buckets[key])) {

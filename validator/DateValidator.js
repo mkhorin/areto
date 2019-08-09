@@ -18,7 +18,7 @@ module.exports = class DateValidator extends Base {
     }
 
     resolveDate (src) {
-        let date = src instanceof Date ? src : src === 'now' ? new Date : new Date(src);
+        const date = src instanceof Date ? src : src === 'now' ? new Date : new Date(src);
         if (DateHelper.isValid(date)) {
             return date;
         }

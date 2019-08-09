@@ -51,8 +51,8 @@ module.exports = class Widget extends Base {
         });
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.view);
+    log () {
+        CommonHelper.log(this.view, this.constructor.name, ...arguments);
     }
 };
 

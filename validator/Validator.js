@@ -82,7 +82,7 @@ module.exports = class Validator extends Base {
         if (typeof message === 'string') {
             return new Message(message, this.messageCategory, params);
         }
-        let category = ObjectHelper.getKeyByValue(this.constructor, this.BUILTIN)
+        const category = ObjectHelper.getKeyByValue(this.constructor, this.BUILTIN)
             ? this.DEFAULT_MESSAGE_CATEGORY
             : this.messageCategory;
         return new Message(defaultMessage, category, params);
@@ -110,7 +110,7 @@ module.exports = class Validator extends Base {
         }
     }
 
-    validateValue (value) {
+    validateValue () {
         throw new Error(this.wrapClassMessage('Need to override'));
     }
 

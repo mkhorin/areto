@@ -53,7 +53,7 @@ module.exports = class QueryHelper {
         return result;
     }
 
-    static unlinkInner (ref, link, model, key) {
+    static unlinkInternal (ref, link, model, key) {
         if (Array.isArray(ref)) {
             let index = MongoHelper.indexOf(link, ref);
             if (index !== - 1) {

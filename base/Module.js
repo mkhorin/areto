@@ -24,22 +24,22 @@ module.exports = class Module extends Base {
             },
             COMPONENT_CONFIG: {
                 'asset': {Class: require('../web/asset/AssetManager')},
+                'auth': {Class: require('../security/Auth')},
                 'bodyParser': {
                     Class: require('../web/BodyParser'),
                     extended: true
                 },
                 'cache': {Class: require('../cache/Cache')},
-                'connection': {Class: require('../db/Connection')},
                 'cookie': {Class: require('../web/Cookie')},
+                'db': {Class: require('../db/Database')},
                 'forwarder': {Class: require('../web/Forwarder')},
                 'logger': {Class: require('../log/Logger')},
-                'rateLimit': {Class: require('../web/rate-limit/RateLimit')},
-                'rbac': {Class: require('../rbac/Rbac')},
+                'rateLimit': {Class: require('../security/rate-limit/RateLimit')},
+                'rbac': {Class: require('../security/rbac/Rbac')},
                 'router': {Class: require('../web/Router')},
                 'scheduler': {Class: require('../scheduler/Scheduler')},
                 'session': {Class: require('../web/session/Session')},
-                'url': {Class: require('../web/UrlManager')},
-                'user': {Class: require('../web/User')}
+                'url': {Class: require('../web/UrlManager')}
             },
             INHERITED_UNDEFINED_CONFIG_KEYS: [
                 'params',
@@ -66,7 +66,7 @@ module.exports = class Module extends Base {
             ClassMapper: require('./ClassMapper'),
             Configuration: require('./Configuration'),
             DependentOrder: require('./DependentOrder'),
-            Express: require('./Express'),
+            Engine: require('./ExpressEngine'),
             InlineAction: require('./InlineAction'),
             ...config
         });
@@ -75,7 +75,7 @@ module.exports = class Module extends Base {
         this.components = new DataMap; // all components (with inherited)
         this.ownComponents = new DataMap; // own module components
         this.app = this.parent ? this.parent.app : this;
-        this.express = this.createExpress();
+        this.engine = this.createEngine();
     }
 
     getTitle () {
@@ -90,9 +90,8 @@ module.exports = class Module extends Base {
         return this.parent ? this.parent.components.get(id) : defaults;
     }
 
-    getDb (connection = 'connection') {
-        connection = this.components.get(connection);
-        return connection ? connection.driver : null;
+    getDb (id) {
+        return this.components.get(id || 'db');
     }
     
     getClass () {
@@ -113,22 +112,26 @@ module.exports = class Module extends Base {
             : this.NAME;
     }
 
-    getPath () {
+    getPath () { // ignore absolute path in arguments
         return path.join(this.CLASS_DIR, ...arguments);
     }
 
-    require () {
-        return this.requireInner(...arguments) || (this.origin && this.origin.requireInner(...arguments));
+    resolvePath () {
+        return path.resolve(this.CLASS_DIR, ...arguments);
     }
 
-    requireInner () {
+    require () {
+        return this.requireInternal(...arguments) || (this.origin && this.origin.require(...arguments));
+    }
+
+    requireInternal () {
         try {
             return require(this.getPath(...arguments));
         } catch (err) {}
     }
 
     getRelativePath (file) {
-        return FileHelper.getRelativePath(this.getPath(), file);
+        return FileHelper.getRelativePath(this.CLASS_DIR, file);
     }
 
     getControllerDir () {
@@ -159,12 +162,12 @@ module.exports = class Module extends Base {
         return this.modules;
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.getFullName(), this.components.get('logger'));
+    log () {
+        CommonHelper.log(this.components.get('logger'), this.getFullName(), ...arguments);
     }
 
     translate (message) {
-        let i18n = this.components.get('i18n');
+        const i18n = this.components.get('i18n');
         return i18n ? i18n.translateMessage(message) : message;
     }
 
@@ -225,7 +228,7 @@ module.exports = class Module extends Base {
 
     // INIT
 
-    async init (config) {
+    async init () {
         await this.beforeInit();
         await this.createOrigin();
         await this.createConfiguration();
@@ -301,7 +304,7 @@ module.exports = class Module extends Base {
     // COMPONENTS
 
     deepAssignComponent (name, newComponent) {
-        let currentComponent = this.components.get(name);
+        const currentComponent = this.components.get(name);
         for (let module of this.modules) {
             if (module.components.get(name) === currentComponent) {
                 module.deepAssignComponent(name, newComponent);
@@ -334,8 +337,8 @@ module.exports = class Module extends Base {
         };
         config.id = id;
         config.parent = this.getParentComponent(id);
-        let name = StringHelper.idToCamel(config.componentMethodName || config.id);
-        let method = `create${name}Component`;
+        const name = StringHelper.idToCamel(config.componentMethodName || config.id);
+        const method = `create${name}Component`;
         return typeof this[method] === 'function'
             ? this[method](config)
             : this.spawn(config);
@@ -356,11 +359,10 @@ module.exports = class Module extends Base {
         });
     }
 
-    createViewComponent (config) {
-        let origin = this.origin && this.origin.createViewComponent(config);
+    createViewComponent (config) {        
         return this.spawn({
             Class: require('../view/View'),
-            origin,
+            origin: this.origin && this.origin.createViewComponent(config),
             ...config
         });
     }
@@ -378,8 +380,8 @@ module.exports = class Module extends Base {
     }
 
     async initComponent (component) {
-        let name = StringHelper.idToCamel(component.componentMethodName || component.id);
-        let method = `init${name}Component`;
+        const name = StringHelper.idToCamel(component.componentMethodName || component.id);
+        const method = `init${name}Component`;
         if (typeof this[method] === 'function') {
             await this[method](component);
         } else if (typeof component.init === 'function') {
@@ -387,23 +389,18 @@ module.exports = class Module extends Base {
         }
     }
 
-    async initConnectionComponent (component) {
-        await component.init();
-        await this.getDb(component.id).open();
-    }
+    // ENGINE
 
-    // EXPRESS
-
-    createExpress (params) {
-        return this.spawn(this.Express, params);
+    createEngine (params) {
+        return this.spawn(this.Engine, params);
     }
 
     addHandler () {
-        this.express.add(...arguments);
+        this.engine.add(...arguments);
     }
 
     addViewEngine (data) {
-        this.express.addViewEngine(data);
+        this.engine.addViewEngine(data);
     }
 
     attachStaticSource (data) {
@@ -415,11 +412,11 @@ module.exports = class Module extends Base {
         }
     }
 
-    attachStaticByModule (module, data) {
-        let dir = module.getPath('web');
+    attachStaticByModule (module, {options}) {
+        const dir = module.getPath('web');
         if (fs.existsSync(dir)) {
             // use static content handlers before others
-            this.app.mainExpress.attachStatic(this.getRoute(), dir, data.options);
+            this.app.mainEngine.attachStatic(this.getRoute(), dir, options);
         }
     }
 
@@ -427,14 +424,14 @@ module.exports = class Module extends Base {
         for (let module of this.modules) {
             module.attachHandlers();
         }
-        this.express.attachHandlers();
+        this.engine.attachHandlers();
     }
 
     attachModule () {
         if (this.parent) {
-            this.parent.express.addChild(this.mountPath, this.express);
+            this.parent.engine.addChild(this.mountPath, this.engine);
         }
-        this.express.attach('use', this.handleModule.bind(this));
+        this.engine.attach('use', this.handleModule.bind(this));
     }
 
     // MIDDLEWARE

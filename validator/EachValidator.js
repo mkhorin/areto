@@ -38,18 +38,17 @@ module.exports = class EachValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let values = model.get(attr);
-        let validator = this.getValidator();
+        const values = model.get(attr);
+        const validator = this.getValidator();
         if (!(validator instanceof FilterValidator && Array.isArray(values))) {
             this.getValidator(model); // ensure model context while validator creation
             return super.validateAttr(model, attr);
         }
-        let filteredValues = [];
+        const filteredValues = [];
         model.set(attr, filteredValues);
         for (let value of values) {
-            if (!(Array.isArray(value) && validator.skipOnArray)) {
-                let result = await validator.filter(value, model, attr);
-                filteredValues.push(result);
+            if (!(Array.isArray(value) && validator.skipOnArray)) {                
+                filteredValues.push(await validator.filter(value, model, attr));
             }
         }
     }
@@ -58,7 +57,7 @@ module.exports = class EachValidator extends Base {
         if (!Array.isArray(values)) {
             return this.getMessage();
         }
-        let validator = this.getValidator();
+        const validator = this.getValidator();
         for (let value of values) {
             let result = await validator.validateValue(value);
             if (result) {

@@ -24,7 +24,7 @@ module.exports = class Application extends Base {
 
     constructor (config) {
         super(config);
-        this.mainExpress = this.createExpress();
+        this.mainEngine = this.createEngine();
     }
 
     async init () {
@@ -50,12 +50,12 @@ module.exports = class Application extends Base {
 
     attachHandlers () {
         super.attachHandlers();
-        this.mainExpress.attachChild(this.mountPath, this.express);
+        this.mainEngine.attachChild(this.mountPath, this.engine);
     }
 
     createServer () {
         return new Promise((resolve, reject)=> {
-            this.server = this.mainExpress.createServer().on('error', err => {
+            this.server = this.mainEngine.createServer().on('error', err => {
                 this.log('error', 'Server error', err);
                 reject(err);
             }).listen(this.getConfig('port'), ()=> {

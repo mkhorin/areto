@@ -10,12 +10,12 @@ module.exports = class FileHelper {
     }
 
     static getRelativePathByDir (name, file) {
-        let root = this.getClosestDir(name, file);
-        return root ? this.getRelativePath(root, file) : file;
+        const basePath = this.getClosestDir(name, file);
+        return basePath ? this.getRelativePath(basePath, file) : file;
     }
 
-    static getRelativePath (root, file) {
-        return file.indexOf(root) === 0 ? file.substring(root.length + 1) : file;
+    static getRelativePath (basePath, file) {
+        return file.indexOf(basePath) === 0 ? file.substring(basePath.length + 1) : file;
     }
 
     static removeExtension (file) {
@@ -27,7 +27,7 @@ module.exports = class FileHelper {
     }
 
     static async remove (dir) {
-        let stat = await this.getStat(dir);
+        const stat = await this.getStat(dir);
         if (!stat) {
             return false; // skip non-existent
         }
@@ -40,7 +40,7 @@ module.exports = class FileHelper {
     }
 
     static async copy (source, target) {
-        let stat = await fs.promises.stat(source);
+        const stat = await fs.promises.stat(source);
         if (stat.isFile()) {
             await this.createDir(path.dirname(target), {mode: stat.mode});
             return fs.promises.copyFile(source, target);
@@ -116,7 +116,7 @@ module.exports = class FileHelper {
     }
 
     static async handleChildren (dir, handler) {
-        let files = await fs.promises.readdir(dir);
+        const files = await fs.promises.readdir(dir);
         for (let file of files) {
             await handler(file, dir);
         }

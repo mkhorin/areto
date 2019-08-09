@@ -76,7 +76,7 @@ module.exports = class RelationChangeBehavior extends Base {
             return this.owner.set(name, value);
         }
         let rel = this.getRelation(name);
-        this.owner.set(name, rel.isInnerArray() ? [] : null);
+        this.owner.set(name, rel.isInternalArray() ? [] : null);
     }
 
     async resolveTypeChanges (type, attr) {
@@ -113,13 +113,13 @@ module.exports = class RelationChangeBehavior extends Base {
         if (this._linkedDocs !== undefined) {
             return this._linkedDocs;
         }
-        let relation = this.getRelation(name);
-        let docs = await relation.raw().all();
-        let map = {};
+        const relation = this.getRelation(name);
+        const docs = await relation.raw().all();
+        const map = {};
         for (let doc of docs) {
             map[doc[relation.model.PK]] = doc;
         }
-        let data = this._changes[name];
+        const data = this._changes[name];
         if (data) {
             for (let model of data.links) {
                 map[model.getId()] = model.getAttrMap();
@@ -135,9 +135,9 @@ module.exports = class RelationChangeBehavior extends Base {
     // EXIST
 
     async checkExist (name) {
-        let rel = this.getRelation(name);
+        const rel = this.getRelation(name);
         if (rel.isMultiple()) {
-            throw new Error(this.wrapClassMessage(`Multiple relation to exist: ${name}`));
+            throw new Error(this.wrapClassMessage(`Multiple relation cannot be checked for exist: ${name}`));
         }
         let docs = await this.getLinkedDocs(name);
         if (docs.length === 0) {

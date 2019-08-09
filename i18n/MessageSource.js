@@ -27,7 +27,7 @@ module.exports = class MessageSource extends Base {
         if (!category) {
             return null;
         }
-        let key = `${language}/${category}`;
+        const key = `${language}/${category}`;
         if (!this._messages[key]) {
             this._messages[key] = this.loadMessages(category, language);
         }
@@ -40,16 +40,16 @@ module.exports = class MessageSource extends Base {
         return null;
     }
 
-    loadMessages (category, language) {
-        throw new Error(this.wrapClassMessage('Load message translations from store'));
+    loadMessages () {
+        throw new Error(this.wrapClassMessage('Load messages from store'));
     }
 
     clearCache () {
         this._messages = {};
     }
 
-    log (type, message, data) {
-        CommonHelper.log(type, message, data, this.constructor.name, this.i18n);
+    log () {
+        CommonHelper.log(this.i18n, this.constructor.name, ...arguments);
     }
 };
 

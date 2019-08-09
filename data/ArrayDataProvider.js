@@ -27,10 +27,10 @@ module.exports = class ArrayDataProvider extends Base {
     }    
 
     sortModels (models, sort) {
-        let Sort = require('./Sort');
-        let orders = sort.getOrders();        
+        const Sort = require('./Sort');
+        const orders = sort.getOrders();        
         if (orders) {
-            let directions = {};
+            const directions = {};
             for (let attr of Object.keys(orders)) {
                 directions[attr] = orders[attr] === Sort.ASC ? 1 : -1;
             }

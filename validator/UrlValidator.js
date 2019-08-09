@@ -42,7 +42,6 @@ module.exports = class UrlValidator extends Base {
         if (pattern.indexOf('{schemes}') !== -1) {
             pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
         }
-        return (new RegExp(pattern, 'i')).test(value)
-            ? null : this.getMessage();
+        return (new RegExp(pattern, 'i')).test(value) ? null : this.getMessage();
     }
 };

@@ -10,8 +10,8 @@ module.exports = class Url extends Base {
     constructor (config) {
         super(config);
 
-        let sources = pathToRegexp.parse(this.source);
-        let targets = pathToRegexp.parse(this.target);
+        const sources = pathToRegexp.parse(this.source);
+        const targets = pathToRegexp.parse(this.target);
         
         this.sourceParamNames = this.getParamNames(sources);
         this.targetParamNames = this.getParamNames(targets);
@@ -22,7 +22,7 @@ module.exports = class Url extends Base {
         this.createTarget = pathToRegexp.tokensToFunction(targets);
             
         // target params must be a subset of the source's params
-        let names = ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames);
+        const names = ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames);
         if (names.length !== this.targetParamNames.length) {
             throw new Error(this.wrapClassMessage(`Invalid params: Source: ${this.source}: Target: ${this.target}`));
         }
@@ -71,7 +71,7 @@ module.exports = class Url extends Base {
     }
 
     getParams (result, names) {
-        let params = {};
+        const params = {};
         for (let i = 0; i < names.length; ++i) {
             params[names[i]] = result[i + 1];
         }
@@ -79,7 +79,7 @@ module.exports = class Url extends Base {
     }
 
     getParamNames (tokens) {
-        let names = [];
+        const names = [];
         for (let token of tokens) {
             if (token.name && !names.includes(token.name)) {
                 names.push(token.name);

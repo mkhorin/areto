@@ -32,7 +32,7 @@ module.exports = class ErrorMap {
     }
 
     getAllFirst () {
-        let result = {};
+        const result = {};
         for (let key of Object.keys(this._data)) {
             if (this._data[key].length) {
                 result[key] = this._data[key][0];
@@ -75,5 +75,3 @@ module.exports = class ErrorMap {
         }
     }
 };
-
-const Message = require('../i18n/Message');

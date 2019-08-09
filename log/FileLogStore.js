@@ -9,34 +9,36 @@ module.exports = class FileLogStore extends Base {
 
     constructor (config) {
         super({
-            root: config.logger.module.getPath(),
-            dir: 'log',
-            name: config.logType ? config.logType.name : 'common',
+            basePath: 'log',
             observePeriod: 30, // seconds, 0 - off
             maxFileSize: 2, // megabytes
             maxFiles: 1,
             ...config
         });
-        this.root = path.join(this.root, this.dir);
+        this.basePath = this.module.resolvePath(this.basePath);
         this.file = this.getFile();
         this.fullFile = this.getFile('full');
         this.maxFileSize *= 1024 * 1024; // megabytes to bytes
-        fs.mkdirSync(this.root, {recursive: true});
-        this.fd = fs.openSync(this.file, 'a');
     }
 
     init () {
+        fs.mkdirSync(this.basePath, {recursive: true});
+        this.openFile();
         if (this.observePeriod) {
             this.observe();
         }
     }
 
     getFile (suffix) {
-        return path.join(this.root, this.name + (suffix ? `-${suffix}` : '') +'.log');
+        return path.join(this.basePath, this.name + (suffix ? `-${suffix}` : '') +'.log');
     }
 
-    save (type, message, data) {
-        fs.write(this.fd, this.format(type, message, data), err => {
+    openFile () {
+        this._fd = fs.openSync(this.file, 'a');
+    }
+
+    save () {
+        fs.write(this._fd, this.format(...arguments), err => {
             if (err) {
                 console.error(this.wrapClassMessage(`save`), err);
             }
@@ -65,8 +67,8 @@ module.exports = class FileLogStore extends Base {
 
     async checkout () {
         try {
-            let stat = await PromiseHelper.promise(fs.fstat.bind(fs, this.fd));
-            if (stat.size > this.maxFileSize) {
+            const {size} = await PromiseHelper.promise(fs.fstat.bind(fs, this._fd));
+            if (size > this.maxFileSize) {
                 await this.rotate();
             }
         } catch (err) {
@@ -76,9 +78,9 @@ module.exports = class FileLogStore extends Base {
 
     async rotate () {
         await fs.promises.rename(this.file, this.fullFile);
-        fs.closeSync(this.fd);
-        this.fd = fs.openSync(this.file, 'a');
-        let files = await this.getFiles();
+        fs.closeSync(this._fd);
+        this.openFile();
+        const files = await this.getFiles();
         await this.removeExcessFiles(files);
         for (let i = files.length - 1; i >= 0; --i) {
             await fs.promises.rename(files[i], this.getFile(i + 1));
@@ -88,7 +90,7 @@ module.exports = class FileLogStore extends Base {
 
     async removeExcessFiles (files) {
         if (files.length > this.maxFiles) {
-            let unlinks = files.splice(this.maxFiles, files.length);
+            const unlinks = files.splice(this.maxFiles, files.length);
             for (let file of unlinks) {
                 await fs.promises.unlink(file);
             }
@@ -96,13 +98,13 @@ module.exports = class FileLogStore extends Base {
     }
 
     async getFiles () {
-        let baseName = path.basename(this.file);
-        let items = [];
-        for (let file of await fs.promises.readdir(this.root)) {
+        const baseName = path.basename(this.file);
+        const items = [];
+        for (let file of await fs.promises.readdir(this.basePath)) {
             if (file.indexOf(this.name) === 0 && file !== baseName) {
-                file = path.join(this.root, file);
-                let stat = await fs.promises.stat(file);
-                let time = stat.mtime.getTime();
+                file = path.join(this.basePath, file);
+                const stat = await fs.promises.stat(file);
+                const time = stat.mtime.getTime();
                 if (stat.isFile()) {
                     items.push({file, time});
                 }

@@ -9,13 +9,13 @@ module.exports = class Migration extends Base {
 
     constructor (config) {
         super({
-            // migrator: migrator
+            // migrator: [migrator]
             ...config
         });
     }
 
-    getDb (conection) {
-        return this.migrator.getDb(conection || this.connection);
+    getDb (id) {
+        return this.migrator.getDb(id || this.db);
     }
 
     apply () {

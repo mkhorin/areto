@@ -3,28 +3,29 @@
  */
 'use strict';
 
-const Base = require('../../base/Base');
+const Base = require('../../base/Component');
 
 module.exports = class Session extends Base {
 
     constructor (config) {
-        super({            
-            expressSession: session,
+        super({
             resave: false,
             saveUninitialized: false,
             name: `${config.module.getFullName()}.sid`,
-            store: require('./MemorySessionStore'),
             lifetime: 3600, // seconds
             // cookie: {maxAge: 3600 * 1000},
+            Store: require('./MemorySessionStore'),
+            engine: require('express-session'),
+            flash: require('connect-flash'),
             ...config
         });
         this.lifetime *= 1000;
     }
 
     init () {
-        this.store = ClassHelper.spawn(this.store, {session: this});
-        this.module.addHandler('use', session(this));
-        this.module.addHandler('use', flash());
+        this.store = this.spawn(this.Store, {session: this});
+        this.module.addHandler('use', this.engine(this));
+        this.module.addHandler('use', this.flash());
     }
 
     removeExpired () {
@@ -39,7 +40,3 @@ module.exports = class Session extends Base {
         return this.store.clear();
     }
 };
-
-const flash = require('connect-flash');
-const session = require('express-session');
-const ClassHelper = require('../../helper/ClassHelper');

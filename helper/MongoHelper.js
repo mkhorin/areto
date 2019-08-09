@@ -66,7 +66,7 @@ module.exports = class MongoHelper {
         return ArrayHelper.uniqueStrict(target, excluded, this.indexOf);
     }
 
-    static replaceMongoDataToJson (data) {
+    static normalizeExportData (data) {
         data = data || {};
         for (let key of Object.keys(data)) {
             let value = data[key];
@@ -75,12 +75,12 @@ module.exports = class MongoHelper {
             } else if (value instanceof Date) {
                 data[key] = {$date: value.toISOString()};
             } else if (value instanceof Object) {
-                this.replaceMongoDataToJson(value);
+                this.normalizeExportData(value);
             }
         }
     }
 
-    static replaceJsonToMongoData (data) {
+    static normalizeImportData (data) {
         data = data || {};
         for (let key of Object.keys(data)) {
             let value = data[key];
@@ -90,7 +90,7 @@ module.exports = class MongoHelper {
             } else if (ObjectID.isValid(value.$oid)) {
                 data[key] = ObjectID(value.$oid);
             } else {
-                this.replaceJsonToMongoData(value);
+                this.normalizeImportData(value);
             }
         }
     }

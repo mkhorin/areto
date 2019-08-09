@@ -22,6 +22,15 @@ module.exports = class DataMap {
         return this;
     }
 
+    push (key, value) {
+        if (Array.isArray(this._data[key])) {
+            this._data[key].push(value);
+        } else {
+            this._data[key] = [value];
+        }
+        return this;
+    }
+
     unset (key) {
         delete this._data[key];
     }
@@ -63,7 +72,7 @@ module.exports = class DataMap {
     }
 
     filter (handler, context) {
-        let result = [];
+        const result = [];
         for (let item of this.values()) {
             if (handler.call(context, item)) {
                 result.push(item);
@@ -73,7 +82,7 @@ module.exports = class DataMap {
     }
 
     map (handler, context) {
-        let result = [];
+        const result = [];
         for (let item of this.values()) {
             result.push(handler.call(context, item));
         }

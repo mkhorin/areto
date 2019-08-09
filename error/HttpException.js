@@ -17,14 +17,14 @@ module.exports = class HttpException extends Base {
     }
 
     toString () {
-        let data = util.inspect(this.data);
-        let message = this.message || '';            
+        const message = this.message || '';
+        const data = this.data === undefined ? '' : util.inspect(this.data);
         return this.method
             ? `${this.status} ${this.method} ${this.originalUrl} ${this.ip} ${message} ${data}`
             : `${this.status} ${message} ${data}`;
     }
 
-    setParams (req, res) {
+    setParams (req) {
         this.method = req.method;
         this.originalUrl = req.originalUrl;
         this.ip = req.ip;

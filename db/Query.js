@@ -86,7 +86,7 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    getWhere (condition) {
+    getWhere () {
         return this._where;
     }
 
@@ -295,7 +295,7 @@ module.exports = class Query extends Base {
 
     // hash format: { column1: value1, column2: value2, ... }
     filterHashCondition (data) {
-        let result = {};
+        const result = {};
         for (let key of Object.keys(data)) {
             if (!this.isEmptyValue(data[key])) {
                 result[key] = data[key];
@@ -306,7 +306,7 @@ module.exports = class Query extends Base {
 
     // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
     sortOrderByIn (docs) {
-        let keys = this._orderByIn;
+        const keys = this._orderByIn;
         if (!Array.isArray(keys) || keys.length < 2) {
             return docs;
         }
@@ -320,23 +320,6 @@ module.exports = class Query extends Base {
             }
         }
         return result;
-    }
-
-    clone () {        
-        let target = Object.assign(new this.constructor, this);
-        for (let key of Object.keys(target)) {
-            let value = target[key];
-            if (value && typeof value === 'object') {
-                if (value instanceof Query) {
-                    target[key] = value.clone();
-                } else if (Array.isArray(value)) {
-                    target[key] = value.slice();
-                } else if (!(value instanceof Base)) {
-                    target[key] = {...value};
-                }
-            }
-        }
-        return target;
     }
 };
 

@@ -57,7 +57,7 @@ module.exports = class FileValidator extends Base {
         if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
             return this.getNotImageMessage();
         }
-        let stat = await FileHelper.getStat(file.path);
+        const stat = await FileHelper.getStat(file.path);
         if (!stat || !stat.isFile()) {
             return this.getMessage();
         }

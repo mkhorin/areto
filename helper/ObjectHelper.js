@@ -32,7 +32,7 @@ module.exports = class ObjectHelper {
     }
 
     static getKeysByValue (value, map) {
-        let keys = [];
+        const keys = [];
         if (map) {
             for (let key of Object.keys(map)) {
                 if (map[key] === value) {
@@ -47,7 +47,7 @@ module.exports = class ObjectHelper {
         if (!map) {
             return [];
         }
-        let props = Object.getOwnPropertyNames(map);
+        const props = Object.getOwnPropertyNames(map);
         for (let name of this.getAllPropNames(Object.getPrototypeOf(map))) {
             if (props.includes(name) === false) {
                 props.push(name);
@@ -187,5 +187,3 @@ module.exports = class ObjectHelper {
         return Array.isArray(values) ? values.indexOf(value) : -1;
     }
 };
-
-const ArrayHelper = require('./ArrayHelper');

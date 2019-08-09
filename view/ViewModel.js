@@ -47,7 +47,7 @@ module.exports = class ViewModel extends Base {
         return {}; // to override
     }
 
-    prepareModels (models) {
+    prepareModels () {
         // to override
     }
 

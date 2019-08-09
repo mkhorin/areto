@@ -20,7 +20,7 @@ module.exports = class Forwarder extends Base {
         this.urlManager = this.module.get('url');
         this.createItems();
         if (!this.isEmpty()) {
-            this.module.express.attach('use', this.forward.bind(this));
+            this.module.addHandler('use', this.forward.bind(this));
         }
     }
 
@@ -28,7 +28,7 @@ module.exports = class Forwarder extends Base {
         return this._urls.length === 0;
     }
 
-    createItems (items) {
+    createItems () {
         this._urls = [];
         for (let source of Object.keys(this.items)) {
             let data = this.items[source];
@@ -40,7 +40,7 @@ module.exports = class Forwarder extends Base {
     }
 
     forward (req, res, next) {
-        let data = this.resolvePath(req.path, req.method);
+        const data = this.resolvePath(req.path, req.method);
         if (data) {
             this.log('trace', `${this.module.getFullName()}: forward ${req.path} to ${data.path}`, data.params);
             Object.assign(req.query, data.params);
@@ -72,7 +72,7 @@ module.exports = class Forwarder extends Base {
     }
 
     createSourceUrl (data) {
-        let index = data.segments.indexOf(this.module.NAME) + 1;
+        const index = data.segments.indexOf(this.module.NAME) + 1;
         data.path = index > 0
             ? `/${data.segments.slice(index).join('/')}`
             : `/${data.segments.join('/')}`;

@@ -18,20 +18,20 @@ module.exports = class OrderBehavior extends Base {
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 
-    async beforeInsert (event) {
+    async beforeInsert () {
         if (CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
             this.owner.set(this.orderAttr, await this.getNextNumber());
         }
     }
 
     async getNextNumber () {
-        let query = this.owner.find();
-        if (this.filter instanceof Function) {
+        const query = this.owner.find();
+        if (typeof this.filter === 'function') {
             this.filter(query, this.owner);
         } else if (typeof this.filter === 'string') {
             query.and({[this.filter]: this.owner.get(this.filter)});
         }
-        let last = await query.order({[this.orderAttr]: this.step > 0 ? -1 : 1}).scalar(this.orderAttr);
+        const last = await query.order({[this.orderAttr]: this.step > 0 ? -1 : 1}).scalar(this.orderAttr);
         return Number.isInteger(last) ? last + this.step : this.start;
     }
 

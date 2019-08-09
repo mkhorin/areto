@@ -18,7 +18,7 @@ module.exports = class AccessControl extends Base {
     }
 
     createRules () {
-        let rules = [];
+        const rules = [];
         for (let rule of this.rules) {
             if (!(rule instanceof AccessRule)) {
                 rule = this.spawn(rule.Class || this.AccessRule, rule);
@@ -28,8 +28,7 @@ module.exports = class AccessControl extends Base {
         this.rules = rules;
     }
 
-    async beforeAction (action, complete) {
-        let user = action.controller.user;
+    async beforeAction (action) {
         // check rules until the first result [allow or deny]
         for (let rule of this.rules) {
             let access = await rule.can(action);

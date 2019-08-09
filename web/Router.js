@@ -54,7 +54,7 @@ module.exports = class Router extends Base {
             files = fs.readdirSync(dir);
         } catch (err) {
         }
-        let map = {};
+        const map = {};
         for (let file of files) {
             this.setControllerMapFile(path.join(dir, file), relative, map);
         }
@@ -62,7 +62,7 @@ module.exports = class Router extends Base {
     }
 
     setControllerMapFile (file, relative, map) {
-        let stat = fs.lstatSync(file);
+        const stat = fs.lstatSync(file);
         if (stat.isDirectory()) {
             Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}/`));
         } else {
@@ -87,8 +87,8 @@ module.exports = class Router extends Base {
 
     addActions () {
         for (let id of Object.keys(this._controllerMap)) {
-            let route = `/${this.resolveControllerId(id)}`;
-            let Controller = this._controllerMap[id];
+            const route = `/${this.resolveControllerId(id)}`;
+            const Controller = this._controllerMap[id];
             for (let actionId of Controller.getActionKeys()) {
                 this.addAction(actionId, Controller, `${route}/${actionId}`);
                 if (Controller.DEFAULT_ACTION === actionId) {
@@ -99,7 +99,7 @@ module.exports = class Router extends Base {
     }
 
     addAction (id, Controller, route) {
-        let action = function (req, res, next) {
+        const action = function (req, res, next) {
             (new Controller({
                 req,
                 res,
@@ -123,7 +123,7 @@ module.exports = class Router extends Base {
         this.module.addHandler('all', '*', function (req, res, next) {
             next(new NotFound);
         });
-        let Controller = this.getController(config.controller) || this.getDefaultController();
+        const Controller = this.getController(config.controller) || this.getDefaultController();
         this.module.addHandler('use', (err, req, res, next)=> {
             if (!(err instanceof HttpException)) {
                 err = new ServerError(err);
@@ -132,7 +132,7 @@ module.exports = class Router extends Base {
             if (!Controller) {
                 return next(err);
             }
-            let controller= new Controller({
+            const controller = new Controller({
                 req,
                 res,
                 err,
