@@ -32,11 +32,11 @@ module.exports = class UrlManager extends Base {
             params = url[1];
             url = url[0];
         }
-        let index = url.indexOf('/');
+        const index = url.indexOf('/');
         if (index === -1) { // relative root
             url = this.module.getRoute(root ? `${root}/${url}` : url);
         } else if (index === 0) { // relative app
-            let root = this.module.app.mountPath;
+            const root = this.module.app.mountPath;
             if (root !== '/' && url.substring(0, root.length) !== root) {
                 url = root + url;
             }
@@ -64,7 +64,7 @@ module.exports = class UrlManager extends Base {
             return '';
         }
         const result = [];
-        for (let key of Object.keys(params)) {
+        for (const key of Object.keys(params)) {
             if (params[key] !== undefined && params[key] !== null) {
                 result.push(key +'='+ params[key]);
             }
@@ -84,7 +84,7 @@ module.exports = class UrlManager extends Base {
                 anchor = url.substring(index + 1);
                 url = url.substring(0, index);
             }
-            for (let param of url.split('&')) {
+            for (const param of url.split('&')) {
                 index = param.indexOf('=');
                 if (index !== -1) {
                     params[param.substring(0, index)] = param.substring(index + 1);

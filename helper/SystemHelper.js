@@ -12,7 +12,7 @@ module.exports = class CommonHelper {
     static parseArguments (args, keyPrefix = '--') {
         let result = {}, key;
         args = Array.isArray(args) ? args : [];
-        for (let item of args) {
+        for (const item of args) {
             if (typeof item === 'string' && item.indexOf(keyPrefix) === 0) {
                 key = item.substring(keyPrefix.length);
             } else if (key !== undefined) {

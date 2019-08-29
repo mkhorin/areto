@@ -20,7 +20,7 @@ module.exports = class DependentOrder extends Base {
         this.setItemIndexes();
         this.sortByIndex();
         this._orders = [];
-        for (let item of this._items) {
+        for (const item of this._items) {
             this._chain = [];
             this.orderItem(item);
         }
@@ -31,7 +31,7 @@ module.exports = class DependentOrder extends Base {
         this._items = [];
         this._itemMap = {};
         for (let i = 0; i < items.length; ++i) {
-            let item = this.createItem(items[i], i);
+            const item = this.createItem(items[i], i);
             this._items.push(item);
             this._itemMap[item.id] = item;
         }
@@ -47,7 +47,7 @@ module.exports = class DependentOrder extends Base {
     }
 
     setItemIndexes () {
-        for (let item of this._items) {
+        for (const item of this._items) {
             item.index = this.getItemIndex(item);
         }
     }
@@ -98,7 +98,7 @@ module.exports = class DependentOrder extends Base {
     }
 
     getItemDepends (item) { // ['#start', '#end', 'item id']
-        let depends = item[this.dependsAttr];
+        const depends = item[this.dependsAttr];
         return Array.isArray(depends) ? depends : depends ? [depends] : [];
     }
 };

@@ -34,7 +34,7 @@ module.exports = class AssetManager extends Base {
 
     createBundles () {
         this._bundleMap = this.parent ? {...this.parent._bundleMap} : {};
-        for (let data of this.bundles) {
+        for (const data of this.bundles) {
             this._bundleMap[data.name] = this.createBundle(data);
         }
     }

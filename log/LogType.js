@@ -12,7 +12,7 @@ module.exports = class LogType extends Base {
             stores: [],
             consoleOutput: true,
             consoleMethod: 'log',
-            dataStringifyOptions: {depth: 10},
+            dataStringifyOptions: {depth: 5},
             ...config
         });
         this._counter = 0;
@@ -27,7 +27,7 @@ module.exports = class LogType extends Base {
         if (this.consoleOutput) {
             console[this.consoleMethod](this.name +':', message, data);
         }
-        for (let store of this.stores) {
+        for (const store of this.stores) {
             this.logger.stores[store].save(this.name, message, data);
         }
         this._counter += 1;

@@ -5,10 +5,24 @@
 
 module.exports = class ArrayHelper {
 
-    static diff (target, excluded, indexOf) {
-        let result = [];
-        for (let item of target) {
-            if (indexOf ? indexOf(item, excluded) === -1 : !excluded.includes(item)) {
+    static includes () {
+        return this.indexOf(...arguments) !== -1;
+    }
+
+    static indexOf (target, values) {
+        target = JSON.stringify(target);
+        for (let i = 0; i < values.length; ++i) {
+            if (target === JSON.stringify(values[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    static diff (target, excludes, indexOf) {
+        const result = [];
+        for (const item of target) {
+            if (indexOf ? indexOf(item, excludes) === -1 : !excludes.includes(item)) {
                 result.push(item);
             }
         }
@@ -16,8 +30,8 @@ module.exports = class ArrayHelper {
     }
 
     static intersect (source, target, indexOf) {
-        let result = [];
-        for (let item of source) {
+        const result = [];
+        for (const item of source) {
             if (indexOf ? indexOf(item, target) !== -1 : target.includes(item)) {
                 result.push(item);
             }
@@ -30,9 +44,9 @@ module.exports = class ArrayHelper {
     }
 
     static uniqueStrict (values, indexOf) {
-        let result = [];
+        const result = [];
         for (let i = 0; i < values.length; ++i) {
-            let value = indexOf ? indexOf(values[i], values) : values.indexOf(values[i]);
+            const value = indexOf ? indexOf(values[i], values) : values.indexOf(values[i]);
             if (value === i) {
                 result.push(values[i]);
             }
@@ -41,13 +55,21 @@ module.exports = class ArrayHelper {
     }
 
     static flip (values) {
-        let result = {};
+        const result = {};
         if (Array.isArray(values)) {
             for (let i = 0; i < values.length; ++i) {
                 result[values[i]] = i;
             }
         }
         return result;
+    }
+
+    static concat (values) {
+        return Array.isArray(values) ? [].concat(...values) : values;
+    }
+
+    static join (values, separator = ', ') {
+        return Array.isArray(values) ? values.join(separator) : values;
     }
 
     static removeValue (value, values) {
@@ -62,37 +84,33 @@ module.exports = class ArrayHelper {
         return true;
     }
 
-    static concatValues (values) {
-        return Array.isArray(values) ? [].concat(...values) : values;
-    }
-
-    static getObjectPropValues (items, prop) {
-        let values = [];
+    static getObjectPropertyValues (items, key) {
+        const values = [];
         if (Array.isArray(items)) {
-            for (let item of items) {
-                if (item && Object.prototype.hasOwnProperty.call(item, prop)) {
-                    values.push(item[prop]);
+            for (const item of items) {
+                if (item && Object.prototype.hasOwnProperty.call(item, key)) {
+                    values.push(item[key]);
                 }
             }
         }
         return values;
     }
 
-    static searchByProp (value, searchProp, items, returnProp) {
+    static searchByProperty (value, searchKey, items, returnKey) {
         if (Array.isArray(items)) {
-            for (let item of items) {
-                if (item && item[searchProp] === value) {
-                    return returnProp === undefined ? item : item[returnProp];
+            for (const item of items) {
+                if (item && item[searchKey] === value) {
+                    return returnKey === undefined ? item : item[returnKey];
                 }
             }
         }
     }
 
-    static filterByClassProp (items, Base, prop = 'Class') {
-        let result = [];
+    static filterByClassProperty (items, Base, key = 'Class') {
+        const result = [];
         if (Array.isArray(items)) {
-            for (let item of items) {
-                if (item && item[prop] && (item[prop] === Base || item[prop].prototype instanceof Base)) {
+            for (const item of items) {
+                if (item && item[key] && (item[key] === Base || item[key].prototype instanceof Base)) {
                     result.push(item);
                 }
             }
@@ -112,8 +130,8 @@ module.exports = class ArrayHelper {
         if (Array.isArray(values)) {
             let i = values.length;
             while (i) {
-                let j = Math.floor((i--) * Math.random());
-                let t = values[i];
+                const j = Math.floor((i--) * Math.random());
+                const t = values[i];
                 values[i] = values[j];
                 values[j] = t;
             }
@@ -123,21 +141,20 @@ module.exports = class ArrayHelper {
 
     // HIERARCHY
     // order children after parents
-    static sortHierarchy (items, idProp, parentProp) {
-        let result = [], map = {};
-        for (let item of items) {
-            if (!item[parentProp]) {
+    static sortHierarchy (items, keyProperty, parentProperty) {
+        let result = [], data = {};
+        for (const item of items) {
+            if (!item[parentProperty]) {
                 result.push(item);
-            } else if (Array.isArray(map[item[parentProp]])) {
-                map[item[parentProp]].push(item);
+            } else if (Array.isArray(data[item[parentProperty]])) {
+                data[item[parentProperty]].push(item);
             } else {
-                map[item[parentProp]] = [item];
+                data[item[parentProperty]] = [item];
             }
         }
-        for (let i = 0; i < result.length; ++i) {
-            let item = result[i];
-            if (Array.isArray(map[item[idProp]])) {
-                result = result.concat(map[item[idProp]]);
+        for (const item of result) {
+            if (Array.isArray(data[item[keyProperty]])) {
+                result = result.concat(data[item[keyProperty]]);
             }
         }
         return result;

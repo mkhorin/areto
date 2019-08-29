@@ -11,14 +11,14 @@ const validator = new Validator;
 describe('DateValidator', ()=> {
 
     it('invalid date', async ()=> {
-        let model = new Model;
+        const model = new Model;
         model.set('attr', '1997-45-10');
         await validator.validateAttr(model, 'attr');
         expect(model.hasError()).to.eql(true);
     });
 
     it('valid date', async ()=> {
-        let model = new Model;
+        const model = new Model;
         model.set('attr', new Date);
         await validator.validateAttr(model, 'attr');
         await expect(model.hasError()).to.false;
@@ -28,8 +28,8 @@ describe('DateValidator', ()=> {
     });
 
     it('invalid min max', async ()=> {
-        let model = new Model;
-        let validator = new Validator({
+        const model = new Model;
+        const validator = new Validator({
             min: new Date('1996-11-05'),
             max: new Date('1998-05-11')
         });
@@ -39,8 +39,8 @@ describe('DateValidator', ()=> {
     });
 
     it('valid min max', async ()=> {
-        let model = new Model;
-        let validator = new Validator({
+        const model = new Model;
+        const validator = new Validator({
             min: new Date('1996-11-05'),
             max: new Date('1998-05-11')
         });

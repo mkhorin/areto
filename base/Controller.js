@@ -8,7 +8,7 @@ const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Controller extends Base {
 
-    static getExtendedClassProps () {
+    static getExtendedClassProperties () {
         return [
             'METHODS',
             'ACTIONS'
@@ -39,7 +39,7 @@ module.exports = class Controller extends Base {
     }
 
     static getName () {
-        let index = this.name.lastIndexOf('Controller');
+        const index = this.name.lastIndexOf('Controller');
         if (index === -1) {
             throw new Error(this.wrapClassMessage(`Invalid controller name: ${this.name}`));
         }
@@ -51,8 +51,8 @@ module.exports = class Controller extends Base {
     }
 
     static getActionKeys () {
-        let keys = Object.keys(this.ACTIONS);
-        for (let key of ObjectHelper.getAllFunctionNames(this.prototype)) {
+        const keys = Object.keys(this.ACTIONS);
+        for (const key of ObjectHelper.getAllFunctionNames(this.prototype)) {
             if (key.indexOf('action') === 0) {
                 keys.push(StringHelper.camelToId(key.substring(6)));
             }
@@ -62,8 +62,8 @@ module.exports = class Controller extends Base {
 
     static getModelClass () {
         if (!this.hasOwnProperty('_MODEL_CLASS')) {
-            let closest = FileHelper.getClosestDir(this.CONTROLLER_DIR, this.CLASS_DIR);
-            let dir = path.join(this.MODEL_DIR, this.getNestedDir(), this.getModelClassName());
+            const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIR, this.CLASS_DIR);
+            const dir = path.join(this.MODEL_DIR, this.getNestedDir(), this.getModelClassName());
             this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
         }
         return this._MODEL_CLASS;
@@ -124,7 +124,7 @@ module.exports = class Controller extends Base {
             throw new Error(this.wrapClassMessage(`Unable to create action: ${name}`));
         }
         // trigger module's beforeAction from root to current
-        for (let module of this.module.getAncestry().slice().reverse()) {
+        for (const module of this.module.getAncestry().slice().reverse()) {
             await module.beforeAction(this.action);
         }
         await this.beforeAction();
@@ -133,7 +133,7 @@ module.exports = class Controller extends Base {
         }
         await this.afterAction();
         // trigger module's afterAction from current to root
-        for (let module of this.module.getAncestry()) {
+        for (const module of this.module.getAncestry()) {
             await module.afterAction(this.action);
         }
         this.response.end();
@@ -371,7 +371,7 @@ module.exports = class Controller extends Base {
 
     translateMessageMap (map, category = 'app') {
         map = {...map};
-        for (let key of Object.keys(map)) {
+        for (const key of Object.keys(map)) {
             map[key] = this.translate(map[key], category);
         }
         return map;

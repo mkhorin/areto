@@ -56,7 +56,7 @@ module.exports = class AssetBundle extends Base {
 
     renderCss () {
         let result = '';
-        for (let item of this.css) {
+        for (const item of this.css) {
             result += Array.isArray(item)
                 ? this.renderCssItem(item[0], {...this.cssOptions, ...item[1]})
                 : this.renderCssItem(item, this.cssOptions);

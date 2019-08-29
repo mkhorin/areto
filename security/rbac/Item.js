@@ -42,18 +42,18 @@ module.exports = class Item extends Base {
 
     async create () {
         if (!this.constructor.isType(this.data.type)) {
-            throw new Error(`RBAC item: ${this.name}: Invalid type: ${this.data.type}`);
+            throw new Error(`Item: ${this.name}: Invalid type: ${this.data.type}`);
         }
         const item = await this.store.findItemByName(this.name).one();
         if (item) {
-            return this.store.log('warn', `RBAC item already exists: ${this.name}`);
+            return this.store.log('warn', `Item already exists: ${this.name}`);
         }
         const data = {
             name: this.name,
             ...this.data,
             ...await this.resolveRelations()
         };
-        ObjectHelper.deleteProps(['children', 'parents'], data);
+        ObjectHelper.deleteProperties(['children', 'parents'], data);
         await this.store.findItem().insert(data);
     }
 
@@ -69,7 +69,7 @@ module.exports = class Item extends Base {
         }
         result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
         if (!result.rule) {
-            throw new Error(`Not found rule for RBAC item: ${this.name}`);
+            throw new Error(`Rule not found for item: ${this.name}`);
         }
     }
 
@@ -106,7 +106,7 @@ module.exports = class Item extends Base {
         if (items.length === this.data[relKey].length) {
             return items.map(item => item[this.store.key])
         }
-        throw new Error(`Not found '${this.data[relKey]}' ${relKey} for RBAC item: ${this.name}`);
+        throw new Error(`'${this.data[relKey]}' not found ${relKey} for item: ${this.name}`);
     }
 };
 module.exports.init();

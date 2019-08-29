@@ -10,10 +10,10 @@ module.exports = class Base {
 
     static init (nodeModule) {
         if (nodeModule) {
-            ClassHelper.defineClassProp(this, 'CLASS_FILE', nodeModule.filename);
-            ClassHelper.defineClassProp(this, 'CLASS_DIR', path.dirname(nodeModule.filename));
+            ClassHelper.defineClassProperty(this, 'CLASS_FILE', nodeModule.filename);
+            ClassHelper.defineClassProperty(this, 'CLASS_DIR', path.dirname(nodeModule.filename));
         }
-        ClassHelper.defineConstantClassProps(this);
+        ClassHelper.defineConstantClassProperties(this);
         return this;
     }
 
@@ -45,5 +45,5 @@ module.exports = class Base {
     }
 };
 
-// default - JSON.stringify(new RegExp) = {}
+// to fix JSON.stringify(new RegExp) => {}
 RegExp.prototype.toJSON = RegExp.prototype.toString;

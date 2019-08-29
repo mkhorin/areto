@@ -8,7 +8,7 @@ const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Module extends Base {
 
-    static getExtendedClassProps () {
+    static getExtendedClassProperties () {
         return [
             'COMPONENT_CONFIG'
         ];
@@ -116,7 +116,7 @@ module.exports = class Module extends Base {
         return path.join(this.CLASS_DIR, ...arguments);
     }
 
-    resolvePath () {
+    resolvePath () { // not ignore absolute path in arguments
         return path.resolve(this.CLASS_DIR, ...arguments);
     }
 
@@ -126,7 +126,7 @@ module.exports = class Module extends Base {
 
     requireInternal () {
         try {
-            return require(this.getPath(...arguments));
+            return require(this.resolvePath(...arguments));
         } catch (err) {}
     }
 
@@ -150,7 +150,7 @@ module.exports = class Module extends Base {
         if (module) {
             return module;
         }
-        let pos = name.indexOf('.');
+        const pos = name.indexOf('.');
         if (pos === -1) {
             return null;
         }
@@ -233,7 +233,7 @@ module.exports = class Module extends Base {
         await this.createOrigin();
         await this.createConfiguration();
         await this.createClassMapper();
-        this.extractConfigProps();
+        this.extractConfigProperties();
         this.setMountPath();
         this.attachStaticSource(this.getParam('static'));
         this.addViewEngine(this.getParam('template'));
@@ -253,7 +253,7 @@ module.exports = class Module extends Base {
             this.origin = this.spawn(this.origin);
             await this.origin.createConfiguration();
             await this.origin.createClassMapper();
-            this.origin.extractConfigProps();
+            this.origin.extractConfigProperties();
         }
     }
 
@@ -268,7 +268,7 @@ module.exports = class Module extends Base {
         this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIG_KEYS);
     }
 
-    extractConfigProps () {
+    extractConfigProperties () {
         this.params = this.getConfig('params') || {};
     }
 
@@ -284,7 +284,7 @@ module.exports = class Module extends Base {
     // MODULES
 
     async initModules (data = {}) {
-        for (let key of Object.keys(data)) {
+        for (const key of Object.keys(data)) {
             await this.initModule(key, data[key]);
         }
     }
@@ -305,7 +305,7 @@ module.exports = class Module extends Base {
 
     deepAssignComponent (name, newComponent) {
         const currentComponent = this.components.get(name);
-        for (let module of this.modules) {
+        for (const module of this.modules) {
             if (module.components.get(name) === currentComponent) {
                 module.deepAssignComponent(name, newComponent);
             }
@@ -318,8 +318,8 @@ module.exports = class Module extends Base {
             this.components.assign(this.parent.components); // inherit from parent
         }
         AssignHelper.assignUndefined(data, this.DEFAULT_COMPONENTS);
-        for (let id of Object.keys(data)) {
-            let component = this.createComponent(id, data[id]);
+        for (const id of Object.keys(data)) {
+            const component = this.createComponent(id, data[id]);
             if (component) {
                 this.ownComponents.set(id, component);
                 this.components.set(id, component); // with inherited components
@@ -370,7 +370,7 @@ module.exports = class Module extends Base {
     // INIT COMPONENT
 
     async initComponents () {
-        for (let component of this.sortComponents()) {
+        for (const component of this.sortComponents()) {
             await this.initComponent(component);
         }
     }
@@ -421,7 +421,7 @@ module.exports = class Module extends Base {
     }
 
     attachHandlers () {
-        for (let module of this.modules) {
+        for (const module of this.modules) {
             module.attachHandlers();
         }
         this.engine.attachHandlers();

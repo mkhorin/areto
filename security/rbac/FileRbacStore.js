@@ -26,7 +26,7 @@ module.exports = class FileRbacStore extends Base {
     getItems () {
         try {
             const items = this.require('items');
-            for (let name of Object.keys(items)) {
+            for (const name of Object.keys(items)) {
                 items[name].name = name;
             }
             return items;
@@ -48,8 +48,8 @@ module.exports = class FileRbacStore extends Base {
     getAssignments () {
         try {
             const assignments = this.require('assignments');
-            for (let id of Object.keys(assignments)) {
-                let items = Array.isArray(assignments[id]) ? assignments[id] : [assignments[id]];
+            for (const id of Object.keys(assignments)) {
+                const items = Array.isArray(assignments[id]) ? assignments[id] : [assignments[id]];
                 assignments[id] = {id, items};
             }
             return assignments;

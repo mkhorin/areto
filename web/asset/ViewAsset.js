@@ -11,12 +11,12 @@ module.exports = class ViewAsset extends Base {
 
     add (data) {
         if (typeof data !== 'string') {
-            let item = this.manager.createBundle(data);
+            const item = this.manager.createBundle(data);
             if (!this._bundles.has(item.name)) {
                 this._bundles.set(item.name, item);
             }
         } else if (!this._bundles.has(data)) {
-            let item = this.manager.getBundle(data);
+            const item = this.manager.getBundle(data);
             if (!item) {
                 return this.log('error', `Unknown asset name: ${data}`);
             }
@@ -38,13 +38,13 @@ module.exports = class ViewAsset extends Base {
             return content;
         }
         this.resolveBundles();
-        let anchors = Object.keys(this._positions).join('|');
+        const anchors = Object.keys(this._positions).join('|');
         return content.replace(new RegExp(`#asset{(${anchors})}`, 'g'), this.renderPosition.bind(this));
     }
 
     renderPosition (match, pos) {
         let result = '';
-        for (let bundle of this._resolvedBundles) {
+        for (const bundle of this._resolvedBundles) {
             result += bundle.render(pos);
         }
         return result;
@@ -57,7 +57,7 @@ module.exports = class ViewAsset extends Base {
     resolveBundles () {
         this._processedNames = {};
         this._resolvedBundles = [];
-        for (let bundle of this._bundles) {
+        for (const bundle of this._bundles) {
             this.processBundle(bundle);
         }
     }
@@ -78,8 +78,8 @@ module.exports = class ViewAsset extends Base {
     }
 
     processDepends (depends) {
-        for (let name of depends) {
-            let item = this.getBundle(name);
+        for (const name of depends) {
+            const item = this.getBundle(name);
             if (!item) {
                 return this.log('error', `Unknown depends name: ${name}`);
             }

@@ -7,12 +7,15 @@ const Base = require('./Base');
 
 module.exports = class Component extends Base {
 
+    static getExtendedClassProperties () {
+        return ['BEHAVIORS'];
+    }
+
     static getConstants () {
         return {
             // BEHAVIORS: { // auto-attached behaviors
                 // behavior1: require('./UserBehavior1'),
-                // behavior2: { Class: require('./UserBehavior2'), property1: ..., property2: ... }
-                // behavior3: new BehaviorClass,
+                // behavior2: {Class: require('./UserBehavior2'), property1: ..., property2: ...}
             // }
         };
     }
@@ -32,15 +35,23 @@ module.exports = class Component extends Base {
         });
     }
 
+    once () {
+        this.ensureBehaviors();
+        this.events.once(...arguments);
+    }
+
     on () {
+        this.ensureBehaviors();
         this.events.on(...arguments);
     }
 
     off () {
+        this.ensureBehaviors();
         this.events.off(...arguments);
     }
 
     trigger () {
+        this.ensureBehaviors();
         return this.events.trigger(...arguments);
     }
 

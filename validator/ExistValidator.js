@@ -42,7 +42,7 @@ module.exports = class ExistValidator extends Base {
         const values = {};
         const targetAttr = this.targetAttr || attr;
         if (Array.isArray(targetAttr)) {
-            for (let name of targetAttr) {
+            for (const name of targetAttr) {
                 values[name] = model.get(attr);
             }
         } else {
@@ -55,7 +55,7 @@ module.exports = class ExistValidator extends Base {
         const queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
         const query = queryModel.find();
         if (this.ignoreCase) {
-            for (let name of Object.keys(values)) {
+            for (const name of Object.keys(values)) {
                 query.and(['LIKE', name, values[name]]);
             }
         } else {

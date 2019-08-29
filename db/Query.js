@@ -52,7 +52,7 @@ module.exports = class Query extends Base {
 
     select (data) {
         if (Array.isArray(data)) {
-            for (let item of data) {
+            for (const item of data) {
                 this.addSelect(item);
             }
         } else if (typeof data === 'string') {
@@ -65,7 +65,7 @@ module.exports = class Query extends Base {
 
     addSelect (data) {
         if (Array.isArray(data)) {
-            for (let item of data) {
+            for (const item of data) {
                 this.addSelect(item);
             }
         } else if (!this._select) {
@@ -82,7 +82,7 @@ module.exports = class Query extends Base {
     // WHERE
 
     where (condition) {
-        this._where = condition ? condition : null;
+        this._where = condition;
         return this;
     }
 
@@ -90,20 +90,26 @@ module.exports = class Query extends Base {
         return this._where;
     }
 
-    and (condition) {
-        if (condition) {
-            this._where = this._where
-                ? ['AND', this._where, condition]
-                : condition;
+    addWhere (operator, ...args) {
+        if (!this._where) {
+            this._where = args.length > 1 ? [operator, ...args] : args[0];
+        } else if (this._where[0] === operator) {
+            this._where.push(...args);
+        } else {
+            this._where = [operator, this._where, ...args];
+        }
+    }
+
+    and () {
+        if (arguments[0]) {
+            this.addWhere('AND', ...arguments);
         }
         return this;
     }
 
-    or (condition) {
-        if (condition) {
-            this._where = this._where
-                ? ['OR', this._where, condition]
-                : condition;
+    or () {
+        if (arguments[0]) {
+            this.addWhere('OR', ...arguments);
         }
         return this;
     }
@@ -122,16 +128,6 @@ module.exports = class Query extends Base {
 
     andNotIn (key, value) {
         return this.and(['NOT IN', key, value]);
-    }
-
-    andJoinByOr (conditions) {
-        if (conditions.length === 1) {
-            return this.and(conditions[0]);
-        }
-        if (conditions.length > 1) {
-            return this.and(['OR', ...conditions]);
-        }
-        return this;
     }
 
     // ORDER
@@ -283,7 +279,7 @@ module.exports = class Query extends Base {
 
     filterSerialCondition (data) { // OR AND NOT
         for (let i = data.length - 1; i > 0; --i) {
-            let item = this.filterCondition(data[i]);
+            const item = this.filterCondition(data[i]);
             if (this.isEmptyValue(item)) {
                 data.splice(i, 1);
             } else {
@@ -296,7 +292,7 @@ module.exports = class Query extends Base {
     // hash format: { column1: value1, column2: value2, ... }
     filterHashCondition (data) {
         const result = {};
-        for (let key of Object.keys(data)) {
+        for (const key of Object.keys(data)) {
             if (!this.isEmptyValue(data[key])) {
                 result[key] = data[key];
             }
@@ -304,19 +300,19 @@ module.exports = class Query extends Base {
         return Object.values(result).length ? result : null;
     }
 
-    // по массиву ключей упорядочить массив объектов с ключевым атрибутом (подмножество массива ключей)
+    // sort an array of objects with a key attribute by an array of keys
     sortOrderByIn (docs) {
         const keys = this._orderByIn;
         if (!Array.isArray(keys) || keys.length < 2) {
             return docs;
         }
-        // docs can be with equals key
-        let map = IndexHelper.indexObjects(docs, this.refKey);
+        // docs can be with equals key values
+        const data = IndexHelper.indexObjects(docs, this.refKey);
         let result = [];
-        for (let key of keys) {
-            if (Object.prototype.hasOwnProperty.call(map, key)) {
-                result = result.concat(map[key]);
-                delete map[key];
+        for (const key of keys) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                result = result.concat(data[key]);
+                delete data[key];
             }
         }
         return result;

@@ -30,8 +30,8 @@ module.exports = class Forwarder extends Base {
 
     createItems () {
         this._urls = [];
-        for (let source of Object.keys(this.items)) {
-            let data = this.items[source];
+        for (const source of Object.keys(this.items)) {
+            let data = this.items[source];            
             data = data instanceof Object ? data : {target: data};
             data.source = source;
             this._urls.push(ClassHelper.spawn(this.Url, data));
@@ -62,8 +62,8 @@ module.exports = class Forwarder extends Base {
     }
 
     resolvePath (path, method) {
-        for (let url of this._urls) {
-            let data = url.resolve(path, method);
+        for (const url of this._urls) {
+            const data = url.resolve(path, method);
             if (data) {
                 return data;
             }

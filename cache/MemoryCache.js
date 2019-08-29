@@ -10,7 +10,7 @@ module.exports = class MemoryCache extends Base {
     _cache = {};
 
     getValue (key) {
-        let value = this._cache[key];
+        const value = this._cache[key];
         if (value && (value[1] === 0 || value[1] > Date.now())) {
             return value[0];
         }

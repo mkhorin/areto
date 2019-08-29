@@ -7,8 +7,8 @@ const Base = require('./Query');
 
 module.exports = class ActiveQuery extends Base {
 
-    _db = this.model && this.model.getDb();
-    _from = this.model && this.model.getTable();
+    _db = this.model.getDb();
+    _from = this.model.getTable();
     _raw = null;
 
     id () {
@@ -25,13 +25,9 @@ module.exports = class ActiveQuery extends Base {
     }
 
     exceptModel (model) {
-        if (model instanceof this.model.constructor) {
-            return model.getId()
-                ? this.and(['!=', model.PK, model.getId()])
-                : this;
-        }
-        this.model.log('error', this.wrapClassMessage(`exceptModel: Invalid model`));
-        return this;
+        return model && model.getId()
+            ? this.and(['!=', model.PK, model.getId()])
+            : this;
     }
 
     // PREPARE
@@ -102,7 +98,7 @@ module.exports = class ActiveQuery extends Base {
 
     async afterPrepare () {
         if (Array.isArray(this._afterPrepareHandlers)) {
-            for (let handler of this._afterPrepareHandlers) {
+            for (const handler of this._afterPrepareHandlers) {
                 await handler(this);
             }
         }
@@ -181,7 +177,7 @@ module.exports = class ActiveQuery extends Base {
 
     with (...args) {
         this._with = this._with || {};
-        for (let data of args) {
+        for (const data of args) {
             if (!data) {
             } else if (typeof data === 'string') {
                 this._with[data] = true;
@@ -246,8 +242,8 @@ module.exports = class ActiveQuery extends Base {
 
     async findWith (data, models) {
         data = QueryHelper.normalizeRelations(this.model.spawn(), data);
-        for (let name of Object.keys(data)) {
-            let relation = data[name];
+        for (const name of Object.keys(data)) {
+            const relation = data[name];
             if (relation.getRaw() === null) { // relation is ActiveQuery
                 relation.raw(this._raw); // inherit from primary query
             }
@@ -261,16 +257,15 @@ module.exports = class ActiveQuery extends Base {
 
     // POPULATE
 
-    async populate (docs) {
+    populate (docs) {
         if (this._raw) {
             return super.populate(docs);
         }
         const models = [];
-        for (let doc of docs) {
-            let model = this.model.spawn();
+        for (const doc of docs) {
+            const model = this.model.spawn();
             model.populateRecord(doc);
             models.push(model);
-            await model.afterFind();
         }
         return this.populateWith(models);
     }
@@ -285,27 +280,27 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async populateRelation (name, primaryModels) {
-        let [viaModels, viaQuery] = await this.populateViaRelation(primaryModels);
+        const [viaModels, viaQuery] = await this.populateViaRelation(primaryModels);
         if (!this._multiple && primaryModels.length === 1) {
-            let model = await this.one();
+            const model = await this.one();
             if (!model) {
                 return [];
             }
             this.populateOneRelation(name, model, primaryModels);
             return [model];
         }
-        let index = this._index;
+        const index = this._index;
         this._index = null;
-        let models = await this.all();
-        let buckets = this.getRelationBuckets(models, viaModels, viaQuery);
+        const models = await this.all();
+        const buckets = this.getRelationBuckets(models, viaModels, viaQuery);
         this._index = index;
-        let key = viaQuery ? viaQuery.linkKey : this.linkKey;
+        const key = viaQuery ? viaQuery.linkKey : this.linkKey;
         this.populateMultipleRelation(name, primaryModels, buckets, key);
         return models;
     }
 
     populateOneRelation (name, model, primaryModels) {
-        for (let pm of primaryModels) {
+        for (const pm of primaryModels) {
             if (pm instanceof ActiveRecord) {
                 pm.populateRelation(name, model);
             } else {
@@ -315,13 +310,13 @@ module.exports = class ActiveQuery extends Base {
     }
 
     populateMultipleRelation (name, primaryModels, buckets, linkKey) {
-        for (let pm of primaryModels) {
-            let key = QueryHelper.getAttr(pm, linkKey);
+        for (const pm of primaryModels) {
+            const key = QueryHelper.getAttr(pm, linkKey);
             let value = this._multiple ? [] : null;
             if (Array.isArray(key)) {
-                for (let k of key) {
-                    if (Object.prototype.hasOwnProperty.call(buckets, k)) {
-                        value = value.concat(buckets[k]);
+                for (const item of key) {
+                    if (Object.prototype.hasOwnProperty.call(buckets, item)) {
+                        value = value.concat(buckets[item]);
                     }
                 }
             } else if (Object.prototype.hasOwnProperty.call(buckets, key)) {
@@ -365,7 +360,7 @@ module.exports = class ActiveQuery extends Base {
             ? this.buildViaBuckets(models, viaModels, viaQuery.refKey)
             : this.buildBuckets(models, this.refKey);
         if (!this._multiple) {
-            for (let name of Object.keys(buckets)) {
+            for (const name of Object.keys(buckets)) {
                 buckets[name] = buckets[name][0];
             }
         }
@@ -374,18 +369,18 @@ module.exports = class ActiveQuery extends Base {
 
     buildViaBuckets (models, viaModels, viaRefKey) {
         const buckets = {}, map = {};
-        for (let vm of viaModels) {
-            let ref = QueryHelper.getAttr(vm, viaRefKey);
-            let link = QueryHelper.getAttr(vm, this.linkKey);
+        for (const vm of viaModels) {
+            const ref = QueryHelper.getAttr(vm, viaRefKey);
+            const link = QueryHelper.getAttr(vm, this.linkKey);
             if (!Object.prototype.hasOwnProperty.call(map, link)) {
                 map[link] = {};
             }
             map[link][ref] = true;
         }
-        for (let model of models) {
-            let ref = QueryHelper.getAttr(model, this.refKey);
+        for (const model of models) {
+            const ref = QueryHelper.getAttr(model, this.refKey);
             if (map[ref]) {
-                for (let k of Object.keys(map[ref])) {
+                for (const k of Object.keys(map[ref])) {
                     if (Array.isArray(buckets[k])) {
                         buckets[k].push(model);
                     } else {
@@ -399,8 +394,8 @@ module.exports = class ActiveQuery extends Base {
 
     buildBuckets (models) {
         const buckets = {};
-        for (let model of models) {
-            let key = QueryHelper.getAttr(model, this.refKey);
+        for (const model of models) {
+            const key = QueryHelper.getAttr(model, this.refKey);
             if (Array.isArray(buckets[key])) {
                 buckets[key].push(model);
             } else {
@@ -415,13 +410,14 @@ module.exports = class ActiveQuery extends Base {
     filterByModels (models) {
         if (!Array.isArray(models)) {
             return;
-        }    
-        let attr = this.linkKey, values = [], value;
-        let isActiveRecord = models[0] instanceof ActiveRecord;
-        for (let model of models) {
-            value = isActiveRecord ? model.get(attr) : model[attr];
+        }
+        const values = [];
+        const isActiveRecord = models[0] instanceof ActiveRecord;
+        const attr = this.linkKey;
+        for (const model of models) {
+            const value = isActiveRecord ? model.get(attr) : model[attr];
             if (Array.isArray(value)) {
-                values = values.concat(value);
+                values.push(...value);
             } else if (value !== undefined && value !== null && value !== '') {
                 values.push(value);
             }

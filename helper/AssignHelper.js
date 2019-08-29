@@ -6,9 +6,9 @@
 module.exports = class AssignHelper {
 
     static assignUndefined (target, ...args) {
-        for (let source of args) {
+        for (const source of args) {
             if (source && typeof source === 'object') {
-                for (let key of Object.keys(source)) {
+                for (const key of Object.keys(source)) {
                     if (!Object.prototype.hasOwnProperty.call(target, key)) {
                         target[key] = source[key];
                     }
@@ -19,14 +19,14 @@ module.exports = class AssignHelper {
     }
 
     static deepAssign (target, ...args) {
-        for (let arg of args) {
+        for (const arg of args) {
             this._assign(target, arg);
         }
         return target;
     }
 
     static deepAssignUndefined (target, ...args) {
-        for (let arg of args) {
+        for (const arg of args) {
             this._assignUndefined(target, arg);
         }
         return target;
@@ -36,48 +36,50 @@ module.exports = class AssignHelper {
 
     static _assign (to, from) {
         if (from && typeof from === 'object') {
-            for (let prop of Object.keys(from)) {
-                this._assignProp(to, from, prop);
+            for (const key of Object.keys(from)) {
+                this._assignProperty(to, from, key);
             }
         }
         return to;
     }
 
-    static _assignProp (to, from, prop) {
-        if (Object.prototype.hasOwnProperty.call(from, prop)) {
-            from = from[prop];
-            if (from && typeof from === 'object' && !Array.isArray(from)) {
-                if (Object.prototype.hasOwnProperty.call(to, prop) && to[prop] && typeof to[prop] === 'object') {
-                    to[prop] = this._assign(to[prop], from);
-                } else {
-                    to[prop] = this._assign({}, from);
-                }
+    static _assignProperty (to, from, key) {
+        if (!Object.prototype.hasOwnProperty.call(from, key)) {
+            return;
+        }
+        from = from[key];
+        if (from && typeof from === 'object' && !Array.isArray(from)) {
+            if (Object.prototype.hasOwnProperty.call(to, key) && to[key] && typeof to[key] === 'object') {
+                to[key] = this._assign(to[key], from);
             } else {
-                to[prop] = from;
+                to[key] = this._assign({}, from);
             }
+        } else {
+            to[key] = from;
         }
     }
 
     static _assignUndefined (to, from) {
         if (from && typeof from === 'object') {
-            for (let prop of Object.keys(from)) {
-                this._assignUndefinedProp(to, from, prop);
+            for (const key of Object.keys(from)) {
+                this._assignUndefinedProperty(to, from, key);
             }
         }
         return to;
     }
 
-    static _assignUndefinedProp (to, from, prop) {
-        if (Object.prototype.hasOwnProperty.call(from, prop)) {
-            from = from[prop];
-            if (Object.prototype.hasOwnProperty.call(to, prop)) {
-                to = to[prop];
-                if (from && typeof from === 'object' && to && typeof to === 'object') {
-                    this._assignUndefined(to, from);
-                }
-            } else {
-                to[prop] = from;
+    static _assignUndefinedProperty (to, from, key) {
+        if (!Object.prototype.hasOwnProperty.call(from, key)) {
+            return;
+        }
+        from = from[key];
+        if (Object.prototype.hasOwnProperty.call(to, key)) {
+            to = to[key];
+            if (from && typeof from === 'object' && to && typeof to === 'object') {
+                this._assignUndefined(to, from);
             }
+        } else {
+            to[key] = from;
         }
     }
 };

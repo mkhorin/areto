@@ -18,13 +18,15 @@ module.exports = class Scheduler extends Base {
     constructor (config) {
         super({
             tasks: {},
-            refreshInterval: 60, // sec
+            refreshInterval: 60, // seconds
+            Task: require('./Task'),
             ...config
         });
-        this._taskMap = {};
+        this._taskMap = new DataMap;
         this._taskBeforeRunHandler = this.taskBeforeRun.bind(this);
         this._taskDoneHandler = this.taskDone.bind(this);
         this._taskFailHandler = this.taskFail.bind(this);
+        this.Task = ClassHelper.normalizeSpawn(this.Task);
     }
 
     init () {
@@ -48,78 +50,92 @@ module.exports = class Scheduler extends Base {
         }
     }
 
-    refresh () {
-        for (let task of Object.values(this._taskMap)) {
-            task.refresh();
+    async refresh () {
+        for (const task of this._taskMap) {
+            await task.refresh();
         }
         this.start();
     }
 
     // TASKS
     
-    getTask (name) {
-        return this._taskMap[name] instanceof Task ? this._taskMap[name] : null;
+    getTask (id) {
+        return this._taskMap.get(id);
     }
 
     addTasks (data, params) {
         if (data) {
-            for (let name of Object.keys(data)) {
-                this.addTask(name, data[name], params);
+            for (const id of Object.keys(data)) {
+                this.addTask(id, data[id], params);
             }
         }
     }
 
-    addTask (name, config, params) {
-        if (this.getTask(name)) {
-            return this.log('error', `Task already exists: ${name}`);
+    addTask (id, config, params) {
+        if (this.getTask(id)) {
+            return this.log('error', `Task already exists: ${id}`);
         }
         try {
-            this._taskMap[name] = this.createTask(name, config, params);
-            this._taskMap[name].init();
-            this.log('info', `Task added: ${name}`);
+            const task = this.createTask(id, config, params);
+            task.init();
+            this._taskMap.set(id, task);
+            this.log('info', `Task added: ${id}`);
         } catch (err) {
-            this.log('error', `Invalid task: ${name}`, err);
+            this.log('error', `Invalid task: ${id}`, err);
         }
     }
 
-    createTask (name, config, params) {
-        config.Class = config.Class || Task;
-        const task = this.spawn(config, {...params, name, scheduler: this});
+    createTask (id, config, params) {
+        config = {...this.Task, ...config};
+        const task = this.spawn(config, {...params, id, scheduler: this});
         task.on(task.EVENT_BEFORE_RUN, this._taskBeforeRunHandler);
         task.on(task.EVENT_DONE, this._taskDoneHandler);
         task.on(task.EVENT_FAIL, this._taskFailHandler);
         return task;
     }
 
-    removeTask (name) {
-        const task = this.getTask(name);
+    removeTask (id) {
+        const task = this.getTask(id);
         if (!task) {
-            return this.log('error', `Task not found: ${name}`);
+            return this.log('error', `Task not found: ${id}`);
         }
-        try {
-            this.detachTask(task);
-            delete this._taskMap[name];
-            this.log('info', `Task removed: ${name}`);
+        if (this.detachTask(task)) {
+            this._taskMap.unset(id);
+            this.log('info', `Task removed: ${id}`);
             return true;
-        } catch (err) {
-            this.log('error', `Task removal failed: ${name}`, err);
         }
+    }
+
+    removeAllTasks () {
+        for (const task of this._taskMap) {
+            this.detachTask(task);
+        }
+        this._taskMap.clear();
     }
 
     detachTask (task) {
-        task.off(task.EVENT_BEFORE_RUN, this._taskBeforeRunHandler);
-        task.off(task.EVENT_DONE, this._taskDoneHandler);
-        task.off(task.EVENT_FAIL, this._taskFailHandler);
-        task.stop();
+        try {
+            task.off();
+            task.stop();
+            return true;
+        } catch (err) {
+            this.log('error', `Task detaching failed: ${task.id}`, err);
+        }
     }
 
-    executeTask (name) {
-        const task = this.getTask(name);
+    executeTask (id) {
+        const task = this.getTask(id);
         if (!task) {
-            return this.log('error', `Task not found: ${name}`);
+            return this.log('error', `Task not found: ${id}`);
         }
-        if (!task.isRunning()) {
-            task.execute();
+        return task.isActive() ? task.execute() : null;
+    }
+
+    async executeTasks (ids) {
+        if (Array.isArray(ids)) {
+            for (const id of ids) {
+                await this.executeTask(id);
+            }
         }
     }
 
@@ -128,15 +144,16 @@ module.exports = class Scheduler extends Base {
     }
 
     taskDone (event) {
-        this.log('info', `Task done: ${event.sender.name}`, event.result);
-        this.trigger(this.EVENT_TASK_DONE, event);
+        this.log('info', `Task done: ${event.sender.id}`, event.result);
+        return this.trigger(this.EVENT_TASK_DONE, event);
     }
     
     taskFail (event) {
-        this.log('error', `Task failed: ${event.sender.name}:`, event.error);
-        this.trigger(this.EVENT_TASK_FAIL, event);
+        this.log('error', `Task failed: ${event.sender.id}:`, event.error);
+        return this.trigger(this.EVENT_TASK_FAIL, event);
     }
 };
 module.exports.init();
 
-const Task = require('./Task');
+const ClassHelper = require('../helper/ClassHelper');
+const DataMap = require('../base/DataMap');

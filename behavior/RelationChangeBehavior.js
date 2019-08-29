@@ -28,7 +28,7 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     async afterSave () {
-        for (let key of Object.keys(this._changes)) {
+        for (const key of Object.keys(this._changes)) {
             await this.changeRelations(this._changes[key], key);
         }
     }
@@ -49,7 +49,7 @@ module.exports = class RelationChangeBehavior extends Base {
             return;
         }
         this._resolved = true;
-        for (let name of this.getActiveRelationNames()) {
+        for (const name of this.getActiveRelationNames()) {
             this._changes[name] = CommonHelper.parseRelationChanges(this.owner.get(name));
             this.restoreValue(name);
             if (this._changes[name]) {
@@ -62,7 +62,7 @@ module.exports = class RelationChangeBehavior extends Base {
 
     getActiveRelationNames () {
         let names = [];
-        for (let item of this.owner.getValidators()) {
+        for (const item of this.owner.getValidators()) {
             if (item instanceof Validator.BUILTIN.relation && item.isActive(this.owner.scenario)) {
                 names = names.concat(item.attrs);
             }
@@ -71,17 +71,17 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     restoreValue (name) {
-        let value = this.owner.getOldAttr(name);
+        const value = this.owner.getOldAttr(name);
         if (value !== undefined) {
             return this.owner.set(name, value);
         }
-        let rel = this.getRelation(name);
+        const rel = this.getRelation(name);
         this.owner.set(name, rel.isInternalArray() ? [] : null);
     }
 
     async resolveTypeChanges (type, attr) {
         if (this._changes[attr][type].length) {
-            let rel = this.getRelation(attr);
+            const rel = this.getRelation(attr);
             this._changes[attr][type] = await rel.model.findById(this._changes[attr][type]).all();
         }
     }
@@ -92,17 +92,17 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         delete this._changes[name];
         if (Array.isArray(data.removes)) {
-            for (let model of data.removes) {
+            for (const model of data.removes) {
                 await model.remove();
             }
         }
         if (Array.isArray(data.unlinks)) {
-            for (let model of data.unlinks) {
+            for (const model of data.unlinks) {
                 await this.owner.getLinker().unlink(name, model);
             }
         }
         if (Array.isArray(data.links)) {
-            for (let model of data.links) {
+            for (const model of data.links) {
                 await this.owner.getLinker().link(name, model);
             }
         }
@@ -116,15 +116,15 @@ module.exports = class RelationChangeBehavior extends Base {
         const relation = this.getRelation(name);
         const docs = await relation.raw().all();
         const map = {};
-        for (let doc of docs) {
+        for (const doc of docs) {
             map[doc[relation.model.PK]] = doc;
         }
         const data = this._changes[name];
         if (data) {
-            for (let model of data.links) {
+            for (const model of data.links) {
                 map[model.getId()] = model.getAttrMap();
             }
-            for (let model of data.unlinks.concat(data.removes)) {
+            for (const model of data.unlinks.concat(data.removes)) {
                 delete map[model.getId()];
             }
         }
@@ -132,14 +132,14 @@ module.exports = class RelationChangeBehavior extends Base {
         return this._linkedDocs;
     }
 
-    // EXIST
+    // EXISTs
 
-    async checkExist (name) {
+    async checkExists (name) {
         const rel = this.getRelation(name);
         if (rel.isMultiple()) {
             throw new Error(this.wrapClassMessage(`Multiple relation cannot be checked for exist: ${name}`));
         }
-        let docs = await this.getLinkedDocs(name);
+        const docs = await this.getLinkedDocs(name);
         if (docs.length === 0) {
             return null;
         }
@@ -152,25 +152,22 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     async checkRefExist (rel, doc) {
-        let ids = await this.owner.find({[rel.linkKey]: doc[rel.refKey]}).limit(2).column(this.owner.PK);
-        return this.checkExistId(this.owner.getId(), ids);
+        const ids = await this.owner.find({[rel.linkKey]: doc[rel.refKey]}).limit(2).ids();
+        return this.isExistingId(this.owner.getId(), ids);
     }
 
     async checkBackRefExist (rel, doc) {
-        let ids = await rel.model.find({[rel.refKey]: this.owner.get(rel.linkAttr)}).limit(2).column(rel.model.PK);
-        return this.checkExistId(doc[rel.model.PK], ids);
+        const ids = await rel.model.find({[rel.refKey]: this.owner.get(rel.linkAttr)}).limit(2).ids();
+        return this.isExistingId(doc[rel.model.PK], ids);
     }
 
-    checkExistId (id, ids) {
-        return ids.length === 0
-            ? false : ids.length === 1
-                ? !MongoHelper.isEqual(id, ids[0]) : true;
+    isExistingId (id, ids) {
+        return ids.length === 1 ? !CommonHelper.isEqual(id, ids[0]) : ids.length > 1;
     }
 };
 
 const ArrayHelper = require('../helper/ArrayHelper');
 const CommonHelper = require('../helper/CommonHelper');
-const MongoHelper = require('../helper/MongoHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
 const ActiveRecord = require('../db/ActiveRecord');
 const Validator = require('../validator/Validator');

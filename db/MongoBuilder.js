@@ -50,15 +50,15 @@ module.exports = class MongoBuilder extends Base {
         query.cmd = {
             from: query._from
         };
-        let select = this.buildSelect(query._select);
+        const select = this.buildSelect(query._select);
         if (select) {
             query.cmd.select = select;
         }
-        let where = this.buildWhere(query._where);
+        const where = this.buildWhere(query._where);
         if (where) {
             query.cmd.where = where;
         }
-        let order = this.buildOrder(query._order);
+        const order = this.buildOrder(query._order);
         if (order) {
             query.cmd.order = order;
         }
@@ -80,31 +80,29 @@ module.exports = class MongoBuilder extends Base {
         if (!order) {
             return undefined;
         }
-        let result = {};
-        for (let key of Object.keys(order)) {
+        const result = {};
+        for (const key of Object.keys(order)) {
             result[key] = order[key] === 1 ? 1 : -1;
         }
         return result;
     }
 
     buildWhere (condition) {
-        return typeof condition === 'object' ? this.buildCondition(condition) : {};
+        return condition ? this.buildCondition(condition) : {};
     }
 
     buildCondition (data) {
         if (!Array.isArray(data)) {
-            // hash format: {column1: value1}
-            return this.buildHashCondition(data);
+            return this.buildHashCondition(data); // hash format: {column1: value1}
         }
-        // format: operator, operand 1, operand 2
         return this.CONDITION_BUILDERS.hasOwnProperty(data[0])
             ? this[this.CONDITION_BUILDERS[data[0]]](...data)
-            : this.buildSimpleCondition(...data);
+            : this.buildSimpleCondition(...data); // format: operator, operand 1, operand 2
     }
 
     buildHashCondition (data) {
         if (data) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 if (Array.isArray(data[key])) {
                     data[key] = {$in: data[key]};
                 }
@@ -121,8 +119,8 @@ module.exports = class MongoBuilder extends Base {
     }
 
     buildLogicCondition (operator, ...operands) {
-        let items = [];
-        for (let operand of operands) {
+        const items = [];
+        for (const operand of operands) {
             items.push(this.buildCondition(operand));
         }
         operator = operator === 'AND' ? '$and' : operator === 'OR' ? '$or' : '$nor';

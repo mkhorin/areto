@@ -16,15 +16,15 @@ module.exports = class UniqueValidator extends Base {
         const values = this.resolveValues(model, attr);
         const query = this.createQuery(values, model, attr);
         const ids = await query.limit(2).column(targetClass.PK);
-        if (this.checkExist(ids, model, targetClass)) {
+        if (this.checkExists(ids, model, targetClass)) {
             this.addError(model, attr, this.getMessage());
         }
     }
 
-    checkExist (ids, model, targetClass) {
+    checkExists (ids, model, targetClass) {
         if (ids.length === 1) {
             if (targetClass === model.constructor) {
-                return !model.getId() || !MongoHelper.isEqual(model.getId(), ids[0]);
+                return !model.getId() || !CommonHelper.isEqual(model.getId(), ids[0]);
             }
         } else if (ids.length === 0) {
             return false;
@@ -33,4 +33,4 @@ module.exports = class UniqueValidator extends Base {
     }
 };
 
-const MongoHelper = require('../helper/MongoHelper');
+const CommonHelper = require('../helper/CommonHelper');

@@ -10,26 +10,27 @@ module.exports = class QueryHelper {
     }
 
     static indexObjects (docs, key) {
-        let result = {};
-        for (let doc of docs) {
+        const result = {};
+        for (const doc of docs) {
             result[typeof key === 'function' ? key(doc) : doc[key]] = doc;
         }
         return result;
     }
 
     static indexModels (models, key) {
-        let result = {};
-        for (let model of models) {
+        const result = {};
+        for (const model of models) {
             result[typeof key === 'function' ? key(model) : model.get(key)] = model;
         }
         return result;
     }
 
     static normalizeRelations (model, data) {
-        let result = {}, relation, value, pos, tail;
+        const result = {};
+        let tail, relation;
         for (let name of Object.keys(data)) {
-            value = data[name];
-            pos = name.indexOf('.');
+            const value = data[name];
+            const pos = name.indexOf('.');
             if (pos > 0) {
                 tail = name.substring(pos + 1);
                 name = name.substring(0, pos);
@@ -55,7 +56,7 @@ module.exports = class QueryHelper {
 
     static unlinkInternal (ref, link, model, key) {
         if (Array.isArray(ref)) {
-            let index = MongoHelper.indexOf(link, ref);
+            const index = ArrayHelper.indexOf(link, ref);
             if (index !== - 1) {
                 ref.splice(index, 1);
             }
@@ -66,5 +67,5 @@ module.exports = class QueryHelper {
     }
 };
 
-const MongoHelper = require('./MongoHelper');
+const ArrayHelper = require('./ArrayHelper');
 const ActiveRecord = require('../db/ActiveRecord');

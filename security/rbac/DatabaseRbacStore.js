@@ -44,21 +44,21 @@ module.exports = class DatabaseRbacStore extends Base {
     prepare (data) {
         const {ruleMap, itemMap} = data;
         const rules = {};
-        for (let id of Object.keys(ruleMap)) {
-            let rule = this.prepareRule(ruleMap[id]);
+        for (const id of Object.keys(ruleMap)) {
+            const rule = this.prepareRule(ruleMap[id]);
             ruleMap[id] = rule;
             rules[rule.name] = rule;
         }
         const items = {};
-        for (let id of Object.keys(itemMap)) {
-            let item = itemMap[id];
+        for (const id of Object.keys(itemMap)) {
+            const item = itemMap[id];
             item.children = this.getItemChildren(id, data);
             item.rule = ruleMap.hasOwnProperty(item.rule) ? ruleMap[item.rule].name : null;
             items[item.name] = item;
         }
         const assignments = {};
-        for (let assignment of data.assignments) {
-            let item = itemMap[assignment.item];
+        for (const assignment of data.assignments) {
+            const item = itemMap[assignment.item];
             if (item) {
                 if (!assignments[assignment.user]) {
                     assignments[assignment.user] = [];
@@ -69,13 +69,11 @@ module.exports = class DatabaseRbacStore extends Base {
         return {rules, items, assignments};
     }
 
-    prepareRule ({name, spawnConfig}) {
-        const config = spawnConfig || {};
-        config.Class = config.Class || Rule;
+    prepareRule ({name, config}) {
         try {
-            ClassHelper.resolveSpawnClass(config, this.rbac.module);
+            config = ClassHelper.resolveSpawn(Rule, this.rbac.module, config);
         } catch (err) {
-            this.log('error', `Invalid rule file: ${config.Class}`);
+            this.log('error', `Invalid rule: ${JSON.stringify(config)}`);
             config.Class = Rule;
         }
         if (!(config.Class.prototype instanceof Rule) && config.Class !== Rule) {
@@ -87,8 +85,8 @@ module.exports = class DatabaseRbacStore extends Base {
 
     getItemChildren (id, {links, itemMap}) {
         const children = [];
-        for (let link of links) {
-            if (MongoHelper.isEqual(link.parent, id) && itemMap[link.child]) {
+        for (const link of links) {
+            if (CommonHelper.isEqual(link.parent, id) && itemMap[link.child]) {
                 children.push(itemMap[link.child].name);
             }
         }
@@ -155,7 +153,7 @@ module.exports = class DatabaseRbacStore extends Base {
 
     async createTypeItems (type, items) {
         if (items) {
-            for (let name of Object.keys(items)) {
+            for (const name of Object.keys(items)) {
                 items[name].type = type;
             }
             await this.createItems(items);
@@ -164,13 +162,13 @@ module.exports = class DatabaseRbacStore extends Base {
 
     async createItems (data) {
         const items = this.prepareItems(data);
-        for (let item of items) {
+        for (const item of items) {
             await item.create();
         }
-        for (let item of items) {
+        for (const item of items) {
             await item.setChildren();
         }
-        for (let item of items) {
+        for (const item of items) {
             await item.setParents();
         }
     }
@@ -188,7 +186,7 @@ module.exports = class DatabaseRbacStore extends Base {
 
     async createRules (data) {
         if (data) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 await this.createRule(data[key], key);
             }
         }
@@ -204,7 +202,7 @@ module.exports = class DatabaseRbacStore extends Base {
 
     async createAssignments (data) {
         if (data) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 await this.createAssignment(data[key], key);
             }
         }
@@ -216,14 +214,14 @@ module.exports = class DatabaseRbacStore extends Base {
         }
         const items = await this.findItemByName(names).column(this.key);
         if (items.length !== names.length) {
-            throw new Error(`RBAC: Not found assignment item: ${names}`);
+            throw new Error(`RBAC: Assignment item not found: ${names}`);
         }
-        const model = await this.rbac.findUserModel(user).one();
+        const model = await this.rbac.findUser(user).one();
         if (!model) {
-            throw new Error(`RBAC: Not found user: ${user}`);
+            throw new Error(`RBAC: User not found: ${user}`);
         }
         user = model.getId();
-        for (let item of items) {
+        for (const item of items) {
             if (!await this.findAssignment().and({user, item}).one()) {
                 await this.findAssignment().insert({user, item});
             }
@@ -233,6 +231,6 @@ module.exports = class DatabaseRbacStore extends Base {
 module.exports.init();
 
 const ClassHelper = require('../../helper/ClassHelper');
-const MongoHelper = require('../../helper/MongoHelper');
+const CommonHelper = require('../../helper/CommonHelper');
 const Query = require('../../db/Query');
 const Rule = require('./Rule');

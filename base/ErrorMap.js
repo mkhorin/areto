@@ -8,22 +8,20 @@ module.exports = class ErrorMap {
     _data = {};
 
     has (key) {
-        return key
-            ? Object.prototype.hasOwnProperty.call(this._data, key)
-            : Object.values(this._data).length > 0;
+        return key ? Object.prototype.hasOwnProperty.call(this._data, key)
+                   : Object.values(this._data).length > 0;
     }
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key)
-            ? this._data[key]
-            : [];
+        return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : [];
     }
 
-    getOneFirst (key) {
+
+    getFirst (key) {
         if (key) {
             return this.has(key) ? this._data[key][0] : '';
         }
-        for (let items of Object.values(this._data)) {
+        for (const items of Object.values(this._data)) {
             if (items.length) {
                 return items[0];
             }
@@ -33,7 +31,7 @@ module.exports = class ErrorMap {
 
     getAllFirst () {
         const result = {};
-        for (let key of Object.keys(this._data)) {
+        for (const key of Object.keys(this._data)) {
             if (this._data[key].length) {
                 result[key] = this._data[key][0];
             }
@@ -41,30 +39,32 @@ module.exports = class ErrorMap {
         return result;
     }
 
-    add (key, value) {
-        if (!value) {
-            return false;
+    add (key, error) {
+        if (!error) {
+            return this;
         }
-        if (!this.has(key)) {
-            this._data[key] = [];
+        if (Array.isArray(this._data[key])) {
+            this._data[key].push(error);
+        } else {
+            this._data[key] = [error];
         }
-        //value = value instanceof Message ? value : new Message(value);
-        this._data[key].push(value);
+        return this;
     }
 
-    addMap (data) {
+    assign (data) {
         if (!data) {
-            return false;
+            return this;
         }
-        for (let key of Object.keys(data)) {
+        for (const key of Object.keys(data)) {
             if (Array.isArray(data[key])) {
-                for (let value of data[key]) {
+                for (const value of data[key]) {
                     this.add(key, value);
                 }
             } else {
                 this.add(key, data[key]);
             }
         }
+        return this;
     }
 
     clear (key) {
@@ -73,5 +73,6 @@ module.exports = class ErrorMap {
         } else {
             this._data = {};
         }
+        return this;
     }
 };

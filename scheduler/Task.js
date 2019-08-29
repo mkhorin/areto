@@ -16,15 +16,13 @@ module.exports = class Task extends Base {
         };
     }
 
-    _counter = 0;
-
     constructor (config) {
         super({
             active: true,
-            startup: false, // run at server startup
+            startup: false, // start immediately
             startDate: null, // Date
             startTime: null, // 00:00:00
-            period: 0, // seconds
+            period: 0, // repeat period, seconds
             repeats: 0, // 0 - endless
             stopOnFail: true,
             ...config
@@ -32,6 +30,7 @@ module.exports = class Task extends Base {
         if (this.startup) {
             this.startDate = new Date;
         }
+        this._counter = 0;
     }
 
     init () {
@@ -56,6 +55,10 @@ module.exports = class Task extends Base {
         this._lastError = null;
         this.setNextDate(this.startDate || this.getPeriodTime());
         return true;
+    }
+
+    isActive () {
+        return this.active;
     }
 
     isRunning () {
@@ -114,29 +117,29 @@ module.exports = class Task extends Base {
     }
 
     refresh () {
-        if (this._nextDate && Date.now() > this._nextDate) {
+        if (this._nextDate && Date.now() >= this._nextDate) {
             this.setNextDate(this.getPeriodTime());
             if (this.active) {
-                this.execute(); // no wait promise
+                return this.execute();
             }
         }
     }
 
-    async execute () {
+    async execute (data) {
         if (this.isRunning()) {
             return this.fail('Job not started. Previous one in progress');
         }
         try {
             this._job = this.createJob();
             await this.beforeRun();
-            this.processInternal(); // no wait promise
+            this.processInternal(data); // no await
         } catch (error) {
             this._job = null;
-            this.fail(error);
+            return this.fail(error);
         }
     }
 
-    createJob () {
+    createJob (data) {
         return this.spawn(this.job, {task: this});
     }
 
@@ -147,28 +150,31 @@ module.exports = class Task extends Base {
         try {
             this._job.cancel();
         } catch (error) {
-            this.fail(error);
+            return this.fail(error);
         }
     }
 
-    async processInternal () {
+    async processInternal (data) {
         if (!this.isRunning()) {
             return false;
         }
         try {
-            const name = this.module.app.getRelativePath(this._job.CLASS_FILE);
-            this.log('info', `Job start: ${name}`);
+            this.log('info', `Job started: ${this._job.constructor.name}`);
             this._lastStartDate = new Date;
-            const result = await this._job.execute();
+            const result = await this._job.execute(data);
             if (this._job.isCanceled()) {
-                this.fail('Job canceled');
+                await this.fail('Job canceled');
             } else {
                 this._counter += 1;
                 this._lastEndDate = new Date;
-                this.done(result);    
+                await this.done(result);
             }
         } catch (err) {
-            this.fail(err);
+            try {
+                await this.fail(err);
+            } catch (err) {
+                this.log('error', 'Failed', err);
+            }
         }
         this._job = null;
     }
@@ -178,7 +184,7 @@ module.exports = class Task extends Base {
     }
 
     done (result) {
-        this.trigger(this.EVENT_DONE, new Event({result}));
+        return this.trigger(this.EVENT_DONE, new Event({result}));
     }
 
     fail (error) {
@@ -186,11 +192,11 @@ module.exports = class Task extends Base {
             this._nextDate = null;
         }
         this._lastError = error;
-        this.trigger(this.EVENT_FAIL, new Event({error}));
+        return this.trigger(this.EVENT_FAIL, new Event({error}));
     }
 
-    log () {
-        CommonHelper.log(this.scheduler, this.constructor.name, ...arguments);
+    log (type, message, data) {
+        this.scheduler.log(type, `${this.constructor.name}: ${this.id}: ${message}`, data);
     }
 };
 module.exports.init();

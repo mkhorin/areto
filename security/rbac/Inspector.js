@@ -20,7 +20,7 @@ module.exports = class Inspector extends Base {
             return true;
         }
         if (item.parents && item.parents.length) {
-            for (let parentItem of item.parents) {
+            for (const parentItem of item.parents) {
                 if (await this.execute(parentItem)) {
                     return true;
                 }
@@ -28,19 +28,19 @@ module.exports = class Inspector extends Base {
         }
     }
 
-    async checkRule (rule) {
-        if (Object.prototype.hasOwnProperty.call(this._ruleCache, rule.name)) {
-            return this._ruleCache[rule.name];
+    async checkRule (config) {
+        if (Object.prototype.hasOwnProperty.call(this._ruleCache, config.name)) {
+            return this._ruleCache[config.name];
         }
-        const model = new rule.Class({
-            ...rule,
+        const model = new config.Class({
+            ...config,
             inspector: this,
             module: this.module
         });
-        model.params = rule.params ? {...rule.params, ...this.params} : this.params;
+        model.params = config.params ? {...config.params, ...this.params} : this.params;
         const passed = await model.execute();
-        if (rule.name) {
-            this._ruleCache[rule.name] = !!passed;
+        if (config.name) {
+            this._ruleCache[config.name] = !!passed;
         }
         return passed;
     }

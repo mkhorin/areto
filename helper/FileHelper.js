@@ -10,7 +10,7 @@ module.exports = class FileHelper {
     }
 
     static getRelativePathByDir (name, file) {
-        const basePath = this.getClosestDir(name, file);
+        const basePath = this.getClosestDirectory(name, file);
         return basePath ? this.getRelativePath(basePath, file) : file;
     }
 
@@ -42,10 +42,10 @@ module.exports = class FileHelper {
     static async copy (source, target) {
         const stat = await fs.promises.stat(source);
         if (stat.isFile()) {
-            await this.createDir(path.dirname(target), {mode: stat.mode});
+            await this.createDirectory(path.dirname(target), {mode: stat.mode});
             return fs.promises.copyFile(source, target);
         }
-        await this.createDir(target, {mode: stat.mode});
+        await this.createDirectory(target, {mode: stat.mode});
         await PromiseHelper.setImmediate(); // break calling stack
         await this.handleChildren(source, file => {
             return this.copy(path.join(source, file), path.join(target, file));
@@ -54,19 +54,19 @@ module.exports = class FileHelper {
 
     // DIR
 
-    static readDir (dir) {
+    static readDirectory (dir) {
         return new Promise(resolve => fs.readdir(dir, (err, result)=> resolve(err ? [] : result)));
     }
 
-    static createDir (dir, options) {
+    static createDirectory (dir, options) {
         return fs.promises.mkdir(dir, {recursive: true, ...options});
     }
 
-    static emptyDir (dir) {
+    static emptyDirectory (dir) {
         return this.handleChildren(dir, file => this.remove(path.join(dir, file)));
     }
 
-    static getClosestDir (name, dir) {
+    static getClosestDirectory (name, dir) {
         let base = path.basename(dir);
         while (base) {
             if (base === name) {
@@ -97,27 +97,27 @@ module.exports = class FileHelper {
 
     // HANDLER
 
-    static handleChildDirs (dir, handler) {
+    static handleChildDirectories (dir, handler) {
         return this.handleChildren(dir, async file => {
-            let stat = await fs.promises.stat(path.join(dir, file));
+            const stat = await fs.promises.stat(path.join(dir, file));
             if (stat.isDirectory()) {
-                await handler(file, dir);
+                await handler(file, dir, stat);
             }
         });
     }
 
     static handleChildFiles (dir, handler) {
         return this.handleChildren(dir, async file => {
-            let stat = await fs.promises.stat(path.join(dir, file));
+            const stat = await fs.promises.stat(path.join(dir, file));
             if (stat.isFile()) {
-                await handler(file, dir);
+                await handler(file, dir, stat);
             }
         });
     }
 
     static async handleChildren (dir, handler) {
         const files = await fs.promises.readdir(dir);
-        for (let file of files) {
+        for (const file of files) {
             await handler(file, dir);
         }
     }

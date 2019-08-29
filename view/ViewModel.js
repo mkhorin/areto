@@ -7,7 +7,7 @@ const Base = require('../base/Base');
 
 module.exports = class ViewModel extends Base {
 
-    static getExtendedClassProps () {
+    static getExtendedClassProperties () {
         return [
             'ATTR_HINTS',
             'ATTR_LABELS',

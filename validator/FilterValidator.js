@@ -7,20 +7,8 @@ const Base = require('./Validator');
 
 module.exports = class FilterValidator extends Base {
 
-    static async filterBoolean (value) {
-        return typeof value === 'boolean' ? value : value === 'on';
-    }
-
-    static async filterJson (value, model, attr, validator) {
-        if (!value || typeof value === 'object') {
-            return value;
-        }
-        value = CommonHelper.parseJson(value);
-        return value === undefined ? validator.getJsonMessage() : value;
-    }
-
     static async filterSplit (value, model, attr, validator) {
-        return Array.isArray(value) ? value : typeof value === 'string' ? value.split(validator.separator) : [];
+        return StringHelper.split(value, validator.separator);
     }
 
     static async filterTrim (value) {
@@ -47,16 +35,12 @@ module.exports = class FilterValidator extends Base {
             filter = `filter${StringHelper.toFirstUpperCase(filter)}`;
             filter = this.constructor[filter];
             if (typeof filter !== 'function') {
-                throw new Error(this.wrapClassMessage(`Not found inline filter: ${this.filter}`));
+                throw new Error(this.wrapClassMessage(`Inline filter not found: ${this.filter}`));
             }
         } else if (typeof filter !== 'function') {
             throw new Error(this.wrapClassMessage('Filter must be function'));
         }
         this.filter = filter;
-    }
-
-    getJsonMessage () {
-        return this.createMessage(this.message, 'Invalid JSON');
     }
 
     async validateAttr (model, attr) {
@@ -65,22 +49,24 @@ module.exports = class FilterValidator extends Base {
             return;
         }
         if (typeof this.filter === 'function') {
-            const result = await this.filter(value, model, attr, this);
-            return result instanceof Message
-                ? this.addError(model, attr, result)
-                : model.set(attr, result);
+            return this.executeFilter(value, model, attr);
         }
         if (value === null || value === undefined) {
             return;
         }
         if (typeof value[this.filter] !== 'function') {
-            throw new Error(`Not found inline filter '${this.filter}' in '${value.constructor.name}'`);
+            throw new Error(`Inline filter not found: ${this.filter}: in ${value.constructor.name}`);
         }
-        return model.set(attr, value[this.filter]());
+        model.set(attr, await value[this.filter]());
+    }
+
+    async executeFilter (value, model, attr) {
+        const result = await this.filter(value, model, attr, this);
+        result instanceof Message
+            ? this.addError(model, attr, result)
+            : model.set(attr, result);
     }
 };
-module.exports.init();
 
-const CommonHelper = require('../helper/CommonHelper');
 const StringHelper = require('../helper/StringHelper');
 const Message = require('../i18n/Message');

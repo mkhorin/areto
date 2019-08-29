@@ -13,6 +13,10 @@ module.exports = class CommonHelper {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    static isEqual (a, b) {
+        return a === b || JSON.stringify(a) === JSON.stringify(b);
+    }
+
     static log (logger, prefix, type, message, data) {
         logger = logger || console;
         if (typeof message === 'string') {
@@ -47,7 +51,7 @@ module.exports = class CommonHelper {
         if (!Array.isArray(data.removes)) {
             data.removes = [];
         }
-        let all = data.links.concat(data.unlinks, data.removes);
+        const all = data.links.concat(data.unlinks, data.removes);
         return all.length === ArrayHelper.unique(all).length ? data : false;
     }
 };

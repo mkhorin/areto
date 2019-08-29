@@ -5,37 +5,37 @@
 
 module.exports = class ObjectHelper {
 
-    static push (value, key, map) {
-        if (Array.isArray(map[key])) {
-            map[key].push(value);
-        } else if (map) {
-            map[key] = [value];
+    static push (value, key, data) {
+        if (Array.isArray(data[key])) {
+            data[key].push(value);
+        } else if (data) {
+            data[key] = [value];
         }
     }
 
-    static getValue (key, map, defaults) {
-        return map && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : defaults;
+    static getValue (key, data, defaults) {
+        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults;
     }
 
-    static getValueOrKey (key, map) {
-        return map && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : key;
+    static getValueOrKey (key, data) {
+        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : key;
     }
 
-    static getKeyByValue (value, map) {
-        if (map) {
-            for (let key of Object.keys(map)) {
-                if (map[key] === value) {
+    static getKeyByValue (value, data) {
+        if (data) {
+            for (const key of Object.keys(data)) {
+                if (data[key] === value) {
                     return key;
                 }
             }
         }
     }
 
-    static getKeysByValue (value, map) {
+    static getKeysByValue (value, data) {
         const keys = [];
-        if (map) {
-            for (let key of Object.keys(map)) {
-                if (map[key] === value) {
+        if (data) {
+            for (const key of Object.keys(data)) {
+                if (data[key] === value) {
                     keys.push(key);
                 }
             }
@@ -43,89 +43,91 @@ module.exports = class ObjectHelper {
         return keys;
     }
 
-    static getAllPropNames (map) {
-        if (!map) {
+    static getAllPropertyNames (data) {
+        if (!data) {
             return [];
         }
-        const props = Object.getOwnPropertyNames(map);
-        for (let name of this.getAllPropNames(Object.getPrototypeOf(map))) {
-            if (props.includes(name) === false) {
-                props.push(name);
+        const names = Object.getOwnPropertyNames(data);
+        for (const name of this.getAllPropertyNames(Object.getPrototypeOf(data))) {
+            if (!names.includes(name)) {
+                names.push(name);
             }
         }
-        return props;
+        return names;
     }
 
-    static getAllFunctionNames (map) {
+    static getAllFunctionNames (data) {
         const result = [];
-        for (let item of this.getAllPropNames(map)) {
-            if (typeof map[item] === 'function') {
+        for (const item of this.getAllPropertyNames(data)) {
+            if (typeof data[item] === 'function') {
                 result.push(item);
             }
         }
         return result;
     }
 
-    static filterByKeys (keys, map) {
+    static filterByKeys (keys, data) {
         const result = {};
-        if (map) {
-            for (let key of keys) {
-                if (Object.prototype.hasOwnProperty.call(map, key)) {
-                    result[key] = map[key];
+        if (data) {
+            for (const key of keys) {
+                if (Object.prototype.hasOwnProperty.call(data, key)) {
+                    result[key] = data[key];
                 }
             }
         }
         return result;
     }
 
-    static sortByKeys (keys, map) {
-        return Object.assign(this.filterByKeys(keys, map), map);
+    static sortByKeys (keys, data) {
+        return Object.assign(this.filterByKeys(keys, data), data);
     }
 
-    // DELETE PROPS
+    // DELETE PROPERTIES
 
-    static deleteEmptyProps (map, names) {
-        if (map) {
-            if (!names) {
-                names = Object.keys(map);
+    static deleteEmptyProperties (data, names) {
+        if (!data) {
+            return;
+        }
+        if (!names) {
+            names = Object.keys(data);
+        }
+        for (const name of names) {
+            const value = data[name];
+            if (value === null || value === '' || value === undefined) {
+                delete data[name];
             }
-            for (let name of names) {
-                let value = map[name];
-                if (value === null || value === '' || value === undefined) {
-                    delete map[name];
+        }
+    }
+
+    static deletePropertiesByValue (value, data, names) {
+        if (!data) {
+            return;
+        }
+        if (!names) {
+            names = Object.keys(data);
+        }
+        for (const name of names) {
+            if (typeof value === 'function' ? value(data[name]) : (data[name] === value)) {
+                delete data[name];
+            }
+        }
+    }
+
+    static deleteProperties (names, data) {
+        if (data && Array.isArray(names)) {
+            for (const name of names) {
+                if (Object.prototype.hasOwnProperty.call(data, name)) {
+                    delete data[name];
                 }
             }
         }
     }
 
-    static deletePropsByValue (value, map, names) {
-        if (map) {
-            if (!names) {
-                names = Object.keys(map);
-            }
-            for (let name of names) {
-                if (typeof value === 'function' ? value(map[name]) : (map[name] === value)) {
-                    delete map[name];
-                }
-            }
-        }
-    }
-
-    static deleteProps (names, map) {
-        if (map && Array.isArray(names)) {
-            for (let name of names) {
-                if (Object.prototype.hasOwnProperty.call(map, name)) {
-                    delete map[name];
-                }
-            }
-        }
-    }
-
-    static deletePropsExcept (names, map) {
-        if (map && Array.isArray(names)) {
-            for (let name of Object.keys(map)) {
+    static deletePropertiesExcept (names, data) {
+        if (data && Array.isArray(names)) {
+            for (const name of Object.keys(data)) {
                 if (!names.includes(name)) {
-                    delete map[name];
+                    delete data[name];
                 }
             }
         }
@@ -133,46 +135,46 @@ module.exports = class ObjectHelper {
 
     // NESTED VALUE
 
-    static getNestedValue (key, map, defaults) { // key: 'prop1.prop2.prop3'
-        if (!map || typeof key !== 'string') {
+    static getNestedValue (key, data, defaults) { // key: 'property1.property2.property3'
+        if (!data || typeof key !== 'string') {
             return defaults;
         }
-        if (Object.prototype.hasOwnProperty.call(map, key)) {
-            return map[key];
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            return data[key];
         }
-        let index = key.indexOf('.');
+        const index = key.indexOf('.');
         if (index < 1) {
             return defaults;
         }
-        let token = key.substring(0, index);
-        if (!Object.prototype.hasOwnProperty.call(map, token)) {
+        const token = key.substring(0, index);
+        if (!Object.prototype.hasOwnProperty.call(data, token)) {
             return defaults;
         }
         key = key.substring(index + 1);
-        map = map[token];
-        if (Array.isArray(map)) {
-            return map.map(item => this.getNestedValue(key, item, defaults));
+        data = data[token];
+        if (Array.isArray(data)) {
+            return data.map(item => this.getNestedValue(key, item, defaults));
         }
-        return map ? this.getNestedValue(key, map, defaults) : defaults;
+        return data ? this.getNestedValue(key, data, defaults) : defaults;
     }
 
-    static setNestedValue (value, key, map) { // key: 'prop1.prop2.prop3'
-        let index = key.indexOf('.');
+    static setNestedValue (value, key, data) { // key: 'property1.property2.property3'
+        const index = key.indexOf('.');
         if (index === -1) {
-            return map[key] = value;
+            return data[key] = value;
         }
-        let token = key.substring(0, index);
-        if (!Object.prototype.hasOwnProperty.call(map, token) || !(map[token] instanceof Object)) {
-            map[token] = {};
+        const token = key.substring(0, index);
+        if (!Object.prototype.hasOwnProperty.call(data, token) || !(data[token] instanceof Object)) {
+            data[token] = {};
         }
-        this.setNestedValue(value, key.substring(index + 1), map[token]);
+        this.setNestedValue(value, key.substring(index + 1), data[token]);
     }
 
-    static addKeyAsNestedValue (nestedKey, map) {
-        if (map) {
-            for (let key of Object.keys(map)) {
-                if (map[key]) {
-                    map[key][nestedKey] = key;
+    static addKeyAsNestedValue (nestedKey, data) {
+        if (data) {
+            for (const key of Object.keys(data)) {
+                if (data[key]) {
+                    data[key][nestedKey] = key;
                 }
             }
         }
@@ -182,8 +184,8 @@ module.exports = class ObjectHelper {
         return this.indexOfNestedValue(...arguments) !== -1;
     }
 
-    static indexOfNestedValue (value, key, map) {
-        let values = this.getNestedValue(key, map);
+    static indexOfNestedValue (value, key, data) {
+        const values = this.getNestedValue(key, data);
         return Array.isArray(values) ? values.indexOf(value) : -1;
     }
 };

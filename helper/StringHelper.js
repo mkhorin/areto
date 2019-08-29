@@ -45,18 +45,29 @@ module.exports = class StringHelper {
         return this.toWordFirstUpperCase(text.split('-').join(' ')).replace(/ /g, '');
     }
 
-    // 'k1: v1, k2: v2' to {k1: 'v1', k2: 'v2'}
+    static split (text, separator = ',') {
+        if (Array.isArray(text)) {
+            return text;
+        }
+        if (typeof text !== 'string') {
+            return [];
+        }
+        return text.split(separator).map(item => item.trim()).filter(item => item.length);
+    }
+
+    // 'k1: v1, k2: v2' => {k1: 'v1', k2: 'v2'}
     static parseObject (text) {
         if (typeof text !== 'string') {
             return {};
         }
         const result = {};
-        for (let item of text.split(',')) {
-            let [key, value] = item.split(':');
+        for (const item of text.split(',')) {
+            const [key, value] = item.split(':');
             if (key !== '' && value !== undefined) {
                 result[key.trim()] = value.trim();
             }
         }
         return result;
     }
+
 };

@@ -1,3 +1,16 @@
+## 0.29.0
+
+* base/Event
+    - add once handler
+    - detach all handlers
+* db/Query
+    - multiple arguments for logical operations
+* i18n/MessageSource
+    - async message load
+* validator/FilterValidator
+    - extract CheckboxValidator 
+    - extract JsonValidator        
+
 ## 0.28.0
 
 * db/Database

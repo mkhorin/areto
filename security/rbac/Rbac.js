@@ -51,23 +51,23 @@ module.exports = class Rbac extends Base {
 
     build (data) {
         this.ruleMap = {};
-        for (let name of Object.keys(data.rules)) {
+        for (const name of Object.keys(data.rules)) {
             this.ruleMap[name] = ClassHelper.normalizeSpawn(data.rules[name], {name});
         }
         this.resolveItemRules(data.items);
         this.itemMap = {};
-        for (let name of Object.keys(data.items)) {
+        for (const name of Object.keys(data.items)) {
             this.itemMap[name] = this.spawn(this.Item, {...data.items[name], rbac: this});
         }
-        for (let id of Object.keys(data.items)) {
+        for (const id of Object.keys(data.items)) {
             this.resolveItemLinks(this.itemMap[id]);
         }
-        this.assignmentIndex = data.assignments;
+        this.assignmentMap = data.assignments;
     }
 
     resolveItemRules (itemMap) {
-        for (let item of Object.values(itemMap)) {
-            let rule = item.rule;
+        for (const item of Object.values(itemMap)) {
+            const rule = item.rule;
             if (rule) {
                 item.rule = Object.prototype.hasOwnProperty.call(this.ruleMap, rule)
                     ? this.ruleMap[rule]
@@ -81,7 +81,7 @@ module.exports = class Rbac extends Base {
             return;
         }
         const children = [];
-        for (let id of item.children) {
+        for (const id of item.children) {
             if (!(this.itemMap[id] instanceof this.Item)) {
                 throw new Error(this.wrapClassMessage(`Unknown child: ${id}`));
             }
@@ -91,13 +91,13 @@ module.exports = class Rbac extends Base {
         item.children = children;
     }
 
-    findUserModel (name) {
-        return this.module.get('user').createUserModel().find({name});
+    findUser (name) {
+        return this.spawn(this.module.get('auth').Identity).find({name});
     }
 
     getUserAssignments (userId) {
-        return Object.prototype.hasOwnProperty.call(this.assignmentIndex, userId)
-            ? this.assignmentIndex[userId]
+        return Object.prototype.hasOwnProperty.call(this.assignmentMap, userId)
+            ? this.assignmentMap[userId]
             : null;
     }
 
@@ -109,7 +109,7 @@ module.exports = class Rbac extends Base {
             return false;
         }
         const inspector = this.spawn(this.Inspector, {rbac: this, params});
-        for (let assignment of assignments) {
+        for (const assignment of assignments) {
             if (Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
                 inspector.assignment = this.itemMap[assignment];
                 if (await inspector.execute(this.itemMap[itemId])) {

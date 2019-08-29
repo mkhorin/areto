@@ -5,17 +5,17 @@
 
 module.exports = class IndexHelper {
 
-    static indexObjects (docs, keyProp, valueProp) {
-        let result = {};
+    static indexObjects (docs, keyProperty, valueProperty) {
+        const result = {};
         if (!Array.isArray(docs)) {
             return result;
         }
-        for (let doc of docs) {
+        for (const doc of docs) {
             if (doc === null || doc === undefined) {
                 continue;
             }
-            let value = valueProp === undefined ? doc : doc[valueProp];
-            let key = doc[keyProp];
+            const value = valueProperty === undefined ? doc : doc[valueProperty];
+            const key = doc[keyProperty];
             if (!Object.prototype.hasOwnProperty.call(result, key)) {
                 result[key] = value;
             } else if (Array.isArray(result[key])) {
@@ -27,27 +27,27 @@ module.exports = class IndexHelper {
         return result;
     }
 
-    static indexUniqueKeyObjects (items, keyProp, valueProp) {
-        let result = {};
+    static indexUniqueKeyObjects (items, keyProperty, valueProperty) {
+        const result = {};
         if (!Array.isArray(items)) {
             return result;
         }
-        for (let item of items) {
+        for (const item of items) {
             if (item !== null && item !== undefined) {
-                result[item[keyProp]] = valueProp === undefined ? item : item[valueProp];
+                result[item[keyProperty]] = valueProperty === undefined ? item : item[valueProperty];
             }
         }
         return result;
     }
 
     static indexModels (models, keyAttr, valueAttr) {
-        let result = {};
+        const result = {};
         if (!Array.isArray(models)) {
             return result;
         }
-        for (let model of models) {
-            let value = valueAttr ? model.get(valueAttr) : model;
-            let key = model.get(keyAttr);
+        for (const model of models) {
+            const value = valueAttr ? model.get(valueAttr) : model;
+            const key = model.get(keyAttr);
             if (!Object.prototype.hasOwnProperty.call(result, key)) {
                 result[key] = value;
             } else if (Array.isArray(result[key])) {
@@ -60,11 +60,11 @@ module.exports = class IndexHelper {
     }
 
     static indexUniqueKeyModels (models, keyAttr, valueAttr) {
-        let result = {};
+        const result = {};
         if (!Array.isArray(models)) {
             return result;
         }
-        for (let model of models) {
+        for (const model of models) {
             result[model.get(keyAttr)] = valueAttr ? model.get(valueAttr) : model;
         }
         return result;

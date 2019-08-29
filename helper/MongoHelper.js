@@ -5,6 +5,16 @@
 
 module.exports = class MongoHelper {
 
+    static isEqual (id1, id2) {
+        if (id1 instanceof ObjectID) {
+            return id1.equals(id2);
+        }
+        if (id2 instanceof ObjectID) {
+            return id2.equals(id1);
+        }
+        return id1 === id2;
+    }
+
     static isObjectId (id) {
         return id instanceof ObjectID;
     }
@@ -17,7 +27,7 @@ module.exports = class MongoHelper {
         if (!Array.isArray(ids)) {
             return false;
         }
-        for (let id of ids) {
+        for (const id of ids) {
             if (!ObjectID.isValid(id)) {
                 return false;
             }
@@ -27,16 +37,6 @@ module.exports = class MongoHelper {
 
     static createObjectId () {
         return new ObjectID;
-    }
-    
-    static isEqual (id1, id2) {
-        if (id1 instanceof ObjectID) {
-            return id1.equals(id2);      
-        }
-        if (id2 instanceof ObjectID) {
-            return id2.equals(id1);
-        }
-        return id1 === id2;
     }
 
     static indexOf (id, values) {
@@ -68,8 +68,8 @@ module.exports = class MongoHelper {
 
     static normalizeExportData (data) {
         data = data || {};
-        for (let key of Object.keys(data)) {
-            let value = data[key];
+        for (const key of Object.keys(data)) {
+            const value = data[key];
             if (value instanceof ObjectID) {
                 data[key] = {$oid: value.toString()};
             } else if (value instanceof Date) {
@@ -82,8 +82,8 @@ module.exports = class MongoHelper {
 
     static normalizeImportData (data) {
         data = data || {};
-        for (let key of Object.keys(data)) {
-            let value = data[key];
+        for (const key of Object.keys(data)) {
+            const value = data[key];
             if (!value || !(value instanceof Object)) {
             } else if (DateHelper.isValid(value.$date)) {
                 data[key] = new Date(value.$date);

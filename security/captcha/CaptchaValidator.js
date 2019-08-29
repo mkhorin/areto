@@ -9,7 +9,7 @@ module.exports = class CaptchaValidator extends Base {
 
     constructor (config) {
         super({
-            captchaActionProp: 'captchaAction',
+            captchaActionProperty: 'captchaAction',
             ...config
         });        
         this.skipOnEmpty = false;
@@ -20,10 +20,11 @@ module.exports = class CaptchaValidator extends Base {
     }
 
     validateAttr (model, attr) {
-        if (!(model[this.captchaActionProp] instanceof CaptchaAction)) {
-            throw new Error(`Not found model captcha action property: ${this.captchaActionProp}`);
+        const action = model[this.captchaActionProperty];
+        if (!(action instanceof CaptchaAction)) {
+            throw new Error(`Model captcha action property not found: ${this.captchaActionProperty}`);
         }
-        if (!model[this.captchaActionProp].validate(model.get(attr))) {
+        if (!action.validate(model.get(attr))) {
             this.addError(model, attr, this.getMessage());
         }
     }

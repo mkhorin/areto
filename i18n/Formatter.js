@@ -38,9 +38,9 @@ module.exports = class Formatter extends Base {
 
     format (value, type, params) {
         if (type) {
-            let methodName = this.constructor.getMethodName(type);
-            if (typeof this[methodName] === 'function') {
-                return this[methodName](value, params);
+            const name = this.constructor.getMethodName(type);
+            if (typeof this[name] === 'function') {
+                return this[name](value, params);
             }
             this.log('error', `Unknown type: ${type}`);
         }

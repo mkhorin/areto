@@ -53,7 +53,7 @@ module.exports = class MysqlDatabase extends Base {
 
     create (table, fields, keys, engine = 'innodb') {
         const data = [];
-        for (let name of Object.keys(fields)) {
+        for (const name of Object.keys(fields)) {
             data.push(`${this.escapeId(name)} ${fields[name]}`);
         }
         if (keys) {
@@ -71,18 +71,18 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     async insert (table, data) {
-        let columns = this.escapeId(Object.keys(data)).join();
-        let values = this.escape(Object.values(data));
-        let sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
-        let result = await this.execute(sql);
+        const columns = this.escapeId(Object.keys(data)).join();
+        const values = this.escape(Object.values(data));
+        const sql = `INSERT INTO ${this.escapeId(table)} (${columns}) VALUES (${values})`;
+        const result = await this.execute(sql);
         return result.insertId;
     }
     
     upsert (table, condition, data) {
-        let columns = this.escapeId(Object.keys(data));
-        let values = this.escape(Object.values(data));
-        let updates = columns.map(column => `${column}=VALUES(${column})`).join();
-        let sql = `INSERT INTO ${this.escapeId(table)} (${columns.join()}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
+        const columns = this.escapeId(Object.keys(data));
+        const values = this.escape(Object.values(data));
+        const updates = columns.map(column => `${column}=VALUES(${column})`).join();
+        const sql = `INSERT INTO ${this.escapeId(table)} (${columns.join()}) VALUES (${values}) ON DUPLICATE KEY UPDATE ${updates}`;
         return this.execute(sql);
     }
 

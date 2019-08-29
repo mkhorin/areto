@@ -65,7 +65,7 @@ module.exports = class DataMap {
     }
 
     forEach (handler, context) {
-        for (let item of this.values()) {
+        for (const item of this.values()) {
             handler.call(context, item)
         }
         return this;
@@ -73,7 +73,7 @@ module.exports = class DataMap {
 
     filter (handler, context) {
         const result = [];
-        for (let item of this.values()) {
+        for (const item of this.values()) {
             if (handler.call(context, item)) {
                 result.push(item);
             }
@@ -83,7 +83,7 @@ module.exports = class DataMap {
 
     map (handler, context) {
         const result = [];
-        for (let item of this.values()) {
+        for (const item of this.values()) {
             result.push(handler.call(context, item));
         }
         return result;

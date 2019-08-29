@@ -8,9 +8,9 @@ const Base = require('./Base');
 module.exports = class ClassMapper extends Base {
 
     init () {
-        this._map = {};
+        this._data = {};
         this._parent = this.module.parent && this.module.parent.classMapper;
-        Object.assign(this._map, this.getConfig());
+        Object.assign(this._data, this.getConfig());
     }
 
     getConfig () {
@@ -18,13 +18,13 @@ module.exports = class ClassMapper extends Base {
     }
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._map, key)
-            ? this._map[key]
+        return Object.prototype.hasOwnProperty.call(this._data, key)
+            ? this._data[key]
             : this._parent && this._parent.get(key);
     }
 
     getOwn (key) {
-        return Object.prototype.hasOwnProperty.call(this._map, key) ? this._map[key] : null;
+        return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
     }
 
     spawn (key, params) {

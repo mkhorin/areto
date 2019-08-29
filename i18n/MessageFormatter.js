@@ -12,7 +12,7 @@ module.exports = class MessageFormatter extends Base {
             return message;
         }
         const formatter = this.i18n.module.get('formatter');
-        for (let key of Object.keys(params)) {
+        for (const key of Object.keys(params)) {
             let value = params[key];
             if (Array.isArray(value) && value[1] && formatter) {
                 value = formatter.format(value[0], value[1], {language, ...value[2]});

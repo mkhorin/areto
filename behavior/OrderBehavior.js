@@ -37,7 +37,7 @@ module.exports = class OrderBehavior extends Base {
 
     async update (data) {
         if (data) {
-            for (let id of Object.keys(data)) {
+            for (const id of Object.keys(data)) {
                 await this.owner.findById(id).update({[this.orderAttr]: data[id]});
             }
         }

@@ -36,7 +36,7 @@ module.exports = class ActiveDataProvider extends Base {
     }
 
     setSortByNames (names, model) {
-        for (let name of names) {
+        for (const name of names) {
             if (!this.sort.attrs[name].label) {
                 this.sort.attrs[name].label = model.getAttrLabel(name);
             }
@@ -44,7 +44,7 @@ module.exports = class ActiveDataProvider extends Base {
     }
 
     setSortByAttrNames (model) {
-        for (let name of model.ATTRS) {
+        for (const name of model.ATTRS) {
             this.sort.attrs[name] = {
                 asc: {[name]: this.sort.ASC},
                 desc: {[name]: this.sort.DESC},

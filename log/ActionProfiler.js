@@ -38,6 +38,6 @@ module.exports = class ActionProfiler extends Base {
     }
 
     formatTime (time, controller) {
-        return `${controller.response.code} ${controller.req.method} ${time} ms ${controller.req.originalUrl}`;
+        return `${controller.response.code} ${controller.req.method} ${time} ms ${controller.getOriginalUrl()}`;
     }
 };

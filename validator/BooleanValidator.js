@@ -25,7 +25,7 @@ module.exports = class BooleanValidator extends Base {
     }
 
     validateAttr (model, attr) {
-        let value = model.get(attr);
+        const value = model.get(attr);
         if (this.strict ? value === this.trueValue : value == this.trueValue) {
             if (this.castValue) {
                 model.set(attr, this.trueValue);

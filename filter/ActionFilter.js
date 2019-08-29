@@ -14,33 +14,32 @@ module.exports = class ActionFilter extends Base {
             ...config
         });
         this.setHandler(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
-    }
-
-    async beforeFilter (event) {
-        if (!this.isActive(event.action)) {
-            return false;
-        }
-        await this.beforeAction(event.action);
-        // use afterFilter on beforeFilter success only
         this.setHandler(Controller.EVENT_AFTER_ACTION, this.afterFilter);
-        this.attachHandler(Controller.EVENT_AFTER_ACTION);
-    }
-
-    async afterFilter (event) {
-        await this.afterAction(event.action);
-        this.detachHandler(Controller.EVENT_AFTER_ACTION);
-    }
-
-    async beforeAction (action) {
-    }
-
-    async afterAction (action) {
     }
 
     isActive (action) {
-        let rid = action.getRelativeModuleName();
-        let id = this.owner instanceof Module ? rid : action.name;
+        const moduleName = action.getRelativeModuleName();
+        const id = this.owner instanceof Module ? moduleName : action.name;
         return !this.except.includes(id) && (!this.only || this.only.includes(id));
+    }
+
+    beforeFilter ({action}) {
+        this._active = this.isActive(action);
+        if (this._active) {
+            return this.beforeAction(action);
+        }
+    }
+
+    async afterFilter ({action}) {
+        if (this._active) {
+            return this.afterAction(action);
+        }
+    }
+
+    beforeAction (action) {
+    }
+
+    afterAction (action) {
     }
 };
 

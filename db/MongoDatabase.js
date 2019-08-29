@@ -26,7 +26,14 @@ module.exports = class MongoDatabase extends Base {
             client: mongodb.MongoClient,
             ...config
         });
-        this._collectionMap = {};
+        this.settings.options = {
+            'bufferMaxEntries': 0,
+            'keepAlive': true,
+            'useNewUrlParser': true,
+            'useUnifiedTopology': true,
+            ...this.settings.options
+        };
+        this._tableMap = {};
     }
 
     async openConnection () {
@@ -42,8 +49,8 @@ module.exports = class MongoDatabase extends Base {
     }
 
     async isTableExists (name) {
-        for (let item of await this._connection.collections()) {
-            if (name === item.collectionName) {
+        for (const {collectionName} of await this._connection.collections()) {
+            if (name === collectionName) {
                 return true;
             }
         }
@@ -51,17 +58,17 @@ module.exports = class MongoDatabase extends Base {
 
     async getTableNames () {
         const names = [];
-        for (let item of await this._connection.collections()) {
-            names.push(item.collectionName);
+        for (const {collectionName} of await this._connection.collections()) {
+            names.push(collectionName);
         }
         return names;
     }
 
-    getCollection (name) {
-        if (!this._collectionMap[name]) {
-            this._collectionMap[name] = this._connection.collection(name);
+    getTable (name) {
+        if (!this._tableMap[name]) {
+            this._tableMap[name] = this._connection.collection(name);
         }
-        return this._collectionMap[name];
+        return this._tableMap[name];
     }
 
     // OPERATIONS
@@ -73,68 +80,68 @@ module.exports = class MongoDatabase extends Base {
 
     find (table, query) {
         this.logCommand('find', {table, query});
-        return this.getCollection(table).find(query).toArray();
+        return this.getTable(table).find(query).toArray();
     }
 
     distinct (table, key, query, options) {
         this.logCommand('distinct', {table, query});
-        return this.getCollection(table).distinct(key, query, options);
+        return this.getTable(table).distinct(key, query, options);
     }
 
     async insert (table, data) {
         this.logCommand('insert', {table, data});
         if (Array.isArray(data)) {
-            let result = await this.getCollection(table).insertMany(data);
+            const result = await this.getTable(table).insertMany(data);
             return result.insertedIds;
         }
-        let result = await this.getCollection(table).insertOne(data);
+        const result = await this.getTable(table).insertOne(data);
         return result.insertedId;
     }
 
     upsert (table, query, data) {
         this.logCommand('upsert', {table, query, data});
-        return this.getCollection(table).updateOne(query, {$set: data}, {upsert: true});
+        return this.getTable(table).updateOne(query, {$set: data}, {upsert: true});
     }
 
     update (table, query, data) {
         this.logCommand('update', {table, query, data});
-        return this.getCollection(table).updateOne(query, {$set: data});
+        return this.getTable(table).updateOne(query, {$set: data});
     }
 
     updateAll (table, query, data) {
         this.logCommand('updateAll', {table, query, data});
-        return this.getCollection(table).updateMany(query, {$set: data});
+        return this.getTable(table).updateMany(query, {$set: data});
     }
 
     updateAllPull (table, query, data) {
         this.logCommand('updateAllPull', {table, query, data});
-        return this.getCollection(table).updateMany(query, {$pull: data});
+        return this.getTable(table).updateMany(query, {$pull: data});
     }
 
     updateAllPush (table, query, data) {
         this.logCommand('updateAllPush', {table, query, data});
-        return this.getCollection(table).updateMany(query, {$push: data});
+        return this.getTable(table).updateMany(query, {$push: data});
     }
 
     unset (table, query, data) {
         this.logCommand('unset', {table, query, data});
-        return this.getCollection(table).updateOne(query, {$unset: data});
+        return this.getTable(table).updateOne(query, {$unset: data});
     }
 
     unsetAll (table, query, data) {
         this.logCommand('unsetAll', {table, query, data});
-        return this.getCollection(table).updateMany(query, {$unset: data});
+        return this.getTable(table).updateMany(query, {$unset: data});
     }
 
     remove (table, query = {}) {
         this.logCommand('remove', {table, query});
-        return this.getCollection(table).deleteMany(query);
+        return this.getTable(table).deleteMany(query);
     }
 
     async drop (table) {
         if (await this.isTableExists(table)) {
             this.logCommand('drop', {table});
-            return this.getCollection(table).drop();
+            return this.getTable(table).drop();
         }
     }
 
@@ -153,14 +160,14 @@ module.exports = class MongoDatabase extends Base {
 
     count (table, query) {
         this.logCommand('count', {table, query});
-        return this.getCollection(table).countDocuments(query);
+        return this.getTable(table).countDocuments(query);
     }
 
     // QUERY
 
     async queryAll (query) {
-        let cmd = await this.buildQuery(query);
-        let cursor = this.getCollection(cmd.from).find(cmd.where);
+        const cmd = await this.buildQuery(query);
+        const cursor = this.getTable(cmd.from).find(cmd.where);
         if (cmd.select) {
             cursor.project(cmd.select);
         }
@@ -182,59 +189,59 @@ module.exports = class MongoDatabase extends Base {
     }
 
     async queryOne (query) {
-        let docs = await this.queryAll(query.limit(1));
+        const docs = await this.queryAll(query.limit(1));
         return docs.length ? docs[0] : null;
     }
 
     async queryColumn (query, key) {
-        let docs = await this.queryAll(query.raw().select(key));
+        const docs = await this.queryAll(query.raw().select(key));
         return docs.map(doc => doc[key]);
     }
 
     async queryDistinct (query, key) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.distinct(cmd.from, key, cmd.where, {});
     }
 
     async queryScalar (query, key) {
-        let docs = await this.queryAll(query.raw().select(key).limit(1));
+        const docs = await this.queryAll(query.raw().select(key).limit(1));
         return docs.length ? docs[0][key] : undefined;
     }
 
     async queryInsert (query, data) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.insert(cmd.from, data);
     }
 
     async queryUpdate (query, data) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.update(cmd.from, cmd.where, data);
     }
 
     async queryUpdateAll (query, data) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.updateAll(cmd.from, cmd.where, data);
     }
 
     async queryUpsert (query, data) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.upsert(cmd.from, cmd.where, data);
     }
 
     async queryRemove (query) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.remove(cmd.from, cmd.where);
     }
 
     async queryCount (query) {
-        let cmd = await this.buildQuery(query);
+        const cmd = await this.buildQuery(query);
         return this.count(cmd.from, cmd.where);
     }
 
     // INDEXES
 
     getIndexes (table, params = {full: true}) {
-        return this.getCollection(table).indexInformation(params);
+        return this.getTable(table).indexInformation(params);
     }
 
     /**
@@ -244,28 +251,28 @@ module.exports = class MongoDatabase extends Base {
     async createIndex (table, data) {
         if (await this.isTableExists(table)) {
             this.logCommand('createIndex', {table, data});
-            return this.getCollection(table).createIndex(...data);
+            return this.getTable(table).createIndex(...data);
         }
     }
 
     async dropIndex (table, name) {
         if (await this.isTableExists(table)) {
             this.logCommand('dropIndex', {table, name});
-            return this.getCollection(table).dropIndex(name);
+            return this.getTable(table).dropIndex(name);
         }
     }
 
     async dropIndexes (table) {
         if (await this.isTableExists(table)) {
             this.logCommand('dropIndexes', {table});
-            return this.getCollection(table).dropIndexes();
+            return this.getTable(table).dropIndexes();
         }
     }
 
     async reindex (table) {
         if (await this.isTableExists(table)) {
             this.logCommand('reindex', {table});
-            return this.getCollection(table).reIndex();
+            return this.getTable(table).reIndex();
         }
     }
 };

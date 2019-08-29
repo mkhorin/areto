@@ -17,12 +17,16 @@ module.exports = class WebUser extends Base {
         return this.auth.enableSession;
     }
 
-    getTitle (defaults = '') {
+    getTitle (defaults = '[anonymous]') {
         return this.identity ? this.identity.getTitle() : defaults;
     }
 
     getId () {
         return this.identity ? this.identity.getId() : null;
+    }
+
+    getIdentity () {
+        return this.identity;
     }
 
     getAuthKey () {

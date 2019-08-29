@@ -37,6 +37,22 @@ describe('ArrayHelper', ()=> {
         });
     });
 
+    it('join', ()=> {
+        let res = ArrayHelper.join([1, 2, 3]);
+        expect(res).to.eql('1, 2, 3');
+        res = ArrayHelper.join([1, 2, 3], '-');
+        expect(res).to.eql('1-2-3');
+        res = ArrayHelper.join('1');
+        expect(res).to.eql('1');
+    });
+
+    it('concat', ()=> {
+        let res = ArrayHelper.concat([1, [2, 3], 4]);
+        expect(res).to.eql([1, 2, 3, 4]);
+        res = ArrayHelper.concat(3);
+        expect(res).to.eql(3);
+    });
+
     it('removeValue', ()=> {
         let items = [1, 2, 3, 4];
         expect(ArrayHelper.removeValue(3, items)).to.eql(true);
@@ -44,29 +60,23 @@ describe('ArrayHelper', ()=> {
         expect(ArrayHelper.removeValue(5, items)).to.eql(false);
     });
 
-    it('concatValues', ()=> {
-        let res = ArrayHelper.concatValues([1, [2, 3], 4]);
-        expect(res).to.eql([1, 2, 3, 4]);
-        expect(ArrayHelper.concatValues(3)).to.eql(3);
-    });
-
-    it('getObjectPropValues', ()=> {
+    it('getObjectPropertyValues', ()=> {
         let items = [
             {id: 1, val: 10},
             {id: 2, val: 15},
             {id: 3, val: 20}
         ];
-        let res = ArrayHelper.getObjectPropValues(items, 'val');
+        let res = ArrayHelper.getObjectPropertyValues(items, 'val');
         expect(res).to.eql([10, 15, 20]);
     });
 
-    it('searchByProp', ()=> {
+    it('searchByProperty', ()=> {
         let items = [
             {id: 1, val: 10},
             {id: 2, val: 15},
             {id: 3, val: 20}
         ];
-        let res = ArrayHelper.searchByProp(15, 'val', items, 'id');
+        let res = ArrayHelper.searchByProperty(15, 'val', items, 'id');
         expect(res).to.eql(2);
     });
 

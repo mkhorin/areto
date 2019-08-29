@@ -34,7 +34,7 @@ module.exports = class Captcha extends Base {
     }
 
     async execute () {
-        let buffer = await this.render(this.getVerifyCode(true));
+        const buffer = await this.render(this.getVerifyCode(true));
         this.controller.sendData(buffer, 'binary');
     }
 
@@ -46,8 +46,8 @@ module.exports = class Captcha extends Base {
         if (this.fixedVerifyCode !== null) {
             return this.fixedVerifyCode;
         }
-        let session = this.controller.req.session;
-        let name = this.getSessionKey();
+        const session = this.controller.req.session;
+        const name = this.getSessionKey();
         if (!session[name] || renew) {
             session[name] = this.generateVerifyCode();
         }
@@ -76,7 +76,7 @@ module.exports = class Captcha extends Base {
         if (this.grid) {
             content += this.drawGrid();
         }
-        let image = sharp(new Buffer(this.drawBack(content)));
+        const image = sharp(new Buffer(this.drawBack(content)));
         if (this.median) {
             image.median(this.median);
         }

@@ -15,20 +15,22 @@ module.exports = class FileMessageSource extends Base {
         this.basePath = this.module.resolvePath(this.basePath);
     }
 
-    loadMessages (category, language) {
-        const file = path.join(this.basePath, language, category);
-        try {
-            const data = require(file);
-            if (data) {
-                return data;
-            }
-            this.log('warn', `Invalid message data: ${file}`);
-
-        } catch (err) {
-            this.log('warn', `Invalid file: ${file}`, err);
+    async load () {
+        this._messages = {};
+        const stat = await FileHelper.getStat(this.basePath);
+        if (stat && stat.isDirectory()) {
+            await FileHelper.handleChildDirectories(this.basePath, this.loadLanguage.bind(this));
         }
-        return {};
+    }
+
+    async loadLanguage (file, dir) {
+        const language = FileHelper.getBasename(file);
+        await FileHelper.handleChildFiles(path.join(dir, file), (file, dir) => {
+            const key = `${language}/${FileHelper.getBasename(file)}`;
+            this._messages[key] = require(path.join(dir, file));
+        });
     }
 };
 
 const path = require('path');
+const FileHelper = require('areto/helper/FileHelper');

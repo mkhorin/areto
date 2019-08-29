@@ -27,7 +27,7 @@ module.exports = class Cache extends Base {
 
     async get (key, defaults) {
         key = this.buildKey(key);
-        let value = await this.getValue(key);
+        const value = await this.getValue(key);
         if (value === undefined) {
             return defaults;
         }

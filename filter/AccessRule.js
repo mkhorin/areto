@@ -25,7 +25,7 @@ module.exports = class AccessRule extends Base {
             || (this.controllers && !this.controllers.includes(action.controller.NAME))) {
             return; // skip rule
         }
-        let access = await this.match(action);
+        const access = await this.match(action);
         if (access === true) {
             return this.allow;
         }
@@ -40,7 +40,7 @@ module.exports = class AccessRule extends Base {
         }
         const permissions = [];
         const user = action.controller.user;
-        for (let item of this.permissions) {
+        for (const item of this.permissions) {
             if (item === '?') {
                 return user.isGuest();
             }
@@ -49,7 +49,7 @@ module.exports = class AccessRule extends Base {
             }
             permissions.push(item);
         }
-        for (let item of permissions) {
+        for (const item of permissions) {
             if (await user.can(item)) {
                 return true;
             }

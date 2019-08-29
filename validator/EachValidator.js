@@ -46,7 +46,7 @@ module.exports = class EachValidator extends Base {
         }
         const filteredValues = [];
         model.set(attr, filteredValues);
-        for (let value of values) {
+        for (const value of values) {
             if (!(Array.isArray(value) && validator.skipOnArray)) {                
                 filteredValues.push(await validator.filter(value, model, attr));
             }
@@ -58,8 +58,8 @@ module.exports = class EachValidator extends Base {
             return this.getMessage();
         }
         const validator = this.getValidator();
-        for (let value of values) {
-            let result = await validator.validateValue(value);
+        for (const value of values) {
+            const result = await validator.validateValue(value);
             if (result) {
                 return this.allowRuleMessage ? result : this.getMessage();
             }

@@ -29,7 +29,7 @@ module.exports = class Migrator extends Base {
         if (!Array.isArray(files)) {
             return this.createMigration(files, action);
         }
-        for (let file of files) {
+        for (const file of files) {
             await this.createMigration(file, action);
         }
     }

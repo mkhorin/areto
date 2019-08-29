@@ -8,11 +8,11 @@ module.exports = class AsyncHelper {
     // SERIES
 
     static series (items, callback) {
-        let result = Array.isArray(items) ? [] : {};
+        const result = Array.isArray(items) ? [] : {};
         if (!items) {
             return callback(null, result);
         }
-        let keys = Object.keys(items);
+        const keys = Object.keys(items);
         if (!keys.length) {
             return callback(null, result);
         }
@@ -30,7 +30,7 @@ module.exports = class AsyncHelper {
         if (!items) {
             return callback();
         }
-        let keys = Object.keys(items);
+        const keys = Object.keys(items);
         if (!keys.length) {
             return callback();
         }
@@ -38,7 +38,7 @@ module.exports = class AsyncHelper {
     }
 
     static mapSeries (items, handler, callback) {
-        let result = [];
+        const result = [];
         if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
@@ -46,7 +46,7 @@ module.exports = class AsyncHelper {
     }
 
     static filterSeries (items, handler, callback) {
-        let result = [];
+        const result = [];
         if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
@@ -61,11 +61,11 @@ module.exports = class AsyncHelper {
     }
 
     static mapValuesSeries (items, handler, callback) {
-        let result = {};
+        const result = {};
         if (!items) {
             return callback(null, result);
         }
-        let keys = Object.keys(items);
+        const keys = Object.keys(items);
         if (!keys.length) {
             return callback(null, result);
         }
@@ -89,11 +89,11 @@ module.exports = class AsyncHelper {
     }
 
     static parallel (items, callback) {
-        let result = Array.isArray(items) ? [] : {};
+        const result = Array.isArray(items) ? [] : {};
         if (!items) {
             return callback(null, result);
         }
-        let keys = Object.keys(items);
+        const keys = Object.keys(items);
         if (!keys.length) {
             return callback(null, result);
         }
@@ -216,18 +216,18 @@ module.exports = class AsyncHelper {
     // PARALLEL
 
     each () {
-        let process = err => {
+        const process = err => {
             if (err || ++this.counter === this.items.length) {
                 this.callback(err);
             }
         };
-        for (let item of this.items) {
+        for (const item of this.items) {
             this.handler(item, process);
         }
     }
 
     parallel () {
-        for (let key of this.keys) {
+        for (const key of this.keys) {
             this.items[key](this.processParallel.bind(this, key));
         }
     }

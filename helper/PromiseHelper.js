@@ -29,7 +29,7 @@ module.exports = class PromiseHelper {
 
     static async each (items, handler, context) {
         if (Array.isArray(items)) {
-            for (let item of items) {
+            for (const item of items) {
                 await handler.call(context, item);
             }
         }
@@ -37,7 +37,7 @@ module.exports = class PromiseHelper {
 
     static async eachOf (data, handler, context) {
         if (data) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 await handler.call(context, data[key], key);
             }
         }
@@ -45,16 +45,16 @@ module.exports = class PromiseHelper {
 
     static async eachMethod (items, method) {
         if (Array.isArray(items)) {
-            for (let item of items) {
+            for (const item of items) {
                 await item[method]();
             }
         }
     }
 
     static async map (items, handler, context) {
-        let result = [];
+        const result = [];
         if (Array.isArray(items)) {
-            for (let item of items) {
+            for (const item of items) {
                 result.push(await handler.call(context, item));
             }
         }
@@ -62,9 +62,9 @@ module.exports = class PromiseHelper {
     }
 
     static async mapValues (data, handler, context) {
-        let result = {};
+        const result = {};
         if (data) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 result[key] = await handler.call(context, data[key], key);
             }
         }

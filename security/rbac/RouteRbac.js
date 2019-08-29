@@ -20,7 +20,7 @@ module.exports = class RouteRbac extends Base {
 
     indexRoutes () {
         this.routeMap = {};
-        for (let name of Object.keys(this.itemMap)) {
+        for (const name of Object.keys(this.itemMap)) {
             if (this.itemMap[name].isRoute()) {
                 this.routeMap[name] = this.itemMap[name];
             }

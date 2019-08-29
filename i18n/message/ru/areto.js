@@ -36,7 +36,7 @@ module.exports = {
     'Invalid relation request': 'Неправильный запрос связи',
     'Invalid value': 'Неверное значение',
     'Invalid verification code': 'Неверный проверочный код',
-    'Invalid url': 'Неверная ссылка',
+    'Invalid url': 'Неверн ссылка',
 
     'No': 'Нет',
     'Number must be a integer': 'Число должно быть целым',
@@ -57,7 +57,7 @@ module.exports = {
     'Value must be a string': 'Значение должно быть строкой',
     'Value must be "{requiredValue}"': 'Значение должно быть "{requiredValue}"',
     'Value must be "{true}" or "{false}"': 'Значение должно быть "{true}" или "{false}"',
-    'Value must be repeated exactly': 'Значение должно быть повторено в точности',
+    'Value must be repeated exactly': 'Значение должно быть точно повторено',
     'Value must not be equal to {compareValue}': 'Значение должно быть не равно {compareValue}',
     'Value must be greater than {compareValue}': 'Значение должно быть больше {compareValue}',
     'Value must be greater than or equal to "{compareValue}"': 'Значение должно быть больше или равно {compareValue}',

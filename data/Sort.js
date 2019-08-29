@@ -29,7 +29,7 @@ module.exports = class Sort extends Base {
     }
 
     initAttrs () {        
-        for (let name of Object.keys(this.attrs)) {
+        for (const name of Object.keys(this.attrs)) {
             let attr = this.attrs[name];
             if (typeof attr !== 'object') {
                 attr = {
@@ -81,17 +81,17 @@ module.exports = class Sort extends Base {
     }
 
     getOrder (attr) {
-        let orders = this.getOrders();
+        const orders = this.getOrders();
         return Object.prototype.hasOwnProperty.call(orders, attr) ? orders[attr] : null;
     }
 
     getLink (attr, options = {}) {
-        let direction = this.getOrder(attr);
+        const direction = this.getOrder(attr);
         if (direction) {
-            let css = direction === this.DESC ? 'desc' : 'asc';
+            const css = direction === this.DESC ? 'desc' : 'asc';
             options.class = options.class ? `${options.class} ${css}` : css;
         }
-        let url = this.createUrl(attr);
+        const url = this.createUrl(attr);
         options['data-sort'] = this.createSortParam(attr);
         let label = options.label;
         if (label) {
@@ -105,26 +105,26 @@ module.exports = class Sort extends Base {
     }
 
     createUrl (attr) {
-        let params = this.params || {...this.controller.getQueryParams()};
+        const params = this.params || {...this.controller.getQueryParams()};
         params[this.sortParam] = this.createSortParam(attr);
-        let route = this.route || this.controller.getCurrentRoute();
+        const route = this.route || this.controller.getCurrentRoute();
         return this.controller.createUrl([route, params]);
     }
 
     createSortParam (attr) {
-        let def = this.attrs[attr];
+        let data = this.attrs[attr];
         let directions = {...this.getOrders()}, direction;
         if (Object.prototype.hasOwnProperty.call(directions, attr)) {
             direction = directions[attr] === this.DESC ? this.ASC : this.DESC;
             delete directions[attr];
         } else {
-            direction = 'default' in def ? def['default'] : this.ASC;
+            direction = 'default' in data ? data.default : this.ASC;
         }
         directions = this.enableMultiSort
             ? {[attr]: direction, ...directions}
             : {[attr]: direction};
         const sorts = [];
-        for (let attr in directions) {
+        for (const attr in directions) {
             sorts.push(directions[attr] === this.DESC ? `-${attr}` : attr);
         }
         return sorts.join(this.separator);

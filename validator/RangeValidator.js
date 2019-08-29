@@ -28,8 +28,8 @@ module.exports = class RangeValidator extends Base {
             return this.getMessage();
         }
         let inRange = true;
-        let values = Array.isArray(value) ? value : [value];
-        for (let item of values) {
+        const values = Array.isArray(value) ? value : [value];
+        for (const item of values) {
             if (!this.range.includes(item)) {
                 inRange = false;
                 break;

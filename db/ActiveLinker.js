@@ -124,7 +124,7 @@ module.exports = class ActiveLinker extends Base {
         if (rel.getViaRelation()) {
             this.owner.unsetRelation(rel.getViaRelationName());
         }
-        let via = rel.getViaTable() || rel.getViaRelation();
+        const via = rel.getViaTable() || rel.getViaRelation();
         let condition = {[via.refKey]: this.owner.get(via.linkKey)};
         if (via.getWhere()) {
             condition = ['AND', condition, via.getWhere()];
@@ -135,7 +135,7 @@ module.exports = class ActiveLinker extends Base {
             remove ? await this.owner.getDb().remove(via.getTable(), condition)
                    : await this.owner.getDb().update(via.getTable(), condition, nulls);
         } else if (remove) {
-            for (let model of await via.model.find(condition).all()) {
+            for (const model of await via.model.find(condition).all()) {
                 await model.remove();
             }
         } else {
@@ -153,9 +153,9 @@ module.exports = class ActiveLinker extends Base {
         if (rel.getWhere()) {
             condition = ['AND', condition, rel.getWhere()];
         }
-        let nulls = {[rel.refKey]: null};
+        const nulls = {[rel.refKey]: null};
         if (remove) {
-            for (let model of await rel.all()) {
+            for (const model of await rel.all()) {
                 await model.remove();
             }
         } else if (rel.getViaArray()) {
@@ -169,10 +169,10 @@ module.exports = class ActiveLinker extends Base {
         if (!rel.isMultiple()) {
             return this.owner.unsetRelation(name);
         }
-        const models = this.getPopulatedRelation(name);
+        const models = this.owner.getPopulatedRelation(name);
         if (Array.isArray(models)) {
             for (let i = models.length - 1; i >= 0; --i) {
-                if (MongoHelper.isEqual(model.getId(), models[i].getId())) {
+                if (CommonHelper.isEqual(model.getId(), models[i].getId())) {
                     models.splice(i, 1);
                 }
             }
@@ -191,7 +191,7 @@ module.exports = class ActiveLinker extends Base {
         if (!Array.isArray(foreignModel.get(foreignKey))) {
             foreignModel.set(foreignKey, []);
         }
-        if (MongoHelper.indexOf(value, foreignModel.get(foreignKey)) === -1) {
+        if (!ArrayHelper.includes(value, foreignModel.get(foreignKey))) {
             foreignModel.get(foreignKey).push(value);
             return foreignModel.forceSave();
         }
@@ -202,6 +202,7 @@ module.exports = class ActiveLinker extends Base {
     }
 };
 
-const MongoHelper = require('../helper/MongoHelper');
+const ArrayHelper = require('../helper/ArrayHelper');
+const CommonHelper = require('../helper/CommonHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
 const QueryHelper = require('../helper/QueryHelper');

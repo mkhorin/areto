@@ -42,7 +42,7 @@ module.exports = class Logger extends Base {
     }
 
     async init () {
-        for (let store of Object.values(this.stores)) {
+        for (const store of Object.values(this.stores)) {
             await store.init();
         }
     }
@@ -64,7 +64,7 @@ module.exports = class Logger extends Base {
     }
 
     createStores () {
-        for (let name of Object.keys(this.stores)) {
+        for (const name of Object.keys(this.stores)) {
             this.stores[name] = this.spawn(this.stores[name], {logger: this, name});
         }
     }
@@ -105,7 +105,7 @@ module.exports = class Logger extends Base {
     getCounters (names) {
         const counters = [];
         names = Array.isArray(names) ? names : this.typeNames;
-        for (let name of names) {
+        for (const name of names) {
             const type = this.getType(name);
             if (type) {
                 const counter = type.getCounter();

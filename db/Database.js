@@ -36,7 +36,7 @@ module.exports = class Database extends Base {
         }
         this._connection = await this.openConnection();
         this.log('info', `Connection opened: ${this.getUri()}`);
-        this.trigger(this.EVENT_OPEN_CONNECTION);
+        await this.trigger(this.EVENT_OPEN_CONNECTION);
     }
 
     async close () {
@@ -46,7 +46,7 @@ module.exports = class Database extends Base {
         await this.closeConnection();
         this._connection = null;
         this.log('info', `Connection closed: ${this.getUri()}`);
-        this.trigger(this.EVENT_CLOSE_CONNECTION);
+        await this.trigger(this.EVENT_CLOSE_CONNECTION);
     }
 
     async openConnection () {
@@ -73,7 +73,7 @@ module.exports = class Database extends Base {
 
     afterError (message, data) {
         this.log('error', message, data);
-        this.trigger(this.EVENT_ERROR, {message, data});
+        return this.trigger(this.EVENT_ERROR, {message, data});
     }
 
     buildCondition (condition) {

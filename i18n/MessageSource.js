@@ -14,7 +14,11 @@ module.exports = class MessageSource extends Base {
             parent: null,
             ...config
         });
-        this.clearCache();
+        this._messages = {};
+    }
+
+    async load () {
+        throw new Error(this.wrapClassMessage('Load messages from store'));
     }
 
     translate (message, category, language) {
@@ -27,25 +31,14 @@ module.exports = class MessageSource extends Base {
         if (!category) {
             return null;
         }
-        const key = `${language}/${category}`;
-        if (!this._messages[key]) {
-            this._messages[key] = this.loadMessages(category, language);
+        const data = this._messages[`${language}/${category}`];
+        if (data && Object.prototype.hasOwnProperty.call(data, message)) {
+            return data[message];
         }
-        if (Object.prototype.hasOwnProperty.call(this._messages[key], message)) {
-            return this._messages[key][message];
-        }
-        if (this.parent instanceof MessageSource) {
+        if (this.parent) {
             return this.parent.translateMessage(message, category, language);
         }
         return null;
-    }
-
-    loadMessages () {
-        throw new Error(this.wrapClassMessage('Load messages from store'));
-    }
-
-    clearCache () {
-        this._messages = {};
     }
 
     log () {

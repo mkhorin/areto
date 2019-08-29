@@ -20,11 +20,21 @@ module.exports = class I18n extends Base {
             language: config.parent ? config.parent.language : 'en',
             sourceLanguage: config.parent ? config.parent.sourceLanguage : 'en',
             sources: {},
-            MessageFormatter: MessageFormatter,
+            MessageFormatter,
             ...config
         });
         this.createSources();
         this.createMessageFormatter();
+    }
+
+    async init () {
+        await this.loadSources();
+    }
+
+    async loadSources () {
+        for (const source of Object.values(this.sources)) {
+            await source.load();
+        }
     }
 
     format (message, params, language) {
@@ -55,17 +65,17 @@ module.exports = class I18n extends Base {
         return this.translate(...arguments);
     }
 
-    translateMessageMap (map, category) {
-        map = {...map};
-        for (let key of Object.keys(map)) {
-            map[key] = this.translateMessage(map[key], category);
+    translateMessageMap (data, category) {
+        data = {...data};
+        for (const key of Object.keys(data)) {
+            data[key] = this.translateMessage(data[key], category);
         }
-        return map;
+        return data;
     }
 
     createSources () {
         const sources = this.sources || {};
-        for (let category of Object.keys(sources)) {
+        for (const category of Object.keys(sources)) {
             sources[category] = this.createSource(category, sources[category]);
         }
         if (!sources[this.CORE_CATEGORY] && !sources[this.CORE_CATEGORY + this.ASTERISK]) {
@@ -81,7 +91,7 @@ module.exports = class I18n extends Base {
             sources[this.APP_CATEGORY] = this.createSource(this.APP_CATEGORY);
         }
         if (this.parent instanceof I18n) {
-            for (let category of Object.keys(this.parent.sources)) {
+            for (const category of Object.keys(this.parent.sources)) {
                 sources[category] = sources[category] || this.parent.sources[category];
             }
         }
@@ -122,8 +132,8 @@ module.exports = class I18n extends Base {
             }
             return sources[category];
         }
-        for (let name of Object.keys(sources)) {
-            let pos = name.indexOf(this.ASTERISK);
+        for (const name of Object.keys(sources)) {
+            const pos = name.indexOf(this.ASTERISK);
             if (pos > 0 && name.substring(0, pos).indexOf(category) === 0) {
                 if (!(sources[name] instanceof MessageSource)) {
                     sources[name] = this.createSource(name, sources[name]);
@@ -138,7 +148,7 @@ module.exports = class I18n extends Base {
             }
             return sources[this.ASTERISK];
         }
-        this.log('error', `Not found message source: ${category}`);
+        this.log('error', `Message source not found: ${category}`);
         return null;
     }
 };

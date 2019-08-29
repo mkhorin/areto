@@ -48,7 +48,7 @@ describe('ObjectHelper', ()=> {
         expect(res).to.eql(['k1', 'k3']);
     });
 
-    it('getAllPropNames', ()=> {
+    it('getAllPropertyNames', ()=> {
         class Test1 {
             test1 () {}
         }
@@ -58,7 +58,7 @@ describe('ObjectHelper', ()=> {
         class Test3 extends Test2 {
             test3 () {}
         }
-        let list = ObjectHelper.getAllPropNames(new Test3);
+        let list = ObjectHelper.getAllPropertyNames(new Test3);
         expect(list).to.include('test1');
         expect(list).to.include('test2');
         expect(list).to.include('test3');
@@ -112,9 +112,9 @@ describe('ObjectHelper', ()=> {
         });
     });
 
-    // DELETE PROPS
+    // DELETE PROPERTIES
 
-    it('deleteEmptyProps', ()=> {
+    it('deleteEmptyProperties', ()=> {
         let res = {
             k1: 0,
             k2: null,
@@ -122,14 +122,14 @@ describe('ObjectHelper', ()=> {
             k4: '',
             k5: []
         };
-        ObjectHelper.deleteEmptyProps(res);
+        ObjectHelper.deleteEmptyProperties(res);
         expect(res).to.eql({
             k1: 0,
             k5: []
         });
     });
 
-    it('deletePropsByValue', ()=> {
+    it('deletePropertiesByValue', ()=> {
         let res = {
             k1: 0,
             k2: null,
@@ -137,7 +137,7 @@ describe('ObjectHelper', ()=> {
             k4: '4123',
             k5: 55
         };
-        ObjectHelper.deletePropsByValue(55, res);
+        ObjectHelper.deletePropertiesByValue(55, res);
         expect(res).to.eql({
             k1: 0,
             k2: null,
@@ -149,7 +149,7 @@ describe('ObjectHelper', ()=> {
             k3: 55,
             k4: '23'
         };
-        ObjectHelper.deletePropsByValue('23', res, ['k1', 'k2']);
+        ObjectHelper.deletePropertiesByValue('23', res, ['k1', 'k2']);
         expect(res).to.eql({
             k1: 0,
             k3: 55,
@@ -157,7 +157,7 @@ describe('ObjectHelper', ()=> {
         });
     });
 
-    it('deleteProps', ()=> {
+    it('deleteProperties', ()=> {
         let res = {
             k1: 0,
             k2: null,
@@ -165,7 +165,7 @@ describe('ObjectHelper', ()=> {
             k4: '',
             k5: []
         };
-        ObjectHelper.deleteProps(['k2', 'k4'], res);
+        ObjectHelper.deleteProperties(['k2', 'k4'], res);
         expect(res).to.eql({
             k1: 0,
             k3: 'test',
@@ -173,7 +173,7 @@ describe('ObjectHelper', ()=> {
         });
     });
 
-    it('deletePropsExcept', ()=> {
+    it('deletePropertiesExcept', ()=> {
         let res = {
             k1: 0,
             k2: null,
@@ -181,7 +181,7 @@ describe('ObjectHelper', ()=> {
             k4: '',
             k5: []
         };
-        ObjectHelper.deletePropsExcept(['k2', 'k4'], res);
+        ObjectHelper.deletePropertiesExcept(['k2', 'k4'], res);
         expect(res).to.eql({
             k2: null,
             k4: ''

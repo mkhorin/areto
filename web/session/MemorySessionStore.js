@@ -12,7 +12,7 @@ module.exports = class MemorySessionStore extends Base {
 
     get (sid, callback) {
         if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            let item = this._sessions[sid];
+            const item = this._sessions[sid];
             if (!this.session.lifetime || (new Date) - item.updatedAt < this.session.lifetime) {
                 return callback(null, item.data);
             }
@@ -56,7 +56,7 @@ module.exports = class MemorySessionStore extends Base {
             return null;
         }
         const now = new Date;
-        for (let sid of Object.keys(this._sessions)) {
+        for (const sid of Object.keys(this._sessions)) {
             if (now - this._sessions[sid].updatedAt > this.session.lifetime) {
                 if (this._sessions[sid][this.userIdParam]) {
                     delete this._users[this._sessions[sid][this.userIdParam]];

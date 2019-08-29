@@ -22,11 +22,11 @@ module.exports = class UrlValidator extends Base {
     }
 
     async validateAttr (model, attr) {
-        let value = model.get(attr);
-        let message = await this.validateValue(value);
+        const value = model.get(attr);
+        const message = await this.validateValue(value);
         if (message) {
             this.addError(model, attr, message);
-        } else if (this.defaultScheme !== null && value.indexOf('://') === -1) {
+        } else if (this.defaultScheme !== null && !value.includes('://')) {
             model.set(attr, `${this.defaultScheme}://${value}`);
         }
     }
@@ -35,11 +35,11 @@ module.exports = class UrlValidator extends Base {
         if (typeof value !== 'string' || value.length > this.maxLength) {
             return this.getMessage();
         }
-        if (this.defaultScheme !== null && value.indexOf('://') === -1) {
+        if (this.defaultScheme !== null && !value.includes('://')) {
             value = `${this.defaultScheme}://${value}`;
         }
         let pattern = this.pattern;
-        if (pattern.indexOf('{schemes}') !== -1) {
+        if (pattern.includes('{schemes}')) {
             pattern = pattern.replace('{schemes}', `(${this.validSchemes.join('|')})`);
         }
         return (new RegExp(pattern, 'i')).test(value) ? null : this.getMessage();

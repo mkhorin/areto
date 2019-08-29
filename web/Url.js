@@ -35,7 +35,7 @@ module.exports = class Url extends Base {
         if (this.methods && !this.methods.includes(method)) {
             return null;
         }
-        let result = this.sourceRegExp.exec(url);
+        const result = this.sourceRegExp.exec(url);
         if (!result) {
             return null;
         }
@@ -47,7 +47,7 @@ module.exports = class Url extends Base {
     }
 
     createSourceUrl (data) {
-        let result = this.targetRegExp.exec(data.path);
+        const result = this.targetRegExp.exec(data.path);
         if (!result) {
             return null;
         }
@@ -56,7 +56,7 @@ module.exports = class Url extends Base {
             // data.params = { id: 123, test: '456'};
             // data.anchor = 'anchor';
             let url = this.createSource(Object.assign(params, data.params));
-            ObjectHelper.deleteProps(this.sourceParamNames, params);
+            ObjectHelper.deleteProperties(this.sourceParamNames, params);
             params = this.constructor.serializeParams(params);
             if (params) {
                 url = `${url}?${params}`;
@@ -80,7 +80,7 @@ module.exports = class Url extends Base {
 
     getParamNames (tokens) {
         const names = [];
-        for (let token of tokens) {
+        for (const token of tokens) {
             if (token.name && !names.includes(token.name)) {
                 names.push(token.name);
             }

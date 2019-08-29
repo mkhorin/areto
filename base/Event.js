@@ -7,6 +7,144 @@ const Base = require('./Base');
 
 module.exports = class Event extends Base {
 
+    // CLASS LEVEL EVENTS
+
+    static once (target, name, handler, data, prepend) {
+        this.on(target, name, handler, data, prepend, 1);
+    }
+
+    static on (target, name, handler, data, prepend, counter) {
+        const id = target.CLASS_FILE;
+        if (!id) {
+            throw new Error(this.wrapClassMessage('Invalid target class'));
+        }
+        if (typeof handler !== 'function') {
+            throw new Error(this.wrapClassMessage('Invalid event handler'));
+        }
+        if (!Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
+            this._eventMap[name] = {};
+        }
+        const targetMap = this._eventMap[name];
+        if (!Array.isArray(targetMap[id])) {
+            targetMap[id] = [];
+        }
+        handler = [handler, data, counter, targetMap[id]];
+        prepend ? targetMap[id].unshift(handler)
+                : targetMap[id].push(handler);
+    }
+
+    static off (target, name, handler) {
+        if (target === undefined) {
+            this._eventMap = {};
+            return true;
+        }
+        const id = target.CLASS_FILE;
+        if (!id) {
+            throw new Error(this.wrapClassMessage('Invalid target class'));
+        }
+        if (!name) {
+            return this.detachByTarget(id);
+        }
+        const targetMap = this._eventMap[name];
+        if (!targetMap || !Array.isArray(targetMap[id])) {
+            return false;
+        }
+        if (handler) {
+            return this.detachByHandler(handler, targetMap[id]);
+        }
+        delete targetMap[id];
+        return true;
+    }
+
+    static detachByTarget (target) {
+        for (const targetMap of Object.values(this._eventMap)) {
+            for (const key of Object.keys(targetMap)) {
+                if (key === target) {
+                    delete targetMap[key];
+                }
+            }
+        }
+        return true;
+    }
+
+    static detachByHandler (handler, items) {
+        let removed = false;
+        for (let i = items.length - 1; i >= 0; --i) {
+            if (items[i][0] === handler) {
+                items.splice(i, 1);
+                removed = true;
+            }
+        }
+        return removed;
+    }
+
+    static trigger (sender, name, event, items = []) {
+        if (Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
+            const Class = typeof sender !== 'function' ? sender.constructor : sender;
+            if (!Class.CLASS_FILE) {
+                throw new Error(this.wrapClassMessage('Invalid event sender'));
+            }
+            this.prependHandlers(Class, this._eventMap[name], items);
+        }
+        if (items.length) {
+            return this.executeHandlers(items, this.create(event, sender, name));
+        }
+    }
+
+    static prependHandlers (Class, targetMap, items) {
+        const parent = Object.getPrototypeOf(Class);
+        if (parent && targetMap[parent.CLASS_FILE]) {
+            this.prependHandlers(parent, targetMap, items);
+        }
+        if (Array.isArray(targetMap[Class.CLASS_FILE])) {
+            items.unshift(...targetMap[Class.CLASS_FILE]);
+        }
+    }
+
+    static async executeHandlers (items, event) {
+        for (const item of items) {
+            if (event.handled) {
+                break;
+            }
+            await item[0].call(this, event, item[1]);
+            if (typeof item[2] === 'number' && --item[2] < 1) {
+                ArrayHelper.removeValue(item, item[3]);
+            }
+        }
+    }
+
+    static create (event, sender, name) {
+        event = event || new this;
+        event.sender = sender;
+        event.handled = false;
+        event.name = name;
+        return event;
+    }
+
+    static hasHandlerByName (name) {
+        return Object.prototype.hasOwnProperty.call(this._eventMap, name);
+    }
+
+    static hasHandlerByTarget (target, name) {
+        if (!this.hasHandlerByName(name)) {
+            return false;
+        }
+        if (typeof target !== 'function') {
+            target = target.constructor;
+        }
+        const targetMap = this._eventMap[name];
+        // check target listeners and its ancestors
+        let id = target.CLASS_FILE;
+        while (id) {
+            if (targetMap[id] && targetMap[id].length) {
+                return true;
+            }
+            target = Object.getPrototypeOf(target); // get parent class
+            id = target ? target.CLASS_FILE : null;
+        }
+        return false;
+    }
+
     constructor (config) {
         super({
             name: null,
@@ -15,105 +153,7 @@ module.exports = class Event extends Base {
             ...config
         });
     }
-
-    // CLASS-LEVEL EVENTS
-
-    static on (target, name, handler, data, prepend) {
-        const id = target.CLASS_FILE;
-        if (!id) {
-            throw new Error(this.wrapClassMessage('Invalid event target'));
-        }
-        if (typeof name !== 'string') {
-            throw new Error(this.wrapClassMessage('Invalid event name'));
-        }
-        if (typeof handler !== 'function') {
-            throw new Error(this.wrapClassMessage('Invalid event handler'));
-        }
-        let event = this._events[name];
-        if (!event) {
-            this._events[name] = event = {};
-        }
-        event[id] = event[id] || [];
-        prepend ? event[id].push([handler, data]) 
-                : event[id].unshift([handler, data]);
-    }
-
-    static off (target, name, handler) {
-        const id = target.CLASS_FILE;
-        const event = this._events[name];
-        if (!id || !event || !event[id]) {
-            return false;
-        }
-        if (!handler) {
-            delete event[id];
-            return true;
-        }
-        let removed = false;
-        for (let i = event[id].length - 1; i >= 0; --i) {
-            if (event[id][i][0] === handler) {
-                event[id].splice(i, 1);
-                removed = true;
-            }
-        }
-        return removed;
-    }
-
-    static async trigger (sender, name, event, tasks = []) {
-        if (this._events[name]) {
-            event = this.create(event, sender, name);
-            if (typeof sender !== 'function') {
-                sender = sender.constructor;
-            }
-            if (!sender.CLASS_FILE) {
-                throw new Error(this.wrapClassMessage('Invalid event sender'));
-            }
-            this.resolveTasks(sender, name, event, tasks);
-        }
-        for (let task of tasks.reverse()) {
-            if (!event.handled) {
-                await task();
-            }
-        }
-    }
-
-    static hasHandler (sender, name) {
-        if (!Array.isArray(this._events[name])) {
-            return false;
-        }
-        if (typeof sender !== 'function') {
-            sender = sender.constructor;
-        }
-        // check listeners of the sender class and ancestors
-        let id = sender.CLASS_FILE;
-        while (id) {
-            if (this._events[name][id] && this._events[name][id].length) {
-                return true;
-            }
-            sender = Object.getPrototypeOf(sender);
-            id = sender ? sender.CLASS_FILE : null;
-        }
-        return false;
-    }
-
-    static create (event, sender, name) {
-        event = event || new this;
-        event.sender = event.sender || sender;
-        event.handled = false;
-        event.name = name;
-        return event;
-    }
-
-    static resolveTasks (sender, name, event, tasks) {
-        let id = sender.CLASS_FILE;
-        while (id) {
-            if (Array.isArray(this._events[name][id])) {
-                for (let handler of this._events[name][id]) {
-                    tasks.push(handler[0].bind(this, event, handler[1]));
-                }
-            }
-            sender = Object.getPrototypeOf(sender); // get parent class
-            id = sender ? sender.CLASS_FILE : null;
-        }
-    }
 };
-module.exports._events = {};
+module.exports._eventMap = {};
+
+const ArrayHelper = require('../helper/ArrayHelper');

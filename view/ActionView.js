@@ -66,9 +66,6 @@ module.exports = class ActionView extends Base {
 
     async render (template, params) {
         params = this.getRenderParams(params);
-        this.layout = params.viewLayout
-            || this.controller.VIEW_LAYOUT
-            || this.module.VIEW_LAYOUT;
         let content = await this.renderTemplate(this.get(template), params);
         content = await this.renderWidgets(content, params);
         return this._asset ? this._asset.render(content) : content;
@@ -84,6 +81,7 @@ module.exports = class ActionView extends Base {
             _module: this.module,
             _controller: this.controller,
             _view: this,
+            _layout: this.controller.VIEW_LAYOUT || this.module.VIEW_LAYOUT,
             _t: this.controller.translate.bind(this.controller),
             _format: this.controller.format.bind(this.controller),
             _url: this.controller.createUrl.bind(this.controller),
@@ -119,7 +117,7 @@ module.exports = class ActionView extends Base {
         if (this._asset === undefined) {
             const asset = this.module.get('asset');
             if (!asset) {
-                return this.log('error', 'Not found asset component');
+                return this.log('error', 'Asset component not found');
             }
             this._asset = asset.createViewAsset();
         }
@@ -128,51 +126,53 @@ module.exports = class ActionView extends Base {
 
     // WIDGET
 
-    anchorWidget (anchor, params) {
-        if (!this.widgets.hasOwnProperty(anchor)) {
-            this.widgets[anchor] = params || {};
+    placeWidget (name, params) {
+        if (!this.widgets.hasOwnProperty(name)) {
+            this.widgets[name] = params || {};
         }
-        return `#{${anchor}}`;
+        return `#{${name}}`;
     }
 
     async renderWidgets (content, renderParams) {
-        const anchors = Object.keys(this.widgets);
-        if (anchors.length === 0) {
+        const names = Object.keys(this.widgets);
+        if (names.length === 0) {
             return content;
         }
-        for (let anchor of anchors) {
-            await this.renderWidget(anchor, renderParams);
+        for (const name of names) {
+            await this.renderWidget(name, renderParams);
         }
         return this.insertWidgetContent(content);
     }
 
-    renderWidget (anchor, params) {
-        const widget = this.createWidget(anchor, this.widgets[anchor]);
+    renderWidget (name, params) {
+        const widget = this.createWidget(name, this.widgets[name]);
         if (!widget) {
-            return delete this.widgets[anchor];
+            return delete this.widgets[name];
         }
-        this.widgets[anchor] = widget;
+        this.widgets[name] = widget;
         return widget.execute(params);
     }
 
-    createWidget (anchor, params) {
-        const key = params && params.id || anchor;
-        const widget = this.module.getConfig(`widgets.${key}`);
-        if (!widget) {
-            return this.log('error', `Widget config not found: ${key}`);
+    createWidget (id, params) {
+        const key = params && params.id || id;
+        const config = this.getWidgetConfig(key);
+        if (!config) {
+            return this.log('error', `Widget configuration not found: ${key}`);
         }
-        return ClassHelper.spawn({
-            id: anchor,
-            ...widget,
-            ...params,
-            view: this            
-        });
+        return ClassHelper.spawn({id, ...config, ...params, view: this});
+    }
+
+    getWidgetConfig (key) {
+        if (!this._widgetConfigMap) {
+            this._widgetConfigMap = this.module.getConfig('widgets') || {};
+        }
+        return this._widgetConfigMap.hasOwnProperty(key) ? this._widgetConfigMap[key] : null;
     }
 
     insertWidgetContent (content) {
-        const anchors = Object.keys(this.widgets).join('|');
-        return anchors.length
-            ? content.replace(new RegExp(`#{(${anchors})}`, 'g'), (match, anchor)=> this.widgets[anchor].content)
+        const names = Object.keys(this.widgets).join('|');
+        return names.length
+            ? content.replace(new RegExp(`#{(${names})}`, 'g'), (match, name)=> this.widgets[name].content)
             : content;
     }
 };

@@ -14,24 +14,28 @@ module.exports = class AccessControl extends Base {
             AccessRule,
             ...config
         });
-        this.createRules();
+    }
+
+    getRules () {
+        if (!this._rules) {
+            this._rules = this.createRules();
+        }
+        return this._rules;
     }
 
     createRules () {
         const rules = [];
-        for (let rule of this.rules) {
-            if (!(rule instanceof AccessRule)) {
-                rule = this.spawn(rule.Class || this.AccessRule, rule);
-            }
-            rules.push(rule);
+        for (const config of this.rules) {
+            config.Class = config.Class || this.AccessRule;
+            rules.push(this.spawn(config));
         }
-        this.rules = rules;
+        return rules;
     }
 
     async beforeAction (action) {
         // check rules until the first result [allow or deny]
-        for (let rule of this.rules) {
-            let access = await rule.can(action);
+        for (const rule of this.getRules()) {
+            const access = await rule.can(action);
             if (access === false) {
                 return this.denyAccess(rule, action);
             }

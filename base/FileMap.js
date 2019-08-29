@@ -29,18 +29,18 @@ module.exports = class FileMap extends Base {
     indexFiles () {
         try {
             this._files = {};
-            this.indexDirFiles(this.dir);
+            this.indexDirectoryFiles(this.dir);
             if (this.required) {
                 this.requireFiles();
             }
         } catch (err) {}
     }
 
-    indexDirFiles (dir) {
-        for (let name of fs.readdirSync(dir)) {
-            let file = path.join(dir, name);
+    indexDirectoryFiles (dir) {
+        for (const name of fs.readdirSync(dir)) {
+            const file = path.join(dir, name);
             if (fs.lstatSync(file).isDirectory()) {
-                this.indexDirFiles(file);
+                this.indexDirectoryFiles(file);
             } else {
                 this._files[this.getKey(file)] = file;
             }
@@ -48,16 +48,14 @@ module.exports = class FileMap extends Base {
     }
 
     getKey (file) {
-        let relative = file.substring(this.dir.length + 1);
-        let parts = relative.split(path.sep);
-        let last = parts.pop();
-        last = FileHelper.removeExtension(last);
-        parts.push(last);
+        const relative = file.substring(this.dir.length + 1);
+        const parts = relative.split(path.sep);        
+        parts.push(FileHelper.removeExtension(parts.pop()));
         return parts.join('/'); // normalize separator
     }
 
     requireFiles () {
-        for (let key of Object.keys(this._files)) {
+        for (const key of Object.keys(this._files)) {
             try {
                 this._files[key] = require(this._files[key]);
             } catch (err) {

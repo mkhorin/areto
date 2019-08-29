@@ -66,7 +66,7 @@ module.exports = class Pagination extends Base {
         }
         value = parseInt(value);
         if (this.validatePage) {
-            let pageCount = this.getPageCount();
+            const pageCount = this.getPageCount();
             if (value >= pageCount) {
                 value = pageCount - 1;
             }
@@ -78,7 +78,7 @@ module.exports = class Pagination extends Base {
         if (this.pageSize < 1) {
             return this.totalCount > 0 ? 1 : 0;
         }
-        let total = this.totalCount < 0 ? 0 : this.totalCount;
+        const total = this.totalCount < 0 ? 0 : this.totalCount;
         return Math.floor((total + this.pageSize - 1) / this.pageSize);
     }
 
@@ -91,9 +91,9 @@ module.exports = class Pagination extends Base {
     }
 
     getLinks () {
-        let currentPage = this.page;
-        let pageCount = this.getPageCount();
-        let links = {
+        const currentPage = this.page;
+        const pageCount = this.getPageCount();
+        const links = {
             [this.LINK_SELF]: this.createUrl(currentPage)
         };
         if (currentPage > 0) {
@@ -108,13 +108,13 @@ module.exports = class Pagination extends Base {
     }
 
     getQueryParam (name, defaultValue) {
-        let params = this.params || this.controller.getQueryParams();
-        let value = params[name] ? parseInt(params[name]) : NaN;
+        const params = this.params || this.controller.getQueryParams();
+        const value = params[name] ? parseInt(params[name]) : NaN;
         return Number.isNaN(value) ? defaultValue : value;
     }
 
     createUrl (page, pageSize) {
-        let params = this.params || {...this.controller.getQueryParams()};
+        const params = this.params || {...this.controller.getQueryParams()};
         if (page > 0 || page >= 0 && this.forcePageParam) {
             params[this.pageParam] = page + 1;
         } else {

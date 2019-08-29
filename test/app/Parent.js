@@ -3,9 +3,9 @@
  */
 'use strict';
 
-const Base = require('areto/base/Application');
+const Base = require('areto/base/Base');
 
-module.exports = class Main extends Base {
-    
+module.exports = class Parent extends Base {
+
 };
 module.exports.init(module);

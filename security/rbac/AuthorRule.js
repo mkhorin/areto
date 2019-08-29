@@ -9,8 +9,8 @@ module.exports = class AuthorRule extends Base {
 
     async execute () {
         return !this.params.user.isGuest()
-            && MongoHelper.isEqual(this.params.user.getId(), this.params.authorId);
+            && CommonHelper.isEqual(this.params.user.getId(), this.params.authorId);
     }
 };
 
-const MongoHelper = require('../../helper/MongoHelper');
+const CommonHelper = require('../../helper/CommonHelper');

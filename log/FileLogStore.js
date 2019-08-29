@@ -91,7 +91,7 @@ module.exports = class FileLogStore extends Base {
     async removeExcessFiles (files) {
         if (files.length > this.maxFiles) {
             const unlinks = files.splice(this.maxFiles, files.length);
-            for (let file of unlinks) {
+            for (const file of unlinks) {
                 await fs.promises.unlink(file);
             }
         }

@@ -43,4 +43,13 @@ describe('StringHelper', ()=> {
         expect(res).to.eql('TestBlockOnline');
     });
 
+    it('split', ()=> {
+        let res = StringHelper.split('a,b, ,c, d,');
+        expect(res).to.eql(['a', 'b', 'c', 'd']);
+    });
+
+    it('parseObject', ()=> {
+        let res = StringHelper.parseObject('k1: v1, k2: v2');
+        expect(res).to.eql({k1: 'v1', k2: 'v2'});
+    });
 });

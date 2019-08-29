@@ -26,7 +26,7 @@ module.exports = class DateHelper {
             return null;
         }
         date = date instanceof Date ? date : new Date(date);
-        let time = date.getTime();
+        const time = date.getTime();
         return isNaN(time) ? null : (new Date(time + date.getTimezoneOffset() * 60000));
     }
 };

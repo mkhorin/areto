@@ -54,11 +54,11 @@ module.exports = class Router extends Base {
             files = fs.readdirSync(dir);
         } catch (err) {
         }
-        const map = {};
-        for (let file of files) {
-            this.setControllerMapFile(path.join(dir, file), relative, map);
+        const result = {};
+        for (const file of files) {
+            this.setControllerMapFile(path.join(dir, file), relative, result);
         }
-        return map;
+        return result;
     }
 
     setControllerMapFile (file, relative, map) {
@@ -75,6 +75,12 @@ module.exports = class Router extends Base {
         return id.replace(/\//g, '-');
     }
 
+    createController (Controller, config) {
+        config.user = config.res.locals.user;
+        config.language = config.res.locals.language;
+        return new Controller(config);
+    }
+
     // ACTION
 
     addDefaultAction (Controller) {
@@ -86,10 +92,10 @@ module.exports = class Router extends Base {
     }
 
     addActions () {
-        for (let id of Object.keys(this._controllerMap)) {
+        for (const id of Object.keys(this._controllerMap)) {
             const route = `/${this.resolveControllerId(id)}`;
             const Controller = this._controllerMap[id];
-            for (let actionId of Controller.getActionKeys()) {
+            for (const actionId of Controller.getActionKeys()) {
                 this.addAction(actionId, Controller, `${route}/${actionId}`);
                 if (Controller.DEFAULT_ACTION === actionId) {
                     this.addAction(actionId, Controller, route);
@@ -99,31 +105,25 @@ module.exports = class Router extends Base {
     }
 
     addAction (id, Controller, route) {
-        const action = function (req, res, next) {
-            (new Controller({
+        const action = (req, res, next)=> {
+            this.createController(Controller, {
                 req,
                 res,
-                module: res.locals.module,
-                user: res.locals.user,
-                language: res.locals.language
-            })).execute(id).catch(next);
+                module: res.locals.module
+            }).execute(id).catch(next);
         };
         let methods = Controller.METHODS[id] || ['all'];
         if (!Array.isArray(methods)) {
             methods = [methods];
         }
-        for (let method of methods) {
+        for (const method of methods) {
             this.module.addHandler(method.toLowerCase(), route, action);
         }
     }
 
-    // ERROR
-
     addErrorHandlers (config) {
-        this.module.addHandler('all', '*', function (req, res, next) {
-            next(new NotFound);
-        });
         const Controller = this.getController(config.controller) || this.getDefaultController();
+        this.module.addHandler('all', '*', (req, res, next)=> next(new NotFound));
         this.module.addHandler('use', (err, req, res, next)=> {
             if (!(err instanceof HttpException)) {
                 err = new ServerError(err);
@@ -132,15 +132,12 @@ module.exports = class Router extends Base {
             if (!Controller) {
                 return next(err);
             }
-            const controller = new Controller({
+            this.createController(Controller, {
+                err,
                 req,
                 res,
-                err,
-                module: this.module,
-                user: res.locals.user,
-                language: res.locals.language
-            });
-            controller.execute(config.action || 'error').catch(next);
+                module: this.module
+            }).execute(config.action || 'error').catch(next);
         });
     }
 };

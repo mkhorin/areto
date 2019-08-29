@@ -11,6 +11,7 @@ module.exports = class Validator extends Base {
         return {
             BUILTIN: {
                 'boolean': require('./BooleanValidator'),
+                'checkbox': require('./CheckboxValidator'),
                 'compare': require('./CompareValidator'),
                 'date': require('./DateValidator'),
                 'default': require('./DefaultValueValidator'),
@@ -23,6 +24,7 @@ module.exports = class Validator extends Base {
                 'inline': require('./InlineValidator'),
                 'id': require('./IdValidator'),
                 'ip': require('./IpValidator'),
+                'json': require('./JsonValidator'),
                 'number': require('./NumberValidator'),
                 'range': require('./RangeValidator'),
                 'regexp': require('./RegExpValidator'),
@@ -34,8 +36,7 @@ module.exports = class Validator extends Base {
                 'unique': require('./UniqueValidator'),
                 'unsafe': require('./UnsafeValidator'),
                 'url': require('./UrlValidator')
-            },
-            DEFAULT_MESSAGE_CATEGORY: 'areto'
+            }
         };
     }
 
@@ -69,8 +70,7 @@ module.exports = class Validator extends Base {
             when: null, // (model, attr)=> false/true
             isEmpty: null, // value => false/true
             messageCategory: 'app',
-            // enableClientValidation: true,
-            // whenClient: null,
+            defaultMessageCategory: 'areto',
             ...config
         });
     }
@@ -79,13 +79,13 @@ module.exports = class Validator extends Base {
         if (message instanceof Message) {
             return message.addParams(params);
         }
-        if (typeof message === 'string') {
+        if (message) {
             return new Message(message, this.messageCategory, params);
         }
-        const category = ObjectHelper.getKeyByValue(this.constructor, this.BUILTIN)
-            ? this.DEFAULT_MESSAGE_CATEGORY
-            : this.messageCategory;
-        return new Message(defaultMessage, category, params);
+        if (defaultMessage instanceof Message) {
+            return defaultMessage.addParams(params);
+        }
+        return new Message(defaultMessage, this.defaultMessageCategory, params);
     }
 
     async validateAttrs (model, attrs) {
@@ -98,13 +98,13 @@ module.exports = class Validator extends Base {
                 && (!this.skipOnEmpty || !this.isEmptyValue(model.get(attr)))
                 && (typeof this.when !== 'function' || this.when(model, attr));
         });
-        for (let attr of attrs) {
+        for (const attr of attrs) {
             await this.validateAttr(model, attr);
         }
     }
 
     async validateAttr (model, attr) {
-        let message = await this.validateValue(model.get(attr));
+        const message = await this.validateValue(model.get(attr));
         if (message) {
             this.addError(model, attr, message);
         }
@@ -127,7 +127,7 @@ module.exports = class Validator extends Base {
     }
 
     addError (model, attr, message) {
-        let value = model.get(attr);
+        const value = model.get(attr);
         message.addParams({
             attr: model.getAttrLabel(attr),
             value: Array.isArray(value) ? value.join() : value
@@ -138,5 +138,4 @@ module.exports = class Validator extends Base {
 module.exports.init();
 
 const ArrayHelper = require('../helper/ArrayHelper');
-const ObjectHelper = require('../helper/ObjectHelper');
 const Message = require('../i18n/Message');

@@ -29,7 +29,7 @@ module.exports = class LocaleFileMap extends Base {
 
     createLocaleMap () {
         this._locales = {};
-        for (let name of fs.readdirSync(this.localeDir)) {
+        for (const name of fs.readdirSync(this.localeDir)) {
             const dir = path.join(this.localeDir, name);
             if (fs.lstatSync(dir).isDirectory()) {
                 const map = ClassHelper.spawn(FileMap, {dir});

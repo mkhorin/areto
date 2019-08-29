@@ -9,7 +9,7 @@ module.exports = class BehaviorManager extends Base {
 
     get (name) {
         this.ensure();
-        return this._behaviors[name] instanceof Behavior ? this._behaviors[name] : null;
+        return this._behaviorMap[name] instanceof Behavior ? this._behaviorMap[name] : null;
     }
 
     attach (name, data) {
@@ -22,9 +22,9 @@ module.exports = class BehaviorManager extends Base {
     }
 
     detach (name) {
-        let behavior = this.get(name);
+        const behavior = this.get(name);
         if (behavior) {
-            delete this._behaviors[name];
+            delete this._behaviorMap[name];
             behavior.detach();
         }
         return behavior;        
@@ -32,30 +32,31 @@ module.exports = class BehaviorManager extends Base {
 
     getAll () {
         this.ensure();
-        return this._behaviors;
+        return this._behaviorMap;
     }
 
     attachAll (data) {
         this.ensure();
-        for (let name of Object.keys(data)) {
+        for (const name of Object.keys(data)) {
             this.attachInternal(name, data[name]);
         }
     }
 
     detachAll () {
         this.ensure();
-        for (let name of Object.keys(this._behaviors)) {
+        for (const name of Object.keys(this._behaviorMap)) {
             this.detach(name);
         }
     }
 
     ensure () {
-        if (!this._behaviors) {
-            this._behaviors = {};
-            if (this.autoAttachedItems) {
-                for (let name of Object.keys(this.autoAttachedItems)) {
-                    this.attach(name, this.autoAttachedItems[name]);
-                }
+        if (this._behaviorMap) {
+            return;
+        }
+        this._behaviorMap = {};
+        if (this.autoAttachedItems) {
+            for (const name of Object.keys(this.autoAttachedItems)) {
+                this.attach(name, this.autoAttachedItems[name]);
             }
         }
     }
@@ -72,11 +73,11 @@ module.exports = class BehaviorManager extends Base {
         } else if (!(behavior instanceof Behavior)) {
             throw new Error(this.wrapClassMessage(`Attach invalid behavior: ${name}`));
         }
-        if (this._behaviors[name] instanceof Behavior) {
-            this._behaviors[name].detach();
+        if (this._behaviorMap[name] instanceof Behavior) {
+            this._behaviorMap[name].detach();
         }
         behavior.attach(this.owner);
-        this._behaviors[name] = behavior;
+        this._behaviorMap[name] = behavior;
         return behavior;
     }
 };

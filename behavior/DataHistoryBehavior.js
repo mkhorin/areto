@@ -19,8 +19,8 @@ module.exports = class DataHistoryBehavior extends Base {
     }
 
     async beforeUpdate () {
-        for (let name of this.getAttrNames()) {
-            if (this.owner.isChangedAttr(name)) {
+        for (const name of this.getAttrNames()) {
+            if (this.owner.isAttrChanged(name)) {
                 await this.createHistory(name);
             }
         }

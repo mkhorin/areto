@@ -9,6 +9,23 @@ module.exports = class Behavior extends Base {
 
     _handlers = {};
 
+    attach (owner) {
+        this.owner = owner;
+        this.module = owner.module;
+        for (const name of Object.keys(this._handlers)) {
+            this.owner.on(name, this._handlers[name]);
+        }
+    }
+
+    detach () {
+        if (this.owner) {
+            for (const name of Object.keys(this._handlers)) {
+                this.owner.off(name, this._handlers[name]);
+            }
+            this.owner = null;
+        }
+    }
+
     hasHandler (eventName) {
         return Object.prototype.hasOwnProperty.call(this._handlers, eventName);
     }
@@ -17,25 +34,8 @@ module.exports = class Behavior extends Base {
         this._handlers[eventName] = method.bind(this);
     }
 
-    attach (owner) {
-        this.owner = owner;
-        this.module = owner.module;
-        for (let name of Object.keys(this._handlers)) {
-            this.owner.on(name, this._handlers[name]);
-        }
-    }
-
-    detach () {
-        if (this.owner) {
-            for (let name of Object.keys(this._handlers)) {
-                this.owner.off(name, this._handlers[name]);
-            }
-            this.owner = null;
-        }
-    }
-
     attachHandler (eventName) {
-        if (!this.owner && this.hasHandler(eventName)) {
+        if (this.owner && this.hasHandler(eventName)) {
             this.owner.on(eventName, this._handlers[eventName]);
         }
     }

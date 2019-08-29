@@ -49,7 +49,7 @@ module.exports = class ExpressEngine extends Base {
     }
 
     attachHandlers () {
-        for (let item of this._handlers) {
+        for (const item of this._handlers) {
             this.attach(item.method, ...item.args);
         }
     }

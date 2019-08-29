@@ -76,7 +76,7 @@ module.exports = class Configuration extends Base {
 
     inheritUndefined (keys) {
         if (this.parent) {
-            for (let key of keys) {
+            for (const key of keys) {
                 this.deepAssignUndefinedByKey(key, this.parent.get(key));
             }
         }

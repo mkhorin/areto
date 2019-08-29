@@ -64,8 +64,8 @@ module.exports = class MysqlBuilder extends Base {
         if (!order) {
             return null;
         }
-        let result = [];
-        for (let key of Object.keys(order)) {
+        const result = [];
+        for (const key of Object.keys(order)) {
             result.push(`${this.db.escapeId(key)} ${order[key] === 1 ? 'ASC' : 'DESC'}`);
         }
         return result.length ? result.join(',') : null;
@@ -110,9 +110,9 @@ module.exports = class MysqlBuilder extends Base {
         if (!data) {
             return '';
         }
-        let result = [];
-        for (let key of Object.keys(data)) {
-            let field = this.normalizeField(key);
+        const result = [];
+        for (const key of Object.keys(data)) {
+            const field = this.normalizeField(key);
             if (Array.isArray(data[key])) {
                 result.push(`field IN (${this.db.escape(data[key])})`);
             } else if (data[key] === null) {
@@ -135,8 +135,8 @@ module.exports = class MysqlBuilder extends Base {
     }
 
     buildLogicCondition (operator, ...operands) {
-        let items = [];
-        for (let operand of operands) {
+        const items = [];
+        for (const operand of operands) {
             items.push(this.buildCondition(operand));
         }
         return '('+ items.join(operator === 'AND' ? ') AND (' : ') OR (') +')';

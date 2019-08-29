@@ -56,7 +56,7 @@ module.exports = class RelationValidator extends Base {
     async validateAttr (model, attr) {
         const behavior = model.getBehavior(this.behavior);
         if (!behavior) {
-            throw new Error(this.wrapClassMessage('Not found relation behavior'));
+            throw new Error(this.wrapClassMessage('Relation behavior not found'));
         }
         const data = behavior.getChanges(attr);
         if (data === false) {
@@ -76,14 +76,14 @@ module.exports = class RelationValidator extends Base {
 
     filterChanges (data) {
         if (Array.isArray(this.allow)) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 if (!this.allow.includes(key)) {
                     data[key] = [];
                 }
             }
         }
         if (Array.isArray(this.deny)) {
-            for (let key of Object.keys(data)) {
+            for (const key of Object.keys(data)) {
                 if (this.deny.includes(key)) {
                     data[key] = [];
                 }
@@ -108,7 +108,7 @@ module.exports = class RelationValidator extends Base {
     }
 
     async checkUnique (behavior, model, attr) {
-        const exist = await behavior.checkExist(attr);
+        const exist = await behavior.checkExists(attr);
         if (this.unique === true && exist === true) {
             this.addError(model, attr, this.getUniqueMessage());
         }

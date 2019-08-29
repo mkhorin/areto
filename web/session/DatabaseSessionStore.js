@@ -12,6 +12,7 @@ module.exports = class DatabaseSessionStore extends Base {
             table: 'session',
             ...config
         });
+        this.db = this.module.getDb(this.db);
     }
 
     get (sid, callback) {
@@ -56,11 +57,7 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     find (condition) {
-        return (new Query).db(this.getDb()).from(this.table).where(condition);
-    }
-
-    getDb () {
-        return this.session.module.getDb(this.db);
+        return (new Query).db(this.db).from(this.table).where(condition);
     }
 };
 

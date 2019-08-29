@@ -57,8 +57,8 @@ module.exports = class ThemeSet extends Base {
     createThemes () {
         this._themes = {};
         try {
-            for (let name of fs.readdirSync(this.themeDir)) {
-                let dir = path.join(this.themeDir, name);
+            for (const name of fs.readdirSync(this.themeDir)) {
+                const dir = path.join(this.themeDir, name);
                 if (fs.lstatSync(dir).isDirectory()) {
                     this.createTheme(name, dir);
                 }
@@ -71,7 +71,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     setParents () {
-        for (let name of Object.keys(this._themes)) {
+        for (const name of Object.keys(this._themes)) {
             this._themes[name].parent = this.getParentByName(name) || this._defaultTheme;
         }
     }
@@ -90,7 +90,7 @@ module.exports = class ThemeSet extends Base {
 
     init () {
         this._defaultTheme.init();
-        for (let theme of Object.values(this._themes)) {
+        for (const theme of Object.values(this._themes)) {
             theme.init();
         }
     }
@@ -99,7 +99,7 @@ module.exports = class ThemeSet extends Base {
         if (!this._defaultTheme.isEmpty()) {
             return false;
         }
-        for (let theme of Object.values(this._themes)) {
+        for (const theme of Object.values(this._themes)) {
             if (!theme.isEmpty()) {
                 return false;
             }

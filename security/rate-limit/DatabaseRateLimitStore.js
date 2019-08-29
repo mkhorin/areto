@@ -9,10 +9,10 @@ module.exports = class DatabaseRateLimitStore extends Base {
 
     constructor (config) {
         super({
-            db: config.rateLimit.module.getDb(),
             table: 'rate_limit',
             ...config
         });
+        this.db = this.module.getDb(this.db);
     }
     
     async find (type, user) {
