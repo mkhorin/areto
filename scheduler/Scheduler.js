@@ -123,20 +123,20 @@ module.exports = class Scheduler extends Base {
         }
     }
 
-    executeTask (id) {
-        const task = this.getTask(id);
-        if (!task) {
-            return this.log('error', `Task not found: ${id}`);
-        }
-        return task.isActive() ? task.execute() : null;
-    }
-
     async executeTasks (ids) {
         if (Array.isArray(ids)) {
             for (const id of ids) {
                 await this.executeTask(id);
             }
         }
+    }
+
+    executeTask (id) {
+        const task = this.getTask(id);
+        if (!task) {
+            return this.log('error', `Task not found: ${id}`);
+        }
+        return task.isActive() ? task.execute() : null;
     }
 
     taskBeforeRun (event) {

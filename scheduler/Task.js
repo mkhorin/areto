@@ -22,7 +22,7 @@ module.exports = class Task extends Base {
             startup: false, // start immediately
             startDate: null, // Date
             startTime: null, // 00:00:00
-            period: 0, // repeat period, seconds
+            period: 0, // repeat timeout, seconds or ISO_8601#Duration
             repeats: 0, // 0 - endless
             stopOnFail: true,
             ...config
@@ -30,6 +30,7 @@ module.exports = class Task extends Base {
         if (this.startup) {
             this.startDate = new Date;
         }
+        this.period = DateHelper.parseDuration(this.period);
         this._counter = 0;
     }
 
@@ -102,7 +103,7 @@ module.exports = class Task extends Base {
                 return this.formatStartTime();
             }
             if (this.period) {
-                return Date.now() + this.period * 1000;
+                return Date.now() + this.period;
             }
         }
     }
@@ -139,7 +140,7 @@ module.exports = class Task extends Base {
         }
     }
 
-    createJob (data) {
+    createJob () {
         return this.spawn(this.job, {task: this});
     }
 
@@ -202,6 +203,5 @@ module.exports = class Task extends Base {
 module.exports.init();
 
 const moment = require('moment');
-const CommonHelper = require('../helper/CommonHelper');
 const DateHelper = require('../helper/DateHelper');
 const Event = require('../base/Event');

@@ -7,92 +7,75 @@ const Base = require('../base/Component');
 
 module.exports = class UrlManager extends Base {
 
-    init () {
-        this.forwarder = this.module.get('forwarder');
+    constructor (config) {
+        super({
+            forwarder: 'forwarder',
+            ...config
+        })
     }
 
-    resolve (url, root) {
-        return this.forward(this.create(url, root));
+    init () {
+        this.forwarder = this.module.get(this.forwarder);
+        this.serverAddress = this.module.getParam('serverAddress');
+    }
+
+    resolveAbsolute () {
+        return this.serverAddress + this.resolve(...arguments);
+    }
+
+    resolve () {
+        return this.forward(this.create(...arguments));
     }
 
     forward (url) {
         return this.forwarder ? this.forwarder.resolve(url) : url;
     }
 
+    createAbsolute () {
+        return this.serverAddress + this.create(...arguments);
+    }
+
     /**
-     * @param url - ['action', { param1: param1, param2: param2 }]
+     * @param data - ['action', { k1: param1, k2: param2 }]
      *  /module/controller/action - relative app
      *  controller/action - relative module
      *  action - relative controller
-     * @param root - controller or module name
+     * @param root - [controller or module name]
      */
-    create (url, root) {
-        let params, anchor;
-        if (Array.isArray(url)) {
-            params = url[1];
-            url = url[0];
+    create (data, root) {
+        let params;
+        if (Array.isArray(data)) {
+            params = data[1];
+            data = data[0];
         }
-        const index = url.indexOf('/');
+        const index = data.indexOf('/');
         if (index === -1) { // relative root
-            url = this.module.getRoute(root ? `${root}/${url}` : url);
+            data = this.module.getRoute(root ? `${root}/${data}` : data);
         } else if (index === 0) { // relative app
-            const root = this.module.app.mountPath;
-            if (root !== '/' && url.substring(0, root.length) !== root) {
-                url = root + url;
+            root = this.module.app.mountPath;
+            if (root !== '/' && data.substring(0, root.length) !== root) {
+                data = root + data;
             }
-        } else if (url.substring(0, 4) !== 'http') { // relative module
-            url = this.module.getRoute(url);
+        } else if (data.substring(0, 4) !== 'http') { // relative module
+            data = this.module.getRoute(data);
         }
-        if (params instanceof ActiveRecord) {
-            params = `id=${params.getId()}`;
-        } else if (typeof params === 'object' && params) {
-            anchor = params['#'];
-            delete params['#'];
-            params = this.serializeParams(params);
+        if (!params || typeof params !== 'object') {
+            return data;
         }
+        if (params.getId) {
+            return data + '?id=' + params.getId();
+        }
+        const anchor = params['#'];
+        delete params['#'];
+        params = UrlHelper.serialize(params);
         if (params) {
-            url += '?'+ params;
+            data += '?' + params;
         }
         if (anchor !== undefined) {
-            url += '#'+ anchor;
+            data += '#' + anchor;
         }
-        return url;
-    }
-
-    serializeParams (params) {
-        if (!params) {
-            return '';
-        }
-        const result = [];
-        for (const key of Object.keys(params)) {
-            if (params[key] !== undefined && params[key] !== null) {
-                result.push(key +'='+ params[key]);
-            }
-        }
-        return result.join('&');
-    }
-
-    parse (url) {
-        let index = url.indexOf('?');
-        let path = index !== -1 ? url.substring(0, index) : url;
-        let segments = path.replace(/^\/|\/$/g, '').split('/');
-        let params = {}, anchor;
-        if (index !== -1) {
-            url = url.substring(index + 1);
-            index = url.indexOf('#');
-            if (index !== -1) {
-                anchor = url.substring(index + 1);
-                url = url.substring(0, index);
-            }
-            for (const param of url.split('&')) {
-                index = param.indexOf('=');
-                if (index !== -1) {
-                    params[param.substring(0, index)] = param.substring(index + 1);
-                }
-            }
-        }
-        return {segments, params, anchor};
+        return data;
     }
 };
 
-const ActiveRecord = require('../db/ActiveRecord');
+const UrlHelper = require('../helper/UrlHelper');

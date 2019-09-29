@@ -1,3 +1,22 @@
+## 0.30.0
+
+* db/MongoDatabase
+    - create table when creating index
+* helper/ArrayHelper
+    - fix hierarchy sorting
+* helper/DateHelper
+    - add duration parser
+* helper/ObjectHelper
+    - extract NestedValueHelper
+* i18n/I18n
+    - refactor translation
+* security/Auth
+    - prevent cross-site request forgery
+* validator/StringValidator
+    - validate by regular expression pattern
+* view/ActionView
+    - add locale templates including for source language
+
 ## 0.29.0
 
 * base/Event
@@ -8,8 +27,8 @@
 * i18n/MessageSource
     - async message load
 * validator/FilterValidator
-    - extract CheckboxValidator 
-    - extract JsonValidator        
+    - extract CheckboxValidator
+    - extract JsonValidator
 
 ## 0.28.0
 

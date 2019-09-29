@@ -9,14 +9,22 @@ module.exports = class EscapeHelper {
         if (typeof html !== 'string') {
             return '';
         }
-        return String(html).replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
+        return html.replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
             .replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     }
 
-    static escapeRegExp (text) {
-        return typeof text === 'string'
-            ? String(text).replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&")
-            : '';
+    static escapeRegex (text) {
+        return typeof text === 'string' ? text.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&") : '';
+    }
+
+    static toRegex (value) {
+        if (value instanceof RegExp) {
+            return value;
+        }
+        value = this.escapeRegex(value);
+        value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
+        value = value.charAt(value.length - 1) === '%' ? value.substring(0, value.length - 1) : `${value}$`;
+        return new RegExp(value, 'i');
     }
 };

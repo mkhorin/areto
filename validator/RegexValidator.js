@@ -5,15 +5,16 @@
 
 const Base = require('./Validator');
 
-module.exports = class RegExpValidator extends Base {
+module.exports = class RegexValidator extends Base {
 
     static getConstants () {
         return {
             PATTERNS: {
                 'HH:mm': /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
                 'HH:mm:ss': /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
-                reservedFileNameChars: /[<>:"\/\\|?*\x00-\x1F]/g,
-                reservedWindowsFileName: /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i
+                'duration': /^[0-9]+[smhdwy]{0,1}$/,
+                'reservedFileNameChars': /[<>:"\/\\|?*\x00-\x1F]/g,
+                'reservedWindowsFileName': /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i
             }
         };
     }
@@ -29,15 +30,15 @@ module.exports = class RegExpValidator extends Base {
 
     resolvePattern () {
         if (!this.pattern) {
-            throw new Error(this.wrapClassMessage('Pattern not set'));
+            throw new Error('Pattern not set');
         }
         if (typeof this.pattern === 'string') {
             if (!Object.prototype.hasOwnProperty.call(this.PATTERNS, this.pattern)) {
-                throw new Error(this.wrapClassMessage(`Built-in pattern not found: ${this.pattern}`));
+                throw new Error(`Built-in pattern not found: ${this.pattern}`);
             }
             this.pattern = this.PATTERNS[this.pattern];
         } else if (!(this.pattern instanceof RegExp)) {
-            throw new Error(this.wrapClassMessage(`Invalid pattern: ${this.pattern}`));
+            throw new Error(`Invalid pattern: ${this.pattern}`);
         }
     }
 

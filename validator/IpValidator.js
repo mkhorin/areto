@@ -29,8 +29,8 @@ module.exports = class IpValidator extends Base {
         return this.createMessage(this.ip6NotAllowed, 'Value must not be an IPv6 address');
     }
 
-    async validateAttr (model, attr) {
-        await super.validateAttr(model, attr);
+    async validateAttr (attr, model) {
+        await super.validateAttr(...arguments);
         if (!model.hasError()) {
             model.set(attr, model.get(attr).toLowerCase());
         }

@@ -7,7 +7,7 @@ const Base = require('../base/Base');
 
 module.exports = class WebUser extends Base {
 
-    _accessCache = {};
+    _accessMap = {};
 
     isGuest () {
         return !this.identity;
@@ -48,6 +48,14 @@ module.exports = class WebUser extends Base {
 
     setReturnUrl (url) {
         this.setSession(this.auth.returnUrlParam, url);
+    }
+
+    getCsrfToken () {
+        return this.auth.csrf ? this.getSession(this.auth.csrfParam): '';
+    }
+
+    checkCsrfToken (token) {
+        return this.auth.csrf ? this.getSession(this.auth.csrfParam) === token : true;
     }
 
     // LOGIN
@@ -93,15 +101,15 @@ module.exports = class WebUser extends Base {
     // ACCESS CONTROL
 
     can (name) {
-        return Object.prototype.hasOwnProperty.call(this._accessCache, name)
-            ? this._accessCache[name]
+        return Object.prototype.hasOwnProperty.call(this._accessMap, name)
+            ? this._accessMap[name]
             : this.resolveAccess(...arguments);
     }
 
     async resolveAccess (name, params) {
         params = {user: this, ...params};
         const access = await this.auth.rbac.can(this.assignments, name, params);
-        return this._accessCache[name] = !!access;
+        return this._accessMap[name] = !!access;
     }
 
     async setAssignments () {

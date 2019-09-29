@@ -32,13 +32,13 @@ module.exports = class Inspector extends Base {
         if (Object.prototype.hasOwnProperty.call(this._ruleCache, config.name)) {
             return this._ruleCache[config.name];
         }
-        const model = new config.Class({
+        const rule = new config.Class({
             ...config,
             inspector: this,
             module: this.module
         });
-        model.params = config.params ? {...config.params, ...this.params} : this.params;
-        const passed = await model.execute();
+        rule.params = config.params ? {...config.params, ...this.params} : this.params;
+        const passed = await rule.execute();
         if (config.name) {
             this._ruleCache[config.name] = !!passed;
         }

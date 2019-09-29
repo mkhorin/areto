@@ -13,14 +13,12 @@ module.exports = class Application extends Base {
                 bodyParser: {},
                 formatter: {},
                 router: {},
-                url: {},
+                urlManager: {},
                 view: {}
             },
             EVENT_AFTER_START: 'afterStart'
         };
     }
-
-    _urlCache = {};
 
     constructor (config) {
         super(config);

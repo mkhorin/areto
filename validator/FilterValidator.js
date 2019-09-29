@@ -7,7 +7,7 @@ const Base = require('./Validator');
 
 module.exports = class FilterValidator extends Base {
 
-    static async filterSplit (value, model, attr, validator) {
+    static async filterSplit (value, attr, model, validator) {
         return StringHelper.split(value, validator.separator);
     }
 
@@ -29,27 +29,27 @@ module.exports = class FilterValidator extends Base {
     prepareFilter () {
         let filter = this.filter;
         if (filter === null) {
-            throw new Error(this.wrapClassMessage('Filter property must be set'));
+            throw new Error('Filter property must be set');
         }
         if (typeof filter === 'string') {
             filter = `filter${StringHelper.toFirstUpperCase(filter)}`;
             filter = this.constructor[filter];
             if (typeof filter !== 'function') {
-                throw new Error(this.wrapClassMessage(`Inline filter not found: ${this.filter}`));
+                throw new Error(`Inline filter not found: ${this.filter}`);
             }
         } else if (typeof filter !== 'function') {
-            throw new Error(this.wrapClassMessage('Filter must be function'));
+            throw new Error('Filter must be function');
         }
         this.filter = filter;
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const value = model.get(attr);
         if (Array.isArray(value) && this.skipOnArray) {
             return;
         }
         if (typeof this.filter === 'function') {
-            return this.executeFilter(value, model, attr);
+            return this.executeFilter(value, attr, model);
         }
         if (value === null || value === undefined) {
             return;
@@ -60,8 +60,8 @@ module.exports = class FilterValidator extends Base {
         model.set(attr, await value[this.filter]());
     }
 
-    async executeFilter (value, model, attr) {
-        const result = await this.filter(value, model, attr, this);
+    async executeFilter (value, attr, model) {
+        const result = await this.filter(...arguments, this);
         result instanceof Message
             ? this.addError(model, attr, result)
             : model.set(attr, result);

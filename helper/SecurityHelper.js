@@ -51,7 +51,7 @@ module.exports = class SecurityHelper {
     }
 
     static checkPassword (password, hash) {
-        if (!password || !this.checkHash(hash)) {
+        if (typeof password !== 'string' || !password || !this.checkHash(hash)) {
             return false;
         }
         return this.hashValue(password, this.extractSalt(hash)) === hash;

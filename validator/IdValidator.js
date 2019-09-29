@@ -19,7 +19,7 @@ module.exports = class IdValidator extends Base {
         return this.createMessage(this.message, 'Invalid ID');
     }
 
-    validateAttr (model, attr) {
+    validateAttr (attr, model) {
         let value = model.get(attr);
         if (this.isEmptyValue(value)) {
             return model.set(attr, null);

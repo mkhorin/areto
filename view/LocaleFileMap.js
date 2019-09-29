@@ -10,7 +10,7 @@ module.exports = class LocaleFileMap extends Base {
     constructor (config) {
         super({
             // baseDir: base dir
-            // localeDir: localization dir,
+            // localeDir: locale dir,
             required: false, // require files
             ...config
         });
@@ -41,21 +41,11 @@ module.exports = class LocaleFileMap extends Base {
     }
 
     get (name, language) {
-        return language && this.getLocal(name, language) || this._base.get(name);
-    }
-
-    getBase (name) {
-        return this._base.get(name);
-    }
-
-    getLocal (name, language) {
-        if (Object.prototype.hasOwnProperty.call(this._locales, language)) {
-            return this._locales[language].get(name);
-        }
+        return this._locales[language] && this._locales[language].get(name) || this._base.get(name);
     }
 
     isEmpty () {
-        return this._base.isEmpty();
+        return this._base.isEmpty() && Object.values(this._locales).length === 0;
     }
 };
 

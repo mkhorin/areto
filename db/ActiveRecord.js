@@ -23,12 +23,12 @@ module.exports = class ActiveRecord extends Base {
         };
     }
 
-    _isNewRecord = true;
+    _isNew = true;
     _oldAttrMap = {};
     _related = {};
 
     isNew () {
-        return this._isNewRecord;
+        return this._isNew;
     }
 
     isPrimaryKey (key) {
@@ -146,8 +146,8 @@ module.exports = class ActiveRecord extends Base {
 
     // POPULATE
 
-    populateRecord (doc) {
-        this._isNewRecord = false;
+    populate (doc) {
+        this._isNew = false;
         Object.assign(this._attrMap, doc);
         this.assignOldAttrs();
     }
@@ -182,13 +182,13 @@ module.exports = class ActiveRecord extends Base {
     }
 
     forceSave () {
-        return this._isNewRecord ? this.insert() : this.update();
+        return this._isNew ? this.insert() : this.update();
     }
 
     async insert () {
         await this.beforeSave(true);
         this.set(this.PK, await this.find().insert(this.filterAttrs()));
-        this._isNewRecord = false;
+        this._isNew = false;
         await this.afterSave(true);
         this.assignOldAttrs();
     }
@@ -200,12 +200,11 @@ module.exports = class ActiveRecord extends Base {
         this.assignOldAttrs();
     }
 
-    /**
-     * will not perform data validation and will not trigger events
-     */
-    directUpdate (data) {
-        Object.assign(this._attrMap, data);
-        return this.findById().update(this.filterAttrs());
+    // skip before and after save triggers
+    async directUpdate (data) {
+        this.assignAttrs(data);
+        await this.findById().update(this.filterAttrs());
+        this.assignOldAttrs();
     }
 
     // REMOVE
@@ -225,18 +224,18 @@ module.exports = class ActiveRecord extends Base {
 
     // RELATIONS
 
-    static async findRelation (name, models, renew) {
+    static async resolveRelation (name, models) {
         const relations = [];
         for (const model of models) {
-            relations.push(await model.findRelation(name, renew));
+            relations.push(await model.resolveRelation(name));
         }
         return relations;
     }
 
-    static async findRelations (names, models, renew) {
+    static async resolveRelations (names, models) {
         const relations = [];
         for (const model of models) {
-            relations.push(await model.findRelations(names, renew));
+            relations.push(await model.resolveRelations(names));
         }
         return relations;
     }
@@ -285,9 +284,10 @@ module.exports = class ActiveRecord extends Base {
 
     getAllRelationNames () {
         const names = [];
-        for (const id of ObjectHelper.getAllFunctionNames(this)) {
-            if (/^rel[A-Z]{1}/.test(id)) {
-                names.push(id.substring(3));
+        const pattern = new RegExp('^rel[A-Z]{1}');
+        for (const name of ObjectHelper.getAllFunctionNames(this)) {
+            if (pattern.test(name)) {
+                names.push(name.substring(3));
             }
         }
         return names;
@@ -311,15 +311,15 @@ module.exports = class ActiveRecord extends Base {
         }
     }
 
-    async findRelation (name, renew) {
+    async resolveRelation (name) {
         const index = name.indexOf('.');
         if (index === -1) {
-            return this.findRelationOnly(name, renew);
+            return this.resolveRelationOnly(name);
         }
         let nestedName = name.substring(index + 1);
-        let result = await this.findRelationOnly(name.substring(0, index), renew);
+        let result = await this.resolveRelationOnly(name.substring(0, index));
         if (result instanceof ActiveRecord) {
-            return result.findRelation(nestedName, renew);
+            return result.resolveRelation(nestedName);
         }
         if (!Array.isArray(result)) {
             return result;
@@ -327,18 +327,18 @@ module.exports = class ActiveRecord extends Base {
         result = result.filter(model => model instanceof ActiveRecord);
         const models = [];
         for (const model of result) {
-            models.push(await model.findRelation(nestedName, renew));
+            models.push(await model.resolveRelation(nestedName));
         }
         return ArrayHelper.concat(models);
     }
 
-    async findRelationOnly (name, renew) {
-        if (this.isRelationPopulated(name) && !renew) {
+    async resolveRelationOnly (name) {
+        if (this.isRelationPopulated(name)) {
             return this._related[name];
         }
         const relation = this.getRelation(name);
         if (relation) {
-            this.populateRelation(name, await relation.findFor());
+            this.populateRelation(name, await relation.resolve());
             await PromiseHelper.setImmediate();
             return this._related[name];
         }
@@ -348,18 +348,28 @@ module.exports = class ActiveRecord extends Base {
         return null;
     }
 
-    async findRelations (names, renew) {
-        const relations = [];
+    async resolveRelations (names) {
+        const result = [];
         for (const name of names) {
-            relations.push(await this.findRelation(name, renew));
+            result.push(await this.resolveRelation(name));
         }
-        return relations;
+        return result;
     }
 
     async handleEachRelationModel (names, handler) {
-        const relations = await this.findRelations(names);
+        const relations = await this.resolveRelations(names);
         for (const model of ArrayHelper.concat(relations)) {
             await handler(model);
+        }
+    }
+
+    unsetRelations (names) {
+        if (Array.isArray(names)) {
+            for (const name of names) {
+                delete this._related[name];
+            }
+        } else {
+            this._related = {};
         }
     }
 

@@ -25,16 +25,16 @@ module.exports = class SpawnValidator extends Base {
         return this.createMessage(this.wrongBaseClass, 'Invalid class file');
     }
 
-    validateAttr (model, attr) {
+    validateAttr (attr, model) {
         let value = model.get(attr);
         if (typeof value === 'string') {
             value = CommonHelper.parseJson(value);
         }
-        value ? this.validateClass(value, model, attr)
+        value ? this.validateClass(value, attr, model)
               : this.addError(model, attr, this.getMessage());
     }
 
-    validateClass (value, model, attr) {
+    validateClass (value, attr, model) {
         try {
             const Class = model.module.app.require(value.Class) || require(value.Class);
             this.BaseClass && !(Class.prototype instanceof this.BaseClass)

@@ -34,6 +34,9 @@ module.exports = class Auth extends Base {
             identityCookieParam: '__identity',
             idParam: '__id',
             returnUrlParam: '__returnUrl',
+            csrf: true,
+            csrfParam: '__csrf',
+            csrfLength: 16,
             Identity: null, // user model
             WebUser: require('./WebUser'),
             ...config
@@ -42,17 +45,20 @@ module.exports = class Auth extends Base {
 
     init () {
         this.rbac = this.module.get(this.rbac);
-        this.module.addHandler('use', this.resolveUser.bind(this));
+        this.module.addHandler('use', this.createUser.bind(this));
     }
 
-    resolveUser (req, res, next) {
-        const user = new this.WebUser({
+    createUser (req, res, next) {
+        res.locals.user = new this.WebUser({
             auth: this,
             module: res.locals.module,
             req, res
         });
-        res.locals.user = user;
-        PromiseHelper.callback(user.ensureIdentity(), next);
+        this.resolveUser(res.locals.user).then(next, next);
+    }
+
+    resolveUser (user) {
+        return user.ensureIdentity();
     }
 
     // EVENTS
@@ -178,6 +184,13 @@ module.exports = class Auth extends Base {
         if (this.absoluteTimeout !== null) {
             user.setSession(this.absoluteTimeoutParam, now + this.absoluteTimeout);
         }
+        if (this.csrf) {
+            user.setSession(this.csrfParam, this.getCsrfToken());
+        }
+    }
+
+    getCsrfToken () {
+        return SecurityHelper.getRandomString(this.csrfLength);
     }
 
     renewIdentityCookie (user, duration) {
@@ -190,5 +203,5 @@ module.exports = class Auth extends Base {
     }
 };
 
-const PromiseHelper = require('../helper/PromiseHelper');
 const Event = require('../base/Event');
+const SecurityHelper = require('../helper/SecurityHelper');

@@ -11,7 +11,7 @@ module.exports = class JsonValidator extends Base {
         return this.createMessage(this.message, 'Invalid JSON');
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const value = model.get(attr);
         if (typeof value !== 'object') {
             try {

@@ -12,6 +12,7 @@ module.exports = class StringValidator extends Base {
             length: null,
             max: null,
             min: null,
+            pattern: null, // [RegExp]
             ...config
         });
     }
@@ -38,6 +39,10 @@ module.exports = class StringValidator extends Base {
         });
     }
 
+    getNotMatchMessage () {
+        return this.createMessage(this.notMatch, 'Value does not match pattern');
+    }
+
     validateValue (value) {
         if (typeof value !== 'string') {
             return this.getMessage();
@@ -51,6 +56,9 @@ module.exports = class StringValidator extends Base {
         }
         if (this.length !== null && length !== this.length) {
             return this.getNotEqualMessage();
+        }
+        if (this.pattern instanceof RegExp && !this.pattern.test(value)) {
+            return this.getNotMatchMessage();
         }
     }
 };

@@ -19,21 +19,21 @@ module.exports = class ArrayHelper {
         return -1;
     }
 
-    static diff (target, excludes, indexOf) {
+    static diff (targets, excludes, indexOf) {
         const result = [];
-        for (const item of target) {
-            if (indexOf ? indexOf(item, excludes) === -1 : !excludes.includes(item)) {
-                result.push(item);
+        for (const target of targets) {
+            if (indexOf ? indexOf(target, excludes) === -1 : !excludes.includes(target)) {
+                result.push(target);
             }
         }
         return result;
     }
 
-    static intersect (source, target, indexOf) {
+    static intersect (sources, targets, indexOf) {
         const result = [];
-        for (const item of source) {
-            if (indexOf ? indexOf(item, target) !== -1 : target.includes(item)) {
-                result.push(item);
+        for (const source of sources) {
+            if (indexOf ? indexOf(source, targets) !== -1 : targets.includes(source)) {
+                result.push(source);
             }
         }
         return result;
@@ -84,7 +84,7 @@ module.exports = class ArrayHelper {
         return true;
     }
 
-    static getObjectPropertyValues (items, key) {
+    static getPropertyValues (items, key) {
         const values = [];
         if (Array.isArray(items)) {
             for (const item of items) {
@@ -140,7 +140,7 @@ module.exports = class ArrayHelper {
     }
 
     // HIERARCHY
-    // order children after parents
+
     static sortHierarchy (items, keyProperty, parentProperty) {
         let result = [], data = {};
         for (const item of items) {
@@ -152,10 +152,18 @@ module.exports = class ArrayHelper {
                 data[item[parentProperty]] = [item];
             }
         }
-        for (const item of result) {
-            if (Array.isArray(data[item[keyProperty]])) {
-                result = result.concat(data[item[keyProperty]]);
+        items = result;
+        while (items.length) {
+            const children = [];
+            for (const item of items) {
+                const key = item[keyProperty];
+                if (Array.isArray(data[key])) {
+                    children.push(...data[key]);
+                    result.push(...data[key]);
+                    delete data[key];
+                }
             }
+            items = children;
         }
         return result;
     }

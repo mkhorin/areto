@@ -27,7 +27,7 @@ module.exports = class Validator extends Base {
                 'json': require('./JsonValidator'),
                 'number': require('./NumberValidator'),
                 'range': require('./RangeValidator'),
-                'regexp': require('./RegExpValidator'),
+                'regex': require('./RegexValidator'),
                 'required': require('./RequiredValidator'),
                 'relation': require('./RelationValidator'),
                 'safe': require('./SafeValidator'),
@@ -53,7 +53,7 @@ module.exports = class Validator extends Base {
             type = type.Class;
         }
         if (!type || !(type.prototype instanceof Validator)) {
-            throw new Error(this.wrapClassMessage(`Invalid type`));
+            throw new Error('Invalid type');
         }
         config.attrs = Array.isArray(attrs) ? attrs : [attrs];
         return new type(config);
@@ -88,7 +88,7 @@ module.exports = class Validator extends Base {
         return new Message(defaultMessage, this.defaultMessageCategory, params);
     }
 
-    async validateAttrs (model, attrs) {
+    async validateModel (model, attrs) {
         attrs = Array.isArray(attrs)
             ? ArrayHelper.intersect(attrs, this.attrs)
             : this.attrs;
@@ -99,11 +99,11 @@ module.exports = class Validator extends Base {
                 && (typeof this.when !== 'function' || this.when(model, attr));
         });
         for (const attr of attrs) {
-            await this.validateAttr(model, attr);
+            await this.validateAttr(attr, model);
         }
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const message = await this.validateValue(model.get(attr));
         if (message) {
             this.addError(model, attr, message);
@@ -111,7 +111,7 @@ module.exports = class Validator extends Base {
     }
 
     validateValue () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     isActive (scenario) {

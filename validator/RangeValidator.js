@@ -15,7 +15,7 @@ module.exports = class RangeValidator extends Base {
             ...config
         });
         if (!Array.isArray(this.range)) {
-            throw new Error(this.wrapClassMessage('Range property must be array'));
+            throw new Error('Range property must be array');
         }
     }
 

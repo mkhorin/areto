@@ -272,7 +272,7 @@ module.exports = class Model extends Base {
 
     async setDefaultValues () {
         for (const validator of this.getActiveValidatorsByClass(Validator.BUILTIN.default)) {
-            await validator.validateAttrs(this);
+            await validator.validateModel(this);
         }
     }
 
@@ -280,7 +280,7 @@ module.exports = class Model extends Base {
         await this.beforeValidate();
         attrNames = attrNames || this.getActiveAttrNames();
         for (const validator of this.getActiveValidators()) {
-            await validator.validateAttrs(this, attrNames);
+            await validator.validateModel(this, attrNames);
         }
         await this.afterValidate();
         return !this.hasError();

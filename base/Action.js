@@ -21,6 +21,10 @@ module.exports = class Action extends Base {
 
     // REQUEST
 
+    isAjax () {
+        return this.controller.isAjax();
+    }
+
     isGet () {
         return this.controller.isGet();
     }

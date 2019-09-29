@@ -20,7 +20,7 @@ module.exports = class RelationValidator extends Base {
             ...config
         });
         if (this.allow && this.deny) {
-            throw new Error(this.wrapClassMessage('Allowed only one permission'));
+            throw new Error('Allowed only one permission');
         }
         this.skipOnEmpty = false;
     }
@@ -53,10 +53,10 @@ module.exports = class RelationValidator extends Base {
         });
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const behavior = model.getBehavior(this.behavior);
         if (!behavior) {
-            throw new Error(this.wrapClassMessage('Relation behavior not found'));
+            throw new Error('Relation behavior not found');
         }
         const data = behavior.getChanges(attr);
         if (data === false) {
@@ -66,11 +66,11 @@ module.exports = class RelationValidator extends Base {
             this.filterChanges(data);
         }
         if (data && this.filter) {
-            await this.filter(data, model, attr);
+            await this.filter(data, attr, model);
         }
-        await this.checkCounter(behavior, model, attr);
+        await this.checkCounter(behavior, attr, model);
         if (this.unique !== null) {
-            await this.checkUnique(behavior, model, attr);
+            await this.checkUnique(behavior, attr, model);
         }
     }
 
@@ -91,7 +91,7 @@ module.exports = class RelationValidator extends Base {
         }
     }
 
-    async checkCounter (behavior, model, attr) {
+    async checkCounter (behavior, attr, model) {
         if (!this.required && !this.min && !this.max) {
             return;
         }
@@ -107,7 +107,7 @@ module.exports = class RelationValidator extends Base {
         }
     }
 
-    async checkUnique (behavior, model, attr) {
+    async checkUnique (behavior, attr, model) {
         const exist = await behavior.checkExists(attr);
         if (this.unique === true && exist === true) {
             this.addError(model, attr, this.getUniqueMessage());

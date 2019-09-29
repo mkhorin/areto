@@ -17,15 +17,25 @@ describe('CommonHelper', ()=> {
         expect(CommonHelper.isEmpty('test')).to.eql(false);
     });
 
+    it('isEqual', ()=> {
+        expect(CommonHelper.isEqual(2, 2)).to.eql(true);
+        expect(CommonHelper.isEqual('2', 2)).to.eql(false);
+
+        expect(CommonHelper.isEqual([1, 2, 3], [1, 2, 3])).to.eql(true);
+        expect(CommonHelper.isEqual([3, 2, 1], [1, 2, 3])).to.eql(false);
+
+        expect(CommonHelper.isEqual({k: 1, m: 2}, {k: 1, m: 2})).to.eql(true);
+        expect(CommonHelper.isEqual({m: 2, k: 1}, {k: 1, m: 2})).to.eql(false);
+    });
+
     it('getRandom', ()=> {
-        let res = CommonHelper.getRandom(5, 10);
+        const res = CommonHelper.getRandom(5, 10);
         expect(res).to.be.within(5,10);
     });
 
     it('parseJson', ()=> {
-        let res = CommonHelper.parseJson(JSON.stringify({a: 5}));
+        const res = CommonHelper.parseJson(JSON.stringify({a: 5}));
         expect(res.a).to.eql(5);
-        res = CommonHelper.parseJson('non-json');
-        expect(res).to.eql(undefined);
+        expect(CommonHelper.parseJson('non-json')).to.eql(undefined);
     });
 });

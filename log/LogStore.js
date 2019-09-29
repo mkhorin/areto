@@ -11,7 +11,7 @@ module.exports = class LogStore extends Base {
     }
 
     save () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     log () {

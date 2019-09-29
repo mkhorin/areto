@@ -17,10 +17,10 @@ module.exports = class EventManager extends Base {
 
     on (name, handler, data, prepend, counter) {
         if (!name) {
-            throw new Error(this.wrapClassMessage('Invalid event name'));
+            throw new Error('Invalid event name');
         }
         if (typeof handler !== 'function') {
-            throw new Error(this.wrapClassMessage('Invalid event handler'));
+            throw new Error('Invalid event handler');
         }
         if (!Array.isArray(this._eventMap[name])) {
             this._eventMap[name] = [];

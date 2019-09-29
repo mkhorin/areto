@@ -30,7 +30,7 @@ module.exports = class Rbac extends Base {
 
     async load () {
         if (this._loading) {
-            throw new Error(this.wrapClassMessage('Loading in progress'));
+            throw new Error('Loading in progress');
         }
         try {
             this._loading = true;
@@ -83,7 +83,7 @@ module.exports = class Rbac extends Base {
         const children = [];
         for (const id of item.children) {
             if (!(this.itemMap[id] instanceof this.Item)) {
-                throw new Error(this.wrapClassMessage(`Unknown child: ${id}`));
+                throw new Error(`Unknown child: ${id}`);
             }
             children.push(this.itemMap[id]);
             this.itemMap[id].addParent(item);

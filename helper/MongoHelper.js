@@ -35,8 +35,8 @@ module.exports = class MongoHelper {
         return true;
     }
 
-    static createObjectId () {
-        return new ObjectID;
+    static createObjectId (value) {
+        return value ? ObjectID(value) : new ObjectID;
     }
 
     static indexOf (id, values) {

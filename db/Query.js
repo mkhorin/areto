@@ -144,8 +144,8 @@ module.exports = class Query extends Base {
         return this;
     }
 
-    orderByIn (state) {
-        this._orderByIn = state;
+    orderByIn (keys) {
+        this._orderByIn = keys;
         return this;
     }
 

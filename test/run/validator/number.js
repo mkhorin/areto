@@ -13,28 +13,28 @@ describe('NumberValidator', ()=> {
     it('invalid', async ()=> {
         const model = new Model;
         model.set('attr', 'none');
-        await validator.validateAttr(model, 'attr');
+        await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(true);
     });
 
     it('valid', async ()=> {
         const model = new Model;
         model.set('attr', '3456.34');
-        await validator.validateAttr(model, 'attr');
+        await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(false);
     });
 
     it('invalid integer only', async ()=> {
         const model = new Model;
         model.set('attr', '3456.34');
-        await (new Validator({integerOnly: true})).validateAttr(model, 'attr');
+        await (new Validator({integerOnly: true})).validateAttr('attr', model);
         expect(model.hasError()).to.eql(true);
     });
 
     it('valid integer only', async ()=> {
         const model = new Model;
         model.set('attr', '456');
-        await (new Validator({integerOnly: true})).validateAttr(model, 'attr');
+        await (new Validator({integerOnly: true})).validateAttr('attr', model);
         expect(model.hasError()).to.eql(false);
     });
 

@@ -22,7 +22,7 @@ module.exports = class DateValidator extends Base {
         if (DateHelper.isValid(date)) {
             return date;
         }
-        throw new Error(this.wrapClassMessage(`Invalid date: ${src}`));
+        throw new Error(`Invalid date: ${src}`);
     }
 
     getMessage () {
@@ -41,11 +41,11 @@ module.exports = class DateValidator extends Base {
         });
     }
 
-    validateAttr (model, attr) {
+    validateAttr (attr, model) {
         let value = model.get(attr);
         value = value instanceof Date ? value : new Date(value);
         model.set(attr, value);
-        return super.validateAttr(model, attr);
+        return super.validateAttr(...arguments);
     }
 
     validateValue (value) {

@@ -13,18 +13,18 @@ describe('EmailValidator', ()=> {
     it('invalid', async ()=> {
         const model = new Model;
         model.set('attr', 'invalid-email');
-        await validator.validateAttr(model, 'attr');
+        await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(true);
 
         model.set('attr', 'invalid@email');
-        await validator.validateAttr(model, 'attr');
+        await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(true);
     });
 
     it('valid', async ()=> {
         const model = new Model;
         model.set('attr', 'valid-email@mail.com');
-        await validator.validateAttr(model, 'attr');
+        await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(false);
     });
 });

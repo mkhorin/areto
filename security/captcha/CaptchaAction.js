@@ -104,7 +104,8 @@ module.exports = class Captcha extends Base {
     }
 
     drawLetter ({text, x, y, size, angle, color}) {
-        return `<text x="${x}" y="${y}" transform="rotate(${angle} ${x} ${y})" font-family="${this.fontFamily}" text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="${color}">${text}</text>`;
+        return `<text x="${x}" y="${y}" transform="rotate(${angle} ${x} ${y})" font-family="${this.fontFamily}" 
+            text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="${color}">${text}</text>`;
     }
 
     drawGrid () {

@@ -18,14 +18,18 @@ module.exports = class RateLimitStore extends Base {
     }
 
     async find () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     async save () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     createModel (config) {
-        return this.spawn(this.Model, {store: this, ...config});
+        return this.spawn(this.Model, {
+            store: this,
+            rateLimit: this.rateLimit,
+            ...config
+        });
     }
 };

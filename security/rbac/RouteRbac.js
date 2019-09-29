@@ -33,19 +33,17 @@ module.exports = class RouteRbac extends Base {
         if (!item || !user) {
             return next();
         }
-        if (user.isGuest()) {
-            if (req.xhr || !user.getLoginUrl()) {
-                return next(new Forbidden);
-            }
-            user.setReturnUrl(req.originalUrl);
-            const url = user.module.get('url').resolve(user.getLoginUrl(), user.module.NAME);
-            return res.redirect(url);
-        }        
-        user.can(item.name, req.query).then(access => {
-            access ? next() : next(new Forbidden);
-        }).catch(err => {
-            next(new ServerError(err));
-        });
+        if (!user.isGuest()) {
+            return user.can(item.name, req.query)
+                .then(access => access ? next() : next(new Forbidden))
+                .catch(err => next(new ServerError(err)));
+        }
+        if (req.xhr || !user.getLoginUrl()) {
+            return next(new Forbidden);
+        }
+        user.setReturnUrl(req.originalUrl);
+        const url = user.module.get('urlManager').resolve(user.getLoginUrl(), user.module.NAME);
+        return res.redirect(url);
     }
 
     getRouteItemByPath (path) {

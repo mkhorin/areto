@@ -16,10 +16,10 @@ module.exports = class Event extends Base {
     static on (target, name, handler, data, prepend, counter) {
         const id = target.CLASS_FILE;
         if (!id) {
-            throw new Error(this.wrapClassMessage('Invalid target class'));
+            throw new Error('Invalid target class');
         }
         if (typeof handler !== 'function') {
-            throw new Error(this.wrapClassMessage('Invalid event handler'));
+            throw new Error('Invalid event handler');
         }
         if (!Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
             this._eventMap[name] = {};
@@ -40,7 +40,7 @@ module.exports = class Event extends Base {
         }
         const id = target.CLASS_FILE;
         if (!id) {
-            throw new Error(this.wrapClassMessage('Invalid target class'));
+            throw new Error('Invalid target class');
         }
         if (!name) {
             return this.detachByTarget(id);
@@ -82,7 +82,7 @@ module.exports = class Event extends Base {
         if (Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
             const Class = typeof sender !== 'function' ? sender.constructor : sender;
             if (!Class.CLASS_FILE) {
-                throw new Error(this.wrapClassMessage('Invalid event sender'));
+                throw new Error('Invalid event sender');
             }
             this.prependHandlers(Class, this._eventMap[name], items);
         }

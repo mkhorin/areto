@@ -246,13 +246,12 @@ module.exports = class MongoDatabase extends Base {
 
     /**
      * @param table
-     * @param data [{ key: 1 }, { name: [name], unique: true, ... }]
+     * @param data [{key: 1}, { name: [name], unique: true, ... }]
      */ 
     async createIndex (table, data) {
-        if (await this.isTableExists(table)) {
-            this.logCommand('createIndex', {table, data});
-            return this.getTable(table).createIndex(...data);
-        }
+        await this.create(table);
+        this.logCommand('createIndex', {table, data});
+        return this.getTable(table).createIndex(...data);
     }
 
     async dropIndex (table, name) {

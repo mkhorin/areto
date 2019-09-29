@@ -9,15 +9,14 @@ module.exports = class Forwarder extends Base {
 
     constructor (config) {
         super({
-            Url: require('./Url'),
             items: {},
+            Url: require('./Url'),
             ...config
         });
         this.clear();
     }
 
     init () {
-        this.urlManager = this.module.get('url');
         this.createItems();
         if (!this.isEmpty()) {
             this.module.addHandler('use', this.forward.bind(this));
@@ -41,23 +40,25 @@ module.exports = class Forwarder extends Base {
 
     forward (req, res, next) {
         const data = this.resolvePath(req.path, req.method);
-        if (data) {
-            this.log('trace', `${this.module.getFullName()}: forward ${req.path} to ${data.path}`, data.params);
-            Object.assign(req.query, data.params);
-            req.url = data.path;
+        if (!data) {
+            return next();
         }
+        this.log('trace', `${this.module.getFullName()}: forward ${req.path} to ${data.path}`, data.params);
+        Object.assign(req.query, data.params);
+        req.url = data.path;
         next();
     }
 
     resolve (url) {
         let newUrl = this.get(url);
-        if (!newUrl) {
-            newUrl = this.createSourceUrl(this.urlManager.parse(url));
-            if (!newUrl && this.module.parent) {
-                newUrl = this.module.parent.resolveUrl(url);
-            }
-            this.set(url, newUrl);
+        if (newUrl) {
+            return newUrl;
         }
+        newUrl = this.createSourceUrl(UrlHelper.parse(url));
+        if (!newUrl && this.module.parent) {
+            newUrl = this.module.parent.resolveUrl(url);
+        }
+        this.set(url, newUrl);
         return newUrl;
     }
 
@@ -88,9 +89,7 @@ module.exports = class Forwarder extends Base {
     // CACHE
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._cache, key)
-            ? this._cache[key]
-            : null;
+        return Object.prototype.hasOwnProperty.call(this._cache, key) ? this._cache[key] : null;
     }
 
     set (key, value) {
@@ -101,3 +100,6 @@ module.exports = class Forwarder extends Base {
         this._cache = {};
     }
 };
+
+const ClassHelper = require('../helper/ClassHelper');
+const UrlHelper = require('../helper/UrlHelper');

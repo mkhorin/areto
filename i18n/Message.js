@@ -7,10 +7,10 @@ const Base = require('../base/Base');
 
 module.exports = class Message extends Base {
 
-    constructor (message, category, params, language) {
+    constructor (message, source, params, language) {
         super({
-            message, 
-            category, 
+            message,
+            source,
             params, 
             language
         });
@@ -22,8 +22,8 @@ module.exports = class Message extends Base {
     }
 
     translate (i18n, language) {
-        return this.category
-            ? i18n.translate(this.message, this.category, this.params, this.language || language)
+        return this.source
+            ? i18n.translate(this.message, this.source, this.params, this.language || language)
             : i18n.format(this.message, this.params, this.language || language);
     }
 

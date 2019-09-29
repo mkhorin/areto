@@ -9,7 +9,7 @@ const IndexHelper = require('../../../helper/IndexHelper');
 describe('IndexHelper', ()=> {
 
     it('indexObjects', ()=> {
-        let items = [
+        const items = [
             {id: 4, val: 10},
             {id: 5, val: 15},
             {id: 6, val: 15},
@@ -19,6 +19,7 @@ describe('IndexHelper', ()=> {
         expect(res[10]).to.eql(items[0]);
         expect(res[15]).to.eql([items[1], items[2]]);
         expect(res[20]).to.eql(items[3]);
+
         res = IndexHelper.indexObjects(items, 'val', 'id');
         expect(res[10]).to.eql(4);
         expect(res[15]).to.eql([5, 6]);
@@ -26,7 +27,7 @@ describe('IndexHelper', ()=> {
     });
 
     it('indexUniqueKeyObjects', ()=> {
-        let items = [
+        const items = [
             {id: 4, val: 10},
             {id: 5, val: 15},
             {id: 6, val: 20}

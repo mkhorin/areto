@@ -5,6 +5,10 @@
 
 module.exports = class DateHelper {
 
+    static isExpired (date, period, now = new Date) {
+        return date.valueOf() + this.parseDuration(period) < now.valueOf();
+    }
+
     static isValid (date) {
         if (!date) {
             return false;
@@ -29,4 +33,12 @@ module.exports = class DateHelper {
         const time = date.getTime();
         return isNaN(time) ? null : (new Date(time + date.getTimezoneOffset() * 60000));
     }
+
+    static parseDuration (value) {
+        return typeof value === 'number'
+            ? value * 1000
+            : moment.duration(value).valueOf();
+    }
 };
+
+const moment = require('moment');

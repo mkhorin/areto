@@ -9,7 +9,7 @@ const ObjectHelper = require('../../../helper/ObjectHelper');
 describe('ObjectHelper', ()=> {
 
     it('push', ()=> {
-        let res = {};
+        const res = {};
         ObjectHelper.push('value1', 'key', res);
         expect(res['key']).to.eql(['value1']);
         ObjectHelper.push('value2', 'key', res);
@@ -40,7 +40,7 @@ describe('ObjectHelper', ()=> {
     });
 
     it('getKeysByValue', ()=> {
-        let res = ObjectHelper.getKeysByValue(5, {
+        const res = ObjectHelper.getKeysByValue(5, {
             k1: 5,
             k2: 3,
             k3: 5
@@ -110,6 +110,22 @@ describe('ObjectHelper', ()=> {
             k4: 4,
             k5: 5
         });
+    });
+
+    it('hasCircularLinks', ()=> {
+        const p1 = {}, p2 = {}, p3 = {};
+        p1.parent = p2;
+        p2.parent = p3;
+        expect(ObjectHelper.hasCircularLinks(p1, 'parent')).to.eql(false);
+        p3.parent = p1;
+        expect(ObjectHelper.hasCircularLinks(p1, 'parent')).to.eql(true);
+    });
+
+    it('addKeyAsNestedValue', () => {
+        let res = {k1: {}, k2: {}};
+        ObjectHelper.addKeyAsNestedValue('target', res);
+        expect(res.k1['target']).to.eql('k1');
+        expect(res.k2['target']).to.eql('k2');
     });
 
     // DELETE PROPERTIES
@@ -186,33 +202,5 @@ describe('ObjectHelper', ()=> {
             k2: null,
             k4: ''
         });
-    });
-
-    // NESTED VALUE
-
-    it('getNestedValue', ()=> {
-        let data = {k11: {k21: {k31: 5}}};
-        let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
-        expect(res).to.eql(5);
-        res = ObjectHelper.getNestedValue('k11.k21.none', data, 'def');
-        expect(res).to.eql('def');
-    });
-
-    it('setNestedValue', ()=> {
-        let data = {};
-        ObjectHelper.setNestedValue(5, 'k11.k21.k31', data);
-        let res = ObjectHelper.getNestedValue('k11.k21.k31', data);
-        expect(res).to.eql(5);
-        data = {k11: 'not object'};
-        ObjectHelper.setNestedValue(5, 'k11.k21', data);
-        res = ObjectHelper.getNestedValue('k11.k21', data);
-        expect(res).to.eql(5);
-    });
-
-    it('addKeyAsNestedValue', ()=> {
-        let res = {k1: {}, k2: {}};
-        ObjectHelper.addKeyAsNestedValue('nested', res);
-        expect(res.k1['nested']).to.eql('k1');
-        expect(res.k2['nested']).to.eql('k2');
     });
 });

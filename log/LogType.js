@@ -12,7 +12,7 @@ module.exports = class LogType extends Base {
             stores: [],
             consoleOutput: true,
             consoleMethod: 'log',
-            dataStringifyOptions: {depth: 5},
+            dataStringifyOptions: {depth: 10},
             ...config
         });
         this._counter = 0;

@@ -10,7 +10,7 @@ module.exports = class Module extends Base {
 
     static getExtendedClassProperties () {
         return [
-            'COMPONENT_CONFIG'
+            'COMPONENT_CONFIG_MAP'
         ];
     }
 
@@ -19,10 +19,10 @@ module.exports = class Module extends Base {
             NAME: this.getName(),
             DEFAULT_COMPONENTS: {
                 'router': {},
-                'url': {},
+                'urlManager': {},
                 'view': {}
             },
-            COMPONENT_CONFIG: {
+            COMPONENT_CONFIG_MAP: {
                 'asset': {Class: require('../web/asset/AssetManager')},
                 'auth': {Class: require('../security/Auth')},
                 'bodyParser': {
@@ -39,7 +39,7 @@ module.exports = class Module extends Base {
                 'router': {Class: require('../web/Router')},
                 'scheduler': {Class: require('../scheduler/Scheduler')},
                 'session': {Class: require('../web/session/Session')},
-                'url': {Class: require('../web/UrlManager')}
+                'urlManager': {Class: require('../web/UrlManager')}
             },
             INHERITED_UNDEFINED_CONFIG_KEYS: [
                 'params',
@@ -103,7 +103,7 @@ module.exports = class Module extends Base {
     }
 
     getParam (key, defaults) {
-        return ObjectHelper.getNestedValue(key, this.params, defaults);
+        return NestedValueHelper.get(key, this.params, defaults);
     }
 
     getFullName (separator = '.') { // eg - app.admin.post
@@ -166,9 +166,9 @@ module.exports = class Module extends Base {
         CommonHelper.log(this.components.get('logger'), this.getFullName(), ...arguments);
     }
 
-    translate (message) {
+    translate (message, source = 'app', ...args) {
         const i18n = this.components.get('i18n');
-        return i18n ? i18n.translateMessage(message) : message;
+        return i18n ? i18n.translateMessage(message, source, ...args) : message;
     }
 
     // ROUTE
@@ -319,6 +319,7 @@ module.exports = class Module extends Base {
         }
         AssignHelper.assignUndefined(data, this.DEFAULT_COMPONENTS);
         for (const id of Object.keys(data)) {
+            this.log('trace', `Create component: ${id}`);
             const component = this.createComponent(id, data[id]);
             if (component) {
                 this.ownComponents.set(id, component);
@@ -332,7 +333,7 @@ module.exports = class Module extends Base {
             return this.log('info', `Component skipped: ${id}`);
         }
         config = {
-            ...this.COMPONENT_CONFIG[id],
+            ...this.COMPONENT_CONFIG_MAP[id],
             ...config
         };
         config.id = id;
@@ -445,10 +446,10 @@ module.exports.init();
 
 const fs = require('fs');
 const path = require('path');
-const ClassHelper = require('../helper/ClassHelper');
-const FileHelper = require('../helper/FileHelper');
-const CommonHelper = require('../helper/CommonHelper');
-const ObjectHelper = require('../helper/ObjectHelper');
 const AssignHelper = require('../helper/AssignHelper');
+const ClassHelper = require('../helper/ClassHelper');
+const CommonHelper = require('../helper/CommonHelper');
+const FileHelper = require('../helper/FileHelper');
+const NestedValueHelper = require('../helper/NestedValueHelper');
 const ActionEvent = require('./ActionEvent');
 const DataMap = require('./DataMap');

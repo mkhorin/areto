@@ -12,17 +12,17 @@ module.exports = class Session extends Base {
             resave: false,
             saveUninitialized: false,
             name: `${config.module.getFullName()}.sid`,
-            lifetime: 3600, // seconds
+            lifetime: 3600, // seconds or duration
             // cookie: {maxAge: 3600 * 1000},
             Store: require('./MemorySessionStore'),
             engine: require('express-session'),
             flash: require('connect-flash'),
             ...config
         });
-        this.lifetime *= 1000;
     }
 
     init () {
+        this.lifetime = DateHelper.parseDuration(this.lifetime);
         this.store = this.spawn(this.Store, {session: this});
         this.module.addHandler('use', this.engine(this));
         this.module.addHandler('use', this.flash());
@@ -40,3 +40,5 @@ module.exports = class Session extends Base {
         return this.store.clear();
     }
 };
+
+const DateHelper = require('../../helper/DateHelper');

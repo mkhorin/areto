@@ -96,7 +96,7 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     updateAll () {
-        throw new Error(this.wrapClassMessage('TODO'));
+        throw new Error('TODO');
     }
 
     remove (table, condition) {

@@ -5,8 +5,8 @@
 
 module.exports = class AssignHelper {
 
-    static assignUndefined (target, ...args) {
-        for (const source of args) {
+    static assignUndefined (target, ...sources) {
+        for (const source of sources) {
             if (source && typeof source === 'object') {
                 for (const key of Object.keys(source)) {
                     if (!Object.prototype.hasOwnProperty.call(target, key)) {
@@ -18,16 +18,16 @@ module.exports = class AssignHelper {
         return target;
     }
 
-    static deepAssign (target, ...args) {
-        for (const arg of args) {
-            this._assign(target, arg);
+    static deepAssign (target, ...sources) {
+        for (const source of sources) {
+            this._assign(target, source);
         }
         return target;
     }
 
-    static deepAssignUndefined (target, ...args) {
-        for (const arg of args) {
-            this._assignUndefined(target, arg);
+    static deepAssignUndefined (target, ...sources) {
+        for (const source of sources) {
+            this._assignUndefined(target, source);
         }
         return target;
     }

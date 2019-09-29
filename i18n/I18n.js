@@ -9,26 +9,31 @@ module.exports = class I18n extends Base {
 
     static getConstants () {
         return {
-            CORE_CATEGORY: 'areto',
-            APP_CATEGORY: 'app',
-            ASTERISK: '*'
+            CORE_SOURCE: 'areto',
+            APP_SOURCE: 'app'
         };
     }
 
     constructor (config) {
+        const parent = config.parent;
         super({
-            language: config.parent ? config.parent.language : 'en',
-            sourceLanguage: config.parent ? config.parent.sourceLanguage : 'en',
+            language: parent ? parent.language : 'en',
+            sourceLanguage: parent ? parent.sourceLanguage : 'en',
             sources: {},
             MessageFormatter,
             ...config
         });
         this.createSources();
-        this.createMessageFormatter();
     }
 
     async init () {
+        this.messageFormatter = this.spawn(this.MessageFormatter);
+        this.resolveSourceParents();
         await this.loadSources();
+    }
+
+    getSource (name) {
+        return Object.prototype.hasOwnProperty.call(this.sources, name) ? this.sources[name] : null;
     }
 
     async loadSources () {
@@ -37,24 +42,100 @@ module.exports = class I18n extends Base {
         }
     }
 
-    format (message, params, language) {
-        return params
-            ? this.messageFormatter.format(message, params, language)
-            : message;
+    createSources () {
+        for (const name of Object.keys(this.sources)) {
+            this.sources[name] = this.createSource(name, this.sources[name]);
+        }
+        if (!this.getSource(this.CORE_SOURCE)) {
+            this.sources[this.CORE_SOURCE] = this.createCoreSource();
+        }
+        if (!this.getSource(this.APP_SOURCE)) {
+            this.sources[this.APP_SOURCE] = this.createAppSource();
+        }
+        if (this.parent instanceof I18n) {
+            AssignHelper.assignUndefined(this.sources, this.parent.sources);
+        }
     }
 
-    translate (message, category, params, language) {
-        const source = this.getMessageSource(category);
+    createCoreSource () {
+        if (this.parent) {
+            return this.parent.sources[this.CORE_SOURCE];
+        }
+        return this.createSource(this.CORE_SOURCE, {
+            basePath: path.join(__dirname, 'message', this.CORE_SOURCE)
+        });
+    }
+
+    createAppSource () {
+        const source = this.createSource(this.APP_SOURCE);
+        if (source.parent === undefined && !this.parent) {
+            source.parent = this.sources[this.CORE_SOURCE];
+        }
+        return source;
+    }
+
+    createSource (name, config) {
+        if (config instanceof MessageSource) {
+            return config;
+        }
+        return this.spawn({
+            Class: FileMessageSource,
+            i18n: this,
+            basePath: `message/${name}`,
+            ...config
+        });
+    }
+
+    resolveSourceParents () {
+        for (const name of Object.keys(this.sources)) {
+            this.sources[name].parent = this.resolveSourceParent(name);
+            if (ObjectHelper.hasCircularLinks(this.sources[name], 'parent')) {
+                throw new Error(`Circular source parents: ${name}`);
+            }
+        }
+    }
+
+    resolveSourceParent (name) {
+        const parent = this.sources[name].parent;
+        if (parent instanceof MessageSource) {
+            return parent;
+        }
+        return parent === undefined
+            ? this.getSourceParent(name)
+            : this.getSource(parent);
+    }
+
+    getSourceParent (name) {
+        const parent = this.parent;
+        return parent ? (parent.getSource(name) || parent.getSourceParent(name)) : null;
+    }
+
+    format () {
+        return this.messageFormatter.format(...arguments);
+    }
+
+    translate (message, name, params, language = this.language) {
+        const source = this.getSource(name);
         if (!source) {
+            this.log('error', `Message source not found: ${name}`);
             return message;
         }
-        language = language || this.language;
-        const result = source.translate(message, category, language);
-        return result === null
-            ? this.format(message, params, source.sourceLanguage)
-            : this.format(result, params, language);
+        let result;
+        if (source.sourceLanguage !== language) {
+            result = source.translate(message, language);
+            if (result === null) {
+                language = source.sourceLanguage;
+                if (source.forceTranslation) {
+                    result = source.translate(message, language);
+                }
+            }
+        } else if (source.forceTranslation) {
+            result = source.translate(message, language);
+        }
+        message = result || message;
+        return params ? this.format(message, params, language) : message;
     }
-    
+
     translateMessage (message) {
         if (Array.isArray(message)) {
             return this.translate(...message);
@@ -65,96 +146,19 @@ module.exports = class I18n extends Base {
         return this.translate(...arguments);
     }
 
-    translateMessageMap (data, category) {
+    translateMessageMap (data, ...args) {
         data = {...data};
         for (const key of Object.keys(data)) {
-            data[key] = this.translateMessage(data[key], category);
+            data[key] = this.translateMessage(data[key], ...args);
         }
         return data;
-    }
-
-    createSources () {
-        const sources = this.sources || {};
-        for (const category of Object.keys(sources)) {
-            sources[category] = this.createSource(category, sources[category]);
-        }
-        if (!sources[this.CORE_CATEGORY] && !sources[this.CORE_CATEGORY + this.ASTERISK]) {
-            if (this.parent instanceof I18n) {
-                sources[this.CORE_CATEGORY] = this.parent.sources[this.CORE_CATEGORY];
-            } else {
-                sources[this.CORE_CATEGORY] = this.createSource(this.CORE_CATEGORY, {
-                    basePath: path.join(__dirname, 'message')
-                });
-            }
-        }
-        if (!sources[this.APP_CATEGORY] && !sources[this.APP_CATEGORY + this.ASTERISK]) {
-            sources[this.APP_CATEGORY] = this.createSource(this.APP_CATEGORY);
-        }
-        if (this.parent instanceof I18n) {
-            for (const category of Object.keys(this.parent.sources)) {
-                sources[category] = sources[category] || this.parent.sources[category];
-            }
-        }
-        this.sources = sources;
-    }
-
-    createSource (category, data) {
-        if (data instanceof MessageSource) {
-            return data;
-        }
-        return this.spawn({
-            Class: FileMessageSource,
-            parent: this.getSourceParent(category),
-            i18n: this,
-            ...data
-        });
-    }
-
-    getSourceParent (category) {
-        return this.parent
-            ? (this.parent.sources[category] || this.parent.getSourceParent(category))
-            : null;
-    }
-
-    createMessageFormatter () {
-        this.messageFormatter = this.spawn(this.MessageFormatter, {i18n: this});
-    }
-    
-    getActiveNotSourceLanguage () {
-        return this.language !== this.sourceLanguage ? this.language : null;
-    }
-
-    getMessageSource (category) {
-        const sources = this.sources;
-        if (sources.hasOwnProperty(category)) {
-            if (!(sources[category] instanceof MessageSource)) {
-                sources[category] = this.createSource(category, sources[category]);
-            }
-            return sources[category];
-        }
-        for (const name of Object.keys(sources)) {
-            const pos = name.indexOf(this.ASTERISK);
-            if (pos > 0 && name.substring(0, pos).indexOf(category) === 0) {
-                if (!(sources[name] instanceof MessageSource)) {
-                    sources[name] = this.createSource(name, sources[name]);
-                    sources[category] = sources[name];
-                }
-                return sources[name];
-            }
-        }
-        if (sources.hasOwnProperty(this.ASTERISK)) {
-            if (!(sources[this.ASTERISK] instanceof MessageSource)) {
-                sources[this.ASTERISK] = this.createSource(this.ASTERISK, sources[this.ASTERISK]);
-            }
-            return sources[this.ASTERISK];
-        }
-        this.log('error', `Message source not found: ${category}`);
-        return null;
     }
 };
 module.exports.init();
 
 const path = require('path');
+const AssignHelper = require('../helper/AssignHelper');
+const ObjectHelper = require('../helper/ObjectHelper');
 const MessageSource = require('./MessageSource');
 const FileMessageSource = require('./FileMessageSource');
 const MessageFormatter = require('./MessageFormatter');

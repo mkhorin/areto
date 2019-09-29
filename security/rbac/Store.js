@@ -8,15 +8,15 @@ const Base = require('../../base/Base');
 module.exports = class Store extends Base {
 
     async load () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     async createItems () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     async createRules () {
-        throw new Error(this.wrapClassMessage('Need to override'));
+        throw new Error('Need to override');
     }
 
     log () {

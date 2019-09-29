@@ -18,12 +18,13 @@ module.exports = class FileLogStore extends Base {
         this.basePath = this.module.resolvePath(this.basePath);
         this.file = this.getFile();
         this.fullFile = this.getFile('full');
-        this.maxFileSize *= 1024 * 1024; // megabytes to bytes
+        this.maxFileSize *= 1024 * 1024; // megabytes to bytes        
+        
+        fs.mkdirSync(this.basePath, {recursive: true});
+        this.openFile();
     }
 
     init () {
-        fs.mkdirSync(this.basePath, {recursive: true});
-        this.openFile();
         if (this.observePeriod) {
             this.observe();
         }

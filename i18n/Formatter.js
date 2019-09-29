@@ -37,39 +37,40 @@ module.exports = class Formatter extends Base {
     }
 
     format (value, type, params) {
-        if (type) {
-            const name = this.constructor.getMethodName(type);
-            if (typeof this[name] === 'function') {
-                return this[name](value, params);
-            }
-            this.log('error', `Unknown type: ${type}`);
+        if (!type) {
+            return this.asRaw(value, params);
         }
+        const name = this.constructor.getMethodName(type);
+        if (typeof this[name] === 'function') {
+            return this[name](value, params);
+        }
+        this.log('error', `Unknown type: ${type}`);
         return this.asRaw(value, params);
     }
 
-    translate (message, category, language) {
+    translate (message, source, language) {
         return this.i18n
-            ? this.i18n.translate(message, category, null, language || this.language)
+            ? this.i18n.translate(message, source, null, language || this.language)
             : message;
     }
 
     asRaw (value, params = {}) {
         return value === null || value === undefined
-            ? this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language)
+            ? this.translate(this.nullFormat, I18n.CORE_SOURCE, params.language)
             : value;
     }
 
     asBoolean (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language);
+            return this.translate(this.nullFormat, I18n.CORE_SOURCE, params.language);
         }
         value = this.booleanFormat[value ? 1 : 0];
-        return this.translate(value, I18n.CORE_CATEGORY, params.language);
+        return this.translate(value, I18n.CORE_SOURCE, params.language);
     }
 
     asBytes (value, params = {}) {
         if (value === null || value === undefined) {
-            return this.translate(this.nullFormat, I18n.CORE_CATEGORY, params.language);
+            return this.translate(this.nullFormat, I18n.CORE_SOURCE, params.language);
         }
         let unit;
         if (value < this.KiB) {
@@ -88,7 +89,7 @@ module.exports = class Formatter extends Base {
             value /= this.TiB;
         }
         value = Math.round(value * this.byteFractionalPart) / this.byteFractionalPart;
-        unit = this.translate(unit, I18n.CORE_CATEGORY, params.language);
+        unit = this.translate(unit, I18n.CORE_SOURCE, params.language);
         return `${value} ${unit}`;
     }
 
@@ -111,8 +112,8 @@ module.exports = class Formatter extends Base {
     }
 
     asDuration (value, params = {}) {
-        return value
-            ? moment.duration(value, params.units).locale(params.language || this.language).humanize()
+        return value || value === 0
+            ? moment.duration(value, params.units).locale(params.language || this.language).humanize(params.suffix)
             : this.asRaw(value, params);
     }
 

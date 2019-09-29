@@ -38,7 +38,7 @@ module.exports = class MysqlBuilder extends Base {
 
     normalizeField (field) {
         if (typeof field !== 'string') {
-            throw new Error(this.wrapClassMessage('Invalid field name'));
+            throw new Error('Invalid field name');
         }
         return this.db.escapeId(field);
     }
@@ -126,7 +126,7 @@ module.exports = class MysqlBuilder extends Base {
 
     buildSimpleCondition (operator, field, value) {
         if (!Object.prototype.hasOwnProperty.call(this.SIMPLE_OPERATORS, operator)) {
-            throw new Error(this.wrapClassMessage('Invalid simple operator'));
+            throw new Error('Invalid simple operator');
         }
         field = this.normalizeField(field);
         return value === null

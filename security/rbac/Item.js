@@ -77,7 +77,7 @@ module.exports = class Item extends Base {
         if (!this.data.children || !this.data.children.length) {
             return null;
         }
-        this.data.children = await this.findRelatives('children');
+        this.data.children = await this.resolveRelatives('children');
         await this.store.findItemChild().and({
             parent: this.data.itemId,
             child: this.data.children
@@ -90,7 +90,7 @@ module.exports = class Item extends Base {
         if (!this.data.parents || !this.data.parents.length) {
             return null;
         }
-        this.data.parents = await this.findRelatives('parents');
+        this.data.parents = await this.resolveRelatives('parents');
         await this.store.findItemChild().and({
             parent: this.data.parents,
             child: this.data.itemId
@@ -99,7 +99,7 @@ module.exports = class Item extends Base {
         await this.store.findItemChild().insert(items);
     }
 
-    async findRelatives (relKey) {
+    async resolveRelatives (relKey) {
         const item = await this.store.findItemByName(this.name).one();
         this.data.itemId = item ? item[this.store.key] : null;
         const items = await this.store.findItemByName(this.data[relKey]).all();

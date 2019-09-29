@@ -41,7 +41,7 @@ module.exports = class MongoBuilder extends Base {
 
     normalizeField (field) {
         if (typeof field !== 'string') {
-            throw new Error(this.wrapClassMessage(`Invalid field: ${field}`));
+            throw new Error(`Invalid field: ${field}`);
         }
         return field;
     }
@@ -113,7 +113,7 @@ module.exports = class MongoBuilder extends Base {
 
     buildSimpleCondition (operator, field, value) {
         if (!(this.SIMPLE_OPERATORS.hasOwnProperty(operator))) {
-            throw new Error(this.wrapClassMessage(`Invalid simple operator: ${operator}`));
+            throw new Error(`Invalid simple operator: ${operator}`);
         }        
         return {[this.normalizeField(field)]: {[this.SIMPLE_OPERATORS[operator]]: value}};
     }
@@ -145,21 +145,11 @@ module.exports = class MongoBuilder extends Base {
     // LIKE
 
     buildLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: this.convertLikeToRegular(value)};
+        return {[this.normalizeField(field)]: EscapeHelper.toRegex(value)};
     }
 
     buildNotLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: {$not: this.convertLikeToRegular(value)}};
-    }
-
-    convertLikeToRegular (value) {
-        if (value instanceof RegExp) {
-            return value;
-        }
-        value = EscapeHelper.escapeRegExp(value);
-        value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
-        value = value.charAt(value.length - 1) === '%' ?  value.substring(0, value.length - 1) : `${value}$`;
-        return new RegExp(value, 'i');
+        return {[this.normalizeField(field)]: {$not: EscapeHelper.toRegex(value)}};
     }
 
     // BETWEEN

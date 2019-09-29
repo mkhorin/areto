@@ -41,7 +41,7 @@ module.exports = class Controller extends Base {
     static getName () {
         const index = this.name.lastIndexOf('Controller');
         if (index === -1) {
-            throw new Error(this.wrapClassMessage(`Invalid controller name: ${this.name}`));
+            throw new Error(`Invalid controller name: ${this.name}`);
         }
         return StringHelper.camelToId(this.name.substring(0, index));
     }
@@ -93,10 +93,11 @@ module.exports = class Controller extends Base {
         super(config);
         this.response = new Response;
         this.response.controller = this;
-        this.i18n = this.module.components.get('i18n');
         this.formatter = this.module.components.get('formatter');
-        this.language = this.language || (this.i18n && this.i18n.getActiveNotSourceLanguage());
+        this.i18n = this.module.components.get('i18n');
+        this.language = this.language || this.i18n && this.i18n.language;
         this.timestamp = Date.now();
+        this.urlManager = this.module.components.get('urlManager');
     }
 
     createModel (params) {
@@ -121,19 +122,20 @@ module.exports = class Controller extends Base {
     async execute (name) {
         this.action = this.createAction(name);
         if (!this.action) {
-            throw new Error(this.wrapClassMessage(`Unable to create action: ${name}`));
+            throw new Error(`Unable to create action: ${name}`);
         }
+        const modules = this.module.getAncestry();
         // trigger module's beforeAction from root to current
-        for (const module of this.module.getAncestry().slice().reverse()) {
-            await module.beforeAction(this.action);
+        for (let i = modules.length - 1; i >= 0; --i) {
+            await modules[i].beforeAction(this.action);
         }
         await this.beforeAction();
-        if (!this.response.has()) { // check to response by beforeActions
+        if (!this.response.has()) {
             await this.action.execute();
         }
         await this.afterAction();
         // trigger module's afterAction from current to root
-        for (const module of this.module.getAncestry()) {
+        for (const module of modules) {
             await module.afterAction(this.action);
         }
         this.response.end();
@@ -147,11 +149,11 @@ module.exports = class Controller extends Base {
     }
 
     createInlineAction (name) {
-        const method = `action${StringHelper.idToCamel(name)}`;
-        if (typeof this[method] === 'function') {
+        const method = this[`action${StringHelper.idToCamel(name)}`];
+        if (typeof method === 'function') {
             return this.spawn(this.INLINE_ACTION || this.module.InlineAction, {
                 controller: this,
-                method: this[method],
+                method,
                 name
             });
         }
@@ -197,8 +199,6 @@ module.exports = class Controller extends Base {
         return this.req.baseUrl + this.req.path;
     }
 
-    // REQUEST
-
     getQueryParam (key, defaults) {
         return ObjectHelper.getValue(key, this.req.query, defaults);
     }
@@ -219,7 +219,7 @@ module.exports = class Controller extends Base {
 
     setFlash (key, message) {
         typeof this.req.flash === 'function'
-            ? this.req.flash(key, message)
+            ? this.req.flash(key, this.translate(message))
             : this.log('error', 'Session flash not found', message);
     }
 
@@ -339,8 +339,8 @@ module.exports = class Controller extends Base {
         return this.req.originalUrl;
     }
 
-    createUrl (data) {        
-        return this.module.components.get('url').resolve(data, this.NAME);
+    createUrl (...data) {
+        return this.urlManager.resolve(data.length > 1 ? data : data[0], this.NAME);
     }
 
     getHostUrl () {
@@ -348,6 +348,10 @@ module.exports = class Controller extends Base {
     }
 
     // SECURITY
+
+    getCsrfToken () {
+        return this.user.getCsrfToken();
+    }
 
     async can (name, params) {
         if (!await this.user.can(name, params)) {
@@ -357,22 +361,22 @@ module.exports = class Controller extends Base {
 
     // I18N
 
-    translate (message, category = 'app', params) {
+    translate (message, source = 'app', params) {
         if (Array.isArray(message)) {
             return this.translate(...message);
         }
         if (message instanceof Message) {
             return message.translate(this.i18n, this.language);
         }
-        return category
-            ? this.i18n.translate(message, category, params, this.language)
+        return source
+            ? this.i18n.translate(message, source, params, this.language)
             : this.i18n.format(message, params, this.language);
     }
 
-    translateMessageMap (map, category = 'app') {
+    translateMessageMap (map, ...args) {
         map = {...map};
         for (const key of Object.keys(map)) {
-            map[key] = this.translate(map[key], category);
+            map[key] = this.translate(map[key], ...args);
         }
         return map;
     }

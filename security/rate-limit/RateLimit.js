@@ -16,8 +16,8 @@ module.exports = class RateLimit extends Base {
     constructor (config) {
         super({
             attempts: 3,
-            timeout: 0, // seconds
-            types: {}, // separate config for types
+            timeout: 0, // seconds or [2d]
+            types: {}, // separate configurations for types
             Store: require('./MemoryRateLimitStore'),
             ...config
         });
@@ -41,21 +41,19 @@ module.exports = class RateLimit extends Base {
     }
 
     getAttempts (type) {
-        return this.getParam(type, 'attempts');
+        return this.getInternalParam(type, 'attempts');
     }
 
     getTimeout (type) {
-        return this.getParam(type, 'timeout');
+        return this.getInternalParam(type, 'timeout');
     }
 
-    getParam (type, name) {
-        if (this.types && Object.prototype.hasOwnProperty.call(this.types, type)) {
-            type = this.types[type];
-            if (type && Object.prototype.hasOwnProperty.call(type, name)) {
-                return type[name];
-            }
+    getInternalParam (type, name) {
+        if (!this.types || !Object.prototype.hasOwnProperty.call(this.types, type)) {
+            return this[name];
         }
-        return this[name];
+        type = this.types[type];
+        return type && Object.prototype.hasOwnProperty.call(type, name) ? type[name] : this[name];
     }
 };
 module.exports.init();

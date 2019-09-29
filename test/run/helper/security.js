@@ -16,8 +16,8 @@ describe('SecurityHelper', ()=> {
     });
 
     it('getRandomString', async ()=> {
-        let r1 = await SecurityHelper.getRandomString(8);
-        let r2 = await SecurityHelper.getRandomString(8);
+        const r1 = await SecurityHelper.getRandomString(8);
+        const r2 = await SecurityHelper.getRandomString(8);
         expect(r1).to.lengthOf(16);
         expect(SecurityHelper.isHexString(r1)).to.eql(true);
         expect(r2).to.lengthOf(16);
@@ -31,7 +31,7 @@ describe('SecurityHelper', ()=> {
     });
 
     it('hashPassword', ()=> {
-        let hash = SecurityHelper.hashPassword('1234567890');
+        const hash = SecurityHelper.hashPassword('1234567890');
         expect(SecurityHelper.checkPassword('1234567890', hash)).to.eql(true);
         expect(SecurityHelper.hashPassword('')).to.eql('');
         expect(SecurityHelper.hashPassword(null)).to.eql('');
@@ -39,28 +39,28 @@ describe('SecurityHelper', ()=> {
     });
 
     it('hashValue', ()=> {
-        let salt = SecurityHelper.createSalt();
-        let hash = SecurityHelper.hashValue('1234567890', salt);
+        const salt = SecurityHelper.createSalt();
+        const hash = SecurityHelper.hashValue('1234567890', salt);
         expect(SecurityHelper.checkHash(hash)).to.eql(true);
     });
 
     it('hashFile', async ()=> {
-        let hash1 = await SecurityHelper.hashFile(module.filename);
-        let hash2 = await SecurityHelper.hashFile(module.filename);
+        const hash1 = await SecurityHelper.hashFile(module.filename);
+        const hash2 = await SecurityHelper.hashFile(module.filename);
         expect(SecurityHelper.isHexString(hash1)).to.eql(true);
         expect(hash1).to.eql(hash2);
     });
 
     it('checkHash', ()=> {
-        let hash = 'e118f603cb920e058977c1069542751a69531cd162fb13f8ed48961f075a1ed43c00f3cb';
+        const hash = 'e118f603cb920e058977c1069542751a69531cd162fb13f8ed48961f075a1ed43c00f3cb';
         expect(SecurityHelper.checkHash(hash)).to.eql(true);
         expect(SecurityHelper.checkHash('e118f')).to.eql(false);
     });
 
     it('checkPassword', ()=> {
-        let password = 'password';
-        let hash = SecurityHelper.hashPassword(password);
-        let fakeHash = SecurityHelper.hashPassword('fakePassword');
+        const password = 'password';
+        const hash = SecurityHelper.hashPassword(password);
+        const fakeHash = SecurityHelper.hashPassword('fakePassword');
         expect(SecurityHelper.checkPassword(password, hash)).to.eql(true);
         expect(SecurityHelper.checkPassword(password, fakeHash)).to.eql(false);
         expect(SecurityHelper.checkPassword(password)).to.eql(false);

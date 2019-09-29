@@ -10,7 +10,7 @@ module.exports = class ActiveLinker extends Base {
     async link (name, model, extraColumns) {
         const rel = this.owner.getRelation(name);
         const method = rel.isOuterLink() ? 'linkVia' : 'linkInternal';
-        await this[method].call(this, rel, model, extraColumns);
+        await this[method](rel, model, extraColumns);
         if (!rel.isMultiple()) {
             this.owner.populateRelation(name, model); 
             return PromiseHelper.setImmediate();
@@ -71,7 +71,7 @@ module.exports = class ActiveLinker extends Base {
             remove = rel.getRemoveOnUnlink();
         }
         const method = rel.isOuterLink() ? 'unlinkVia' : 'unlinkInternal';
-        await this[method].call(this, rel, model, remove);
+        await this[method](rel, model, remove);
         this.unsetUnlinked(name, model, rel);
         return PromiseHelper.setImmediate();
     }
@@ -116,7 +116,7 @@ module.exports = class ActiveLinker extends Base {
             remove = rel.getRemoveOnUnlink();
         }
         const method = rel.isOuterLink() ? 'unlinkViaAll' : 'unlinkInternalAll';
-        await this[method].call(this, rel, remove);
+        await this[method](rel, remove);
         this.owner.unsetRelation(name);
     }
 

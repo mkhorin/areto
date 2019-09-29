@@ -13,14 +13,14 @@ describe('UrlValidator', ()=> {
     it('invalid', async ()=> {
         const model = new Model;
         model.set('url', 'not-url');
-        await validator.validateAttr(model, 'url');
+        await validator.validateAttr('url', model);
         expect(model.hasError()).to.eql(true);
     });
 
     it('valid', async ()=> {
         const model = new Model;
         model.set('url', 'http://address.com/path.htm?params=[]');
-        await validator.validateAttr(model, 'url');
+        await validator.validateAttr('url', model);
         expect(model.hasError()).to.eql(false);
     });
 });

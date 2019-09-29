@@ -11,34 +11,22 @@ module.exports = class MessageSource extends Base {
         super({
             forceTranslation: false,
             sourceLanguage: config.i18n.sourceLanguage,
-            parent: null,
+            // parent: 'app', // parent source
             ...config
         });
         this._messages = {};
     }
 
     async load () {
-        throw new Error(this.wrapClassMessage('Load messages from store'));
+        throw new Error('Load messages from storage');
     }
 
-    translate (message, category, language) {
-        return this.forceTranslation || language !== this.sourceLanguage
-            ? this.translateMessage(message, category, language)
-            : null;
-    }
-
-    translateMessage (message, category, language) {
-        if (!category) {
-            return null;
-        }
-        const data = this._messages[`${language}/${category}`];
+    translate (message, language) {
+        const data = this._messages[language];
         if (data && Object.prototype.hasOwnProperty.call(data, message)) {
             return data[message];
         }
-        if (this.parent) {
-            return this.parent.translateMessage(message, category, language);
-        }
-        return null;
+        return this.parent ? this.parent.translate(message, language) : null;
     }
 
     log () {

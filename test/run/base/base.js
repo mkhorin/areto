@@ -50,11 +50,11 @@ describe('Base', ()=> {
         const config = {module: this};
         const source = new Test(config);
 
-        let target = source.spawn();
+        let target = source.spawnSelf();
         expect(target instanceof Test).to.eql(true);
         expect(target.module).to.eql(this);
 
-        target = source.spawn(null, {module: source});
+        target = source.spawnSelf({module: source});
         expect(target instanceof Test).to.eql(true);
         expect(target.module).to.eql(source);
 

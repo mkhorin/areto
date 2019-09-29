@@ -32,8 +32,8 @@ module.exports = class NumberValidator extends Base {
         return this.createMessage(this.tooBig, 'Value must be no greater than {max}', {max: this.max});
     }
 
-    async validateAttr (model, attr) {
-        await super.validateAttr(model, attr);
+    async validateAttr (attr, model) {
+        await super.validateAttr(...arguments);
         if (!model.hasError()) {
             model.set(attr, Number(model.get(attr)));
         }

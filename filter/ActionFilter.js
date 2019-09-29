@@ -9,8 +9,8 @@ module.exports = class ActionFilter extends Base {
 
     constructor (config) {
         super({
-            only: null,
-            except: [],
+            only: null, // ['action1', 'action2']
+            except: null, // ['action1', 'action2']
             ...config
         });
         this.setHandler(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
@@ -18,9 +18,11 @@ module.exports = class ActionFilter extends Base {
     }
 
     isActive (action) {
-        const moduleName = action.getRelativeModuleName();
-        const id = this.owner instanceof Module ? moduleName : action.name;
-        return !this.except.includes(id) && (!this.only || this.only.includes(id));
+        const name = this.owner instanceof Module
+            ? action.getRelativeModuleName()
+            : action.name;
+        return (!this.except || !this.except.includes(name))
+            && (!this.only || this.only.includes(name));
     }
 
     beforeFilter ({action}) {

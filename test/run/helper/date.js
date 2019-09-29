@@ -17,9 +17,9 @@ describe('DateHelper', ()=> {
     });
 
     it('getValid', ()=> {
-        let now = new Date;
+        const now = new Date;
         expect(DateHelper.getValid(now)).to.eql(now);
-        let dateText = '2019-10-12';
+        const dateText = '2019-10-12';
         expect(DateHelper.getValid(dateText).getTime()).to.eql(new Date(dateText).getTime());
         expect(DateHelper.getValid('12-40-2015')).to.eql(null);
     });
@@ -27,8 +27,8 @@ describe('DateHelper', ()=> {
     it('getAbsolute', ()=> {
         const FORMAT = 'YYYY-MM-DDTHH:mm:ss';
         const DATE = '2019-05-24T10:15:30';
-        let source = new Date(`${DATE}Z`);
-        let target = DateHelper.getAbsolute(source);
+        const source = new Date(`${DATE}Z`);
+        const target = DateHelper.getAbsolute(source);
         expect(moment(target).format(FORMAT)).to.eql(DATE);
     });
 });

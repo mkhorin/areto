@@ -63,7 +63,7 @@ module.exports = class BehaviorManager extends Base {
 
     attachInternal (name, behavior) {
         if (!behavior) {
-            throw new Error(this.wrapClassMessage(`Attach undefined behavior: ${name}`));
+            throw new Error(`Attach undefined behavior: ${name}`);
         } 
         if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
@@ -71,7 +71,7 @@ module.exports = class BehaviorManager extends Base {
             behavior.name = behavior.name || name;
             behavior = new behavior.Class(behavior);
         } else if (!(behavior instanceof Behavior)) {
-            throw new Error(this.wrapClassMessage(`Attach invalid behavior: ${name}`));
+            throw new Error(`Attach invalid behavior: ${name}`);
         }
         if (this._behaviorMap[name] instanceof Behavior) {
             this._behaviorMap[name].detach();

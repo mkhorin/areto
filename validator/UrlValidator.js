@@ -21,7 +21,7 @@ module.exports = class UrlValidator extends Base {
         return this.createMessage(this.message, 'Invalid url');
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const value = model.get(attr);
         const message = await this.validateValue(value);
         if (message) {

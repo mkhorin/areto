@@ -11,10 +11,10 @@ module.exports = class UniqueValidator extends Base {
         return this.createMessage(this.message, 'Value has already been taken');
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const targetClass = this.targetClass || model.constructor;
-        const values = this.resolveValues(model, attr);
-        const query = this.createQuery(values, model, attr);
+        const values = this.resolveValues(attr, model);
+        const query = this.createQuery(values, attr, model);
         const ids = await query.limit(2).column(targetClass.PK);
         if (this.checkExists(ids, model, targetClass)) {
             this.addError(model, attr, this.getMessage());

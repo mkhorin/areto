@@ -14,7 +14,7 @@ module.exports = class CheckboxValidator extends Base {
         });
     }
 
-    validateAttr (model, attr) {
+    validateAttr (attr, model) {
         const value = model.get(attr);
         if (typeof value !== 'boolean' ) {
             model.set(attr, value === 'on');

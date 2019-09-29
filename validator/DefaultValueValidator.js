@@ -15,12 +15,12 @@ module.exports = class DefaultValueValidator extends Base {
         });
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         if (!this.isEmptyValue(model.get(attr))) {
             return;
         }
         model.set(attr, typeof this.value === 'function'
-            ? await this.value.call(this, model, attr, this)
+            ? await this.value.call(this, attr, model, this)
             : this.value);
     }
 };

@@ -37,18 +37,18 @@ module.exports = class EachValidator extends Base {
         return this.constructor.createValidator(this.rule, model, this.attrs, this.params);
     }
 
-    async validateAttr (model, attr) {
+    async validateAttr (attr, model) {
         const values = model.get(attr);
         const validator = this.getValidator();
         if (!(validator instanceof FilterValidator && Array.isArray(values))) {
             this.getValidator(model); // ensure model context while validator creation
-            return super.validateAttr(model, attr);
+            return super.validateAttr(...arguments);
         }
         const filteredValues = [];
         model.set(attr, filteredValues);
         for (const value of values) {
             if (!(Array.isArray(value) && validator.skipOnArray)) {                
-                filteredValues.push(await validator.filter(value, model, attr));
+                filteredValues.push(await validator.filter(value, attr, model));
             }
         }
     }

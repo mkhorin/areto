@@ -106,11 +106,9 @@ module.exports = class Router extends Base {
 
     addAction (id, Controller, route) {
         const action = (req, res, next)=> {
-            this.createController(Controller, {
-                req,
-                res,
-                module: res.locals.module
-            }).execute(id).catch(next);
+            this.createController(Controller, {req, res, module: res.locals.module})
+                .execute(id)
+                .catch(next);
         };
         let methods = Controller.METHODS[id] || ['all'];
         if (!Array.isArray(methods)) {
@@ -132,12 +130,9 @@ module.exports = class Router extends Base {
             if (!Controller) {
                 return next(err);
             }
-            this.createController(Controller, {
-                err,
-                req,
-                res,
-                module: this.module
-            }).execute(config.action || 'error').catch(next);
+            this.createController(Controller, {err, req, res, module: this.module})
+                .execute(config.action || 'error')
+                .catch(next);
         });
     }
 };

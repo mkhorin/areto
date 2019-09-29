@@ -8,28 +8,20 @@ module.exports = {
     components: {
         'logger': {
             level: 'info',
-            types: {
-                'error': {
-                    store: require('areto/log/FileLogStore')
-                }
+            stores: {
+                common: require('../component/ConsoleLogStore'),
+                error: require('../component/ConsoleLogStore'),
             }
         },
         'db': {
             Class: require('areto/db/MongoDatabase'),
             settings: {
-                host: 'localhost',
-                port: 27017,
-                user: '',
-                password: '',
-                options: {
-                    bufferMaxEntries: 0,
-                    keepAlive: true,
-                    useNewUrlParser: true
-                }
+                'host': 'localhost',
+                'port': 27017,
+                'database': 'areto.test.main',
+                'user': '',
+                'password': ''
             }
-        },
-        'bodyParser': {
-            limit: '10mb'
         }
     },
     modules: {        

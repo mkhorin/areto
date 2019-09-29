@@ -32,7 +32,7 @@ module.exports = class Database extends Base {
 
     async open () {
         if (this._connection) {
-            throw new Error(this.wrapClassMessage(`Connection is already opened: ${this.getUri()}`));
+            throw new Error(`Connection is already opened: ${this.getUri()}`);
         }
         this._connection = await this.openConnection();
         this.log('info', `Connection opened: ${this.getUri()}`);
@@ -41,7 +41,7 @@ module.exports = class Database extends Base {
 
     async close () {
         if (!this._connection) {
-            throw new Error(this.wrapClassMessage(`Connection is already closed: ${this.getUri()}`));
+            throw new Error(`Connection is already closed: ${this.getUri()}`);
         }
         await this.closeConnection();
         this._connection = null;

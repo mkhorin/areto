@@ -137,14 +137,14 @@ module.exports = class RelationChangeBehavior extends Base {
     async checkExists (name) {
         const rel = this.getRelation(name);
         if (rel.isMultiple()) {
-            throw new Error(this.wrapClassMessage(`Multiple relation cannot be checked for exist: ${name}`));
+            throw new Error(`Multiple relation cannot be checked for exist: ${name}`);
         }
         const docs = await this.getLinkedDocs(name);
         if (docs.length === 0) {
             return null;
         }
         if (docs.length !== 1) {
-            throw new Error(this.wrapClassMessage('Invalid relation changes'));
+            throw new Error('Invalid relation changes');
         }
         return rel.isBackRef()
             ? await this.checkBackRefExist(rel, docs[0])

@@ -7,28 +7,27 @@ const Base = require('./MessageSource');
 
 module.exports = class FileMessageSource extends Base {
 
-    constructor (config) {
-        super({
-            basePath: 'message',
-            ...config
-        });
-        this.basePath = this.module.resolvePath(this.basePath);
-    }
-
     async load () {
         this._messages = {};
-        const stat = await FileHelper.getStat(this.basePath);
+        return this.loadModuleMessages(this.module);
+    }
+    async loadModuleMessages (module) {
+        if (module.origin) {
+            await this.loadModuleMessages(module.origin);
+        }
+        const dir = module.resolvePath(this.basePath);
+        const stat = await FileHelper.getStat(dir);
         if (stat && stat.isDirectory()) {
-            await FileHelper.handleChildDirectories(this.basePath, this.loadLanguage.bind(this));
+            return FileHelper.handleChildFiles(dir, file => this.loadFile(file, dir));
         }
     }
 
-    async loadLanguage (file, dir) {
+    loadFile (file, dir) {
         const language = FileHelper.getBasename(file);
-        await FileHelper.handleChildFiles(path.join(dir, file), (file, dir) => {
-            const key = `${language}/${FileHelper.getBasename(file)}`;
-            this._messages[key] = require(path.join(dir, file));
-        });
+        this._messages[language] = {
+            ...this._messages[language],
+            ...require(path.join(dir, file))
+        };
     }
 };
 

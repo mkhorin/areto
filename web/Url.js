@@ -24,10 +24,10 @@ module.exports = class Url extends Base {
         // target params must be a subset of the source's params
         const names = ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames);
         if (names.length !== this.targetParamNames.length) {
-            throw new Error(this.wrapClassMessage(`Invalid params: Source: ${this.source}: Target: ${this.target}`));
+            throw new Error(`Invalid params: Source: ${this.source}: Target: ${this.target}`);
         }
         if (this.methods && !Array.isArray(this.methods)) {
-            throw new Error(this.wrapClassMessage(`Invalid methods: ${this.methods}`));
+            throw new Error(`Invalid methods: ${this.methods}`);
         }
     }
 
@@ -57,7 +57,7 @@ module.exports = class Url extends Base {
             // data.anchor = 'anchor';
             let url = this.createSource(Object.assign(params, data.params));
             ObjectHelper.deleteProperties(this.sourceParamNames, params);
-            params = this.constructor.serializeParams(params);
+            params = UrlHelper.serialize(params);
             if (params) {
                 url = `${url}?${params}`;
             }
@@ -92,3 +92,4 @@ module.exports = class Url extends Base {
 const pathToRegexp = require('path-to-regexp');
 const ArrayHelper = require('../helper/ArrayHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
+const UrlHelper = require('../helper/UrlHelper');

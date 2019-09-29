@@ -15,11 +15,10 @@ module.exports = class InlineValidator extends Base {
         });
     }
 
-    validateAttr (model, attrName) {
-        let method = this.method;
-        if (typeof method === 'string') {
-            method = model[method];
-        }
-        return method.call(model, attrName, this.params);
+    validateAttr (attr, model) {
+        const method = this.method;
+        return typeof method === 'string'
+            ? model[method](attr, this.params)
+            : method.call(model, attr, model, this.params);
     }
 };

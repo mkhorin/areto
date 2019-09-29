@@ -30,15 +30,15 @@ module.exports = class ExistValidator extends Base {
         return this.createMessage(this.message, 'Value does not exist');
     }
 
-    async validateAttr (model, attr) {
-        const values = this.resolveValues(model, attr);
-        const query = this.createQuery(values, model, attr);
+    async validateAttr (attr, model) {
+        const values = this.resolveValues(attr, model);
+        const query = this.createQuery(values, attr, model);
         if (!await query.count()) {
             this.addError(model, attr, this.getMessage());
         }
     }
 
-    resolveValues (model, attr) {
+    resolveValues (attr, model) {
         const values = {};
         const targetAttr = this.targetAttr || attr;
         if (Array.isArray(targetAttr)) {
@@ -51,7 +51,7 @@ module.exports = class ExistValidator extends Base {
         return values;
     }
 
-    createQuery (values, model, attr) {
+    createQuery (values, attr, model) {
         const queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
         const query = queryModel.find();
         if (this.ignoreCase) {

@@ -19,10 +19,10 @@ module.exports = class CaptchaValidator extends Base {
         return this.createMessage(this.message, 'Invalid verification code');
     }
 
-    validateAttr (model, attr) {
+    validateAttr (attr, model) {
         const action = model[this.captchaActionProperty];
         if (!(action instanceof CaptchaAction)) {
-            throw new Error(`Model captcha action property not found: ${this.captchaActionProperty}`);
+            throw new Error(`Captcha action not found in model.${this.captchaActionProperty}`);
         }
         if (!action.validate(model.get(attr))) {
             this.addError(model, attr, this.getMessage());

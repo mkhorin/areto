@@ -72,7 +72,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     async prepareViaTable () {
-        const viaModels = await this._viaTable.findJunctionRows([this.primaryModel]);
+        const viaModels = await this._viaTable.resolveJunctionRows([this.primaryModel]);
         this.prepareFilter(viaModels);
         await this.afterPrepare();
     }
@@ -240,8 +240,8 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    async findWith (data, models) {
-        data = QueryHelper.normalizeRelations(this.model.spawn(), data);
+    async resolveWith (data, models) {
+        data = QueryHelper.normalizeRelations(this.model.spawnSelf(), data);
         for (const name of Object.keys(data)) {
             const relation = data[name];
             if (relation.getRaw() === null) { // relation is ActiveQuery
@@ -251,20 +251,20 @@ module.exports = class ActiveQuery extends Base {
         }
     }
 
-    findFor () {
+    resolve () {
         return this._multiple ? this.all() : this.one();
     }
 
     // POPULATE
 
-    populate (docs) {
+    populate (items) {
         if (this._raw) {
-            return super.populate(docs);
+            return super.populate(items);
         }
         const models = [];
-        for (const doc of docs) {
-            const model = this.model.spawn();
-            model.populateRecord(doc);
+        for (const item of items) {
+            const model = this.model.spawnSelf();
+            model.populate(item);
             models.push(model);
         }
         return this.populateWith(models);
@@ -272,7 +272,7 @@ module.exports = class ActiveQuery extends Base {
 
     async populateWith (models) {
         if (this._with && models.length) {
-            await this.findWith(this._with, models);
+            await this.resolveWith(this._with, models);
         }
         return this._index
             ? QueryHelper.indexModels(models, this._index)
@@ -339,7 +339,7 @@ module.exports = class ActiveQuery extends Base {
         let viaQuery;
         if (this._viaTable) {
             viaQuery = this._viaTable;
-            viaModels = await viaQuery.findJunctionRows(viaModels);
+            viaModels = await viaQuery.resolveJunctionRows(viaModels);
         }
         if (this._viaRelation) {
             if (this._viaRelation.getRaw() === null) {
@@ -428,7 +428,7 @@ module.exports = class ActiveQuery extends Base {
         this.and(['IN', this.refKey, values]);
     }
 
-    findJunctionRows (primaryModels) {
+    resolveJunctionRows (primaryModels) {
         if (!primaryModels.length) {
             return [];
         }

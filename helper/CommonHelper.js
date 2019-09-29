@@ -9,12 +9,12 @@ module.exports = class CommonHelper {
         return value === undefined || value === null || value === '';
     }
 
-    static getRandom (min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     static isEqual (a, b) {
         return a === b || JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    static getRandom (min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static log (logger, prefix, type, message, data) {
@@ -26,6 +26,9 @@ module.exports = class CommonHelper {
     }
 
     static parseJson (data) {
+        if (typeof data !== 'string') {
+            return data;
+        }
         try {
             return JSON.parse(data);
         } catch (err) {}

@@ -39,7 +39,7 @@ module.exports = class Theme extends Base {
     }
 
     isEmpty () {
-        return this._templates.isEmpty() && this._models.isEmpty();
+        return this._templates.isEmpty();
     }
 
     // TEMPLATE

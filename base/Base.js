@@ -31,13 +31,17 @@ module.exports = class Base {
         return this.module.getClass(...arguments);
     }
 
+    spawnSelf (params) {
+        return this.spawn(this.constructor, params);
+    }
+
     spawn (config, params) {
         if (!params) {
             params = {module: this.module};
         } else if (params.module === undefined) {
             params.module = this.module;
         }
-        return ClassHelper.spawn(config || this.constructor, params);
+        return ClassHelper.spawn(config, params);
     }
 
     wrapClassMessage (message) {
