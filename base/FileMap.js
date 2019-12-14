@@ -9,7 +9,7 @@ module.exports = class FileMap extends Base {
 
     constructor (config) {
         super({
-            // dir: [path],
+            // directory: [path],
             required: false, // require files
             ...config
         });
@@ -29,11 +29,11 @@ module.exports = class FileMap extends Base {
     indexFiles () {
         try {
             this._files = {};
-            this.indexDirectoryFiles(this.dir);
+            this.indexDirectoryFiles(this.directory);
             if (this.required) {
                 this.requireFiles();
             }
-        } catch (err) {}
+        } catch {}
     }
 
     indexDirectoryFiles (dir) {
@@ -48,7 +48,7 @@ module.exports = class FileMap extends Base {
     }
 
     getKey (file) {
-        const relative = file.substring(this.dir.length + 1);
+        const relative = file.substring(this.directory.length + 1);
         const parts = relative.split(path.sep);        
         parts.push(FileHelper.removeExtension(parts.pop()));
         return parts.join('/'); // normalize separator

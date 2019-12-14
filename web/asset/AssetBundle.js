@@ -7,33 +7,33 @@ const Base = require('../../base/Base');
 
 module.exports = class AssetBundle extends Base {
 
-    // css: ['css/style1.css', ['css/style2.css', {media: 'print'}]]
-    // js: ['js/script1.js', ['js/script2.js', {position: _view.POS_HEAD}]]
+    // style: ['style/file1.css', ['style/file2.css', {media: 'print'}]]
+    // script: ['script/file1.js', ['script/file2.js', {position: _view.POS_HEAD}]]
     // version: '1.2.3' // ?v=1.2.3
 
     constructor (config) {
         super(config);
 
-        if (this.css && !Array.isArray(this.css)) {
-            this.css = [this.css];
+        if (this.styles && !Array.isArray(this.styles)) {
+            this.styles = [this.styles];
         }
-        if (this.js && !Array.isArray(this.js)) {
-            this.js = [this.js];
+        if (this.scripts && !Array.isArray(this.scripts)) {
+            this.scripts = [this.scripts];
         }
         if (this.depends && !Array.isArray(this.depends)) {
             this.depends = [this.depends]; // ['asset name']
         }
-        this.cssOptions = this.cssOptions || {}; // {media: 'print'}
-        this.jsOptions = this.jsOptions || {}; // {position: _view.POS_HEAD}
-        this.cssOptions.version = this.cssOptions.version || this.version;
-        this.jsOptions.version = this.jsOptions.version || this.version;
+        this.styleOptions = this.styleOptions || {}; // {media: 'print'}
+        this.scriptOptions = this.scriptOptions || {}; // {position: _view.POS_HEAD}
+        this.styleOptions.version = this.styleOptions.version || this.version;
+        this.scriptOptions.version = this.scriptOptions.version || this.version;
 
         if (!this.name) {
             // set name as first item name
-            if (this.css && this.css.length) {
-                this.name = Array.isArray(this.css[0]) ? this.css[0][0] : this.css[0];
-            } else if (this.js && this.js.length) {
-                this.name = Array.isArray(this.js[0]) ? this.js[0][0] : this.js[0];
+            if (this.styles && this.styles.length) {
+                this.name = Array.isArray(this.styles[0]) ? this.styles[0][0] : this.styles[0];
+            } else if (this.scripts && this.scripts.length) {
+                this.name = Array.isArray(this.scripts[0]) ? this.scripts[0][0] : this.scripts[0];
             } else {
                 this.name = '';
             }
@@ -44,54 +44,54 @@ module.exports = class AssetBundle extends Base {
     render (pos) {
         if (!this._result.hasOwnProperty(pos)) {
             this._result[pos] = '';
-            if (this.css && pos === ActionView.POS_HEAD) {
-                this._result[pos] += this.renderCss();
+            if (this.styles && pos === ActionView.POS_HEAD) {
+                this._result[pos] += this.renderStyles();
             }
-            if (this.js) {
-                this._result[pos] += this.renderJs(pos);
+            if (this.scripts) {
+                this._result[pos] += this.renderScripts(pos);
             }
         }
         return this._result[pos];
     }
 
-    renderCss () {
+    renderStyles () {
         let result = '';
-        for (const item of this.css) {
+        for (const item of this.styles) {
             result += Array.isArray(item)
-                ? this.renderCssItem(item[0], {...this.cssOptions, ...item[1]})
-                : this.renderCssItem(item, this.cssOptions);
+                ? this.renderStyle(item[0], {...this.styleOptions, ...item[1]})
+                : this.renderScript(item, this.styleOptions);
         }
         return result;
     }
 
-    renderJs (pos) {
+    renderScripts (pos) {
         let result = '';
-        for (let item of this.js) {
-            let options = this.jsOptions;
+        for (let item of this.scripts) {
+            let options = this.scriptOptions;
             if (Array.isArray(item)) {
-                options = {...this.jsOptions, ...item[1]};
+                options = {...this.scriptOptions, ...item[1]};
                 item = item[0];
             }
             if (options.position ? (pos === options.position) : (pos === ActionView.POS_BODY_END)) {
-                result += this.renderJsItem(item, options);
+                result += this.renderScript(item, options);
             }
         }
         return result;
     }
 
-    renderCssItem (src, options) {
-        const media = options.media ? `media="${options.media}"` : '';
-        const version = options.version ? `?v=${options.version}` : '';
-        return `<link href="${src}${version}" ${media} rel="stylesheet">\n`;
+    renderStyle (source, {media, version}) {
+        media = media ? `media="${media}"` : '';
+        version = version ? `?v=${version}` : '';
+        return `<link href="${source}${version}" ${media} rel="stylesheet">\n`;
     }
 
-    renderJsItem (src, options) {
-        const version = options.version ? `?v=${options.version}` : '';
-        return `<script src="${src}${version}"></script>\n`;
+    renderScript (source, {version}) {
+        version = version ? `?v=${version}` : '';
+        return `<script src="${source}${version}"></script>\n`;
     }
 
     log (type, message) {        
-        this.manager.log(type, this.wrapClassMessage(message), util.inspect([this.js, this.css]));
+        this.manager.log(type, this.wrapClassMessage(message), util.inspect([this.scripts, this.styles]));
     }
 };
 

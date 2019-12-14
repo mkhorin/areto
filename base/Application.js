@@ -37,6 +37,14 @@ module.exports = class Application extends Base {
         return url ? `${this._route}/${url}` : this._route;
     }
 
+    createFullName () {
+        return this.NAME;
+    }
+
+    createRelativeName () {
+        return '';
+    }
+
     start () {
         this.attachHandlers();
         return this.createServer();
@@ -57,8 +65,8 @@ module.exports = class Application extends Base {
                 this.log('error', 'Server error', err);
                 reject(err);
             }).listen(this.getConfig('port'), ()=> {
-                this.log('info', `Started as`, this.server.address());
-                this.log('info', `Mounted as ${this.mountPath}`);
+                this.log('info', `Started ${this.fullName} as`, this.server.address());
+                this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
                 this.afterStart().then(resolve);
             });
         });

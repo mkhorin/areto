@@ -10,7 +10,7 @@ module.exports = class Theme extends Base {
     constructor (config) {
         super({
             // name: [theme name]
-            // dir: [theme dir]
+            // directory: [theme directory]
             // parent: [new Theme]
             // view: [new View]
             LocaleFileMap: require('./LocaleFileMap'),
@@ -20,21 +20,6 @@ module.exports = class Theme extends Base {
         this.createModelMap();
     }
 
-    createTemplateMap () {
-        this._templates = ClassHelper.spawn(this.LocaleFileMap, {
-            baseDir: path.join(this.dir, 'template'),
-            localeDir: path.join(this.dir, 'locale/template')
-        });
-    }
-
-    createModelMap () {
-        this._models = ClassHelper.spawn(this.LocaleFileMap, {
-            baseDir: path.join(this.dir, 'model'),
-            localeDir: path.join(this.dir, 'locale/model'),
-            required: true
-        });
-    }
-
     init () {
     }
 
@@ -42,9 +27,29 @@ module.exports = class Theme extends Base {
         return this._templates.isEmpty();
     }
 
+    createTemplateMap () {
+        this._templates = this.createFileMap({
+            directory: 'template'
+        });
+    }
+
+    createModelMap () {
+        this._models = this.createFileMap({
+            directory: 'model',
+            required: true
+        });
+    }
+
+    createFileMap (config) {
+        return ClassHelper.spawn(this.LocaleFileMap, {
+            baseDirectory: this.directory,
+            ...config
+        });
+    }
+
     // TEMPLATE
 
-    getTemplate (name, language) {
+    getTemplate (name) {
         return this._templates.get(...arguments)
             || this.parent && this.parent.getTemplate(...arguments)
             || name;
@@ -106,7 +111,11 @@ module.exports = class Theme extends Base {
         return this._models.get(name, language)
             || this.parent && this.parent.view === this.view && this.parent.getViewOwnModel(name, language);
     }
+
+    getViewOwnModelWithOrigin () {
+        return this._models.get(...arguments) || this.parent
+            && (this.isOrigin || this.parent.view === this.view) && this.parent.getViewOwnModel(...arguments);
+    }
 };
 
-const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');

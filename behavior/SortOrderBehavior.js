@@ -5,7 +5,7 @@
 
 const Base = require('../base/Behavior');
 
-module.exports = class OrderBehavior extends Base {
+module.exports = class SortOrderBehavior extends Base {
 
     constructor (config) {
         super({

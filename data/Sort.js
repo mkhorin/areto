@@ -88,8 +88,8 @@ module.exports = class Sort extends Base {
     getLink (attr, options = {}) {
         const direction = this.getOrder(attr);
         if (direction) {
-            const css = direction === this.DESC ? 'desc' : 'asc';
-            options.class = options.class ? `${options.class} ${css}` : css;
+            const className = direction === this.DESC ? 'desc' : 'asc';
+            options.class = options.class ? `${options.class} ${className}` : className;
         }
         const url = this.createUrl(attr);
         options['data-sort'] = this.createSortParam(attr);

@@ -10,6 +10,9 @@ module.exports = class ArrayHelper {
     }
 
     static indexOf (target, values) {
+        if (!Array.isArray(values)) {
+            return -1;
+        }
         target = JSON.stringify(target);
         for (let i = 0; i < values.length; ++i) {
             if (target === JSON.stringify(values[i])) {
@@ -19,21 +22,39 @@ module.exports = class ArrayHelper {
         return -1;
     }
 
-    static diff (targets, excludes, indexOf) {
+    static hasDiff (targets, sources, indexOf) {
+        for (const source of sources) {
+            const index  = indexOf ? indexOf(source, targets) : targets.indexOf(source);
+            if (index === -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static diff (targets, sources, indexOf) {
+        const result = this.exclude(sources, targets, indexOf);
+        result.push(...this.exclude(targets, sources, indexOf));
+        return result;
+    }
+
+    static exclude (targets, sources, indexOf) {
         const result = [];
-        for (const target of targets) {
-            if (indexOf ? indexOf(target, excludes) === -1 : !excludes.includes(target)) {
-                result.push(target);
+        for (const source of sources) {
+            const index  = indexOf ? indexOf(source, targets) : targets.indexOf(source);
+            if (index === -1) {
+                result.push(source);
             }
         }
         return result;
     }
 
-    static intersect (sources, targets, indexOf) {
+    static intersect (targets, sources, indexOf) {
         const result = [];
-        for (const source of sources) {
-            if (indexOf ? indexOf(source, targets) !== -1 : targets.includes(source)) {
-                result.push(source);
+        for (const target of targets) {
+            const index = indexOf ? indexOf(target, sources) : sources.indexOf(target);
+            if (index !== -1) {
+                result.push(target);
             }
         }
         return result;
@@ -46,8 +67,8 @@ module.exports = class ArrayHelper {
     static uniqueStrict (values, indexOf) {
         const result = [];
         for (let i = 0; i < values.length; ++i) {
-            const value = indexOf ? indexOf(values[i], values) : values.indexOf(values[i]);
-            if (value === i) {
+            const index = indexOf ? indexOf(values[i], values) : values.indexOf(values[i]);
+            if (index === i) {
                 result.push(values[i]);
             }
         }

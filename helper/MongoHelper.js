@@ -5,16 +5,6 @@
 
 module.exports = class MongoHelper {
 
-    static isEqual (id1, id2) {
-        if (id1 instanceof ObjectID) {
-            return id1.equals(id2);
-        }
-        if (id2 instanceof ObjectID) {
-            return id2.equals(id1);
-        }
-        return id1 === id2;
-    }
-
     static isObjectId (id) {
         return id instanceof ObjectID;
     }
@@ -54,16 +44,20 @@ module.exports = class MongoHelper {
         return -1;
     }
 
-    static diff (target, excluded) {
-        return ArrayHelper.diff(target, excluded, this.indexOf);
+    static diff (targets, sources) {
+        return ArrayHelper.diff(targets, sources, this.indexOf);
     }
 
-    static intersect (target, excluded) {
-        return ArrayHelper.intersect(target, excluded, this.indexOf);
+    static exclude (targets, sources) {
+        return ArrayHelper.exclude(targets, sources, this.indexOf);
     }
 
-    static uniqueStrict (target, excluded) {
-        return ArrayHelper.uniqueStrict(target, excluded, this.indexOf);
+    static intersect (sources, targets) {
+        return ArrayHelper.intersect(sources, targets, this.indexOf);
+    }
+
+    static uniqueStrict (values) {
+        return ArrayHelper.uniqueStrict(values, this.indexOf);
     }
 
     static normalizeExportData (data) {

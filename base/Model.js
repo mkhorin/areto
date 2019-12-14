@@ -38,8 +38,8 @@ module.exports = class Model extends Base {
             EVENT_BEFORE_VALIDATE: 'beforeValidate',
             EVENT_AFTER_VALIDATE: 'afterValidate',
             NAME: this.getName(),
-            CONTROLLER_DIR: 'controller',
-            MODEL_DIR: 'model'
+            CONTROLLER_DIRECTORY: 'controller',
+            MODEL_DIRECTORY: 'model'
         }   
     }
 
@@ -64,20 +64,6 @@ module.exports = class Model extends Base {
         return Object.prototype.hasOwnProperty.call(this._attrMap, name);
     }
 
-    get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
-            return this._attrMap[name];
-        }
-    }
-
-    set (name, value) {
-        this._attrMap[name] = value;
-    }
-
-    unset (name) {
-        delete this._attrMap[name];
-    }
-
     isAttrActive (name) {
         return this.getActiveAttrNames().includes(name);
     }
@@ -93,6 +79,12 @@ module.exports = class Model extends Base {
 
     isAttrSafe (name) {
         return this.getSafeAttrNames().includes(name);
+    }
+
+    get (name) {
+        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
+            return this._attrMap[name];
+        }
     }
 
     getAttrMap () {
@@ -118,18 +110,18 @@ module.exports = class Model extends Base {
     }
 
     getSafeAttrNames () {
-        const map = this.getUnsafeAttrMap();
-        return this.getActiveAttrNames().filter(name => !Object.prototype.hasOwnProperty.call(map, name));
+        const data = this.getUnsafeAttrMap();
+        return this.getActiveAttrNames().filter(name => !Object.prototype.hasOwnProperty.call(data, name));
     }
 
     getUnsafeAttrMap () {
-        const map = {};
+        const data = {};
         for (const validator of this.getActiveValidatorsByClass(Validator.BUILTIN.unsafe)) {
             for (const attr of validator.attrs) {
-                map[attr] = true;
+                data[attr] = true;
             }
         }
-        return map;
+        return data;
     }
 
     getActiveAttrNames () {
@@ -151,6 +143,10 @@ module.exports = class Model extends Base {
             }
         }
         return Object.keys(names);
+    }
+
+    set (name, value) {
+        this._attrMap[name] = value;
     }
 
     setFromModel (name, model) {
@@ -182,6 +178,12 @@ module.exports = class Model extends Base {
         Object.assign(this._attrMap, data instanceof Model ? data.getAttrMap() : data);
     }
 
+    unset (...names) {
+        for (const name of names) {
+            delete this._attrMap[name];
+        }
+    }
+
     // VIEW ATTRIBUTES
 
     getViewAttr (name) {
@@ -197,7 +199,7 @@ module.exports = class Model extends Base {
     // LABELS
 
     generateAttrLabel (name) {
-        this.ATTR_LABELS[name] = StringHelper.toFirstUpperCase(StringHelper.camelToWords(name).toLowerCase());
+        this.ATTR_LABELS[name] = StringHelper.generateLabel(name);
         return this.ATTR_LABELS[name];
     }
 
@@ -309,13 +311,14 @@ module.exports = class Model extends Base {
 
     // ERRORS
 
+    hasError (attr) {
+        return attr
+            ? Object.prototype.hasOwnProperty.call(this._errorMap, attr)
+            : Object.values(this._errorMap).length > 0;
+    }
+
     getErrors (attr) {
         return !attr ? this._errorMap : this.hasError(attr) ? this._errorMap[attr] : [];
-    }
-    
-    hasError (attr) {
-        return attr ? Object.prototype.hasOwnProperty.call(this._errorMap, attr)
-                    : Object.values(this._errorMap).length > 0;
     }
 
     getFirstError (attr) {
@@ -376,8 +379,8 @@ module.exports = class Model extends Base {
 
     static getControllerClass () {
         if (!this.hasOwnProperty('_CONTROLLER_CLASS')) {
-            const closest = FileHelper.getClosestDirectory(this.MODEL_DIR, this.CLASS_DIR);
-            const dir = path.join(this.CONTROLLER_DIR, this.getNestedDir(), this.getControllerClassName());
+            const closest = FileHelper.getClosestDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
+            const dir = path.join(this.CONTROLLER_DIRECTORY, this.getNestedDirectory(), this.getControllerClassName());
             this._CONTROLLER_CLASS = require(path.join(path.dirname(closest), dir));
         }
         return this._CONTROLLER_CLASS;
@@ -387,11 +390,11 @@ module.exports = class Model extends Base {
         return this.NAME + 'Controller';
     }
 
-    static getNestedDir () {
-        if (!this.hasOwnProperty('_NESTED_DIR')) {
-            this._NESTED_DIR = FileHelper.getRelativePathByDir(this.MODEL_DIR, this.CLASS_DIR);
+    static getNestedDirectory () {
+        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
+            this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
         }
-        return this._NESTED_DIR;
+        return this._NESTED_DIRECTORY;
     }
 
     getControllerClass () {

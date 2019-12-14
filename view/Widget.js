@@ -9,9 +9,9 @@ module.exports = class Widget extends Base {
 
     constructor (config) {
         super({
-            // disabled: true,
-            // caching: true,            
-            // cacheDuration: 60, // seconds
+            // disabled: false,
+            // caching: false,
+            // cacheDuration: 100, // seconds
             cacheComponentId: 'cache',
             ...config
         });
@@ -58,3 +58,4 @@ module.exports = class Widget extends Base {
 };
 
 const CommonHelper = require('../helper/CommonHelper');
+const DateHelper = require('../helper/DateHelper');

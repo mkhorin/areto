@@ -138,15 +138,15 @@ module.exports = class MongoDatabase extends Base {
         return this.getTable(table).deleteMany(query);
     }
 
+    truncate (table) {
+        return this.drop(table);
+    }
+
     async drop (table) {
         if (await this.isTableExists(table)) {
             this.logCommand('drop', {table});
             return this.getTable(table).drop();
         }
-    }
-
-    truncate (table) {
-        return this.drop(table);
     }
 
     async rename (table, target) {
@@ -183,7 +183,7 @@ module.exports = class MongoDatabase extends Base {
         this.logCommand('find', cmd);
         let docs = await cursor.toArray();
         if (!cmd.order) {
-            docs = query.sortOrderByIn(docs);
+            docs = query.sortOrderByKeys(docs);
         }
         return query.populate(docs);
     }

@@ -7,7 +7,7 @@ const Base = require('./HttpException');
 
 module.exports = class ForbiddenHttpException extends Base {
 
-    constructor (err) {
-        super(403, err || 'Access denied');
+    constructor (err, data) {
+        super(403, err || 'Access denied', data);
     }
 };

@@ -39,9 +39,9 @@ module.exports = class DataMap {
         this._data = {};
     }
 
-    assign (map) {
-        map = map instanceof DataMap ? map._data : map;
-        Object.assign(this._data, map);
+    assign (data) {
+        data = data instanceof DataMap ? data._data : data;
+        Object.assign(this._data, data);
     }
 
     keys () {

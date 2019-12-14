@@ -12,7 +12,7 @@ module.exports = class AccessRule extends Base {
             allow: true, // allow or deny rule result
             // actions: ['update'],
             // controllers: ['article'],
-            // permissions: ['?', '@', 'reader'], // RBAC permission items
+            // permissions: ['?', '@', 'reader'],
             // verbs: ['GET', 'POST'],
             // deny: fn(action, user)
             ...config
@@ -49,8 +49,11 @@ module.exports = class AccessRule extends Base {
             }
             permissions.push(item);
         }
+        const params = {
+            controller: action.controller
+        };
         for (const item of permissions) {
-            if (await user.can(item)) {
+            if (await user.can(item, params)) {
                 return true;
             }
         }

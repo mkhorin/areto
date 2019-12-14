@@ -11,7 +11,7 @@ module.exports = class Session extends Base {
         super({
             resave: false,
             saveUninitialized: false,
-            name: `${config.module.getFullName()}.sid`,
+            name: `${config.module.fullName}.sid`,
             lifetime: 3600, // seconds or duration
             // cookie: {maxAge: 3600 * 1000},
             Store: require('./MemorySessionStore'),

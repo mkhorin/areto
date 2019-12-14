@@ -29,8 +29,8 @@ module.exports = class Controller extends Base {
             EVENT_BEFORE_ACTION: 'beforeAction',
             EVENT_AFTER_ACTION: 'afterAction',
             DEFAULT_ACTION: 'index',
-            CONTROLLER_DIR: 'controller',
-            MODEL_DIR: 'model',
+            CONTROLLER_DIRECTORY: 'controller',
+            MODEL_DIRECTORY: 'model',
             // inherited from module by default
             // ACTION_VIEW: require('./ActionView'),
             // VIEW_LAYOUT: 'default',
@@ -46,10 +46,6 @@ module.exports = class Controller extends Base {
         return StringHelper.camelToId(this.name.substring(0, index));
     }
 
-    static getFullName (separator = '.') {
-        return this.module.getFullName(separator) + separator + this.NAME;
-    }
-
     static getActionKeys () {
         const keys = Object.keys(this.ACTIONS);
         for (const key of ObjectHelper.getAllFunctionNames(this.prototype)) {
@@ -62,8 +58,8 @@ module.exports = class Controller extends Base {
 
     static getModelClass () {
         if (!this.hasOwnProperty('_MODEL_CLASS')) {
-            const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIR, this.CLASS_DIR);
-            const dir = path.join(this.MODEL_DIR, this.getNestedDir(), this.getModelClassName());
+            const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
+            const dir = path.join(this.MODEL_DIRECTORY, this.getNestedDirectory(), this.getModelClassName());
             this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
         }
         return this._MODEL_CLASS;
@@ -73,20 +69,19 @@ module.exports = class Controller extends Base {
         return this.name.substring(0, this.name.lastIndexOf('Controller'));
     }
 
-    static getViewDir () {
-        if (!this.hasOwnProperty('_VIEW_DIR')) {
-            this._VIEW_DIR = this.getNestedDir()
-                ? `${this.getNestedDir()}/${this.NAME}/`
-                : `${this.NAME}/`;
+    static getViewDirectory () {
+        if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
+            const dir = this.getNestedDirectory();
+            this._VIEW_DIRECTORY = dir ? `${dir}/${this.NAME}/` : `${this.NAME}/`;
         }
-        return this._VIEW_DIR;
+        return this._VIEW_DIRECTORY;
     }
 
-    static getNestedDir () {
-        if (!this.hasOwnProperty('_NESTED_DIR')) {
-            this._NESTED_DIR = FileHelper.getRelativePathByDir(this.CONTROLLER_DIR, this.CLASS_DIR);
+    static getNestedDirectory () {
+        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
+            this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
         }
-        return this._NESTED_DIR;
+        return this._NESTED_DIRECTORY;
     }
 
     constructor (config) {
@@ -264,23 +259,24 @@ module.exports = class Controller extends Base {
 
     // RENDER
 
-    render (template, data, send = true) {
+    async render () {
+        this.send(await this.renderOnly(...arguments));
+    }
+
+    renderOnly (template, data) {
         const model = this.createViewModel(template, {data});
-        return model ? this.renderViewModel(model, template, send)
-                     : this.renderTemplate(template, data, send);
+        return model
+            ? this.renderViewModel(model, template)
+            : this.renderTemplate(template, data);
     }
 
-    async renderViewModel (model, template, send) {
+    async renderViewModel (model, template) {
         const data = await model.getTemplateData();
-        return this.renderTemplate(template, data, send);
+        return this.renderTemplate(template, data);
     }
 
-    async renderTemplate (template, data, send = true) {
-        const content = await this.getView().render(this.getViewFileName(template), data);
-        if (send) {
-            this.send(content);
-        }
-        return content;
+    async renderTemplate (template, data) {
+        return this.getView().render(this.getViewFileName(template), data);
     }
 
     createViewModel (name, config = {}) {
@@ -304,7 +300,7 @@ module.exports = class Controller extends Base {
 
     getViewFileName (name) {
         name = typeof name !== 'string' ? String(name) : name;
-        return path.isAbsolute(name) ? name : (this.constructor.getViewDir() + name);
+        return path.isAbsolute(name) ? name : (this.constructor.getViewDirectory() + name);
     }
 
     // SEND
@@ -373,12 +369,12 @@ module.exports = class Controller extends Base {
             : this.i18n.format(message, params, this.language);
     }
 
-    translateMessageMap (map, ...args) {
-        map = {...map};
-        for (const key of Object.keys(map)) {
-            map[key] = this.translate(map[key], ...args);
+    translateMessageMap (data, ...args) {
+        data = {...data};
+        for (const key of Object.keys(data)) {
+            data[key] = this.translate(data[key], ...args);
         }
-        return map;
+        return data;
     }
 
     format (value, type, params) {

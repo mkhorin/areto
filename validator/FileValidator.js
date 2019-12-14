@@ -40,13 +40,13 @@ module.exports = class FileValidator extends Base {
 
     getWrongExtensionMessage () {
         return this.createMessage(this.wrongExtension, 'Only these file extensions are allowed: {extensions}', {
-            extensions: this.extensions
+            extensions: this.extensions.join(', ')
         });
     }
 
     getWrongMimeTypeMessage () {
         return this.createMessage(this.wrongMimeType, 'Only these file MIME types are allowed: {mimeTypes}', {
-            mimeTypes: this.mimeTypes
+            mimeTypes: this.mimeTypes.join(', ')
         });
     }
 

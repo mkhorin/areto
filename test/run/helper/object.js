@@ -145,6 +145,39 @@ describe('ObjectHelper', ()=> {
         });
     });
 
+    it('deleteEmptyArrayProperties', ()=> {
+        let res = {
+            k1: 0,
+            k2: [],
+            k3: [1, 2],
+            k4: '',
+            k5: {}
+        };
+        ObjectHelper.deleteEmptyArrayProperties(res);
+        expect(res).to.eql({
+            k1: 0,
+            k3: [1, 2],
+            k4: '',
+            k5: {}
+        });
+    });
+
+    it('deleteEmptyObjectProperties', ()=> {
+        let res = {
+            k1: {},
+            k2: [],
+            k3: [1, 2],
+            k4: {},
+            k5: {a: 1}
+        };
+        ObjectHelper.deleteEmptyObjectProperties(res);
+        expect(res).to.eql({
+            k2: [],
+            k3: [1, 2],
+            k5: {a: 1}
+        });
+    });
+
     it('deletePropertiesByValue', ()=> {
         let res = {
             k1: 0,

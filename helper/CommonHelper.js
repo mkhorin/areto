@@ -13,14 +13,10 @@ module.exports = class CommonHelper {
         return a === b || JSON.stringify(a) === JSON.stringify(b);
     }
 
-    static getRandom (min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     static log (logger, prefix, type, message, data) {
         logger = logger || console;
         if (typeof message === 'string') {
-            return logger.log(type, `${prefix}: ${message}`, data);
+            return logger.log(type, prefix ? `${prefix}: ${message}` : message, data);
         }
         logger.log(type, `${prefix}:`, message);
     }
@@ -31,14 +27,14 @@ module.exports = class CommonHelper {
         }
         try {
             return JSON.parse(data);
-        } catch (err) {}
+        } catch {}
     }
 
     static parseRelationChanges (data) {
         if (data && typeof data === 'string') {
             try {
                 data = JSON.parse(data);
-            } catch (err) {
+            } catch {
                 return false;
             }
         }

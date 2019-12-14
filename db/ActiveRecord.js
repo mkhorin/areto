@@ -55,6 +55,11 @@ module.exports = class ActiveRecord extends Base {
         return `${this.constructor.name}: ${this.getId()}`;
     }
 
+    toJSON () {
+        const id = this.getId();
+        return id && id.toJSON ? id.toJSON() : id;
+    }
+
     // ATTRIBUTES
 
     isAttrChanged (name) {
@@ -243,43 +248,35 @@ module.exports = class ActiveRecord extends Base {
     rel (name) {
         return this.isRelationPopulated(name)
             ? this._related[name]
-            : this.executeNestedRelationMethod('rel', name);
+            : this.executeRelatedMethod('rel', name);
     }
 
     call (name, ...args) {
         return typeof this[name] === 'function'
             ? this[name](...args)
-            : this.executeNestedRelationMethod('call', name, ...args);
-    }
-
-    setViewRelation (name) {
-        this.setViewAttr(name, this.getRelationTitle(name));
+            : this.executeRelatedMethod('call', name, ...args);
     }
 
     isRelationPopulated (name) {
         return Object.prototype.hasOwnProperty.call(this._related, name);
     }
 
-    getRelationTitle (name) {
+    getRelated (name) {
+        return this.isRelationPopulated(name) ? this._related[name] : undefined;
+    }
+
+    setRelatedViewAttr (name) {
+        this.setViewAttr(name, this.getRelatedTitle(name));
+    }
+
+    getRelatedTitle (name) {
         if (!this.isRelationPopulated(name)) {
-            return this.executeNestedRelationMethod('getRelationTitle', name) || this.get(name);
+            return this.executeRelatedMethod('getRelatedTitle', name) || this.get(name);
         }
         const related = this._related[name];
         return Array.isArray(related)
             ? related.map(model => model instanceof ActiveRecord ? model.getTitle() : null)
             : related ? related.getTitle() : this.get(name);
-    }
-
-    getRelation (name) {
-        if (!name || typeof name !== 'string') {
-            return null;
-        }
-        name = 'rel' + StringHelper.toFirstUpperCase(name);
-        return this[name] ? this[name]() : null;
-    }
-
-    getPopulatedRelation (name) {
-        return this.isRelationPopulated(name) ? this._related[name] : null;
     }
 
     getAllRelationNames () {
@@ -293,7 +290,23 @@ module.exports = class ActiveRecord extends Base {
         return names;
     }
 
-    executeNestedRelationMethod (method, name, ...args) {
+    getRelation (name) {
+        if (!name || typeof name !== 'string') {
+            return null;
+        }
+        name = 'rel' + StringHelper.toFirstUpperCase(name);
+        return this[name] ? this[name]() : null;
+    }
+
+    hasMany (RefClass, refKey, linkKey) {
+        return this.spawn(RefClass).find().relateMany(this, refKey, linkKey);
+    }
+
+    hasOne (RefClass, refKey, linkKey) {
+        return this.spawn(RefClass).find().relateOne(this, refKey, linkKey);
+    }
+
+    executeRelatedMethod (method, name, ...args) {
         if (typeof name !== 'string') {
             return;
         }
@@ -309,6 +322,10 @@ module.exports = class ActiveRecord extends Base {
         if (Array.isArray(related)) {
             return related.map(item => item instanceof ActiveRecord ? item[method](name, ...args) : null);
         }
+    }
+
+    populateRelation (name, data) {
+        this._related[name] = data;
     }
 
     async resolveRelation (name) {
@@ -357,28 +374,21 @@ module.exports = class ActiveRecord extends Base {
     }
 
     async handleEachRelationModel (names, handler) {
-        const relations = await this.resolveRelations(names);
-        for (const model of ArrayHelper.concat(relations)) {
+        const models = await this.resolveRelations(names);
+        for (const model of ArrayHelper.concat(models)) {
             await handler(model);
         }
     }
 
-    unsetRelations (names) {
-        if (Array.isArray(names)) {
-            for (const name of names) {
-                delete this._related[name];
+    unsetRelated (name) {
+        if (Array.isArray(name)) {
+            for (const key of name) {
+                delete this._related[key];
             }
-        } else {
+        } else if (!arguments.length) {
             this._related = {};
         }
-    }
-
-    unsetRelation (name) {
         delete this._related[name];
-    }
-
-    populateRelation (name, data) {
-        this._related[name] = data;
     }
 
     getLinker () {
@@ -386,14 +396,6 @@ module.exports = class ActiveRecord extends Base {
             this._linker = this.spawn(this.LINKER_CLASS, {owner: this});
         }
         return this._linker;
-    }
-
-    hasOne (RefClass, refKey, linkKey) {
-        return this.spawn(RefClass).find().hasOne(this, refKey, linkKey);
-    }
-
-    hasMany (RefClass, refKey, linkKey) {
-        return this.spawn(RefClass).find().hasMany(this, refKey, linkKey);
     }
 
     log () {

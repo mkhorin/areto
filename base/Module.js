@@ -75,6 +75,8 @@ module.exports = class Module extends Base {
         this.components = new DataMap; // all components (with inherited)
         this.ownComponents = new DataMap; // own module components
         this.app = this.parent ? this.parent.app : this;
+        this.fullName = this.createFullName();
+        this.relativeName = this.createRelativeName();
         this.engine = this.createEngine();
     }
 
@@ -106,18 +108,12 @@ module.exports = class Module extends Base {
         return NestedValueHelper.get(key, this.params, defaults);
     }
 
-    getFullName (separator = '.') { // eg - app.admin.post
-        return this.parent
-            ? `${this.parent.getFullName(separator)}${separator}${this.NAME}`
-            : this.NAME;
-    }
-
     getPath () { // ignore absolute path in arguments
-        return path.join(this.CLASS_DIR, ...arguments);
+        return path.join(this.CLASS_DIRECTORY, ...arguments);
     }
 
     resolvePath () { // not ignore absolute path in arguments
-        return path.resolve(this.CLASS_DIR, ...arguments);
+        return path.resolve(this.CLASS_DIRECTORY, ...arguments);
     }
 
     require () {
@@ -127,19 +123,19 @@ module.exports = class Module extends Base {
     requireInternal () {
         try {
             return require(this.resolvePath(...arguments));
-        } catch (err) {}
+        } catch {}
     }
 
     getRelativePath (file) {
-        return FileHelper.getRelativePath(this.CLASS_DIR, file);
+        return FileHelper.getRelativePath(this.CLASS_DIRECTORY, file);
     }
 
-    getControllerDir () {
+    getControllerDirectory () {
         return this.getPath('controller');
     }
 
     getControllerClass (id) {
-        return require(path.join(this.getControllerDir(), `${StringHelper.idToCamel(id)}Controller`));
+        return require(path.join(this.getControllerDirectory(), `${StringHelper.idToCamel(id)}Controller`));
     }
 
     getModule (name) { // name1.name2.name3
@@ -162,8 +158,17 @@ module.exports = class Module extends Base {
         return this.modules;
     }
 
+    createFullName (separator = '.') { // eq - app.admin.profile
+        return this.parent.createFullName(separator) + separator + this.NAME;
+    }
+
+    createRelativeName (separator = '.') {  // eq - admin.profile
+        const parent = this.parent.createRelativeName(separator);
+        return parent ? (parent + separator + this.NAME) : this.NAME;
+    }
+
     log () {
-        CommonHelper.log(this.components.get('logger'), this.getFullName(), ...arguments);
+        CommonHelper.log(this.components.get('logger'), this.relativeName, ...arguments);
     }
 
     translate (message, source = 'app', ...args) {
@@ -250,7 +255,7 @@ module.exports = class Module extends Base {
 
     async createOrigin () {
         if (this.origin) {
-            this.origin = this.spawn(this.origin);
+            this.origin = this.spawn(this.origin, {parent: this.parent});
             await this.origin.createConfiguration();
             await this.origin.createClassMapper();
             this.origin.extractConfigProperties();
@@ -259,10 +264,11 @@ module.exports = class Module extends Base {
 
     async createConfiguration () {
         this.config = this.spawn(this.Configuration, {
-            dir: this.getPath('config'),
+            directory: this.getPath('config'),
             name: this.configName,
             parent: this.parent && this.parent.config,
-            origin: this.origin && this.origin.config
+            origin: this.origin && this.origin.config,
+            data: this.config
         });
         await this.config.load();
         this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIG_KEYS);
@@ -414,10 +420,10 @@ module.exports = class Module extends Base {
     }
 
     attachStaticByModule (module, {options}) {
-        const dir = module.getPath('web');
-        if (fs.existsSync(dir)) {
+        const web = module.getPath('web');
+        if (fs.existsSync(web)) {
             // use static content handlers before others
-            this.app.mainEngine.attachStatic(this.getRoute(), dir, options);
+            this.app.mainEngine.attachStatic(this.getRoute(), web, options);
         }
     }
 

@@ -61,7 +61,7 @@ module.exports = class ImageValidator extends Base {
             if (this.maxWidth && data.width > this.maxWidth) {
                 return this.getOverWidthMessage();
             }
-        } catch (err) {
+        } catch {
             return this.getNotImageMessage();
         }
     }

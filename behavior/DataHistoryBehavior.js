@@ -44,7 +44,7 @@ module.exports = class DataHistoryBehavior extends Base {
         return Array.isArray(this.includes)
             ? this.includes
             : Array.isArray(this.excludes) 
-                ? ArrayHelper.diff(this.owner.ATTRS, this.excludes)
+                ? ArrayHelper.exclude(this.excludes, this.owner.ATTRS)
                 : [];
     }
 

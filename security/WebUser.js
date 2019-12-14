@@ -17,7 +17,7 @@ module.exports = class WebUser extends Base {
         return this.auth.enableSession;
     }
 
-    getTitle (defaults = '[anonymous]') {
+    getTitle (defaults = '[guest]') {
         return this.identity ? this.identity.getTitle() : defaults;
     }
 
@@ -107,7 +107,6 @@ module.exports = class WebUser extends Base {
     }
 
     async resolveAccess (name, params) {
-        params = {user: this, ...params};
         const access = await this.auth.rbac.can(this.assignments, name, params);
         return this._accessMap[name] = !!access;
     }

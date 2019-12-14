@@ -95,7 +95,7 @@ module.exports = class Formatter extends Base {
 
     asUrl (value, params = {}) {
         return value
-            ? `<a href="${value}" class="${params.css || ''}" target="${params.target || ''}">${params.text || value}</a>`
+            ? `<a href="${value}" class="${params.className || ''}" target="${params.target || ''}">${params.text || value}</a>`
             : this.asRaw(value, params);
     }
 

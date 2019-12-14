@@ -8,24 +8,35 @@ const ArrayHelper = require('../../../helper/ArrayHelper');
 
 describe('ArrayHelper', ()=> {
 
+    it('hasDiff', ()=> {
+        expect(ArrayHelper.hasDiff([2, 4, 7, 4], [4, 7, 2, 2])).to.eql(false);
+        expect(ArrayHelper.hasDiff([1, 2, 3], [2, 7])).to.eql(true);
+    });
+
     it('diff', ()=> {
-        const res = ArrayHelper.diff([1, 2, 3, 4, 5], [2, 4]);
-        expect(res).to.eql([1, 3, 5]);
+        expect(ArrayHelper.diff([2, 4, 7], [1, 2, 3, 4])).to.eql([7, 1, 3]);
+        expect(ArrayHelper.diff([1, 2, 3, 4], [2, 4, 7])).to.eql([1, 3, 7]);
+        expect(ArrayHelper.diff([1, 2, 2, 4], [2, 4, 4])).to.eql([1]);
+    });
+
+    it('exclude', ()=> {
+        expect(ArrayHelper.exclude([2, 4], [1, 2, 3, 4])).to.eql([1, 3]);
+        expect(ArrayHelper.exclude([1, 2, 3, 4], [4, 2])).to.eql([]);
+        expect(ArrayHelper.exclude([1, 2], [4, 2, 4, 2])).to.eql([4, 4]);
     });
 
     it('intersect', ()=> {
-        const res = ArrayHelper.intersect([1, 2, 3, 4, 5], [6, 3, 8, 2]);
-        expect(res).to.eql([2, 3]);
+        expect(ArrayHelper.intersect([1, 2, 3, 4, 5], [6, 3, 8, 2])).to.eql([2, 3]);
+        expect(ArrayHelper.intersect([6, 3, 8, 2], [1, 2, 3, 4, 5])).to.eql([3, 2]);
+        expect(ArrayHelper.intersect([2, 2, 1, 3], [3, 3, 2])).to.eql([2, 2, 3]);
     });
 
     it('unique', ()=> {
-        const res = ArrayHelper.unique([1, 2, 1, 3, 2]);
-        expect(res).to.eql(['1', '2', '3']);
+        expect(ArrayHelper.unique([1, 2, 1, 3, 2])).to.eql(['1', '2', '3']);
     });
 
     it('uniqueStrict', ()=> {
-        const res = ArrayHelper.uniqueStrict([1, 2, 1, 3, 2]);
-        expect(res).to.eql([1, 2, 3]);
+        expect(ArrayHelper.uniqueStrict([1, 2, 1, 3, 2])).to.eql([1, 2, 3]);
     });
 
     it('flip', ()=> {
@@ -73,8 +84,7 @@ describe('ArrayHelper', ()=> {
     // RANDOM
 
     it('getRandom', ()=> {
-        const res = ArrayHelper.getRandom([7, 8, 9]);
-        expect(res).to.be.within(7, 9);
+        expect(ArrayHelper.getRandom([7, 8, 9])).to.be.within(7, 9);
     });
 
     it('shuffle', ()=> {

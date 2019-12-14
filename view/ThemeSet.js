@@ -9,17 +9,17 @@ module.exports = class ThemeSet extends Base {
 
     constructor (config) {
         super({
-            // dir: [base dir]
+            // directory: [base directory]
             // parent: [ThemeMap]
             // theme: [theme name]
-            defaultThemeDir: 'view',
-            themeDir: 'theme',
+            defaultThemeDirectory: 'view',
+            themeDirectory: 'theme',
             modulePriority: false,
             Theme: require('./Theme'),
             ...config
         });
-        this.defaultThemeDir = path.join(this.dir, this.defaultThemeDir);
-        this.themeDir = path.join(this.dir, this.themeDir);
+        this.defaultThemeDirectory = path.join(this.directory, this.defaultThemeDirectory);
+        this.themeDirectory = path.join(this.directory, this.themeDirectory);
         this.createDefault();
         this.createThemes();
         this.setParents();
@@ -47,7 +47,7 @@ module.exports = class ThemeSet extends Base {
     createDefault () {
         this._defaultTheme = this.spawn(this.Theme, {
             name: null,
-            dir: this.defaultThemeDir,
+            directory: this.defaultThemeDirectory,
             parent: this.parent ? this.parent.get() : null,
             view: this,
             isOrigin: this.isOrigin
@@ -57,17 +57,17 @@ module.exports = class ThemeSet extends Base {
     createThemes () {
         this._themes = {};
         try {
-            for (const name of fs.readdirSync(this.themeDir)) {
-                const dir = path.join(this.themeDir, name);
+            for (const name of fs.readdirSync(this.themeDirectory)) {
+                const dir = path.join(this.themeDirectory, name);
                 if (fs.lstatSync(dir).isDirectory()) {
                     this.createTheme(name, dir);
                 }
             }
-        } catch (err) {}
+        } catch {}
     }
 
-    createTheme (name, dir) {
-        this._themes[name] = this.spawn(this.Theme, {view: this, name, dir});
+    createTheme (name, directory) {
+        this._themes[name] = this.spawn(this.Theme, {view: this, name, directory});
     }
 
     setParents () {

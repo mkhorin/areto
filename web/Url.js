@@ -65,7 +65,7 @@ module.exports = class Url extends Base {
                 url = `${url}#${data.anchor}`;
             }
             return url;
-        } catch (err) {
+        } catch {
             return null;
         }
     }

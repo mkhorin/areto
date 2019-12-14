@@ -7,16 +7,26 @@ const Base = require('./Validator');
 
 module.exports = class JsonValidator extends Base {
 
+    constructor (config) {
+        super({
+            parsed: false,
+            ...config
+        });
+    }
+
     getMessage () {
         return this.createMessage(this.message, 'Invalid JSON');
     }
 
     async validateAttr (attr, model) {
-        const value = model.get(attr);
-        if (typeof value !== 'object') {
+        let value = model.get(attr);
+        if (typeof value === 'string') {
             try {
-                model.set(attr, JSON.parse(value));
-            } catch (err) {
+                value = JSON.parse(value);
+                if (this.parsed) {
+                    model.set(attr, value);
+                }
+            } catch {
                 this.addError(model, attr, this.getMessage());
             }
         }

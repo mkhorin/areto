@@ -134,9 +134,9 @@ module.exports = class Task extends Base {
             this._job = this.createJob();
             await this.beforeRun();
             this.processInternal(data); // no await
-        } catch (error) {
+        } catch (err) {
             this._job = null;
-            return this.fail(error);
+            return this.fail(err);
         }
     }
 
@@ -150,8 +150,8 @@ module.exports = class Task extends Base {
         }
         try {
             this._job.cancel();
-        } catch (error) {
-            return this.fail(error);
+        } catch (err) {
+            return this.fail(err);
         }
     }
 

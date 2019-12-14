@@ -20,7 +20,7 @@ module.exports = class Pagination extends Base {
     constructor (config) {
         super({
             pageParam: 'page',
-            pageSizeParam: 'page-size',
+            pageSizeParam: 'pageSize',
             defaultPageSize: 10,
             pageSizeLimit: [1, 50],            
             forcePageParam: true,

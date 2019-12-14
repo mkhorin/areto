@@ -25,11 +25,11 @@ describe('Base', ()=> {
         const test = new Test;
 
         expect(Test.CLASS_FILE).to.eql(module.filename);
-        expect(Test.CLASS_DIR).to.eql(__dirname);
+        expect(Test.CLASS_DIRECTORY).to.eql(__dirname);
         expect(Test.TEST).to.eql('test');
 
         expect(test.CLASS_FILE).to.eql(Test.CLASS_FILE);
-        expect(test.CLASS_DIR).to.eql(Test.CLASS_DIR);
+        expect(test.CLASS_DIRECTORY).to.eql(Test.CLASS_DIRECTORY);
         expect(test.TEST).to.eql(Test.TEST);
     });
 

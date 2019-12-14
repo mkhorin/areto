@@ -7,7 +7,21 @@ const Base = require('../../base/Base');
 
 module.exports = class Rule extends Base {
 
-    execute () {
+    isEqual (a, b) {
+        return a === b || JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    getUser () {
+        return this.params.controller.user;
+    }
+
+    async execute () {
         return false;
     }
+
+    log () {
+        CommonHelper.log(this.inspector, this.constructor.name, ...arguments);
+    }
 };
+
+const CommonHelper = require('../../helper/CommonHelper');

@@ -12,9 +12,9 @@ module.exports = class Configuration extends Base {
 
     constructor (config) {
         super({
-            // dir: config dir,
-            // parent: parent config,
-            // origin: origin config,
+            // directory: configuration directory,
+            // parent: parent configuration,
+            // origin: origin configuration,
             ...config
         });
         this.name = this.name || process.env.NODE_ENV;
@@ -41,6 +41,7 @@ module.exports = class Configuration extends Base {
         if (this.origin) {
             this._data = AssignHelper.deepAssign({}, this.origin._data, this._data);
         }
+        AssignHelper.deepAssign(this._data, this.data);
     }
 
     loadByName (name) {
@@ -66,7 +67,7 @@ module.exports = class Configuration extends Base {
     }
 
     readFile (name) {
-        const file = path.join(this.dir, `${name}.js`);
+        const file = path.join(this.directory, `${name}.js`);
         return fs.existsSync(file) ? require(file) : null;
     }
 

@@ -59,10 +59,10 @@ module.exports = class Captcha extends Base {
     }
 
     generateVerifyCode () {
-        const length = CommonHelper.getRandom(this.minLength, this.maxLength);
+        const length = MathHelper.random(this.minLength, this.maxLength);
         const buffer = [];
         for (let i = 0; i < length; ++i) {
-            buffer.push(this.symbolPool.charAt(CommonHelper.getRandom(0, this.symbolPool.length - 1)));
+            buffer.push(this.symbolPool.charAt(MathHelper.random(0, this.symbolPool.length - 1)));
         }
         return buffer.join('');
     }
@@ -93,10 +93,10 @@ module.exports = class Captcha extends Base {
         let content = '';
         for (let i = 0; i < text.length; ++i) {
             data.text = text[i];
-            data.size = CommonHelper.getRandom(this.textSizeMin, this.textSizeMax);
-            data.x = posX + CommonHelper.getRandom(-offsetX, offsetX);
-            data.y = posY + CommonHelper.getRandom(data.size - offsetY, data.size);
-            data.angle = CommonHelper.getRandom(this.textAngleMin, this.textAngleMax);
+            data.size = MathHelper.random(this.textSizeMin, this.textSizeMax);
+            data.x = posX + MathHelper.random(-offsetX, offsetX);
+            data.y = posY + MathHelper.random(data.size - offsetY, data.size);
+            data.angle = MathHelper.random(this.textAngleMin, this.textAngleMax);
             content += this.drawLetter(data);
             posX += cell;
         }
@@ -111,13 +111,13 @@ module.exports = class Captcha extends Base {
     drawGrid () {
         let w = this.drawWidth, h = this.drawHeight;
         let a = 20, b = 40, color, content= '';
-        for (let x = 0; x < w; x += CommonHelper.getRandom(a, b)) {
-            color = this.gridColors[CommonHelper.getRandom(0, this.gridColors.length - 1)];
-            content += this.drawLine(CommonHelper.getRandom(0, w), 0, CommonHelper.getRandom(0, w), h, color);
+        for (let x = 0; x < w; x += MathHelper.random(a, b)) {
+            color = this.gridColors[MathHelper.random(0, this.gridColors.length - 1)];
+            content += this.drawLine(MathHelper.random(0, w), 0, MathHelper.random(0, w), h, color);
         }
-        for (let y = 0; y < h; y += CommonHelper.getRandom(a, b)) {
-            color = this.gridColors[CommonHelper.getRandom(0, this.gridColors.length - 1)];
-            content += this.drawLine(0, CommonHelper.getRandom(0, h), w, CommonHelper.getRandom(0, w), color);
+        for (let y = 0; y < h; y += MathHelper.random(a, b)) {
+            color = this.gridColors[MathHelper.random(0, this.gridColors.length - 1)];
+            content += this.drawLine(0, MathHelper.random(0, h), w, MathHelper.random(0, w), color);
         }
         return content;
     }
@@ -133,4 +133,4 @@ module.exports = class Captcha extends Base {
 };
 
 const sharp = require('sharp');
-const CommonHelper = require('../../helper/CommonHelper');
+const MathHelper = require('../../helper/MathHelper');

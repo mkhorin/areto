@@ -11,6 +11,7 @@ module.exports = class FileMessageSource extends Base {
         this._messages = {};
         return this.loadModuleMessages(this.module);
     }
+    
     async loadModuleMessages (module) {
         if (module.origin) {
             await this.loadModuleMessages(module.origin);

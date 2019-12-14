@@ -11,30 +11,42 @@ module.exports = class Router extends Base {
         super({
             depends: '#end',
             defaultController: 'default',
+            // defaultModule: 'moduleName'
             ...config
         });
     }
 
     init () {
         this.createControllerMap();
-        this.addDefaultAction(this.getDefaultController());
         this.addActions();
         this.module.on(this.module.EVENT_AFTER_MODULE_INIT, this.afterModuleInit.bind(this));
     }
 
     afterModuleInit () {
+        this.defaultModule
+            ? this.addDefaultModule(this.defaultModule)
+            : this.addDefaultAction(this.getDefaultController());
         if (this.errors) {
             this.addErrorHandlers(this.errors);
         }
     }
 
+    addDefaultModule (name) {
+        const module = this.module.getModule(name);
+        if (!module) {
+            return this.log('error', `Module not found: ${name}`);
+        }
+        const url = module.get('urlManager').resolve('');
+        this.module.addHandler(['all'], '', (req, res)=> res.redirect(url));
+    }
+
     // CONTROLLER
 
     createControllerMap () {
-        this._controllerMap = this.getControllerMap(this.module.getControllerDir());
+        this._controllerMap = this.getControllerMap(this.module.getControllerDirectory());
         if (this.module.origin) {
             this._controllerMap = {
-                ...this.getControllerMap(this.module.origin.getControllerDir()),
+                ...this.getControllerMap(this.module.origin.getControllerDirectory()),
                 ...this._controllerMap
             };
         }
@@ -52,7 +64,7 @@ module.exports = class Router extends Base {
         let files = [];
         try {
             files = fs.readdirSync(dir);
-        } catch (err) {
+        } catch {
         }
         const result = {};
         for (const file of files) {

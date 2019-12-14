@@ -38,7 +38,7 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     clear (callback) {
-        PromiseHelper.callback(this.find().remove(), callback) ;
+        PromiseHelper.callback(this.find().remove(), callback);
     }
 
     removeExpired () {

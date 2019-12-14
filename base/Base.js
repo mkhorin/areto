@@ -11,7 +11,7 @@ module.exports = class Base {
     static init (nodeModule) {
         if (nodeModule) {
             ClassHelper.defineClassProperty(this, 'CLASS_FILE', nodeModule.filename);
-            ClassHelper.defineClassProperty(this, 'CLASS_DIR', path.dirname(nodeModule.filename));
+            ClassHelper.defineClassProperty(this, 'CLASS_DIRECTORY', path.dirname(nodeModule.filename));
         }
         ClassHelper.defineConstantClassProperties(this);
         return this;

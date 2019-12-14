@@ -34,6 +34,25 @@ module.exports = class DateHelper {
         return isNaN(time) ? null : (new Date(time + date.getTimezoneOffset() * 60000));
     }
 
+    static getDayInterval (date) {
+        date = this.getValid(date);
+        if (!date) {
+            return null;
+        }
+        date.setUTCHours(0);
+        date.setUTCMinutes(0);
+        date.setUTCSeconds(0);
+        date.setUTCMilliseconds(0);
+        const end = new Date(date);
+        end.setUTCDate(date.getUTCDate() + 1);
+        return [date, end];
+    }
+
+    static parse (value, language, format = 'L') {
+        value = moment.utc(value, format, language);
+        return value.isValid() ? value.toDate() : null;
+    }
+
     static parseDuration (value) {
         return typeof value === 'number'
             ? value * 1000

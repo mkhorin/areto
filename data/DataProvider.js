@@ -30,7 +30,7 @@ module.exports = class DataProvider extends Base {
         };
         if (this.id) {
             defaults.pageParam = `${this.id}-page`;
-            defaults.pageSizeParam = `${this.id}-page-size`;
+            defaults.pageSizeParam = `${this.id}-pageSize`;
         }
         return ClassHelper.spawn(Object.assign(defaults, config));
     }

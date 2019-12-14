@@ -52,10 +52,20 @@ module.exports = class ActionView extends Base {
         return this.theme.getModel(name, this.controller.language);
     }
 
+    getViewOwnModel (name) {
+        return this.theme.getViewOwnModel(name, this.controller.language);
+    }
+
+    getViewOwnModelWithOrigin (name) {
+        return this.theme.getViewOwnModelWithOrigin(name, this.controller.language);
+    }
+
     createViewModel (name, config = {}) {
         const Class = this.getViewModelClass(name);
-        config.view = this;
-        return Class ? new Class(config) : null;
+        if (Class) {
+            config.view = this;
+            return new Class(config);
+        }
     }
 
     log () {
@@ -82,10 +92,10 @@ module.exports = class ActionView extends Base {
             _controller: this.controller,
             _view: this,
             _layout: this.controller.VIEW_LAYOUT || this.module.VIEW_LAYOUT,
-            _t: this.controller.translate.bind(this.controller),
-            _format: this.controller.format.bind(this.controller),
-            _url: this.controller.createUrl.bind(this.controller),
             _baseUrl: this.module.app.baseUrl,
+            _format: this.controller.format.bind(this.controller),
+            _t: this.controller.translate.bind(this.controller),
+            _url: this.controller.createUrl.bind(this.controller),
             _data: null,
             ...params
         };
@@ -114,12 +124,15 @@ module.exports = class ActionView extends Base {
     }
 
     getAsset () {
-        if (this._asset === undefined) {
-            const asset = this.module.get('asset');
-            if (!asset) {
-                return this.log('error', 'Asset component not found');
-            }
-            this._asset = asset.createViewAsset();
+        if (this._asset !== undefined) {
+            return this._asset;
+        }
+        const manager = this.module.get('asset');
+        if (manager) {
+            this._asset = manager.createViewAsset();
+        } else {
+            this._asset = null;
+            this.log('error', 'Asset component not found');
         }
         return this._asset;
     }

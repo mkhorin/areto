@@ -27,6 +27,14 @@ module.exports = class DatabaseRbacStore extends Base {
     getDb () {
         return this.rbac.module.getDb();
     }
+
+    async clearAll () {
+        const db = this.getDb();
+        await db.truncate(this.getTableName(this.TABLE_ASSIGNMENT));
+        await db.truncate(this.getTableName(this.TABLE_ITEM_CHILD));
+        await db.truncate(this.getTableName(this.TABLE_ITEM));
+        await db.truncate(this.getTableName(this.TABLE_RULE));
+    }
     
     async load () {
         return this.prepare(await this.loadData());
@@ -43,12 +51,7 @@ module.exports = class DatabaseRbacStore extends Base {
 
     prepare (data) {
         const {ruleMap, itemMap} = data;
-        const rules = {};
-        for (const id of Object.keys(ruleMap)) {
-            const rule = this.prepareRule(ruleMap[id]);
-            ruleMap[id] = rule;
-            rules[rule.name] = rule;
-        }
+        const rules = this.prepareRules(ruleMap);
         const items = {};
         for (const id of Object.keys(itemMap)) {
             const item = itemMap[id];
@@ -56,31 +59,48 @@ module.exports = class DatabaseRbacStore extends Base {
             item.rule = ruleMap.hasOwnProperty(item.rule) ? ruleMap[item.rule].name : null;
             items[item.name] = item;
         }
-        const assignments = {};
-        for (const assignment of data.assignments) {
-            const item = itemMap[assignment.item];
-            if (item) {
-                if (!assignments[assignment.user]) {
-                    assignments[assignment.user] = [];
-                }
-                assignments[assignment.user].push(item.name);
+        const assignments = this.prepareAssignments(data);
+        return {rules, items, assignments};
+    }
+
+    prepareRules (data) {
+        const result = {};
+        for (const id of Object.keys(data)) {
+            const rule = this.prepareRule(data[id]);
+            if (rule) {
+                data[id] = rule;
+                result[rule.name] = rule;
+            } else {
+                delete data[id];
             }
         }
-        return {rules, items, assignments};
+        return result;
     }
 
     prepareRule ({name, config}) {
         try {
             config = ClassHelper.resolveSpawn(Rule, this.rbac.module, config);
-        } catch (err) {
-            this.log('error', `Invalid rule: ${JSON.stringify(config)}`);
-            config.Class = Rule;
+        } catch {
+            return this.log('error', `Invalid rule: ${JSON.stringify(config)}`);
         }
         if (!(config.Class.prototype instanceof Rule) && config.Class !== Rule) {
-            this.log('error', `Base class of ${config.Class.name} must be Rule`);
-            config.Class = Rule;
+            return this.log('error', `Base class of ${config.Class.name} must be Rule`);
         }
         return {...config, name};
+    }
+
+    prepareAssignments ({assignments, itemMap}) {
+        const result = {};
+        for (const assignment of assignments) {
+            const item = itemMap[assignment.item];
+            if (item) {
+                if (!result[assignment.user]) {
+                    result[assignment.user] = [];
+                }
+                result[assignment.user].push(item.name);
+            }
+        }
+        return result;
     }
 
     getItemChildren (id, {links, itemMap}) {
@@ -93,8 +113,12 @@ module.exports = class DatabaseRbacStore extends Base {
         return children;
     }
 
+    getTableName (name) {
+        return this.tablePrefix + name;
+    }
+
     find (table) {
-        return (new Query).db(this.getDb()).from(`${this.tablePrefix}${table}`);
+        return (new Query).db(this.getDb()).from(this.getTableName(table));
     }
 
     findItem () {
@@ -151,17 +175,23 @@ module.exports = class DatabaseRbacStore extends Base {
         return this.createTypeItems(this.rbac.Item.TYPE_ROUTE, items);
     }
 
-    async createTypeItems (type, items) {
-        if (items) {
-            for (const name of Object.keys(items)) {
-                items[name].type = type;
+    async createTypeItems (type, data) {
+        if (data) {
+            for (const name of Object.keys(data)) {
+                data[name].type = type;
             }
-            await this.createItems(items);
+            await this.createItems(data);
         }
     }
 
     async createItems (data) {
-        const items = this.prepareItems(data);
+        if (!data) {
+            return null;
+        }
+        const items = [];
+        for (const name of Object.keys(data)) {
+            items.push(this.createItem(name, data[name]));
+        }
         for (const item of items) {
             await item.create();
         }
@@ -173,15 +203,8 @@ module.exports = class DatabaseRbacStore extends Base {
         }
     }
 
-    prepareItems (data) {
-        if (!data) {
-            return [];
-        }
-        return Object.keys(data).map(name => new this.rbac.Item({            
-            store: this,
-            data: data[name],
-            name
-        }));
+    createItem (name, data) {
+        return new this.rbac.Item({store: this, name, data});
     }
 
     async createRules (data) {

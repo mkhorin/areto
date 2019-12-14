@@ -75,14 +75,14 @@ module.exports = class RelationChangeBehavior extends Base {
         if (value !== undefined) {
             return this.owner.set(name, value);
         }
-        const rel = this.getRelation(name);
-        this.owner.set(name, rel.isInternalArray() ? [] : null);
+        const relation = this.getRelation(name);
+        this.owner.set(name, relation.isInternalArray() ? [] : null);
     }
 
     async resolveTypeChanges (type, attr) {
         if (this._changes[attr][type].length) {
-            const rel = this.getRelation(attr);
-            this._changes[attr][type] = await rel.model.findById(this._changes[attr][type]).all();
+            const relation = this.getRelation(attr);
+            this._changes[attr][type] = await relation.model.findById(this._changes[attr][type]).all();
         }
     }
 
@@ -115,28 +115,28 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         const relation = this.getRelation(name);
         const docs = await relation.raw().all();
-        const map = {};
+        const result = {};
         for (const doc of docs) {
-            map[doc[relation.model.PK]] = doc;
+            result[doc[relation.model.PK]] = doc;
         }
         const data = this._changes[name];
         if (data) {
             for (const model of data.links) {
-                map[model.getId()] = model.getAttrMap();
+                result[model.getId()] = model.getAttrMap();
             }
             for (const model of data.unlinks.concat(data.removes)) {
-                delete map[model.getId()];
+                delete result[model.getId()];
             }
         }
-        this._linkedDocs = Object.values(map);
+        this._linkedDocs = Object.values(result);
         return this._linkedDocs;
     }
 
-    // EXISTs
+    // EXISTS
 
     async checkExists (name) {
-        const rel = this.getRelation(name);
-        if (rel.isMultiple()) {
+        const relation = this.getRelation(name);
+        if (relation.isMultiple()) {
             throw new Error(`Multiple relation cannot be checked for exist: ${name}`);
         }
         const docs = await this.getLinkedDocs(name);
@@ -146,19 +146,19 @@ module.exports = class RelationChangeBehavior extends Base {
         if (docs.length !== 1) {
             throw new Error('Invalid relation changes');
         }
-        return rel.isBackRef()
-            ? await this.checkBackRefExist(rel, docs[0])
-            : await this.checkRefExist(rel, docs[0]);
+        return relation.isBackRef()
+            ? await this.checkBackRefExist(relation, docs[0])
+            : await this.checkRefExist(relation, docs[0]);
     }
 
-    async checkRefExist (rel, doc) {
-        const ids = await this.owner.find({[rel.linkKey]: doc[rel.refKey]}).limit(2).ids();
+    async checkRefExist ({refKey, linkKey}, doc) {
+        const ids = await this.owner.find({[linkKey]: doc[refKey]}).limit(2).ids();
         return this.isExistingId(this.owner.getId(), ids);
     }
 
-    async checkBackRefExist (rel, doc) {
-        const ids = await rel.model.find({[rel.refKey]: this.owner.get(rel.linkAttr)}).limit(2).ids();
-        return this.isExistingId(doc[rel.model.PK], ids);
+    async checkBackRefExist ({model, refKey, linkAttr}, doc) {
+        const ids = await model.find({[refKey]: this.owner.get(linkAttr)}).limit(2).ids();
+        return this.isExistingId(doc[model.PK], ids);
     }
 
     isExistingId (id, ids) {

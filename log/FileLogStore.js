@@ -46,17 +46,17 @@ module.exports = class FileLogStore extends Base {
         });
     }
 
-    format (type, msg, data) {
-        if (msg instanceof Exception) {
-            msg = msg.toString();
-        } else if (msg instanceof Error) {
-            msg = `${msg.message} ${msg.stack}`;
+    format (type, text, data) {
+        if (text instanceof Exception) {
+            text = text.toString();
+        } else if (text instanceof Error) {
+            text = `${text.message} ${text.stack}`;
         }
-        msg = `${new Date().toISOString()} ${type.toUpperCase()} ${msg}`;
+        text = `${new Date().toISOString()} ${type.toUpperCase()} ${text}`;
         if (data) {
-            msg = `${msg} ${data}`;
+            text = `${text} ${data}`;
         }
-        return msg + os.EOL;
+        return text + os.EOL;
     }
 
     observe () {

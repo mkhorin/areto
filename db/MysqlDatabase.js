@@ -129,7 +129,7 @@ module.exports = class MysqlDatabase extends Base {
         let cmd = await this.buildQuery(query);
         let docs = await this.execute(this._builder.stringify(cmd));
         if (!cmd.order) {
-            docs = query.sortOrderByIn(docs);
+            docs = query.sortOrderByKeys(docs);
         }
         return query.populate(docs);
     }

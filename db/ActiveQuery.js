@@ -24,10 +24,18 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    exceptModel (model) {
+    excludeModel (model) {
         return model && model.getId()
             ? this.and(['!=', model.PK, model.getId()])
             : this;
+    }
+
+    indexById () {
+        return this.index(this.model.PK);
+    }
+
+    orderById (direction = 1) {
+        return this.order({[this.model.PK]: direction});
     }
 
     // PREPARE
@@ -58,15 +66,15 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaArray () {
-        const val = this.primaryModel.get(this.linkKey);
+        const value = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
-        if (val === undefined || val === null || Array.isArray(val)) {
-            if (this._orderByIn) {
-                this._orderByIn = val;
+        if (value === undefined || value === null || Array.isArray(value)) {
+            if (this._orderByKeys) {
+                this._orderByKeys = value;
             }
-            this.and(['IN', this.refKey, val]);
-        } else { // back ref to array
-            this.and({[this.refKey]: val});
+            this.and(['IN', this.refKey, value]);
+        } else { // back reference to array
+            this.and({[this.refKey]: value});
         }
         return this.afterPrepare();
     }
@@ -154,7 +162,7 @@ module.exports = class ActiveQuery extends Base {
         return this._removeOnUnlink;
     }
 
-    hasOne (primaryModel, refKey, linkKey) {
+    relateOne (primaryModel, refKey, linkKey) {
         this.primaryModel = primaryModel;
         this.refKey = refKey;
         this.linkKey = linkKey;
@@ -162,7 +170,7 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    hasMany (primaryModel, refKey, linkKey) {
+    relateMany (primaryModel, refKey, linkKey) {
         this.primaryModel = primaryModel;
         this.refKey = refKey;
         this.linkKey = linkKey;
@@ -175,9 +183,9 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    with (...args) {
+    with (...relations) {
         this._with = this._with || {};
-        for (const data of args) {
+        for (const data of relations) {
             if (!data) {
             } else if (typeof data === 'string') {
                 this._with[data] = true;
@@ -229,8 +237,8 @@ module.exports = class ActiveQuery extends Base {
 
     viaArray () {        
         this._viaArray = true;
-        if (this._orderByIn === undefined) {
-            this._orderByIn = true;
+        if (this._orderByKeys === undefined) {
+            this._orderByKeys = true;
         }
         return this;
     }
@@ -368,23 +376,23 @@ module.exports = class ActiveQuery extends Base {
     }
 
     buildViaBuckets (models, viaModels, viaRefKey) {
-        const buckets = {}, map = {};
-        for (const vm of viaModels) {
-            const ref = QueryHelper.getAttr(vm, viaRefKey);
-            const link = QueryHelper.getAttr(vm, this.linkKey);
-            if (!Object.prototype.hasOwnProperty.call(map, link)) {
-                map[link] = {};
+        const buckets = {}, data = {};
+        for (const model of viaModels) {
+            const ref = QueryHelper.getAttr(model, viaRefKey);
+            const link = QueryHelper.getAttr(model, this.linkKey);
+            if (!Object.prototype.hasOwnProperty.call(data, link)) {
+                data[link] = {};
             }
-            map[link][ref] = true;
+            data[link][ref] = true;
         }
         for (const model of models) {
             const ref = QueryHelper.getAttr(model, this.refKey);
-            if (map[ref]) {
-                for (const k of Object.keys(map[ref])) {
-                    if (Array.isArray(buckets[k])) {
-                        buckets[k].push(model);
+            if (data[ref]) {
+                for (const key of Object.keys(data[ref])) {
+                    if (Array.isArray(buckets[key])) {
+                        buckets[key].push(model);
                     } else {
-                        buckets[k] = [model];
+                        buckets[key] = [model];
                     }
                 }
             }
@@ -422,8 +430,8 @@ module.exports = class ActiveQuery extends Base {
                 values.push(value);
             }
         }
-        if (this._orderByIn) {
-            this._orderByIn = values;
+        if (this._orderByKeys) {
+            this._orderByKeys = values;
         }
         this.and(['IN', this.refKey, values]);
     }

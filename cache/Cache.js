@@ -10,7 +10,7 @@ module.exports = class Cache extends Base {
     constructor (config) {
         super({
             keyPrefix: null,
-            duration: 100, // seconds
+            defaultDuration: 100, // seconds
             serializer: null,
             ...config
         });
@@ -31,19 +31,19 @@ module.exports = class Cache extends Base {
         if (value === undefined) {
             return defaults;
         }
-        this.log('trace', `Get key: ${key}`);
+        this.log('trace', `Get: ${key}`);
         return this.serializer ? this.serializer.parse(value) : value;
     }
 
     set (key, value, duration) {
         if (!Number.isInteger(duration)) {
-            duration = this.duration;
+            duration = this.defaultDuration;
         }
         key = this.buildKey(key);
         if (this.serializer) {
             value = this.serializer.stringify(value);
         }
-        this.log('trace', `Set key: ${key}: Duration: ${duration}`);
+        this.log('trace', `Set: ${key}: Duration: ${duration}`);
         return this.setValue(key, value, duration);
     }
 

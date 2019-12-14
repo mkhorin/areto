@@ -38,9 +38,9 @@ module.exports = class Inspector extends Base {
             module: this.module
         });
         rule.params = config.params ? {...config.params, ...this.params} : this.params;
-        const passed = await rule.execute();
+        const passed = await rule.execute() === true;
         if (config.name) {
-            this._ruleCache[config.name] = !!passed;
+            this._ruleCache[config.name] = passed;
         }
         return passed;
     }
@@ -48,6 +48,11 @@ module.exports = class Inspector extends Base {
     getCachedRule (name) {
         return this._ruleCache[name] instanceof Rule ? this._ruleCache[name] : null;
     }
+
+    log () {
+        CommonHelper.log(this.rbac, this.constructor.name, ...arguments);
+    }
 };
 
+const CommonHelper = require('../../helper/CommonHelper');
 const Rule = require('./Rule');

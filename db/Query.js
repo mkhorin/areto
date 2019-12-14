@@ -90,13 +90,13 @@ module.exports = class Query extends Base {
         return this._where;
     }
 
-    addWhere (operator, ...args) {
+    addWhere (operator, ...conditions) {
         if (!this._where) {
-            this._where = args.length > 1 ? [operator, ...args] : args[0];
+            this._where = conditions.length > 1 ? [operator, ...conditions] : conditions[0];
         } else if (this._where[0] === operator) {
-            this._where.push(...args);
+            this._where.push(...conditions);
         } else {
-            this._where = [operator, this._where, ...args];
+            this._where = [operator, this._where, ...conditions];
         }
     }
 
@@ -132,20 +132,20 @@ module.exports = class Query extends Base {
 
     // ORDER
     /**
-     * @param columns - { attr1: 1, attr2: -1 }
+     * @param data - { attr1: 1, attr2: -1 }
      */
-    order (columns) {
-        this._order = columns;
+    order (data) {
+        this._order = data;
         return this;
     }
 
-    addOrder (columns) {
-        this._order = Object.assign(this._order || {}, columns);
+    addOrder (data) {
+        this._order = Object.assign(this._order || {}, data);
         return this;
     }
 
-    orderByIn (keys) {
-        this._orderByIn = keys;
+    orderByKeys (keys) {
+        this._orderByKeys = keys;
         return this;
     }
 
@@ -162,8 +162,8 @@ module.exports = class Query extends Base {
 
     // OFFSET
 
-    offset (offset) {
-        this._offset = offset === null ? null : parseInt(offset);
+    offset (value) {
+        this._offset = value === null ? null : parseInt(value);
         return this;
     }
 
@@ -301,18 +301,18 @@ module.exports = class Query extends Base {
     }
 
     // sort an array of objects with a key attribute by an array of keys
-    sortOrderByIn (docs) {
-        const keys = this._orderByIn;
+    sortOrderByKeys (docs) {
+        const keys = this._orderByKeys;
         if (!Array.isArray(keys) || keys.length < 2) {
             return docs;
         }
-        // docs can be with equals key values
-        const data = IndexHelper.indexObjects(docs, this.refKey);
-        let result = [];
+        // documents can be with equal key values
+        const data = IndexHelper.indexObjectArrays(docs, this.refKey);
+        const result = [];
         for (const key of keys) {
-            if (Object.prototype.hasOwnProperty.call(data, key)) {
-                result = result.concat(data[key]);
-                delete data[key];
+            if (Array.isArray(data[key])) {
+                result.push(...data[key]);
+                delete data[key]; // ignore same keys
             }
         }
         return result;

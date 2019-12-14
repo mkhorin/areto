@@ -101,18 +101,18 @@ module.exports = class ObjectHelper {
     // DELETE PROPERTIES
 
     static deleteEmptyProperties (data, names) {
-        if (!data) {
-            return;
-        }
-        if (!names) {
-            names = Object.keys(data);
-        }
-        for (const name of names) {
-            const value = data[name];
-            if (value === null || value === '' || value === undefined) {
-                delete data[name];
-            }
-        }
+        const check = value => value === null || value === '' || value === undefined;
+        this.deletePropertiesByValue(check, data, names);
+    }
+
+    static deleteEmptyArrayProperties (data, names) {
+        const check = value => Array.isArray(value) && !value.length;
+        this.deletePropertiesByValue(check, data, names);
+    }
+
+    static deleteEmptyObjectProperties (data, names) {
+        const check = obj => obj && obj.constructor === Object && !Object.values(obj).length;
+        this.deletePropertiesByValue(check, data, names);
     }
 
     static deletePropertiesByValue (value, data, names) {

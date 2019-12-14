@@ -28,11 +28,6 @@ describe('CommonHelper', ()=> {
         expect(CommonHelper.isEqual({m: 2, k: 1}, {k: 1, m: 2})).to.eql(false);
     });
 
-    it('getRandom', ()=> {
-        const res = CommonHelper.getRandom(5, 10);
-        expect(res).to.be.within(5,10);
-    });
-
     it('parseJson', ()=> {
         const res = CommonHelper.parseJson(JSON.stringify({a: 5}));
         expect(res.a).to.eql(5);

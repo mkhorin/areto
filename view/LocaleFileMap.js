@@ -9,43 +9,43 @@ module.exports = class LocaleFileMap extends Base {
 
     constructor (config) {
         super({
-            // baseDir: base dir
-            // localeDir: locale dir,
+            localeDirectory: 'locale',
             required: false, // require files
             ...config
         });
         try {
-            this.createBaseMap();
+            this.createDefaultMap();
             this.createLocaleMap();
-        } catch (err) {}
+        } catch {}
     }
 
-    createBaseMap () {
-        this._base = ClassHelper.spawn(FileMap, {
-            dir: path.join(this.baseDir),
+    createDefaultMap () {
+        this._default = ClassHelper.spawn(FileMap, {
+            directory: path.join(this.baseDirectory, this.directory),
             required: this.required
         });
     }
 
     createLocaleMap () {
         this._locales = {};
-        for (const name of fs.readdirSync(this.localeDir)) {
-            const dir = path.join(this.localeDir, name);
-            if (fs.lstatSync(dir).isDirectory()) {
-                const map = ClassHelper.spawn(FileMap, {dir});
-                if (!map.isEmpty()) {
-                    this._locales[name] = map;
+        const localePath = path.join(this.baseDirectory, this.localeDirectory);
+        for (const language of fs.readdirSync(localePath)) {
+            const directory = path.join(localePath, language, this.directory);
+            if (fs.lstatSync(directory).isDirectory()) {
+                const fileMap = ClassHelper.spawn(FileMap, {directory});
+                if (!fileMap.isEmpty()) {
+                    this._locales[language] = fileMap;
                 }
             }
         }
     }
 
     get (name, language) {
-        return this._locales[language] && this._locales[language].get(name) || this._base.get(name);
+        return this._locales[language] && this._locales[language].get(name) || this._default.get(name);
     }
 
     isEmpty () {
-        return this._base.isEmpty() && Object.values(this._locales).length === 0;
+        return this._default.isEmpty() && Object.values(this._locales).length === 0;
     }
 };
 

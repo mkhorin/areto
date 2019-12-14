@@ -9,7 +9,7 @@ module.exports = class FileHelper {
         return path.basename(file, path.extname(file));
     }
 
-    static getRelativePathByDir (name, file) {
+    static getRelativePathByDirectory (name, file) {
         const basePath = this.getClosestDirectory(name, file);
         return basePath ? this.getRelativePath(basePath, file) : file;
     }
@@ -52,7 +52,7 @@ module.exports = class FileHelper {
         });
     }
 
-    // DIR
+    // DIRECTORY
 
     static readDirectory (dir) {
         return new Promise(resolve => fs.readdir(dir, (err, result)=> resolve(err ? [] : result)));

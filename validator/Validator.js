@@ -69,8 +69,8 @@ module.exports = class Validator extends Base {
             skipOnEmpty: true,
             when: null, // (model, attr)=> false/true
             isEmpty: null, // value => false/true
-            messageCategory: 'app',
-            defaultMessageCategory: 'areto',
+            messageSource: 'app',
+            defaultMessageSource: 'areto',
             ...config
         });
     }
@@ -80,12 +80,12 @@ module.exports = class Validator extends Base {
             return message.addParams(params);
         }
         if (message) {
-            return new Message(message, this.messageCategory, params);
+            return new Message(message, this.messageSource, params);
         }
         if (defaultMessage instanceof Message) {
             return defaultMessage.addParams(params);
         }
-        return new Message(defaultMessage, this.defaultMessageCategory, params);
+        return new Message(defaultMessage, this.defaultMessageSource, params);
     }
 
     async validateModel (model, attrs) {

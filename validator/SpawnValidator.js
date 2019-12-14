@@ -40,7 +40,7 @@ module.exports = class SpawnValidator extends Base {
             this.BaseClass && !(Class.prototype instanceof this.BaseClass)
                 ? this.addError(model, attr, this.getBaseClassMessage())
                 : model.set(attr, value);
-        } catch (err) {
+        } catch {
             this.addError(model, attr, this.getInvalidFileMessage());
         }
     }

@@ -7,8 +7,8 @@ const Base = require('./Exception');
 
 module.exports = class HttpException extends Base {
 
-    constructor (status, err) {
-        super(err);        
+    constructor (status, err, data) {
+        super(err, data);
         this.status = status;
     }
 

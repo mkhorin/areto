@@ -1,3 +1,29 @@
+## 0.31.0
+
+* base/Controller
+    - extract render only method
+* base/Model
+    - move label generation to string helper
+    - unset multiple attributes
+* base/Module
+    - add relative module name
+    - exclude app name from logs
+    - forward configuration data from module constructor
+* helper/ArrayHelper
+    - rename diff to exclude
+* helper/CommonHelper
+    - set not required log prefix
+* helper/MathHelper
+    - fix Math.round, Math.ceil, Math.floor
+* helper/ObjectHelper
+    - refactor helpers of delete properties
+* view/Theme
+    - add view own model methods
+* view/LocaleFileMap
+    - place language folders on the first locale level
+* web/Router
+    - redirect to default module
+
 ## 0.30.0
 
 * db/MongoDatabase
