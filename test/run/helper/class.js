@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const ClassHelper = require('../../../helper/ClassHelper');
 const Base = require('../../../base/Base');
 

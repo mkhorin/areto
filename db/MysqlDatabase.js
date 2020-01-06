@@ -99,7 +99,7 @@ module.exports = class MysqlDatabase extends Base {
         throw new Error('TODO');
     }
 
-    remove (table, condition) {
+    delete (table, condition) {
         let sql = `DELETE FROM ${this.escapeId(table)}`;
         if (condition) {
             sql += condition;
@@ -164,9 +164,9 @@ module.exports = class MysqlDatabase extends Base {
         return this.upsert(cmd.from, cmd.where, data);
     }
 
-    async queryRemove (query) {
+    async queryDelete (query) {
         const cmd = await this.buildQuery(query);
-        return this.remove(cmd.from, cmd.where);
+        return this.delete(cmd.from, cmd.where);
     }
 
     async queryCount (query) {

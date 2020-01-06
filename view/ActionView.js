@@ -185,7 +185,7 @@ module.exports = class ActionView extends Base {
     insertWidgetContent (content) {
         const names = Object.keys(this.widgets).join('|');
         return names.length
-            ? content.replace(new RegExp(`#{(${names})}`, 'g'), (match, name)=> this.widgets[name].content)
+            ? content.replace(new RegExp(`#{(${names})}`, 'g'), (match, name) => this.widgets[name].content)
             : content;
     }
 };

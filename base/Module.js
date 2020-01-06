@@ -275,7 +275,8 @@ module.exports = class Module extends Base {
     }
 
     extractConfigProperties () {
-        this.params = this.getConfig('params') || {};
+        const params = this.getConfig('params') || {};
+        this.params = Object.assign(params, this.params);
     }
 
     setMountPath () {

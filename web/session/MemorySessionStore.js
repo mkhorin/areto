@@ -51,7 +51,7 @@ module.exports = class MemorySessionStore extends Base {
         callback();
     }
 
-    removeExpired () {
+    deleteExpired () {
         if (!this.session.lifetime) {
             return null;
         }
@@ -66,7 +66,7 @@ module.exports = class MemorySessionStore extends Base {
         }
     }
 
-    removeByUserId (userId) {
+    deleteByUserId (userId) {
         if (Object.prototype.hasOwnProperty.call(this._users, userId)) {
             delete this._sessions[this._users[userId]];
             delete this._users[userId];

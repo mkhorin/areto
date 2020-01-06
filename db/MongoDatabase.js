@@ -27,10 +27,10 @@ module.exports = class MongoDatabase extends Base {
             ...config
         });
         this.settings.options = {
-            'bufferMaxEntries': 0,
-            'keepAlive': true,
-            'useNewUrlParser': true,
-            'useUnifiedTopology': true,
+            bufferMaxEntries: 0,
+            keepAlive: true,
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
             ...this.settings.options
         };
         this._tableMap = {};
@@ -133,8 +133,8 @@ module.exports = class MongoDatabase extends Base {
         return this.getTable(table).updateMany(query, {$unset: data});
     }
 
-    remove (table, query = {}) {
-        this.logCommand('remove', {table, query});
+    delete (table, query = {}) {
+        this.logCommand('delete', {table, query});
         return this.getTable(table).deleteMany(query);
     }
 
@@ -228,9 +228,9 @@ module.exports = class MongoDatabase extends Base {
         return this.upsert(cmd.from, cmd.where, data);
     }
 
-    async queryRemove (query) {
+    async queryDelete (query) {
         const cmd = await this.buildQuery(query);
-        return this.remove(cmd.from, cmd.where);
+        return this.delete(cmd.from, cmd.where);
     }
 
     async queryCount (query) {

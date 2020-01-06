@@ -47,10 +47,10 @@ module.exports = class CommonHelper {
         if (!Array.isArray(data.unlinks)) {
             data.unlinks = [];
         }
-        if (!Array.isArray(data.removes)) {
-            data.removes = [];
+        if (!Array.isArray(data.deletes)) {
+            data.deletes = [];
         }
-        const all = data.links.concat(data.unlinks, data.removes);
+        const all = data.links.concat(data.unlinks, data.deletes);
         return all.length === ArrayHelper.unique(all).length ? data : false;
     }
 };

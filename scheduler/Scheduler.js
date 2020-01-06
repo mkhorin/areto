@@ -94,19 +94,19 @@ module.exports = class Scheduler extends Base {
         return task;
     }
 
-    removeTask (id) {
+    deleteTask (id) {
         const task = this.getTask(id);
         if (!task) {
             return this.log('error', `Task not found: ${id}`);
         }
         if (this.detachTask(task)) {
             this._taskMap.unset(id);
-            this.log('info', `Task removed: ${id}`);
+            this.log('info', `Task deleted: ${id}`);
             return true;
         }
     }
 
-    removeAllTasks () {
+    deleteAllTasks () {
         for (const task of this._taskMap) {
             this.detachTask(task);
         }

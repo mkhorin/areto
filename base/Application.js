@@ -60,7 +60,7 @@ module.exports = class Application extends Base {
     }
 
     createServer () {
-        return new Promise((resolve, reject)=> {
+        return new Promise((resolve, reject) => {
             this.server = this.mainEngine.createServer().on('error', err => {
                 this.log('error', 'Server error', err);
                 reject(err);

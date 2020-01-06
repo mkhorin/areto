@@ -67,7 +67,7 @@ module.exports = class Validator extends Base {
             skipOnError: true,
             skipOnAnyError: false,
             skipOnEmpty: true,
-            when: null, // (model, attr)=> false/true
+            when: null, // (model, attr) => false/true
             isEmpty: null, // value => false/true
             messageSource: 'app',
             defaultMessageSource: 'areto',
@@ -123,7 +123,7 @@ module.exports = class Validator extends Base {
     isEmptyValue (value) {
         return typeof this.isEmpty === 'function'
             ? this.isEmpty(value)
-            : value === undefined || value === null || value.length === 0;
+            : value === undefined || value === null || value === '';
     }
 
     addError (model, attr, message) {

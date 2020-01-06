@@ -28,12 +28,12 @@ module.exports = class Session extends Base {
         this.module.addHandler('use', this.flash());
     }
 
-    removeExpired () {
-        return this.store.removeExpired();
+    deleteExpired () {
+        return this.store.deleteExpired();
     }
 
-    removeByUserId (userId) {
-        return this.store.removeByUserId(userId);
+    deleteByUserId (id) {
+        return this.store.deleteByUserId(id);
     }
 
     clear () {

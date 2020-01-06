@@ -96,7 +96,10 @@ module.exports = class Controller extends Base {
     }
 
     createModel (params) {
-        return this.spawn(this.getModelClass(), {user: this.user, ...params});
+        return this.spawn(this.getModelClass(), {
+            user: this.user,
+            ...params
+        });
     }
 
     getModelClass () {

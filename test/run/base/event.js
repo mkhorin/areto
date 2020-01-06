@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const Event = require('areto/base/Event');
 const EventManager = require('areto/base/EventManager');
 const Parent = require('../../app/Parent');

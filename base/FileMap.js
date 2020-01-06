@@ -50,7 +50,7 @@ module.exports = class FileMap extends Base {
     getKey (file) {
         const relative = file.substring(this.directory.length + 1);
         const parts = relative.split(path.sep);        
-        parts.push(FileHelper.removeExtension(parts.pop()));
+        parts.push(FileHelper.trimExtension(parts.pop()));
         return parts.join('/'); // normalize separator
     }
 

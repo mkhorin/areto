@@ -158,8 +158,8 @@ module.exports = class ActiveQuery extends Base {
         return this._viaTable;
     }
 
-    getRemoveOnUnlink () {
-        return this._removeOnUnlink;
+    getDeleteOnUnlink () {
+        return this._deleteOnUnlink;
     }
 
     relateOne (primaryModel, refKey, linkKey) {
@@ -178,8 +178,8 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    removeOnUnlink (value = true) {
-        this._removeOnUnlink = value;
+    deleteOnUnlink (value = true) {
+        this._deleteOnUnlink = value;
         return this;
     }
 

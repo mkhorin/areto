@@ -63,6 +63,10 @@ module.exports = class Logger extends Base {
         return this.types.hasOwnProperty(name) ? this.types[name] : null;
     }
 
+    getStore (name) {
+        return this.stores[name] instanceof LogStore ? this.stores[name] : null;
+    }
+
     createStores () {
         for (const name of Object.keys(this.stores)) {
             this.stores[name] = this.spawn(this.stores[name], {logger: this, name});
@@ -122,3 +126,5 @@ module.exports = class Logger extends Base {
     }
 };
 module.exports.init();
+
+const LogStore = require('./LogStore');

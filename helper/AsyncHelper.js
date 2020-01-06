@@ -107,7 +107,7 @@ module.exports = class AsyncHelper {
     }
 
     series (pos = 0) {
-        this.items[this.keys[pos]]((err, value)=> {
+        this.items[this.keys[pos]]((err, value) => {
             if (err) {
                 return this.callback(err);
             }
@@ -144,7 +144,7 @@ module.exports = class AsyncHelper {
     }
 
     mapSeries (pos = 0) {
-        this.handler(this.items[pos], (err, value)=> {
+        this.handler(this.items[pos], (err, value) => {
             if (err) {
                 return this.callback(err);
             }
@@ -157,7 +157,7 @@ module.exports = class AsyncHelper {
     }
 
     filterSeries (pos = 0) {
-        this.handler(this.items[pos], (err, value)=> {
+        this.handler(this.items[pos], (err, value) => {
             if (err) {
                 return this.callback(err);
             }
@@ -172,7 +172,7 @@ module.exports = class AsyncHelper {
     }
 
     someSeries (pos = 0) {
-        this.handler(this.items[pos], (err, value)=> {
+        this.handler(this.items[pos], (err, value) => {
             if (err) {
                 return this.callback(err);
             }
@@ -187,7 +187,7 @@ module.exports = class AsyncHelper {
     }
 
     mapValuesSeries (pos = 0) {
-        this.handler(this.items[this.keys[pos]], this.keys[pos], (err, value)=> {
+        this.handler(this.items[this.keys[pos]], this.keys[pos], (err, value) => {
             if (err) {
                 return this.callback(err);
             }
@@ -200,7 +200,7 @@ module.exports = class AsyncHelper {
     }
 
     waterfall (result = [], pos = 0) {
-        result.push((err, ...result)=> {
+        result.push((err, ...result) => {
             if (err) {
                 return this.callback(err);
             }

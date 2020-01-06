@@ -37,7 +37,7 @@ module.exports = class Router extends Base {
             return this.log('error', `Module not found: ${name}`);
         }
         const url = module.get('urlManager').resolve('');
-        this.module.addHandler(['all'], '', (req, res)=> res.redirect(url));
+        this.module.addHandler(['all'], '', (req, res) => res.redirect(url));
     }
 
     // CONTROLLER
@@ -117,12 +117,12 @@ module.exports = class Router extends Base {
     }
 
     addAction (id, Controller, route) {
-        const action = (req, res, next)=> {
+        const action = (req, res, next) => {
             this.createController(Controller, {req, res, module: res.locals.module})
                 .execute(id)
                 .catch(next);
         };
-        let methods = Controller.METHODS[id] || ['all'];
+        let methods = Controller.METHODS[id] || Controller.METHODS['*'] || ['all'];
         if (!Array.isArray(methods)) {
             methods = [methods];
         }
@@ -133,8 +133,8 @@ module.exports = class Router extends Base {
 
     addErrorHandlers (config) {
         const Controller = this.getController(config.controller) || this.getDefaultController();
-        this.module.addHandler('all', '*', (req, res, next)=> next(new NotFound));
-        this.module.addHandler('use', (err, req, res, next)=> {
+        this.module.addHandler('all', '*', (req, res, next) => next(new NotFound));
+        this.module.addHandler('use', (err, req, res, next) => {
             if (!(err instanceof HttpException)) {
                 err = new ServerError(err);
             }

@@ -34,22 +34,22 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     destroy (sid, callback) {
-        PromiseHelper.callback(this.findBySid(sid).remove(), callback);
+        PromiseHelper.callback(this.findBySid(sid).delete(), callback);
     }
 
     clear (callback) {
-        PromiseHelper.callback(this.find().remove(), callback);
+        PromiseHelper.callback(this.find().delete(), callback);
     }
 
-    removeExpired () {
+    deleteExpired () {
         if (this.session.lifetime) {
             const expired = new Date(Date.now() - this.session.lifetime);
-            return this.find(['<', 'updatedAt', expired]).remove();
+            return this.find(['<', 'updatedAt', expired]).delete();
         }
     }
 
-    removeByUserId (userId) {
-        return this.find(['ID', 'userId', userId]).remove();
+    deleteByUserId (userId) {
+        return this.find(['ID', 'userId', userId]).delete();
     }
 
     findBySid (sid) {

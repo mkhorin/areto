@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const moment = require('moment');
 const DateHelper = require('../../../helper/DateHelper');
 

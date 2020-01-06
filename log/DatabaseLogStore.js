@@ -63,7 +63,7 @@ module.exports = class DatabaseLogStore extends Base {
         const counter = await this.find().count();
         if (counter >= this.maxRows + this.maxRows / 2) {
             const id = await this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
-            await this.find().and(['<', this.key, id]).remove();
+            await this.find().and(['<', this.key, id]).delete();
         }                    
     }
 

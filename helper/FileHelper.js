@@ -18,15 +18,15 @@ module.exports = class FileHelper {
         return file.indexOf(basePath) === 0 ? file.substring(basePath.length + 1) : file;
     }
 
-    static removeExtension (file) {
+    static trimExtension (file) {
         return file.substring(0, file.length - path.extname(file).length);
     }
 
     static getStat (file) {
-        return new Promise(resolve => fs.stat(file, (err, stat)=> resolve(err ? null : stat)));
+        return new Promise(resolve => fs.stat(file, (err, stat) => resolve(err ? null : stat)));
     }
 
-    static async remove (dir) {
+    static async delete (dir) {
         const stat = await this.getStat(dir);
         if (!stat) {
             return false; // skip non-existent
@@ -34,8 +34,8 @@ module.exports = class FileHelper {
         if (stat.isFile()) {
             return fs.promises.unlink(dir);
         }
-        await PromiseHelper.setImmediate(); // break calling stack
-        await this.handleChildren(dir, file => this.remove(path.join(dir, file)));
+        await PromiseHelper.setImmediate(); // flush calling stack
+        await this.handleChildren(dir, file => this.delete(path.join(dir, file)));
         return fs.promises.rmdir(dir);
     }
 
@@ -46,7 +46,7 @@ module.exports = class FileHelper {
             return fs.promises.copyFile(source, target);
         }
         await this.createDirectory(target, {mode: stat.mode});
-        await PromiseHelper.setImmediate(); // break calling stack
+        await PromiseHelper.setImmediate(); // flush calling stack
         await this.handleChildren(source, file => {
             return this.copy(path.join(source, file), path.join(target, file));
         });
@@ -55,15 +55,18 @@ module.exports = class FileHelper {
     // DIRECTORY
 
     static readDirectory (dir) {
-        return new Promise(resolve => fs.readdir(dir, (err, result)=> resolve(err ? [] : result)));
+        return new Promise(resolve => fs.readdir(dir, (err, result) => resolve(err ? [] : result)));
     }
 
     static createDirectory (dir, options) {
-        return fs.promises.mkdir(dir, {recursive: true, ...options});
+        return fs.promises.mkdir(dir, {
+            recursive: true,
+            ...options
+        });
     }
 
     static emptyDirectory (dir) {
-        return this.handleChildren(dir, file => this.remove(path.join(dir, file)));
+        return this.handleChildren(dir, file => this.delete(path.join(dir, file)));
     }
 
     static getClosestDirectory (name, dir) {

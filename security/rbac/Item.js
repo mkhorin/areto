@@ -81,7 +81,7 @@ module.exports = class Item extends Base {
         await this.store.findItemChild().and({
             parent: this.data.itemId,
             child: this.data.children
-        }).remove();
+        }).delete();
         const items = this.data.children.map(child => ({parent: this.data.itemId, child}));
         await this.store.findItemChild().insert(items);
     }
@@ -94,7 +94,7 @@ module.exports = class Item extends Base {
         await this.store.findItemChild().and({
             parent: this.data.parents,
             child: this.data.itemId
-        }).remove();
+        }).delete();
         const items = this.data.parents.map(parent => ({child: this.data.itemId, parent}));
         await this.store.findItemChild().insert(items);
     }

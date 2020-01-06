@@ -209,8 +209,8 @@ module.exports = class Query extends Base {
         return this._db.queryUpsert(this, data);
     }
 
-    remove () {
-        return this._db.queryRemove(this);
+    delete () {
+        return this._db.queryDelete(this);
     }
 
     count () {

@@ -68,14 +68,14 @@ module.exports = class Event extends Base {
     }
 
     static detachByHandler (handler, items) {
-        let removed = false;
+        let detached = false;
         for (let i = items.length - 1; i >= 0; --i) {
             if (items[i][0] === handler) {
                 items.splice(i, 1);
-                removed = true;
+                detached = true;
             }
         }
-        return removed;
+        return detached;
     }
 
     static trigger (sender, name, event, items = []) {

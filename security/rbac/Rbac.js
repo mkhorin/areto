@@ -91,6 +91,10 @@ module.exports = class Rbac extends Base {
         item.children = children;
     }
 
+    getItem (id) {
+        return Object.prototype.hasOwnProperty.call(this.itemMap, id) ? this.itemMap[id] : null;
+    }
+
     findUser (name) {
         return this.spawn(this.module.get('auth').Identity).find({name});
     }
@@ -101,18 +105,16 @@ module.exports = class Rbac extends Base {
             : null;
     }
 
-    async can (assignments, itemId, params) {
-        if (this._loading
-            || !Object.prototype.hasOwnProperty.call(this.itemMap, itemId)
-            || !assignments
-            || !assignments.length) {
+    async can (assignments, id, params) {
+        const item = this.getItem(id);
+        if (this._loading || !item || !assignments || !assignments.length) {
             return false;
         }
         const inspector = this.spawn(this.Inspector, {rbac: this, params});
         for (const assignment of assignments) {
             if (Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
                 inspector.assignment = this.itemMap[assignment];
-                if (await inspector.execute(this.itemMap[itemId])) {
+                if (await inspector.execute(item)) {
                     return true;
                 }
             }

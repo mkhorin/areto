@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const ObjectHelper = require('../../../helper/ObjectHelper');
 
 describe('ObjectHelper', ()=> {

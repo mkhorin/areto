@@ -32,8 +32,8 @@ module.exports = class RateLimit extends Base {
         return this.store.find(type, user);
     }
 
-    remove (type, user) {
-        return this.store.remove(type, user);
+    delete (type, user) {
+        return this.store.delete(type, user);
     }
 
     afterRateUpdate (model) {

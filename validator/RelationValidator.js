@@ -13,8 +13,8 @@ module.exports = class RelationValidator extends Base {
             min: null,
             max: null,
             unique: null, 
-            allow: null, // allow changes ['links', 'unlinks', 'removes']
-            deny: null, // deny changes ['links', 'unlinks', 'removes']
+            allow: null, // allow changes ['links', 'unlinks', 'deletes']
+            deny: null, // deny changes ['links', 'unlinks', 'deletes']
             filter: null, // handler(value, model, attr)
             behavior: 'relationChange',
             ...config

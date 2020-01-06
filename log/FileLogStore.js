@@ -7,6 +7,17 @@ const Base = require('./LogStore');
 
 module.exports = class FileLogStore extends Base {
 
+    static parseFilename (name) {
+        if (typeof name !== 'string') {
+            return null;
+        }
+        name = FileHelper.getBasename(name);
+        const index = name.lastIndexOf('-');
+        return index !== -1
+            ? [name.substring(0, index), name.substring(index + 1)]
+            : [name];
+    }
+
     constructor (config) {
         super({
             basePath: 'log',
@@ -18,7 +29,7 @@ module.exports = class FileLogStore extends Base {
         this.basePath = this.module.resolvePath(this.basePath);
         this.file = this.getFile();
         this.fullFile = this.getFile('full');
-        this.maxFileSize *= 1024 * 1024; // megabytes to bytes        
+        this.maxFileSize *= 1024 * 1024; // megabytes to bytes
         
         fs.mkdirSync(this.basePath, {recursive: true});
         this.openFile();
@@ -60,7 +71,7 @@ module.exports = class FileLogStore extends Base {
     }
 
     observe () {
-        setTimeout(async ()=> {
+        setTimeout(async () => {
             await this.checkout();
             this.observe();
         }, this.observePeriod * 1000);
@@ -81,15 +92,15 @@ module.exports = class FileLogStore extends Base {
         await fs.promises.rename(this.file, this.fullFile);
         fs.closeSync(this._fd);
         this.openFile();
-        const files = await this.getFiles();
-        await this.removeExcessFiles(files);
+        const files = await this.getSortedFiles();
+        await this.deleteExcessFiles(files);
         for (let i = files.length - 1; i >= 0; --i) {
             await fs.promises.rename(files[i], this.getFile(i + 1));
         }
         this.log('info', `Rotate success: ${this.name}`);
     }
 
-    async removeExcessFiles (files) {
+    async deleteExcessFiles (files) {
         if (files.length > this.maxFiles) {
             const unlinks = files.splice(this.maxFiles, files.length);
             for (const file of unlinks) {
@@ -98,12 +109,12 @@ module.exports = class FileLogStore extends Base {
         }
     }
 
-    async getFiles () {
+    async getSortedFiles () {
         const baseName = path.basename(this.file);
         const items = [];
-        for (let file of await fs.promises.readdir(this.basePath)) {
-            if (file.indexOf(this.name) === 0 && file !== baseName) {
-                file = path.join(this.basePath, file);
+        for (let name of await fs.promises.readdir(this.basePath)) {
+            if (name.indexOf(this.name) === 0 && name !== baseName) {
+                const file = path.join(this.basePath, name);
                 const stat = await fs.promises.stat(file);
                 const time = stat.mtime.getTime();
                 if (stat.isFile()) {
@@ -111,7 +122,21 @@ module.exports = class FileLogStore extends Base {
                 }
             }
         }
-        return items.sort((a, b)=> b.time - a.time).map(item => item.file);
+        return items.sort((a, b) => b.time - a.time).map(item => item.file);
+    }
+
+    async getFiles () {
+        const items = [];
+        for (let name of await fs.promises.readdir(this.basePath)) {
+            if (name.indexOf(this.name) === 0) {
+                const file = path.join(this.basePath, name);
+                const stat = await fs.promises.stat(file);
+                if (stat.isFile()) {
+                    items.push({name, file, stat});
+                }
+            }
+        }
+        return items;
     }
 };
 
@@ -119,4 +144,5 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const Exception = require('../error/Exception');
+const FileHelper = require('../helper/FileHelper');
 const PromiseHelper = require('../helper/PromiseHelper');

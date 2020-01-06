@@ -40,7 +40,7 @@ module.exports = class CommonHelper {
         });
         sub.stdout.on('data', data => console.log(`${data}`));
         sub.stderr.on('data', data => console.error(`${data}`));
-        return new Promise((resolve, reject)=> {
+        return new Promise((resolve, reject) => {
             sub.on('error', err => reject(`Spawn process failed: ${err}`));
             sub.on('close', err => {
                 err ? reject(`Spawn process: ${command}: failed: ${err}`)

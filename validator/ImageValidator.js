@@ -46,6 +46,7 @@ module.exports = class ImageValidator extends Base {
     }
 
     async validateImage (file) {
+        const sharp = require('sharp');
         try {
             const image = sharp(file.path);
             const data = await image.metadata();
@@ -81,5 +82,3 @@ module.exports = class ImageValidator extends Base {
         });
     }
 };
-
-const sharp = require('sharp');

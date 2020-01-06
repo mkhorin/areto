@@ -14,8 +14,8 @@ module.exports = class PromiseHelper {
     }
 
     static promise (callback, context) {
-        return new Promise((resolve, reject)=> {
-            callback.call(context, (err, result)=> {
+        return new Promise((resolve, reject) => {
+            callback.call(context, (err, result) => {
                 err ? reject(err) : resolve(result);
             });
         });

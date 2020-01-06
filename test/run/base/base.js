@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const Base = require('areto/base/Base');
 
 class Test extends Base {

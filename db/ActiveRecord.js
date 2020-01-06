@@ -15,11 +15,11 @@ module.exports = class ActiveRecord extends Base {
             QUERY_CLASS: require('./ActiveQuery'),
             EVENT_BEFORE_INSERT: 'beforeInsert',
             EVENT_BEFORE_UPDATE: 'beforeUpdate',
-            EVENT_BEFORE_REMOVE: 'beforeRemove',
+            EVENT_BEFORE_DELETE: 'beforeDelete',
             EVENT_AFTER_INSERT: 'afterInsert',
             EVENT_AFTER_UPDATE: 'afterUpdate',
-            EVENT_AFTER_REMOVE: 'afterRemove',
-            // UNLINK_ON_REMOVE: [], // unlink relations after model remove
+            EVENT_AFTER_DELETE: 'afterDelete',
+            // UNLINK_ON_DELETE: [], // unlink relations after model deletion
         };
     }
 
@@ -133,20 +133,15 @@ module.exports = class ActiveRecord extends Base {
         return this.trigger(this.EVENT_AFTER_UPDATE);
     }
 
-    beforeRemove () {
-        // call await super.beforeRemove() if override it
-        return this.trigger(this.EVENT_BEFORE_REMOVE);
+    beforeDelete () {
+        // call await super.beforeDelete() if override it
+        return this.trigger(this.EVENT_BEFORE_DELETE);
     }
 
-    async afterRemove () {
-        // call on override: await super.afterRemove()
-        if (Array.isArray(this.UNLINK_ON_REMOVE)) {
-            const linker = this.getLinker();
-            for (const relation of this.UNLINK_ON_REMOVE) {
-                await linker.unlinkAll(relation);
-            }
-        }
-        return this.trigger(this.EVENT_AFTER_REMOVE);
+    async afterDelete () {
+        // call on override: await super.afterDelete()
+        await this.unlinkRelations(this.UNLINK_ON_DELETE);
+        return this.trigger(this.EVENT_AFTER_DELETE);
     }
 
     // POPULATE
@@ -212,19 +207,19 @@ module.exports = class ActiveRecord extends Base {
         this.assignOldAttrs();
     }
 
-    // REMOVE
+    // DELETE
 
-    static async remove (models) {
+    static async delete (models) {
         for (const model of models) {
-            await model.remove();
+            await model.delete();
             await PromiseHelper.setImmediate();
         }
     }
 
-    async remove () {
-        await this.beforeRemove();
-        await this.findById().remove();
-        await this.afterRemove();
+    async delete () {
+        await this.beforeDelete();
+        await this.findById().delete();
+        await this.afterDelete();
     }
 
     // RELATIONS
@@ -396,6 +391,15 @@ module.exports = class ActiveRecord extends Base {
             this._linker = this.spawn(this.LINKER_CLASS, {owner: this});
         }
         return this._linker;
+    }
+
+    async unlinkRelations (relations) {
+        if (Array.isArray(relations)) {
+            const linker = this.getLinker();
+            for (const relation of relations) {
+                await linker.unlinkAll(relation);
+            }
+        }
     }
 
     log () {

@@ -100,15 +100,15 @@ module.exports = class WebUser extends Base {
 
     // ACCESS CONTROL
 
-    can (name) {
-        return Object.prototype.hasOwnProperty.call(this._accessMap, name)
-            ? this._accessMap[name]
+    can (permission) {
+        return Object.prototype.hasOwnProperty.call(this._accessMap, permission)
+            ? this._accessMap[permission]
             : this.resolveAccess(...arguments);
     }
 
-    async resolveAccess (name, params) {
-        const access = await this.auth.rbac.can(this.assignments, name, params);
-        return this._accessMap[name] = !!access;
+    async resolveAccess (permission, params) {
+        const access = await this.auth.rbac.can(this.assignments, permission, params);
+        return this._accessMap[permission] = !!access;
     }
 
     async setAssignments () {

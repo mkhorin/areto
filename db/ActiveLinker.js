@@ -65,27 +65,27 @@ module.exports = class ActiveLinker extends Base {
         return model.save();
     }
 
-    async unlink (name, model, remove) {
+    async unlink (name, model, deleted) {
         const relation = this.owner.getRelation(name);
-        if (remove === undefined) {
-            remove = relation.getRemoveOnUnlink();
+        if (deleted === undefined) {
+            deleted = relation.getDeleteOnUnlink();
         }
         const method = relation.isOuterLink() ? 'unlinkVia' : 'unlinkInternal';
-        await this[method](relation, model, remove);
+        await this[method](relation, model, deleted);
         this.unsetUnlinked(name, model, relation);
         return PromiseHelper.setImmediate();
     }
 
-    async unlinkInternal (relation, model, remove) {
+    async unlinkInternal (relation, model, deleted) {
         const ref = model.get(relation.refKey);
         const link = this.owner.get(relation.linkKey);
         relation.isBackRef()
             ? await QueryHelper.unlinkInternal(ref, link, model, relation.refKey)
             : await QueryHelper.unlinkInternal(link, ref, this.owner, relation.linkKey);
-        return remove ? model.remove() : null;
+        return deleted ? model.delete() : null;
     }
 
-    unlinkVia (relation, model, remove) {
+    unlinkVia (relation, model, deleted) {
         const via = relation.getViaTable() || relation.getViaRelation();
         const condition = {
             [via.refKey]: this.owner.get(via.linkKey),
@@ -95,32 +95,34 @@ module.exports = class ActiveLinker extends Base {
             [via.refKey]: null,
             [relation.linkKey]: null
         };
-        if (remove === undefined) {
-            remove = via.getRemoveOnUnlink();
+        if (deleted === undefined) {
+            deleted = via.getDeleteOnUnlink();
         }
         if (relation.getViaTable()) {
-            return remove ? this.owner.getDb().remove(via.getTable(), condition)
-                          : this.owner.getDb().update(via.getTable(), condition, nulls);
+            return deleted
+                ? this.owner.getDb().delete(via.getTable(), condition)
+                : this.owner.getDb().update(via.getTable(), condition, nulls);
         }
         this.owner.unsetRelated(relation.getViaRelationName());
-        return remove ? via.model.find(condition).remove()
-                      : via.model.find(condition).updateAll(nulls);
+        return deleted
+            ? via.model.find(condition).delete()
+            : via.model.find(condition).updateAll(nulls);
     }
 
-    async unlinkAll (name, remove) {
+    async unlinkAll (name, deleted) {
         const relation = this.owner.getRelation(name);
         if (!relation) {
             return false;
         }
-        if (remove === undefined) {
-            remove = relation.getRemoveOnUnlink();
+        if (deleted === undefined) {
+            deleted = relation.getDeleteOnUnlink();
         }
         const method = relation.isOuterLink() ? 'unlinkViaAll' : 'unlinkInternalAll';
-        await this[method](relation, remove);
+        await this[method](relation, deleted);
         this.owner.unsetRelated(name);
     }
 
-    async unlinkViaAll (relation, remove) {
+    async unlinkViaAll (relation, deleted) {
         if (relation.getViaRelation()) {
             this.owner.unsetRelated(relation.getViaRelationName());
         }
@@ -130,22 +132,22 @@ module.exports = class ActiveLinker extends Base {
             condition = ['AND', condition, via.getWhere()];
         }
         let nulls = {[via.refKey]: null};
-        if (!Array.isArray(relation.remove)) {
+        if (relation.getViaTable()) {
             condition = this.owner.getDb().buildCondition(condition);
-            remove ? await this.owner.getDb().remove(via.getTable(), condition)
-                   : await this.owner.getDb().update(via.getTable(), condition, nulls);
-        } else if (remove) {
+            deleted ? await this.owner.getDb().delete(via.getTable(), condition)
+                    : await this.owner.getDb().update(via.getTable(), condition, nulls);
+        } else if (deleted) {
             for (const model of await via.model.find(condition).all()) {
-                await model.remove();
+                await model.delete();
             }
         } else {
             await via.model.find(condition).updateAll(nulls);
         }
     }
 
-    async unlinkInternalAll (relation, remove) {
+    async unlinkInternalAll (relation, deleted) {
         // relation via array valued attr
-        if (!remove && Array.isArray(this.owner.get(relation.linkKey))) {
+        if (!deleted && Array.isArray(this.owner.get(relation.linkKey))) {
             this.owner.set(relation.linkKey, []);
             return this.owner.forceSave();
         }
@@ -154,9 +156,9 @@ module.exports = class ActiveLinker extends Base {
             condition = ['AND', condition, relation.getWhere()];
         }
         const nulls = {[relation.refKey]: null};
-        if (remove) {
+        if (deleted) {
             for (const model of await relation.all()) {
-                await model.remove();
+                await model.delete();
             }
         } else if (relation.getViaArray()) {
             await relation.model.getDb().updateAllPull(relation.model.getTable(), {}, condition);

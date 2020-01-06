@@ -15,7 +15,7 @@ module.exports = class DataHistoryBehavior extends Base {
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);
-        this.setHandler(ActiveRecord.EVENT_AFTER_REMOVE, this.afterRemove);
+        this.setHandler(ActiveRecord.EVENT_AFTER_DELETE, this.afterDelete);
     }
 
     async beforeUpdate () {
@@ -35,9 +35,9 @@ module.exports = class DataHistoryBehavior extends Base {
         }
     }
 
-    afterRemove () {
-        // remove all target object history
-        return this.Model.removeTargetAll(this.owner);
+    afterDelete () {
+        // delete all target object history
+        return this.Model.deleteTargetAll(this.owner);
     }
 
     getAttrNames () {

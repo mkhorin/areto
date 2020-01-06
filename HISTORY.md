@@ -1,3 +1,12 @@
+## 0.32.0
+
+* base/Module
+    - inject params from constructor
+* db/ActiveRecord
+    - fix unlinking all via relation
+* web/Router
+    - add selector of all actions for request methods
+    
 ## 0.31.0
 
 * base/Controller

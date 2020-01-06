@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const expect = require('chai').expect;
+const {expect} = require('chai');
 const EventManager = require('areto/base/EventManager');
 const Parent = require('../../app/Parent');
 
@@ -81,7 +81,7 @@ describe('EventManager', ()=> {
     it('handled', async ()=> {
         const em = new EventManager({owner});
 
-        em.on('test', (event, data)=> {
+        em.on('test', (event, data) => {
             handler1(event, data);
             event.handled = true;
         }, data1);

@@ -30,7 +30,7 @@ module.exports = class DatabaseCache extends Base {
     }
 
     removeValue (key) {
-        return this.getQuery().and({key}).remove();
+        return this.getQuery().and({key}).delete();
     }
 
     flushValues () {

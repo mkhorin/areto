@@ -63,7 +63,7 @@ module.exports = class DependentOrder extends Base {
     }
 
     sortByIndex () {
-        this._items.sort((a, b)=> a.index - b.index);
+        this._items.sort((a, b) => a.index - b.index);
     }
 
     orderItem (item) {

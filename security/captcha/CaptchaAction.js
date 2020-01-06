@@ -76,6 +76,7 @@ module.exports = class Captcha extends Base {
         if (this.grid) {
             content += this.drawGrid();
         }
+        const sharp = require('sharp');
         const image = sharp(new Buffer(this.drawBack(content)));
         if (this.median) {
             image.median(this.median);
@@ -132,5 +133,4 @@ module.exports = class Captcha extends Base {
     }
 };
 
-const sharp = require('sharp');
 const MathHelper = require('../../helper/MathHelper');

@@ -55,7 +55,7 @@ module.exports = class RelationChangeBehavior extends Base {
             if (this._changes[name]) {
                 await this.resolveTypeChanges('links', name);
                 await this.resolveTypeChanges('unlinks', name);
-                await this.resolveTypeChanges('removes', name);
+                await this.resolveTypeChanges('deletes', name);
             }
         }
     }
@@ -91,9 +91,9 @@ module.exports = class RelationChangeBehavior extends Base {
             return;
         }
         delete this._changes[name];
-        if (Array.isArray(data.removes)) {
-            for (const model of data.removes) {
-                await model.remove();
+        if (Array.isArray(data.deletes)) {
+            for (const model of data.deletes) {
+                await model.delete();
             }
         }
         if (Array.isArray(data.unlinks)) {
@@ -124,7 +124,7 @@ module.exports = class RelationChangeBehavior extends Base {
             for (const model of data.links) {
                 result[model.getId()] = model.getAttrMap();
             }
-            for (const model of data.unlinks.concat(data.removes)) {
+            for (const model of data.unlinks.concat(data.deletes)) {
                 delete result[model.getId()];
             }
         }
