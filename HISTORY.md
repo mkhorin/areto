@@ -1,3 +1,8 @@
+## 0.33.0
+
+* validator/ExistValidator
+    - add string filter as attribute value filter   
+    
 ## 0.32.0
 
 * base/Module

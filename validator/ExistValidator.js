@@ -63,6 +63,8 @@ module.exports = class ExistValidator extends Base {
         }
         if (typeof this.filter === 'function') {
             this.filter(query, model, attr);
+        } else if (typeof this.filter === 'string') {
+            query.and({[this.filter]: model.get(this.filter)});
         } else if (this.filter) {
             query.and(this.filter);
         }
