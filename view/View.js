@@ -10,7 +10,7 @@ module.exports = class View extends Base {
     constructor (config) {
         super({
             // parent: new View
-            // origin: new View
+            // original: new View
             theme: config.parent && config.parent.theme, // theme name
             ThemeSet: require('./ThemeSet'),
             ...config
@@ -18,9 +18,9 @@ module.exports = class View extends Base {
     }
 
     async init () {
-        if (this.origin) {
-            this.origin.createThemeMap();
-            this.parent = this.origin.isEmpty() ? this.parent : this.origin;
+        if (this.original) {
+            this.original.createThemeMap();
+            this.parent = this.original.isEmpty() ? this.parent : this.original;
         }
         this.createThemeMap();
     }
@@ -30,7 +30,7 @@ module.exports = class View extends Base {
             theme: this.theme,
             parent: this.parent && this.parent.themeSet,
             directory: this.module.getPath(),
-            isOrigin: this.parent && this.parent === this.origin
+            isOrigin: this.parent && this.parent === this.original
         });
     }
 

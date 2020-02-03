@@ -6,11 +6,12 @@
 const DEFAULT_HASH_METHOD = 'sha256';
 const DEFAULT_HASH_LENGTH = 64;
 const DEFAULT_SALT_LENGTH = 8;
+const HEX_REGEX = /^[a-f0-9]+$/;
 
 module.exports = class SecurityHelper {
 
     static isHexString (data) {
-        return /^[a-f0-9]+$/.test(data)
+        return HEX_REGEX.test(data)
     }
 
     static getRandomString (length) {

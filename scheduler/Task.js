@@ -22,7 +22,7 @@ module.exports = class Task extends Base {
             startup: false, // start immediately
             startDate: null, // Date
             startTime: null, // 00:00:00
-            period: 0, // repeat timeout, seconds or ISO_8601#Duration
+            period: 0, // repeat timeout (seconds or ISO_8601#Duration)
             repeats: 0, // 0 - endless
             stopOnFail: true,
             ...config

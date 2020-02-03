@@ -3,6 +3,13 @@
  */
 'use strict';
 
+const AZ_REGEX = /([A-Z]+)/g;
+const CAMEL_REGEX = /[^A-Za-z0-9]+/g;
+const DASH_REGEX = /^-/;
+const SEP_REGEX = /[-_.]+/g;
+const SPACE_REGEX = / /g;
+const WORD_FIRST_REGEX = /(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g;
+
 module.exports = class StringHelper {
 
     static generateLabel (name) {
@@ -21,27 +28,27 @@ module.exports = class StringHelper {
 
     static toWordFirstUpperCase (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, $1 => $1.toUpperCase());
+        return text.replace(WORD_FIRST_REGEX, $1 => $1.toUpperCase());
     }
 
     static camelize (text) {
         text = typeof text === 'string' ? text : String(text);
-        return this.toWordFirstUpperCase(text.replace(/[^A-Za-z0-9]+/g, ' ')).replace(/ /g, '');
+        return this.toWordFirstUpperCase(text.replace(CAMEL_REGEX, ' ')).replace(SPACE_REGEX, '');
     }
 
     static camelToWords (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(/[-_.]+/g, ' ').replace(/([A-Z]+)/g, ' $1').trim();
+        return text.replace(SEP_REGEX, ' ').replace(AZ_REGEX, ' $1').trim();
     }
 
     static camelToId (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(/([A-Z]+)/g, '-$1').replace(/^-/, '').toLowerCase();
+        return text.replace(AZ_REGEX, '-$1').replace(DASH_REGEX, '').toLowerCase();
     }
 
     static idToCamel (text) {
         text = typeof text === 'string' ? text : String(text);
-        return this.toWordFirstUpperCase(text.split('-').join(' ')).replace(/ /g, '');
+        return this.toWordFirstUpperCase(text.split('-').join(' ')).replace(SPACE_REGEX, '');
     }
 
     static split (text, separator = ',') {
@@ -68,4 +75,9 @@ module.exports = class StringHelper {
         return result;
     }
 
+    static trimEnd (text, end) {
+        const index = typeof end === 'string' ? text.lastIndexOf(end) : -1;
+        text = typeof text === 'string' ? text : String(text);
+        return index === -1 ? text : text.substring(0, index);
+    }
 };

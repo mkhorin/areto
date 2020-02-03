@@ -238,7 +238,6 @@ module.exports = class Query extends Base {
     }
     
     prepare () {
-        return Promise.resolve();
     }
 
     afterBuild () {
@@ -250,10 +249,9 @@ module.exports = class Query extends Base {
     }
 
     populate (docs) {
-        if (this._index) {
-            docs = QueryHelper.indexObjects(docs, this._index);
-        }
-        return Promise.resolve(docs);
+        return this._index
+            ? QueryHelper.indexObjects(docs, this._index)
+            : docs;
     }
 
     filterCondition (data) {

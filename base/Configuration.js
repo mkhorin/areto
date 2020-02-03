@@ -14,7 +14,7 @@ module.exports = class Configuration extends Base {
         super({
             // directory: configuration directory,
             // parent: parent configuration,
-            // origin: origin configuration,
+            // original: original configuration,
             ...config
         });
         this.name = this.name || process.env.NODE_ENV;
@@ -25,11 +25,21 @@ module.exports = class Configuration extends Base {
     }
 
     getTitle () {
-        return this._names.join('.') || (this.origin && this.origin.getTitle());
+        return this._names.join('.') || (this.original && this.original.getTitle());
     }
 
     includes (key, value) {
         return NestedValueHelper.includes(value, key, this._data);
+    }
+
+    mergeWithParents (key) {
+        return this.parent ? {...this.parent.mergeWithParents(key), ...this.get(key)} : this.get(key);
+    }
+
+    deepMergeWithParents (key) {
+        return this.parent
+            ? ArrayHelper.deepAssign({}, this.parent.deepMergeWithParents(key), this.get(key))
+            : this.get(key);
     }
 
     async load () {
@@ -38,8 +48,8 @@ module.exports = class Configuration extends Base {
         }
         this._sources.push({});
         this._data = AssignHelper.deepAssign(...this._sources.reverse());
-        if (this.origin) {
-            this._data = AssignHelper.deepAssign({}, this.origin._data, this._data);
+        if (this.original) {
+            this._data = AssignHelper.deepAssign({}, this.original._data, this._data);
         }
         AssignHelper.deepAssign(this._data, this.data);
     }

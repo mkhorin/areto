@@ -13,8 +13,8 @@ module.exports = class FileMessageSource extends Base {
     }
     
     async loadModuleMessages (module) {
-        if (module.origin) {
-            await this.loadModuleMessages(module.origin);
+        if (module.original) {
+            await this.loadModuleMessages(module.original);
         }
         const dir = module.resolvePath(this.basePath);
         const stat = await FileHelper.getStat(dir);

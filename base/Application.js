@@ -4,20 +4,25 @@
 'use strict';
 
 const Base = require('./Module');
+const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Application extends Base {
 
     static getConstants () {
         return {
             DEFAULT_COMPONENTS: {
-                bodyParser: {},
-                formatter: {},
-                router: {},
-                urlManager: {},
-                view: {}
+                'bodyParser': {},
+                'formatter': {},
+                'router': {},
+                'urlManager': {},
+                'view': {}
             },
             EVENT_AFTER_START: 'afterStart'
         };
+    }
+
+    static getName () {
+        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Application'));
     }
 
     constructor (config) {

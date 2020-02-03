@@ -13,12 +13,26 @@ module.exports = class ObjectHelper {
         }
     }
 
-    static getValue (key, data, defaults) {
-        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults;
+    static getValue (keys, data, defaults) {
+        if (!Array.isArray(keys)) {
+            return data && Object.prototype.hasOwnProperty.call(data, keys) ? data[keys] : defaults;
+        }
+        const values = [];
+        for (const key of keys) {
+            values.push(data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults);
+        }
+        return values;
     }
 
-    static getValueOrKey (key, data) {
-        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : key;
+    static getValueOrKey (keys, data) {
+        if (!Array.isArray(keys)) {
+            return data && Object.prototype.hasOwnProperty.call(data, keys) ? data[keys] : keys;
+        }
+        const result = [];
+        for (const key of keys) {
+            result.push(data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : key);
+        }
+        return result;
     }
 
     static getKeyByValue (value, data) {

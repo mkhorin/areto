@@ -12,7 +12,7 @@ module.exports = class Session extends Base {
             resave: false,
             saveUninitialized: false,
             name: `${config.module.fullName}.sid`,
-            lifetime: 3600, // seconds or duration
+            lifetime: 'PT1H', // see ISO_8601#Duration
             // cookie: {maxAge: 3600 * 1000},
             Store: require('./MemorySessionStore'),
             engine: require('express-session'),

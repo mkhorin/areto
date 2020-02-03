@@ -26,30 +26,39 @@ module.exports = class FileHelper {
         return new Promise(resolve => fs.stat(file, (err, stat) => resolve(err ? null : stat)));
     }
 
-    static async delete (dir) {
-        const stat = await this.getStat(dir);
+    static async delete (file) {
+        const stat = await this.getStat(file);
         if (!stat) {
             return false; // skip non-existent
         }
         if (stat.isFile()) {
-            return fs.promises.unlink(dir);
+            return fs.promises.unlink(file);
         }
         await PromiseHelper.setImmediate(); // flush calling stack
-        await this.handleChildren(dir, file => this.delete(path.join(dir, file)));
-        return fs.promises.rmdir(dir);
+        await this.handleChildren(file, child => this.delete(path.join(file, child)));
+        return fs.promises.rmdir(file);
     }
 
-    static async copy (source, target) {
+    static async copy (source, target, flags) {
         const stat = await fs.promises.stat(source);
         if (stat.isFile()) {
             await this.createDirectory(path.dirname(target), {mode: stat.mode});
-            return fs.promises.copyFile(source, target);
+            return fs.promises.copyFile(source, target, flags);
         }
         await this.createDirectory(target, {mode: stat.mode});
         await PromiseHelper.setImmediate(); // flush calling stack
         await this.handleChildren(source, file => {
-            return this.copy(path.join(source, file), path.join(target, file));
+            return this.copy(path.join(source, file), path.join(target, file), flags);
         });
+    }
+
+    static async copyChildren (source, target, flags) {
+        const stat = await fs.promises.stat(source);
+        if (stat.isDirectory()) {
+            await this.handleChildren(source, file => {
+                return this.copy(path.join(source, file), path.join(target, file), flags);
+            });
+        }
     }
 
     // DIRECTORY

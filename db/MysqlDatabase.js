@@ -3,6 +3,8 @@
  */
 'use strict';
 
+const ESCAPE_REGEX = /[\0\n\r\b\t\\'"\x1a]/g;
+
 const Base = require('./Database');
 
 module.exports = class MysqlDatabase extends Base {
@@ -203,7 +205,7 @@ module.exports = class MysqlDatabase extends Base {
         if (value instanceof Expression) {
             return value.get(this);
         }
-        value = value.replace(/[\0\n\r\b\t\\'"\x1a]/g, function(s) {
+        value = value.replace(ESCAPE_REGEX, function(s) {
             switch (s) {
                 case "\0": return "\\0";
                 case "\n": return "\\n";

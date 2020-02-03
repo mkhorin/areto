@@ -31,7 +31,7 @@ module.exports = class Component extends Base {
         });
         this.behaviors = ClassHelper.spawn(this.behaviorManager || BehaviorManager, {
             owner: this,
-            autoAttachedItems: this.BEHAVIORS
+            autoAttachedMap: this.BEHAVIORS
         });
     }
 

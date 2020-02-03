@@ -44,9 +44,9 @@ module.exports = class Router extends Base {
 
     createControllerMap () {
         this._controllerMap = this.getControllerMap(this.module.getControllerDirectory());
-        if (this.module.origin) {
+        if (this.module.original) {
             this._controllerMap = {
-                ...this.getControllerMap(this.module.origin.getControllerDirectory()),
+                ...this.getControllerMap(this.module.original.getControllerDirectory()),
                 ...this._controllerMap
             };
         }

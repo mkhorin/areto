@@ -66,9 +66,11 @@ module.exports = class ActiveQuery extends Base {
     }
 
     prepareViaArray () {
-        const value = this.primaryModel.get(this.linkKey);
         this._whereBeforeFilter = this._where;
-        if (value === undefined || value === null || Array.isArray(value)) {
+        const value = this.primaryModel.get(this.linkKey);
+        if (value === undefined || value === null) {
+            this.where(['FALSE']);
+        } else if (Array.isArray(value)) {
             if (this._orderByKeys) {
                 this._orderByKeys = value;
             }
@@ -260,7 +262,17 @@ module.exports = class ActiveQuery extends Base {
     }
 
     resolve () {
-        return this._multiple ? this.all() : this.one();
+        return this._multiple
+            ? (this.hasLinkValue() ? this.all() : [])
+            : (this.hasLinkValue() ? this.one() : null);
+    }
+
+    hasLinkValue () {
+        if (this._viaRelation || this._viaTable) {
+            return true;
+        }
+        const link = this.primaryModel.get(this.linkKey);
+        return link !== null && link !== undefined && (!Array.isArray(link) || link.length);
     }
 
     // POPULATE
@@ -290,12 +302,12 @@ module.exports = class ActiveQuery extends Base {
     async populateRelation (name, primaryModels) {
         const [viaModels, viaQuery] = await this.populateViaRelation(primaryModels);
         if (!this._multiple && primaryModels.length === 1) {
-            const model = await this.one();
-            if (!model) {
-                return [];
+            const models = await this.all();
+            if (!models.length) {
+                return models;
             }
-            this.populateOneRelation(name, model, primaryModels);
-            return [model];
+            this.populateOneRelation(name, models[0], primaryModels);
+            return models.slice(0, 1);
         }
         const index = this._index;
         this._index = null;
@@ -417,7 +429,7 @@ module.exports = class ActiveQuery extends Base {
 
     filterByModels (models) {
         if (!Array.isArray(models)) {
-            return;
+            return false;
         }
         const values = [];
         const isActiveRecord = models[0] instanceof ActiveRecord;
@@ -433,14 +445,16 @@ module.exports = class ActiveQuery extends Base {
         if (this._orderByKeys) {
             this._orderByKeys = values;
         }
-        this.and(['IN', this.refKey, values]);
+        values.length
+            ? this.and(['IN', this.refKey, values])
+            : this.where(['FALSE']);
     }
 
-    resolveJunctionRows (primaryModels) {
-        if (!primaryModels.length) {
+    resolveJunctionRows (models) {
+        if (!models.length) {
             return [];
         }
-        this.filterByModels(primaryModels);
+        this.filterByModels(models);
         return this.raw().all();
     }
 };

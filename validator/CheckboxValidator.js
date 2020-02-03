@@ -14,10 +14,19 @@ module.exports = class CheckboxValidator extends Base {
         });
     }
 
+    getMessage () {
+        return this.createMessage(this.message, 'Invalid value');
+    }
+
     validateAttr (attr, model) {
         const value = model.get(attr);
-        if (typeof value !== 'boolean' ) {
-            model.set(attr, value === 'on');
+        if (typeof value === 'boolean' ) {
+            return true;
         }
+        const trueValue = value === 'true' || value === 'on';
+        if (value && value !== 'false' && !trueValue) {
+            return this.getMessage();
+        }
+        model.set(attr, trueValue);
     }
 };

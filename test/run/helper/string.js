@@ -53,4 +53,11 @@ describe('StringHelper', ()=> {
             k2: 'v2'
         });
     });
+
+    it('trimEnd', ()=> {
+        expect(StringHelper.trimEnd('baseEnd', 'End')).to.eql('base');
+        expect(StringHelper.trimEnd('other', 'End')).to.eql('other');
+        expect(StringHelper.trimEnd('other')).to.eql('other');
+        expect(StringHelper.trimEnd(null)).to.eql('null');
+    });
 });

@@ -79,6 +79,7 @@ module.exports = class DatabaseRbacStore extends Base {
 
     prepareRule ({name, config}) {
         try {
+            config = CommonHelper.parseJson(config);
             config = ClassHelper.resolveSpawn(Rule, this.rbac.module, config);
         } catch {
             return this.log('error', `Invalid rule: ${JSON.stringify(config)}`);

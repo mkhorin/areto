@@ -32,6 +32,7 @@ module.exports = class Module extends Base {
                 'cache': {Class: require('../cache/Cache')},
                 'cookie': {Class: require('../web/Cookie')},
                 'db': {Class: require('../db/Database')},
+                'filePacker': {Class: require('../web/packer/FilePacker')},
                 'forwarder': {Class: require('../web/Forwarder')},
                 'logger': {Class: require('../log/Logger')},
                 'rateLimit': {Class: require('../security/rate-limit/RateLimit')},
@@ -57,7 +58,7 @@ module.exports = class Module extends Base {
     }
 
     static getName () {
-        return StringHelper.camelToId(this.name);
+        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Module'));
     }
 
     constructor (config) {
@@ -117,7 +118,7 @@ module.exports = class Module extends Base {
     }
 
     require () {
-        return this.requireInternal(...arguments) || (this.origin && this.origin.require(...arguments));
+        return this.requireInternal(...arguments) || (this.original && this.original.require(...arguments));
     }
 
     requireInternal () {
@@ -254,11 +255,11 @@ module.exports = class Module extends Base {
     }
 
     async createOrigin () {
-        if (this.origin) {
-            this.origin = this.spawn(this.origin, {parent: this.parent});
-            await this.origin.createConfiguration();
-            await this.origin.createClassMapper();
-            this.origin.extractConfigProperties();
+        if (this.original) {
+            this.original = this.spawn(this.original, {parent: this.parent});
+            await this.original.createConfiguration();
+            await this.original.createClassMapper();
+            this.original.extractConfigProperties();
         }
     }
 
@@ -267,7 +268,7 @@ module.exports = class Module extends Base {
             directory: this.getPath('config'),
             name: this.configName,
             parent: this.parent && this.parent.config,
-            origin: this.origin && this.origin.config,
+            original: this.original && this.original.config,
             data: this.config
         });
         await this.config.load();
@@ -370,7 +371,7 @@ module.exports = class Module extends Base {
     createViewComponent (config) {        
         return this.spawn({
             Class: require('../view/View'),
-            origin: this.origin && this.origin.createViewComponent(config),
+            original: this.original && this.original.createViewComponent(config),
             ...config
         });
     }
@@ -414,8 +415,8 @@ module.exports = class Module extends Base {
     attachStaticSource (data) {
         if (data) {
             this.attachStaticByModule(this, data);
-            if (this.origin) {
-                this.attachStaticByModule(this.origin, data);
+            if (this.original) {
+                this.attachStaticByModule(this.original, data);
             }
         }
     }

@@ -61,6 +61,10 @@ module.exports = class Action extends Base {
         return this.controller.send(...arguments);
     }
 
+    sendJson () {
+        return this.controller.sendJson(...arguments);
+    }
+
     sendText () {
         return this.controller.sendText(...arguments);
     }

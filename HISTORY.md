@@ -1,7 +1,29 @@
+## 0.34.0
+
+* behavior/RelationChangeBehavior
+    - unlink and delete by related models only
+* db/ActiveRecord
+    - fix implicit parameter passing to findById
+* db/ActiveQuery
+    - skip query with empty link value
+* db/MongoDatabase
+    - drop all tables
+* helper/FileHelper
+    - add copy children
+    - add flags to copy method
+* security/rbac/DatabaseRbacStore
+    - parse JSON rule configuration
+* validator/CheckboxValidator
+    - add True and False value
+* validator/RegexValidator
+    - fix duration pattern
+* validator/SpawnValidator
+    - resolve BaseClass from string
+
 ## 0.33.0
 
 * validator/ExistValidator
-    - add string filter as attribute value filter   
+    - add string filter as attribute value filter
     
 ## 0.32.0
 
@@ -91,7 +113,7 @@
 * helper/QueryHelper
     - fix query with multiple nested relations
 * i18n/I18n
-    - resolve message source with module origin
+    - resolve message source with module original
 * scheduler/Scheduler
     - assign task module
 * validator/SpawnValidator
@@ -120,7 +142,7 @@
 * base/ClassMapper
     - add class dependencies to module configuration
 * base/Module
-    - add origin to inherit all module functionality
+    - add original to inherit all module functionality
 * captcha/CaptchaAction
     - replace gm with sharp
 * db/ActiveRecord

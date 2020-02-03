@@ -50,12 +50,16 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         this._resolved = true;
         for (const name of this.getActiveRelationNames()) {
-            this._changes[name] = CommonHelper.parseRelationChanges(this.owner.get(name));
-            this.restoreValue(name);
+            const value = this.owner.get(name);
+            const oldValue = this.owner.getOldAttr(name);
+            if (value && value !== oldValue) {
+                this._changes[name] = CommonHelper.parseRelationChanges(value);
+            }
+            this.restoreValue(name, oldValue);
             if (this._changes[name]) {
-                await this.resolveTypeChanges('links', name);
-                await this.resolveTypeChanges('unlinks', name);
-                await this.resolveTypeChanges('deletes', name);
+                await this.resolveLinks(name);
+                await this.resolveByRelated('unlinks', name);
+                await this.resolveByRelated('deletes', name);
             }
         }
     }
@@ -63,15 +67,14 @@ module.exports = class RelationChangeBehavior extends Base {
     getActiveRelationNames () {
         let names = [];
         for (const item of this.owner.getValidators()) {
-            if (item instanceof Validator.BUILTIN.relation && item.isActive(this.owner.scenario)) {
+            if (item instanceof RelationValidator && item.isActive(this.owner.scenario)) {
                 names = names.concat(item.attrs);
             }
         }
         return ArrayHelper.unique(names);
     }
 
-    restoreValue (name) {
-        const value = this.owner.getOldAttr(name);
+    restoreValue (name, value) {
         if (value !== undefined) {
             return this.owner.set(name, value);
         }
@@ -79,10 +82,18 @@ module.exports = class RelationChangeBehavior extends Base {
         this.owner.set(name, relation.isInternalArray() ? [] : null);
     }
 
-    async resolveTypeChanges (type, attr) {
-        if (this._changes[attr][type].length) {
-            const relation = this.getRelation(attr);
-            this._changes[attr][type] = await relation.model.findById(this._changes[attr][type]).all();
+    async resolveLinks (name) {
+        const changes = this._changes[name];
+        if (changes.links.length) {
+            changes.links = await this.getRelation(name).model.findById(changes.links).all();
+        }
+    }
+
+    async resolveByRelated (key, name) {
+        const changes = this._changes[name];
+        if (changes[key].length) {
+            const query = this.getRelation(name);
+            changes[key] = await query.and(['ID', query.model.PK, changes[key]]).all();
         }
     }
 
@@ -170,4 +181,4 @@ const ArrayHelper = require('../helper/ArrayHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
 const ActiveRecord = require('../db/ActiveRecord');
-const Validator = require('../validator/Validator');
+const RelationValidator = require('../validator/RelationValidator');

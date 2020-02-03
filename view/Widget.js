@@ -58,4 +58,3 @@ module.exports = class Widget extends Base {
 };
 
 const CommonHelper = require('../helper/CommonHelper');
-const DateHelper = require('../helper/DateHelper');

@@ -17,7 +17,7 @@ module.exports = class Identity extends Base {
 
     getAssignments () {
         // get user's assigned roles []
-        return Promise.resolve(this.module.get('rbac').getUserAssignments(this.getId()));
+        return this.module.get('rbac').getUserAssignments(this.getId());
     }
 
     getAuthKey () {

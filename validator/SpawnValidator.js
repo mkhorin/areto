@@ -21,6 +21,10 @@ module.exports = class SpawnValidator extends Base {
         });
     }
 
+    getBaseClassNotFoundMessage () {
+        return this.createMessage(this.wrongBaseClass, 'Base class not found');
+    }
+
     getInvalidFileMessage () {
         return this.createMessage(this.wrongBaseClass, 'Invalid class file');
     }
@@ -35,13 +39,33 @@ module.exports = class SpawnValidator extends Base {
     }
 
     validateClass (value, attr, model) {
+        const BaseClass = this.getBaseClass(model);
+        if (BaseClass === false) {
+            return this.addError(model, attr, this.getBaseClassNotFoundMessage());
+        }
         try {
-            const Class = model.module.app.require(value.Class) || require(value.Class);
-            this.BaseClass && !(Class.prototype instanceof this.BaseClass)
-                ? this.addError(model, attr, this.getBaseClassMessage())
-                : model.set(attr, value);
+            const Class = typeof value.Class === 'string'
+                ? model.module.app.require(value.Class) || require(value.Class)
+                : value.Class;
+            if (BaseClass && !(Class.prototype instanceof BaseClass)) {
+                this.addError(model, attr, this.getBaseClassMessage());
+            }
         } catch {
             this.addError(model, attr, this.getInvalidFileMessage());
+        }
+    }
+
+    getBaseClass (model) {
+        if (typeof this.BaseClass !== 'string') {
+            return this.BaseClass;
+        }
+        try {
+            return model.module.require(this.BaseClass)
+                || model.module.app.require(this.BaseClass)
+                || require(this.BaseClass);
+
+        } catch {
+            return false;
         }
     }
 };

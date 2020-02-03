@@ -39,11 +39,7 @@ module.exports = class Controller extends Base {
     }
 
     static getName () {
-        const index = this.name.lastIndexOf('Controller');
-        if (index === -1) {
-            throw new Error(`Invalid controller name: ${this.name}`);
-        }
-        return StringHelper.camelToId(this.name.substring(0, index));
+        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Controller'));
     }
 
     static getActionKeys () {
@@ -66,7 +62,7 @@ module.exports = class Controller extends Base {
     }
 
     static getModelClassName () {
-        return this.name.substring(0, this.name.lastIndexOf('Controller'));
+        return StringHelper.trimEnd(this.name, 'Controller');
     }
 
     static getViewDirectory () {

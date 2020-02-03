@@ -54,9 +54,9 @@ module.exports = class BehaviorManager extends Base {
             return;
         }
         this._behaviorMap = {};
-        if (this.autoAttachedItems) {
-            for (const name of Object.keys(this.autoAttachedItems)) {
-                this.attach(name, this.autoAttachedItems[name]);
+        if (this.autoAttachedMap) {
+            for (const name of Object.keys(this.autoAttachedMap)) {
+                this.attach(name, this.autoAttachedMap[name]);
             }
         }
     }

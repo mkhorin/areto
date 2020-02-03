@@ -8,15 +8,20 @@ const EscapeHelper = require('../../../helper/EscapeHelper');
 
 describe('EscapeHelper', ()=> {
 
-    it('escapeHtml: set special symbols as simple string', ()=> {
-        const res = EscapeHelper.escapeHtml('<div>test</div>');
-        expect(res).to.eql('&lt;div&gt;test&lt;/div&gt;');
+    it('escapeHtml', ()=> {
+        const res = EscapeHelper.escapeHtml('<div>test "name"</div>');
+        expect(res).to.eql('&lt;div&gt;test &quot;name&quot;&lt;/div&gt;');
     });
 
-    it('escapeRegex: set special symbols as simple string', ()=> {
+    it('escapeRegex', ()=> {
         let res = EscapeHelper.escapeRegex('^test{1}$');
         res = (new RegExp(res)).test('^test{1}$');
         expect(res).to.eql(true);
+    });
+
+    it('escapeTags', ()=> {
+        const res = EscapeHelper.escapeTags('<div>test "name"</div>');
+        expect(res).to.eql('&lt;div&gt;test "name"&lt;/div&gt;');
     });
 
     it('toRegex', ()=> {

@@ -14,6 +14,7 @@ module.exports = class ActionView extends Base {
 
             ArrayHelper: require('../helper/ArrayHelper'),
             CommonHelper: require('../helper/CommonHelper'),
+            EscapeHelper: require('../helper/EscapeHelper'),
             MongoHelper: require('../helper/MongoHelper'),
             ObjectHelper: require('../helper/ObjectHelper'),
             StringHelper: require('../helper/StringHelper')

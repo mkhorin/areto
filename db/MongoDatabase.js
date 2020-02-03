@@ -138,15 +138,22 @@ module.exports = class MongoDatabase extends Base {
         return this.getTable(table).deleteMany(query);
     }
 
-    truncate (table) {
-        return this.drop(table);
-    }
-
     async drop (table) {
         if (await this.isTableExists(table)) {
             this.logCommand('drop', {table});
             return this.getTable(table).drop();
         }
+    }
+
+    async dropAll () {
+        this.logCommand('dropAll');
+        for (const name of await this.getTableNames()) {
+            await this.drop(name);
+        }
+    }
+
+    truncate (table) {
+        return this.drop(table);
     }
 
     async rename (table, target) {

@@ -3,19 +3,36 @@
  */
 'use strict';
 
+const HTML_REGEX = /&(?!#?[a-zA-Z0-9]+;)/g;
+const LT_REGEX = /</g;
+const QT_REGEX = />/g;
+const DOUBLE_QUOTE_REGEX = /"/g;
+const SINGLE_QUOTE_REGEX = /'/g;
+const REGEX = /[\-\[\]\/{}()*+?.\\^$|]/g;
+
 module.exports = class EscapeHelper {
 
-    static escapeHtml (html) {
-        if (typeof html !== 'string') {
+    static escapeHtml (text) {
+        if (!text) {
             return '';
         }
-        return html.replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
-            .replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+        if (typeof text !== 'string') {
+            text = String(text);
+        }
+        return text.replace(HTML_REGEX, '&amp;')
+            .replace(LT_REGEX, '&lt;')
+            .replace(QT_REGEX, '&gt;')
+            .replace(SINGLE_QUOTE_REGEX, '&#39;')
+            .replace(DOUBLE_QUOTE_REGEX, '&quot;');
     }
 
     static escapeRegex (text) {
-        return typeof text === 'string' ? text.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, "\\$&") : '';
+        return typeof text === 'string' ? text.replace(REGEX, "\\$&") : '';
+    }
+
+    static escapeTags (text) {
+        text = text && typeof text !== 'string' ? String(text) : text;
+        return text ? text.replace(LT_REGEX, '&lt;').replace(QT_REGEX, '&gt;') : '';
     }
 
     static toRegex (value) {

@@ -42,13 +42,13 @@ module.exports = class RelationValidator extends Base {
     }
 
     getTooFewMessage () {
-        return this.createMessage(this.tooFew, 'Relation should contain at least {min} lnk.', {
+        return this.createMessage(this.tooFew, 'Relation should contain at least {min} objects', {
             min: this.min
         });
     }
 
     getTooManyMessage () {
-        return this.createMessage(this.tooMany, 'Relation should contain at most {max} lnk.', {
+        return this.createMessage(this.tooMany, 'Relation should contain at most {max} objects', {
             max: this.max
         });
     }

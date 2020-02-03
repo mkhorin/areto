@@ -73,13 +73,12 @@ module.exports = class AssignHelper {
             return;
         }
         from = from[key];
-        if (Object.prototype.hasOwnProperty.call(to, key)) {
-            to = to[key];
-            if (from && typeof from === 'object' && to && typeof to === 'object') {
-                this._assignUndefined(to, from);
-            }
-        } else {
-            to[key] = from;
+        if (!Object.prototype.hasOwnProperty.call(to, key)) {
+            return to[key] = from;
+        }
+        to = to[key];
+        if (from && typeof from === 'object' && to && typeof to === 'object') {
+            this._assignUndefined(to, from);
         }
     }
 };

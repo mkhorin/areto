@@ -14,6 +14,8 @@ module.exports = {
     'TiB': 'Тб',
     'PiB': 'Пб',
 
+    'Base class not found': 'Базовый класс не найден',
+
     'Date must be no less than {min}': 'Дата должна быть не ранее {min}',
     'Date must be no greater than {max}': 'Дата должна быть не позднее {max}',
 
@@ -29,6 +31,7 @@ module.exports = {
     'Invalid date': 'Недействительная дата',
     'Invalid email': 'Неверный адрес электронной почты',
     'Invalid file': 'Неверный файл',
+    'Invalid filename': 'Неверное имя файла',
     'Invalid JSON': 'Неверный JSON',
     'Invalid ID': 'Неправильный ID',
     'Invalid IP address': 'Неправильный IP-адрес',
@@ -47,8 +50,8 @@ module.exports = {
     'Password': 'Пароль',
     'Password Repeat': 'Повтор пароля',
 
-    'Relation should contain at least {min} lnk.': 'Связанных значений должно быть не менее {min}',
-    'Relation should contain at most {max} lnk.': 'Связанных значений должно быть не более {max}',
+    'Relation should contain at least {min} objects': 'Связанных значений должно быть не менее {min}',
+    'Relation should contain at most {max} objects': 'Связанных значений должно быть не более {max}',
 
     'Value cannot be blank': 'Значение не может быть пустым',
     'Value does not exist': 'Значение не существует',

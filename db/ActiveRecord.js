@@ -140,7 +140,7 @@ module.exports = class ActiveRecord extends Base {
 
     async afterDelete () {
         // call on override: await super.afterDelete()
-        await this.unlinkRelations(this.UNLINK_ON_DELETE);
+        await this.unlinkRelations(this.getUnlinkOnDelete());
         return this.trigger(this.EVENT_AFTER_DELETE);
     }
 
@@ -165,7 +165,11 @@ module.exports = class ActiveRecord extends Base {
     // FIND
 
     findById (id) {
-        return this.find(['ID', this.PK, id === undefined ? this.getId() : id]);
+        return this.find(['ID', this.PK, id]);
+    }
+
+    findSelf () {
+        return this.find({[this.PK]: this.getId()});
     }
 
     find () {
@@ -195,7 +199,7 @@ module.exports = class ActiveRecord extends Base {
 
     async update () {
         await this.beforeSave(false);
-        await this.findById().update(this.filterAttrs());
+        await this.findSelf().update(this.filterAttrs());
         await this.afterSave(false);
         this.assignOldAttrs();
     }
@@ -203,7 +207,7 @@ module.exports = class ActiveRecord extends Base {
     // skip before and after save triggers
     async directUpdate (data) {
         this.assignAttrs(data);
-        await this.findById().update(this.filterAttrs());
+        await this.findSelf().update(this.filterAttrs());
         this.assignOldAttrs();
     }
 
@@ -218,7 +222,7 @@ module.exports = class ActiveRecord extends Base {
 
     async delete () {
         await this.beforeDelete();
-        await this.findById().delete();
+        await this.findSelf().delete();
         await this.afterDelete();
     }
 
@@ -368,10 +372,12 @@ module.exports = class ActiveRecord extends Base {
         return result;
     }
 
-    async handleEachRelationModel (names, handler) {
+    async handleEachRelatedModel (names, handler) {
         const models = await this.resolveRelations(names);
         for (const model of ArrayHelper.concat(models)) {
-            await handler(model);
+            if (model) {
+                await handler(model);
+            }
         }
     }
 
@@ -391,6 +397,10 @@ module.exports = class ActiveRecord extends Base {
             this._linker = this.spawn(this.LINKER_CLASS, {owner: this});
         }
         return this._linker;
+    }
+
+    getUnlinkOnDelete () {
+        return this.UNLINK_ON_DELETE;
     }
 
     async unlinkRelations (relations) {
