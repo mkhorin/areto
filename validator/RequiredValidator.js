@@ -12,6 +12,7 @@ module.exports = class RequiredValidator extends Base {
             requiredValue: null,
             strict: false,
             skip: false, // skip validation
+            trimming: true,
             ...config
         });
         this.skipOnEmpty = false;
@@ -32,13 +33,13 @@ module.exports = class RequiredValidator extends Base {
             return;
         }
         if (this.requiredValue === null) {
-            if (this.strict && value !== null || !this.strict 
-                && !this.isEmptyValue(typeof value === 'string' ? value.trim() : value)) {
+            value = typeof value === 'string' && this.trimming ? value.trim() : value;
+            if (this.strict ? value !== null : !this.isEmptyValue(value)) {
                return;
             }
             return this.getMessage();
         } 
-        if (!this.strict && value == this.requiredValue || this.strict && value === this.requiredValue) {
+        if (this.strict ? value === this.requiredValue : value == this.requiredValue) {
             return;
         }
         return this.getRequiredMessage();

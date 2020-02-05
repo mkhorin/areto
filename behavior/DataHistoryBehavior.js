@@ -10,8 +10,8 @@ module.exports = class DataHistoryBehavior extends Base {
     constructor (config) {
         super({
             Model: null, // [ActiveRecord]
-            includes: null, // [] tracked attr names
-            excludes: null, // [] tracked attr names
+            includes: null, // [] tracked attribute names
+            excludes: null, // [] tracked attribute names
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);

@@ -92,10 +92,7 @@ module.exports = class Controller extends Base {
     }
 
     createModel (params) {
-        return this.spawn(this.getModelClass(), {
-            user: this.user,
-            ...params
-        });
+        return this.spawn(this.getModelClass(), params);
     }
 
     getModelClass () {
@@ -135,25 +132,30 @@ module.exports = class Controller extends Base {
         this.response.end();
     }
 
+    spawn (config, params) {
+        return ClassHelper.spawn(config, {
+            module: this.module,
+            user: this.user,
+            ...params
+        });
+    }
+
     // ACTION
 
     createAction (name) {
         name = name || this.DEFAULT_ACTION;
-        return this.createInlineAction(name) || this.createMapAction(name);
+        return this.createInlineAction(name) || this.createMappedAction(name);
     }
 
     createInlineAction (name) {
         const method = this[`action${StringHelper.idToCamel(name)}`];
         if (typeof method === 'function') {
-            return this.spawn(this.INLINE_ACTION || this.module.InlineAction, {
-                controller: this,
-                method,
-                name
-            });
+            const config = this.INLINE_ACTION || this.module.InlineAction;
+            return this.spawn(config, {controller: this, method, name});
         }
     }
 
-    createMapAction (name) {
+    createMappedAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
             return this.spawn(this.ACTIONS[name], {controller: this, name});
         }
@@ -386,6 +388,7 @@ module.exports = class Controller extends Base {
 module.exports.init();
 
 const path = require('path');
+const ClassHelper = require('../helper/ClassHelper');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const Forbidden = require('../error/ForbiddenHttpException');

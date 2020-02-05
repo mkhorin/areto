@@ -1,3 +1,14 @@
+## 0.35.0
+
+* base/Configuration
+    - fix output configuration name from original module
+* base/Controller
+    - add web user to spawned objects
+* behavior/TrimBehavior
+    - remove whitespace from both string ends
+* validator/RequireValidator
+    - create option to trim empty value
+
 ## 0.34.0
 
 * behavior/RelationChangeBehavior
@@ -30,7 +41,7 @@
 * base/Module
     - inject params from constructor
 * db/ActiveRecord
-    - fix unlinking all via relation
+    - fix unlink all via relation
 * web/Router
     - add selector of all actions for request methods
     

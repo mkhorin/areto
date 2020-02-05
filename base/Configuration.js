@@ -49,6 +49,9 @@ module.exports = class Configuration extends Base {
         this._sources.push({});
         this._data = AssignHelper.deepAssign(...this._sources.reverse());
         if (this.original) {
+            if (!this._names.includes(this.original.name)) {
+                this._names.unshift(this.original.name);
+            }
             this._data = AssignHelper.deepAssign({}, this.original._data, this._data);
         }
         AssignHelper.deepAssign(this._data, this.data);
