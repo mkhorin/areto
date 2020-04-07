@@ -1,3 +1,8 @@
+## 0.35.1
+
+* security/WebUser
+    - fix custom return url
+
 ## 0.35.0
 
 * base/Configuration

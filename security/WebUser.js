@@ -42,8 +42,10 @@ module.exports = class WebUser extends Base {
     }
 
     getReturnUrl (url) {
-        url = this.getSession(this.auth.returnUrlParam) || url || this.auth.returnUrl;
-        return url || this.module.getHomeUrl();
+        return url
+            || this.getSession(this.auth.returnUrlParam)
+            || this.auth.returnUrl
+            || this.module.getHomeUrl();
     }
 
     setReturnUrl (url) {
@@ -51,11 +53,13 @@ module.exports = class WebUser extends Base {
     }
 
     getCsrfToken () {
-        return this.auth.csrf ? this.getSession(this.auth.csrfParam): '';
+        return this.auth.csrf ? this.getSession(this.auth.csrfParam) : '';
     }
 
     checkCsrfToken (token) {
-        return this.auth.csrf ? this.getSession(this.auth.csrfParam) === token : true;
+        return this.auth.csrf
+            ? this.getSession(this.auth.csrfParam) === token
+            : true;
     }
 
     // LOGIN

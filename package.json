@@ -1,6 +1,6 @@
 {
   "name": "areto",
-  "version": "0.35.0",
+  "version": "0.35.1",
   "description": "Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
@@ -8,7 +8,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.14.1"
+    "node": ">=12.16.1"
   },
   "homepage": "https://github.com/mkhorin/areto",
   "repository": {
@@ -18,11 +18,11 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "connect-flash": "^0.1.1",
-    "cookie-parser": "^1.4.4",    
+    "cookie-parser": "^1.4.5",    
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "moment": "^2.24.0",
-    "mongodb": "^3.5.2",
+    "mongodb": "^3.5.5",
     "mysql": "^2.18.1",
     "path-to-regexp": "^6.1.0"
   },
