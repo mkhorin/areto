@@ -13,6 +13,7 @@ module.exports = class StringValidator extends Base {
             max: null,
             min: null,
             pattern: null, // [RegExp]
+            trimming: true, // remove whitespace from ends of a string
             ...config
         });
     }
@@ -41,6 +42,14 @@ module.exports = class StringValidator extends Base {
 
     getNotMatchMessage () {
         return this.createMessage(this.notMatch, 'Value does not match pattern');
+    }
+
+    validateAttr (attr, model) {
+        const value = model.get(attr);
+        if (typeof value === 'string' && this.trimming) {
+            model.set(attr, value.trim());
+        }
+        return super.validateAttr(attr, model);
     }
 
     validateValue (value) {
