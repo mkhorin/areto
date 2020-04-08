@@ -128,7 +128,8 @@ module.exports = class MongoBuilder extends Base {
     }
 
     buildNotEqualCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: {$ne: value}};
+        value = Array.isArray(value) ? {$nin: value} : {$ne: value};
+        return {[this.normalizeField(field)]: value};
     }
 
     // IN

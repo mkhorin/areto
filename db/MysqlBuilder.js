@@ -151,13 +151,13 @@ module.exports = class MysqlBuilder extends Base {
     // IN
 
     buildInCondition (operator, field, value) {
-        return (Array.isArray(value) && value.length === 0)
+        return Array.isArray(value) && value.length === 0
             ? 'FALSE'
             : `${this.normalizeField(field)} IN (${this.db.escape(value)})`;
     }
 
     buildNotInCondition (operator, field, value) {
-        return (Array.isArray(value) && value.length === 0)
+        return Array.isArray(value) && value.length === 0
             ? 'TRUE'
             : `${this.normalizeField(operands[0])} NOT IN (${this.db.escape(operands[1])})`;
     }

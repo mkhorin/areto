@@ -1,3 +1,10 @@
+## 0.36.0
+
+* db/MongoBuilder
+    - fix NOT EQUAL condition for arrays 
+* validator/StringValidator
+    - add string trimming by default
+    
 ## 0.35.1
 
 * security/WebUser
