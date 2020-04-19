@@ -132,6 +132,13 @@ describe('ObjectHelper', ()=> {
         expect(res.k2['target']).to.eql('k2');
     });
 
+    it('replaceKeys', () => {
+        let res = {o1: 1, o2: 2, o3: 3, o4: 4};
+        let keys = {o1: 'n1', o2: 'n2', o3: 'o3', oNone: 'nNone'};
+        ObjectHelper.replaceKeys(keys, res);
+        expect(res).to.eql({n1: 1, n2: 2, o3: 3, o4: 4});
+    });
+
     // DELETE PROPERTIES
 
     it('deleteEmptyProperties', ()=> {

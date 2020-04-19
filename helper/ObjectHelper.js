@@ -112,6 +112,17 @@ module.exports = class ObjectHelper {
         }
     }
 
+    static replaceKeys (keyMap, data) {
+        if (keyMap && data) {
+            for (const key of Object.keys(data)) {
+                if (Object.prototype.hasOwnProperty.call(keyMap, key) && key !== keyMap[key]) {
+                    data[keyMap[key]] = data[key];
+                    delete data[key];
+                }
+            }
+        }
+    }
+
     // DELETE PROPERTIES
 
     static deleteEmptyProperties (data, names) {
