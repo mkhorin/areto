@@ -106,7 +106,7 @@ module.exports = class Module extends Base {
     }
 
     getParam (key, defaults) {
-        return NestedValueHelper.get(key, this.params, defaults);
+        return NestedHelper.get(key, this.params, defaults);
     }
 
     getPath () { // ignore absolute path in arguments
@@ -172,9 +172,9 @@ module.exports = class Module extends Base {
         CommonHelper.log(this.components.get('logger'), this.relativeName, ...arguments);
     }
 
-    translate (message, source = 'app', ...args) {
+    translate (message, params, source = 'app') {
         const i18n = this.components.get('i18n');
-        return i18n ? i18n.translateMessage(message, source, ...args) : message;
+        return i18n ? i18n.translateMessage(message, params, source) : message;
     }
 
     // ROUTE
@@ -458,6 +458,6 @@ const AssignHelper = require('../helper/AssignHelper');
 const ClassHelper = require('../helper/ClassHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const FileHelper = require('../helper/FileHelper');
-const NestedValueHelper = require('../helper/NestedValueHelper');
+const NestedHelper = require('../helper/NestedHelper');
 const ActionEvent = require('./ActionEvent');
 const DataMap = require('./DataMap');

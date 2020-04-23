@@ -174,7 +174,7 @@ module.exports = class Model extends Base {
         }
     }
 
-    assignAttrs (data) {
+    assign (data) {
         Object.assign(this._attrMap, data instanceof Model ? data.getAttrMap() : data);
     }
 

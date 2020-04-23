@@ -1,3 +1,15 @@
+## 1.0.0
+
+* helper/ObjectHelper
+    - replace keys in data map
+* helper/NestedHelper
+    - get whole array element by index
+    - rename NestedValueHelper     
+* i18n/I18n
+    - swap translation arguments
+* i18n/MessageSource
+    - fix force translation by parent sources     
+    
 ## 0.36.0
 
 * db/MongoBuilder
@@ -92,7 +104,7 @@
 * helper/DateHelper
     - add duration parser
 * helper/ObjectHelper
-    - extract NestedValueHelper
+    - extract NestedHelper
 * i18n/I18n
     - refactor translation
 * security/Auth

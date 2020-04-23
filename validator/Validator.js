@@ -80,12 +80,12 @@ module.exports = class Validator extends Base {
             return message.addParams(params);
         }
         if (message) {
-            return new Message(message, this.messageSource, params);
+            return new Message(message, params, this.messageSource);
         }
         if (defaultMessage instanceof Message) {
             return defaultMessage.addParams(params);
         }
-        return new Message(defaultMessage, this.defaultMessageSource, params);
+        return new Message(defaultMessage, params, this.defaultMessageSource);
     }
 
     async validateModel (model, attrs) {

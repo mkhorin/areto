@@ -49,7 +49,7 @@ module.exports = class ActiveLinker extends Base {
         // unset relation so that it can be reloaded to reflect the change
         this.owner.unsetRelated(relation.getViaRelationName());
         const viaModel = this.owner.spawn(via.model.constructor);
-        viaModel.assignAttrs(columns);
+        viaModel.assign(columns);
         return viaModel.insert();
     }
 

@@ -21,7 +21,7 @@ module.exports = class Configuration extends Base {
     }
 
     get (key, defaults) {
-        return NestedValueHelper.get(key, this._data, defaults);
+        return NestedHelper.get(key, this._data, defaults);
     }
 
     getTitle () {
@@ -29,7 +29,7 @@ module.exports = class Configuration extends Base {
     }
 
     includes (key, value) {
-        return NestedValueHelper.includes(value, key, this._data);
+        return NestedHelper.includes(value, key, this._data);
     }
 
     mergeWithParents (key) {
@@ -100,7 +100,7 @@ module.exports = class Configuration extends Base {
         let value = this.get(key);
         if (!(value instanceof Object)) {
             value = {};
-            NestedValueHelper.set(value, key, this._data);
+            NestedHelper.set(value, key, this._data);
         }
         AssignHelper.deepAssignUndefined(value, data);
     }
@@ -109,4 +109,4 @@ module.exports = class Configuration extends Base {
 const fs = require('fs');
 const path = require('path');
 const AssignHelper = require('../helper/AssignHelper');
-const NestedValueHelper = require('../helper/NestedValueHelper');
+const NestedHelper = require('../helper/NestedHelper');

@@ -206,7 +206,7 @@ module.exports = class ActiveRecord extends Base {
 
     // skip before and after save triggers
     async directUpdate (data) {
-        this.assignAttrs(data);
+        this.assign(data);
         await this.findSelf().update(this.filterAttrs());
         this.assignOldAttrs();
     }
@@ -222,8 +222,10 @@ module.exports = class ActiveRecord extends Base {
 
     async delete () {
         await this.beforeDelete();
-        await this.findSelf().delete();
-        await this.afterDelete();
+        if (!this.hasError()) {
+            await this.findSelf().delete();
+            await this.afterDelete();
+        }
     }
 
     // RELATIONS
@@ -279,8 +281,8 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getAllRelationNames () {
-        const names = [];
         const pattern = new RegExp('^rel[A-Z]{1}');
+        const names = [];
         for (const name of ObjectHelper.getAllFunctionNames(this)) {
             if (pattern.test(name)) {
                 names.push(name.substring(3));

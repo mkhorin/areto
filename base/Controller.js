@@ -213,9 +213,9 @@ module.exports = class Controller extends Base {
 
     // FLASH MESSAGES
 
-    setFlash (key, message) {
+    setFlash (key, message, params) {
         typeof this.req.flash === 'function'
-            ? this.req.flash(key, this.translate(message))
+            ? this.req.flash(key, this.translate(message, params))
             : this.log('error', 'Session flash not found', message);
     }
 
@@ -358,7 +358,7 @@ module.exports = class Controller extends Base {
 
     // I18N
 
-    translate (message, source = 'app', params) {
+    translate (message, params, source = 'app') {
         if (Array.isArray(message)) {
             return this.translate(...message);
         }
@@ -366,7 +366,7 @@ module.exports = class Controller extends Base {
             return message.translate(this.i18n, this.language);
         }
         return source
-            ? this.i18n.translate(message, source, params, this.language)
+            ? this.i18n.translate(message, params, source, this.language)
             : this.i18n.format(message, params, this.language);
     }
 

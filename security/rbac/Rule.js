@@ -11,6 +11,14 @@ module.exports = class Rule extends Base {
         return a === b || JSON.stringify(a) === JSON.stringify(b);
     }
 
+    getPostParam () {
+        return this.params.controller.getPostParam(...arguments);
+    }
+
+    getQueryParam () {
+        return this.params.controller.getQueryParam(...arguments);
+    }
+
     getUser () {
         return this.params.controller.user;
     }

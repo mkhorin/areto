@@ -3,9 +3,9 @@
  */
 'use strict';
 
-module.exports = class NestedValueHelper {
+module.exports = class NestedHelper {
 
-    static get (key, data, defaults) { // key: 'prop1.prop2.prop3'
+    static get (key, data, defaults) {
         if (!data || typeof key !== 'string') {
             return defaults;
         }
@@ -28,7 +28,24 @@ module.exports = class NestedValueHelper {
         return data ? this.get(key, data, defaults) : defaults;
     }
 
-    static set (value, key, data) { // key: 'prop1.prop2.prop3'
+    static getAlone (key, data, defaults) {
+        if (!data || typeof key !== 'string') {
+            return defaults;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            return data[key];
+        }
+        const index = key.indexOf('.');
+        if (index < 1) {
+            return defaults;
+        }
+        const token = key.substring(0, index);
+        return data[token] && Object.prototype.hasOwnProperty.call(data, token)
+            ? this.getAlone(key.substring(index + 1), data[token], defaults)
+            : defaults;
+    }
+
+    static set (value, key, data) {
         const index = key.indexOf('.');
         if (index === -1) {
             return data[key] = value;

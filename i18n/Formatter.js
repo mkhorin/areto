@@ -50,7 +50,7 @@ module.exports = class Formatter extends Base {
 
     translate (message, source, language) {
         return this.i18n
-            ? this.i18n.translate(message, source, null, language || this.language)
+            ? this.i18n.translate(message, null, source, language || this.language)
             : message;
     }
 
