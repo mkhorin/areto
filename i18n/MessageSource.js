@@ -9,9 +9,8 @@ module.exports = class MessageSource extends Base {
 
     constructor (config) {
         super({
-            forceTranslation: false,
+            forceTranslation: false, // translate source language
             sourceLanguage: config.i18n.sourceLanguage,
-            // parent: 'app', // parent source
             ...config
         });
         this._messages = {};
@@ -19,6 +18,13 @@ module.exports = class MessageSource extends Base {
 
     async load () {
         throw new Error('Load messages from storage');
+    }
+
+    setParent (parent) {
+        this.parent = parent;
+        this.forceTranslationParent = parent
+            ? (parent.forceTranslation ? parent : parent.forceTranslationParent)
+            : null;
     }
 
     translate (message, language) {

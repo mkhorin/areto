@@ -69,7 +69,7 @@ module.exports = class I18n extends Base {
     createAppSource () {
         const source = this.createSource(this.APP_SOURCE);
         if (source.parent === undefined && !this.parent) {
-            source.parent = this.sources[this.CORE_SOURCE];
+            source.setParent(this.sources[this.CORE_SOURCE]);
         }
         return source;
     }
@@ -88,7 +88,7 @@ module.exports = class I18n extends Base {
 
     resolveSourceParents () {
         for (const name of Object.keys(this.sources)) {
-            this.sources[name].parent = this.resolveSourceParent(name);
+            this.sources[name].setParent(this.resolveSourceParent(name));
             if (ObjectHelper.hasCircularLinks(this.sources[name], 'parent')) {
                 throw new Error(`Circular source parents: ${name}`);
             }
@@ -114,7 +114,7 @@ module.exports = class I18n extends Base {
         return this.messageFormatter.format(...arguments);
     }
 
-    translate (message, name, params, language = this.language) {
+    translate (message, params, name, language = this.language) {
         const source = this.getSource(name);
         if (!source) {
             this.log('error', `Message source not found: ${name}`);
@@ -131,6 +131,8 @@ module.exports = class I18n extends Base {
             }
         } else if (source.forceTranslation) {
             result = source.translate(message, language);
+        } else if (source.forceTranslationParent) {
+            result = source.forceTranslationParent.translate(message, language);
         }
         message = result || message;
         return params ? this.format(message, params, language) : message;
