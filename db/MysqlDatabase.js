@@ -137,8 +137,14 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     async queryColumn (query, key) {
-        const docs = await this.queryAll(query.raw().select(key));
-        return docs.map(doc => doc[key]);
+        const data = await this.queryAll(query.raw().select(key));
+        if (Array.isArray(data)) {
+            return data.map(doc => doc[key]);
+        }
+        for (const name of Object.keys(data)) {
+            data[name] = data[name][key];
+        }
+        return data;
     }
 
     async queryScalar (query, key) {
