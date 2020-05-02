@@ -12,6 +12,7 @@ module.exports = class MysqlBuilder extends Base {
             CONDITION_BUILDERS: {
                 'AND': 'buildLogicCondition',
                 'OR': 'buildLogicCondition',
+                'EQUAL': 'buildEqualCondition',
                 'NOT EQUAL': 'buildNotEqualCondition',
                 'BETWEEN': 'buildBetweenCondition',
                 'NOT BETWEEN': 'buildNotBetweenCondition',
@@ -22,8 +23,12 @@ module.exports = class MysqlBuilder extends Base {
                 'ID': 'buildIdCondition',
                 'NOT ID': 'buildNotIdCondition',
                 'FALSE': 'buildFalseCondition',
+                'EMPTY': 'buildEmptyCondition',
+                'NOT EMPTY': 'buildNotEmptyCondition',
                 'NULL': 'buildNullCondition',
-                'NOT NULL': 'buildNotNullCondition'
+                'NOT NULL': 'buildNotNullCondition',
+                'EXISTS': 'buildExistsCondition',
+                'NOT EXISTS': 'buildNotExistsCondition'
             },
             SIMPLE_OPERATORS: {
                 '=': ' = ',
@@ -34,6 +39,10 @@ module.exports = class MysqlBuilder extends Base {
                 '<=': ' <= '
             }
         };
+    }
+
+    escape (value) {
+        return this.db.escape(value);
     }
 
     normalizeField (field) {
@@ -114,11 +123,13 @@ module.exports = class MysqlBuilder extends Base {
         for (const key of Object.keys(data)) {
             const field = this.normalizeField(key);
             if (Array.isArray(data[key])) {
-                result.push(`field IN (${this.db.escape(data[key])})`);
+                data[key].length
+                    ? result.push(`${field} IN (${this.escape(data[key])})`)
+                    : result.push(`${field} IS NULL`);
             } else if (data[key] === null) {
                 result.push(`${field} IS NULL`);
             } else {
-                result.push(`${field}=${this.db.escape(data[key])}`);
+                result.push(`${field}=${this.escape(data[key])}`);
             }
         }
         return result.join(' AND ');
@@ -131,7 +142,7 @@ module.exports = class MysqlBuilder extends Base {
         field = this.normalizeField(field);
         return value === null
             ? field + (operator === '=' ? ' IS NULL' : ' IS NOT NULL')
-            : field + this.SIMPLE_OPERATORS[operator] + this.db.escape(value);
+            : field + this.SIMPLE_OPERATORS[operator] + this.escape(value);
     }
 
     buildLogicCondition (operator, ...operands) {
@@ -142,44 +153,48 @@ module.exports = class MysqlBuilder extends Base {
         return '('+ items.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
     }
 
+    buildEqualCondition (operator, field, value) {
+        return `${this.normalizeField(field)}=${this.escape(value)}`;
+    }
+
     buildNotEqualCondition (operator, field, value) {
         return Array.isArray(value)
-            ? this.buildNotInCondition() 
-            : `${this.normalizeField(field)}!=${this.db.escape(value)}`;
+            ? this.buildNotInCondition()
+            : `${this.normalizeField(field)}!=${this.escape(value)}`;
     }
 
     // IN
 
     buildInCondition (operator, field, value) {
         return Array.isArray(value) && value.length === 0
-            ? 'FALSE'
-            : `${this.normalizeField(field)} IN (${this.db.escape(value)})`;
+            ? `${this.normalizeField(field)} IS NULL`
+            : `${this.normalizeField(field)} IN (${this.escape(value)})`;
     }
 
     buildNotInCondition (operator, field, value) {
         return Array.isArray(value) && value.length === 0
-            ? 'TRUE'
-            : `${this.normalizeField(operands[0])} NOT IN (${this.db.escape(operands[1])})`;
+            ? `${this.normalizeField(field)} IS NOT NULL`
+            : `${this.normalizeField(field)} NOT IN (${this.escape(value)})`;
     }
 
     // LIKE
 
     buildLikeCondition (operator, field, value) {
-        return `${this.normalizeField(field)} LIKE ${this.db.escape(value)}`;
+        return `${this.normalizeField(field)} LIKE ${this.escape(value)}`;
     }
 
     buildNotLikeCondition (operator, field, value) {
-        return `${this.normalizeField(field)} NOT LIKE ${this.db.escape(value)}`;
+        return `${this.normalizeField(field)} NOT LIKE ${this.escape(value)}`;
     }
 
     // BETWEEN
 
     buildBetweenCondition (operator, field, min, max) {
-        return `${this.normalizeField(field)} BETWEEN ${this.db.escape(min)} AND ${this.db.escape(max)}`;
+        return `${this.normalizeField(field)} BETWEEN ${this.escape(min)} AND ${this.escape(max)}`;
     }
 
     buildNotBetweenCondition (operator, field, min, max) {
-        return `${this.normalizeField(field)} NOT BETWEEN ${this.db.escape(min)} AND ${this.db.escape(max)}`;
+        return `${this.normalizeField(field)} NOT BETWEEN ${this.escape(min)} AND ${this.escape(max)}`;
     }
 
     // ID
@@ -189,8 +204,8 @@ module.exports = class MysqlBuilder extends Base {
             return this.buildNullCondition(operator, field);
         }
         return Array.isArray(value)
-            ? `${this.normalizeField(field)} IN (${this.db.escape(value)})`
-            : `${this.normalizeField(field)}=${this.db.escape(value)}`;
+            ? `${this.normalizeField(field)} IN (${this.escape(value)})`
+            : `${this.normalizeField(field)}=${this.escape(value)}`;
     }
 
     buildNotIdCondition (operator, field, value) {
@@ -198,14 +213,26 @@ module.exports = class MysqlBuilder extends Base {
             return this.buildNotNullCondition(operator, field);
         }
         return Array.isArray(value)
-            ? `${this.normalizeField(field)} NOT IN (${this.db.escape(value)})`
-            : `${this.normalizeField(field)}=${this.db.escape(value)}`;
+            ? `${this.normalizeField(field)} NOT IN (${this.escape(value)})`
+            : `${this.normalizeField(field)}=${this.escape(value)}`;
     }
 
     // FALSE
 
     buildFalseCondition () {
         return ' FALSE ';
+    }
+
+    // EMPTY
+
+    buildEmptyCondition (operator, field) {
+        field = this.normalizeField(field);
+        return `${field} IS NULL OR ${field} = ''`;
+    }
+
+    buildNotEmptyCondition (operator, field) {
+        field = this.normalizeField(field);
+        return `${field} IS NOT NULL AND ${field} != ''`;
     }
 
     // NULL
@@ -215,6 +242,16 @@ module.exports = class MysqlBuilder extends Base {
     }
 
     buildNotNullCondition (operator, field) {
+        return `${this.normalizeField(field)} IS NOT NULL`;
+    }
+
+    // EXISTS
+
+    buildExistsCondition (operator, field) {
+        return `${this.normalizeField(field)} IS NULL`;
+    }
+
+    buildNotExistsCondition (operator, field) {
         return `${this.normalizeField(field)} IS NOT NULL`;
     }
 };

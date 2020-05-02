@@ -13,6 +13,7 @@ module.exports = class MongoBuilder extends Base {
                 'AND': 'buildLogicCondition',
                 'OR': 'buildLogicCondition',
                 'NOR': 'buildLogicCondition',
+                'EQUAL': 'buildEqualCondition',
                 'NOT EQUAL': 'buildNotEqualCondition',
                 'BETWEEN': 'buildBetweenCondition',
                 'NOT BETWEEN':'buildNotBetweenCondition',
@@ -23,6 +24,8 @@ module.exports = class MongoBuilder extends Base {
                 'ID': 'buildIdCondition',
                 'NOT ID': 'buildNotIdCondition',
                 'FALSE': 'buildFalseCondition',
+                'EMPTY': 'buildEmptyCondition',
+                'NOT EMPTY': 'buildNotEmptyCondition',
                 'NULL': 'buildNullCondition',
                 'NOT NULL': 'buildNotNullCondition',
                 'EXISTS': 'buildExistsCondition',
@@ -103,7 +106,7 @@ module.exports = class MongoBuilder extends Base {
     buildHashCondition (data) {
         if (data) {
             for (const key of Object.keys(data)) {
-                if (Array.isArray(data[key])) {
+                if (Array.isArray(data[key]) && data[key].length) {
                     data[key] = {$in: data[key]};
                 }
             }
@@ -127,9 +130,14 @@ module.exports = class MongoBuilder extends Base {
         return {[operator]: items};
     }
 
-    buildNotEqualCondition (operator, field, value) {
-        value = Array.isArray(value) ? {$nin: value} : {$ne: value};
+    // EQUAL
+
+    buildEqualCondition (operator, field, value) {
         return {[this.normalizeField(field)]: value};
+    }
+
+    buildNotEqualCondition (operator, field, value) {
+        return {[this.normalizeField(field)]: {$ne: value}};
     }
 
     // IN
@@ -184,6 +192,16 @@ module.exports = class MongoBuilder extends Base {
 
     buildFalseCondition () {
         return {_id: false};
+    }
+
+    // EMPTY (check - null, undefined, [], '')
+
+    buildEmptyCondition (operator, field) {
+        return {[this.normalizeField(field)]: {$in: [null, '', []]}};
+    }
+
+    buildNotEmptyCondition (operator, field) {
+        return {[this.normalizeField(field)]: {$nin: [null, '', []]}};
     }
 
     // NULL (check only null NOT undefined value)
