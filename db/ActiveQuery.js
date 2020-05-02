@@ -30,11 +30,11 @@ module.exports = class ActiveQuery extends Base {
             : this;
     }
 
-    indexById () {
+    indexByKey () {
         return this.index(this.model.PK);
     }
 
-    orderById (direction = 1) {
+    orderByKey (direction = 1) {
         return this.order({[this.model.PK]: direction});
     }
 

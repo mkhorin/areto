@@ -1,3 +1,13 @@
+## 1.1.0
+
+* db/MongoBuilder
+    - add EMPTY condition
+    - fix column query for indexed result   
+* db/MysqlBuilder
+    - add EMPTY condition
+    - add EXISTS condition
+    - fix column query for indexed result   
+    
 ## 1.0.0
 
 * helper/ObjectHelper

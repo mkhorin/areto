@@ -41,7 +41,7 @@ module.exports = class ArrayHelper {
     static exclude (targets, sources, indexOf) {
         const result = [];
         for (const source of sources) {
-            const index  = indexOf ? indexOf(source, targets) : targets.indexOf(source);
+            const index = indexOf ? indexOf(source, targets) : targets.indexOf(source);
             if (index === -1) {
                 result.push(source);
             }
@@ -105,7 +105,7 @@ module.exports = class ArrayHelper {
         return true;
     }
 
-    static getPropertyValues (items, key) {
+    static getPropertyValues (key, items) {
         const values = [];
         if (Array.isArray(items)) {
             for (const item of items) {

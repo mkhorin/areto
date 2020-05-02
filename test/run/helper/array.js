@@ -67,7 +67,7 @@ describe('ArrayHelper', ()=> {
             {id: 2, val: 15},
             {id: 3, val: 20}
         ];
-        let res = ArrayHelper.getPropertyValues(items, 'val');
+        let res = ArrayHelper.getPropertyValues('val', items);
         expect(res).to.eql([10, 15, 20]);
     });
 
