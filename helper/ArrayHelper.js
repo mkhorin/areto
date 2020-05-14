@@ -93,7 +93,7 @@ module.exports = class ArrayHelper {
         return Array.isArray(values) ? values.join(separator) : values;
     }
 
-    static removeValue (value, values) {
+    static remove (value, values) {
         if (!Array.isArray(values)) {
             return false;
         }

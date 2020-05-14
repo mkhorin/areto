@@ -108,7 +108,7 @@ module.exports = class Event extends Base {
             }
             await item[0].call(this, event, item[1]);
             if (typeof item[2] === 'number' && --item[2] < 1) {
-                ArrayHelper.removeValue(item, item[3]);
+                ArrayHelper.remove(item, item[3]);
             }
         }
     }

@@ -52,6 +52,10 @@ module.exports = class Cache extends Base {
         return this.removeValue(key);
     }
 
+    removeValue () {
+        // need to override
+    }
+
     flush () {        
         return this.flushValues();
     }

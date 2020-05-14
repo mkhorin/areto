@@ -27,12 +27,19 @@ module.exports = class EscapeHelper {
     }
 
     static escapeRegex (text) {
-        return typeof text === 'string' ? text.replace(REGEX, "\\$&") : '';
+        return typeof text === 'string'
+            ? text.replace(REGEX, "\\$&")
+            : text instanceof RegExp ? text : '';
     }
 
     static escapeTags (text) {
-        text = text && typeof text !== 'string' ? String(text) : text;
-        return text ? text.replace(LT_REGEX, '&lt;').replace(QT_REGEX, '&gt;') : '';
+        if (text === '' || text === null || text === undefined) {
+            return '';
+        }
+        if (typeof text !== 'string') {
+            text = text.toString ? text.toString() : String(text);
+        }
+        return text.replace(LT_REGEX, '&lt;').replace(QT_REGEX, '&gt;');
     }
 
     static toRegex (value) {

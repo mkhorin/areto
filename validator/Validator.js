@@ -56,6 +56,7 @@ module.exports = class Validator extends Base {
             throw new Error('Invalid type');
         }
         config.attrs = Array.isArray(attrs) ? attrs : [attrs];
+        config.module = model.module;
         return new type(config);
     }
 
@@ -134,8 +135,13 @@ module.exports = class Validator extends Base {
         });
         model.addError(attr, message);
     }
+
+    log () {
+        CommonHelper.log(this.module, this.constructor.name, ...arguments);
+    }
 };
 module.exports.init();
 
+const CommonHelper = require('../helper/CommonHelper');
 const ArrayHelper = require('../helper/ArrayHelper');
 const Message = require('../i18n/Message');

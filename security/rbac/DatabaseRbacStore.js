@@ -233,6 +233,9 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     async createAssignment (names, user) {
+        if (typeof names === 'string') {
+            names = [names];
+        }
         if (!Array.isArray(names)) {
             return false;
         }

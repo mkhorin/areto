@@ -1,3 +1,13 @@
+## 1.2.0
+
+* base/Module
+    - show errors while requiring file
+* helper/EscapeHelper
+    - fix escape RegExp    
+    - fix escape tags    
+* helper/SpawnValidator
+    - show file errors   
+
 ## 1.1.0
 
 * db/MongoBuilder

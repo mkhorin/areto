@@ -7,6 +7,10 @@ const Base = require('../../base/Base');
 
 module.exports = class Rule extends Base {
 
+    isUser (id) {
+        return this.isEqual(id, this.getUserId());
+    }
+
     isEqual (a, b) {
         return a === b || JSON.stringify(a) === JSON.stringify(b);
     }
@@ -21,6 +25,10 @@ module.exports = class Rule extends Base {
 
     getUser () {
         return this.params.controller.user;
+    }
+
+    getUserId () {
+        return this.params.controller.user.getId();
     }
 
     async execute () {

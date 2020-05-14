@@ -17,6 +17,9 @@ describe('EscapeHelper', ()=> {
         let res = EscapeHelper.escapeRegex('^test{1}$');
         res = (new RegExp(res)).test('^test{1}$');
         expect(res).to.eql(true);
+        const test = new RegExp('test');
+        expect(EscapeHelper.escapeRegex(test)).to.eql(test);
+        expect(EscapeHelper.escapeRegex(['invalid value'])).to.eql('');
     });
 
     it('escapeTags', ()=> {

@@ -122,9 +122,10 @@ module.exports = class Module extends Base {
     }
 
     requireInternal () {
-        try {
-            return require(this.resolvePath(...arguments));
-        } catch {}
+        const file = FileHelper.addExtension('js', this.resolvePath(...arguments));
+        if (fs.existsSync(file)) {
+            return require(file);
+        }
     }
 
     getRelativePath (file) {

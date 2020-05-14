@@ -54,11 +54,11 @@ describe('ArrayHelper', ()=> {
         expect(ArrayHelper.concat(3)).to.eql(3);
     });
 
-    it('removeValue', ()=> {
+    it('remove', ()=> {
         const items = [1, 2, 3, 4];
-        expect(ArrayHelper.removeValue(3, items)).to.eql(true);
+        expect(ArrayHelper.remove(3, items)).to.eql(true);
         expect(items).to.eql([1, 2, 4]);
-        expect(ArrayHelper.removeValue(5, items)).to.eql(false);
+        expect(ArrayHelper.remove(5, items)).to.eql(false);
     });
 
     it('getPropertyValues', ()=> {

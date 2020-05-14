@@ -39,35 +39,30 @@ module.exports = class SpawnValidator extends Base {
     }
 
     validateClass (value, attr, model) {
-        const BaseClass = this.getBaseClass(model);
-        if (BaseClass === false) {
-            return this.addError(model, attr, this.getBaseClassNotFoundMessage());
-        }
-        try {
-            const Class = typeof value.Class === 'string'
-                ? model.module.app.require(value.Class) || require(value.Class)
-                : value.Class;
-            if (BaseClass && !(Class.prototype instanceof BaseClass)) {
-                this.addError(model, attr, this.getBaseClassMessage());
+        let Class = value.Class;
+        if (typeof Class === 'string') {
+            try {
+                Class = this.module.app.require(Class) || require(Class);
+            } catch (err) {
+                this.addError(model, attr, this.getInvalidFileMessage());
+                this.log('error', err);
             }
-        } catch {
-            this.addError(model, attr, this.getInvalidFileMessage());
+        }
+        const BaseClass = this.getBaseClass();
+        if (BaseClass && !(Class.prototype instanceof BaseClass)) {
+            this.addError(model, attr, this.getBaseClassMessage());
         }
     }
 
-    getBaseClass (model) {
+    getBaseClass () {
         if (typeof this.BaseClass !== 'string') {
             return this.BaseClass;
         }
-        try {
-            return model.module.require(this.BaseClass)
-                || model.module.app.require(this.BaseClass)
-                || require(this.BaseClass);
-
-        } catch {
-            return false;
-        }
+        return this.module.require(this.BaseClass)
+            || this.module.app.require(this.BaseClass)
+            || require(this.BaseClass);
     }
 };
 
 const CommonHelper = require('areto/helper/CommonHelper');
+const FileHelper = require('areto/helper/FileHelper');

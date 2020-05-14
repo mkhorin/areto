@@ -18,6 +18,10 @@ module.exports = class FileHelper {
         return file.indexOf(basePath) === 0 ? file.substring(basePath.length + 1) : file;
     }
 
+    static addExtension (ext, file) {
+        return file.substring(file.lastIndexOf('.') + 1) !== ext ? file + '.' + ext : file;
+    }
+
     static trimExtension (file) {
         return file.substring(0, file.length - path.extname(file).length);
     }
