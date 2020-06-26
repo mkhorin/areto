@@ -4,7 +4,6 @@
 'use strict';
 
 const Base = require('./Component');
-const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Controller extends Base {
 
@@ -17,7 +16,6 @@ module.exports = class Controller extends Base {
 
     static getConstants () {
         return {
-            NAME: this.getName(),
             // declare allowed methods for action if not set then all
             METHODS: {
                 // 'logout': ['POST']
@@ -38,8 +36,11 @@ module.exports = class Controller extends Base {
         };
     }
 
-    static getName () {
-        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Controller'));
+    static getBaseName () {
+        if (!this._baseName) {
+            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Controller'));
+        }
+        return this._baseName;
     }
 
     static getActionKeys () {
@@ -68,7 +69,7 @@ module.exports = class Controller extends Base {
     static getViewDirectory () {
         if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
             const dir = this.getNestedDirectory();
-            this._VIEW_DIRECTORY = dir ? `${dir}/${this.NAME}/` : `${this.NAME}/`;
+            this._VIEW_DIRECTORY = dir ? `${dir}/${this.getBaseName()}/` : `${this.getBaseName()}/`;
         }
         return this._VIEW_DIRECTORY;
     }
@@ -93,6 +94,10 @@ module.exports = class Controller extends Base {
 
     createModel (params) {
         return this.spawn(this.getModelClass(), params);
+    }
+
+    getBaseName () {
+        return this.constructor.getBaseName();
     }
 
     getModelClass () {
@@ -337,7 +342,7 @@ module.exports = class Controller extends Base {
     }
 
     createUrl (...data) {
-        return this.urlManager.resolve(data.length > 1 ? data : data[0], this.NAME);
+        return this.urlManager.resolve(data.length > 1 ? data : data[0], this.getBaseName());
     }
 
     getHostUrl () {
@@ -391,6 +396,7 @@ const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
+const StringHelper = require('../helper/StringHelper');
 const Forbidden = require('../error/ForbiddenHttpException');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');

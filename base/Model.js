@@ -37,14 +37,9 @@ module.exports = class Model extends Base {
             ATTR_HINTS: {},            
             EVENT_BEFORE_VALIDATE: 'beforeValidate',
             EVENT_AFTER_VALIDATE: 'afterValidate',
-            NAME: this.getName(),
             CONTROLLER_DIRECTORY: 'controller',
             MODEL_DIRECTORY: 'model'
         }   
-    }
-
-    static getName () {
-        return this.name;
     }
 
     static getAttrValueLabels (name) {
@@ -101,12 +96,16 @@ module.exports = class Model extends Base {
         return ObjectHelper.getValue(name, this.ATTR_HINTS, '');
     }
 
+    getBaseName () {
+        return this.constructor.name;
+    }
+
     getFormAttrId (name, prefix) {
-        return prefix ? `${prefix}-${this.NAME}-${name}` : `${this.NAME}-${name}`;
+        return prefix ? `${prefix}-${this.getBaseName()}-${name}` : `${this.getBaseName()}-${name}`;
     }
 
     getFormAttrName (name) {
-        return `${this.NAME}[${name}]`;
+        return `${this.getBaseName()}[${name}]`;
     }
 
     getSafeAttrNames () {
@@ -215,7 +214,7 @@ module.exports = class Model extends Base {
 
     load (data) {        
         if (data) {
-            this.setSafeAttrs(data[this.NAME]);
+            this.setSafeAttrs(data[this.getBaseName()]);
         }
         return this;
     }
@@ -387,7 +386,7 @@ module.exports = class Model extends Base {
     }
 
     static getControllerClassName () {
-        return this.NAME + 'Controller';
+        return this.name + 'Controller';
     }
 
     static getNestedDirectory () {

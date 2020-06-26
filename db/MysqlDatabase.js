@@ -31,7 +31,7 @@ module.exports = class MysqlDatabase extends Base {
         return data.err ? `${data.err.toString()}: ${data.sql}` : data.sql;
     }
 
-    logCommand (data) {
+    traceCommand (data) {
         this.log('trace', this.settings.database, data);
     }
 
@@ -45,7 +45,7 @@ module.exports = class MysqlDatabase extends Base {
 
     async execute (sql) {
         const connection = await this.getConnection();
-        this.logCommand({sql});
+        this.traceCommand({sql});
         const result = await PromiseHelper.promise(connection.query, connection);
         connection.release();
         return result;

@@ -22,14 +22,17 @@ describe('ClassHelper', ()=> {
     });
 
     it('normalizeSpawn', ()=> {
-        let res = ClassHelper.normalizeSpawn(Test, {test: 1});
-        expect(res).to.eql({Class: Test, test: 1});
+        let res = ClassHelper.normalizeSpawn(Test, {k1: 1});
+        expect(res).to.eql({Class: Test, k1: 1});
 
-        res = ClassHelper.normalizeSpawn({Class: Test}, {test: 1});
-        expect(res).to.eql({Class: Test, test: 1});
+        res = ClassHelper.normalizeSpawn({Class: Test}, {k1: 1});
+        expect(res).to.eql({Class: Test, k1: 1});
 
         res = ClassHelper.normalizeSpawn({Class: Test, k1: 1, k2: 1}, {k1: 2}, {k1: 3, k2: 3, k3: 3});
         expect(res).to.eql({Class: Test, k1: 2, k2: 1, k3: 3});
+
+        res = ClassHelper.normalizeSpawn({k1: 1, k2: 1}, {k2: 2}, {Class: Test, k1: 3});
+        expect(res).to.eql({Class: Test, k1: 1, k2: 2});
     });
 
     it('defineClassProperty', ()=> {

@@ -22,7 +22,7 @@ module.exports = class AccessRule extends Base {
     async can (action) {
         if ((this.actions && !this.actions.includes(action.name))
             || (this.methods && !this.methods.includes(action.controller.req.method))
-            || (this.controllers && !this.controllers.includes(action.controller.NAME))) {
+            || (this.controllers && !this.controllers.includes(action.controller.getBaseName()))) {
             return; // skip rule
         }
         const access = await this.match(action);

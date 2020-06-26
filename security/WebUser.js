@@ -13,6 +13,10 @@ module.exports = class WebUser extends Base {
         return !this.identity;
     }
 
+    isId (id) {
+        return this.identity ? this.identity.isId(id) : false;
+    }
+
     isSession () {
         return this.auth.enableSession;
     }

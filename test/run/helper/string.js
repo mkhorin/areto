@@ -47,6 +47,18 @@ describe('StringHelper', ()=> {
         expect(StringHelper.split('a,b, ,c, d,')).to.eql(['a', 'b', 'c', 'd']);
     });
 
+    it('splitFirst', ()=> {
+        expect(StringHelper.splitFirst('a.b.c')).to.eql(['a', 'b.c']);
+        expect(StringHelper.splitFirst('a-b-c', '-')).to.eql(['a', 'b-c']);
+        expect(StringHelper.splitFirst('abc')).to.eql(['abc']);
+    });
+
+    it('splitLast', () => {
+        expect(StringHelper.splitLast('a.b.c')).to.eql(['a.b', 'c']);
+        expect(StringHelper.splitLast('a-b-c', '-')).to.eql(['a-b', 'c']);
+        expect(StringHelper.splitLast('abc')).to.eql(['abc']);
+    });
+
     it('parseObject', ()=> {
         expect(StringHelper.parseObject('k1: v1, k2: v2')).to.eql({
             k1: 'v1',

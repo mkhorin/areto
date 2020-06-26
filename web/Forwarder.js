@@ -73,7 +73,7 @@ module.exports = class Forwarder extends Base {
     }
 
     createSourceUrl (data) {
-        const index = data.segments.indexOf(this.module.NAME) + 1;
+        const index = data.segments.indexOf(this.module.getBaseName()) + 1;
         data.path = index > 0
             ? `/${data.segments.slice(index).join('/')}`
             : `/${data.segments.join('/')}`;

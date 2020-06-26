@@ -48,6 +48,9 @@ module.exports = class SpawnValidator extends Base {
                 this.log('error', err);
             }
         }
+        if (!Class) {
+            return this.addError(model, attr, this.getMessage());
+        }
         const BaseClass = this.getBaseClass();
         if (BaseClass && !(Class.prototype instanceof BaseClass)) {
             this.addError(model, attr, this.getBaseClassMessage());
@@ -65,4 +68,3 @@ module.exports = class SpawnValidator extends Base {
 };
 
 const CommonHelper = require('areto/helper/CommonHelper');
-const FileHelper = require('areto/helper/FileHelper');

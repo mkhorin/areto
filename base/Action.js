@@ -12,7 +12,7 @@ module.exports = class Action extends Base {
     }
 
     getRelativeModuleName () {
-        return `${this.controller.NAME}/${this.name}`;
+        return `${this.controller.getBaseName()}/${this.name}`;
     }
 
     getUniqueName () {

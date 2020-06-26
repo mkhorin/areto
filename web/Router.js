@@ -79,7 +79,7 @@ module.exports = class Router extends Base {
             Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}/`));
         } else {
             file = require(file);
-            map[relative + file.NAME] = file;
+            map[relative + file.getBaseName()] = file;
         }
     }
 

@@ -23,7 +23,7 @@ module.exports = class Widget extends Base {
     }
 
     getCacheKey () {
-        return `widget-${this.module.NAME}-${this.id}`;
+        return `widget-${this.module.getBaseName()}-${this.id}`;
     }
 
     async run () {

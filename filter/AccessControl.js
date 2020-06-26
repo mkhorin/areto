@@ -9,7 +9,7 @@ module.exports = class AccessControl extends Base {
 
     constructor (config) {
         super({
-            // rules: [] rule configs
+            // rules: [] rule configurations
             // deny: [fn(action, user)]
             AccessRule,
             ...config

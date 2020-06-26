@@ -4,7 +4,6 @@
 'use strict';
 
 const Base = require('./Component');
-const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Module extends Base {
 
@@ -16,7 +15,6 @@ module.exports = class Module extends Base {
 
     static getConstants () {
         return {
-            NAME: this.getName(),
             DEFAULT_COMPONENTS: {
                 'router': {},
                 'urlManager': {},
@@ -57,10 +55,6 @@ module.exports = class Module extends Base {
         };
     }
 
-    static getName () {
-        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Module'));
-    }
-
     constructor (config) {
         super({
             ActionView: require('../view/ActionView'),
@@ -81,8 +75,15 @@ module.exports = class Module extends Base {
         this.engine = this.createEngine();
     }
 
+    getBaseName () {
+        if (!this._baseName) {
+            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.constructor.name, 'Module'));
+        }
+        return this._baseName;
+    }
+
     getTitle () {
-        return this.config.get('title') || this.NAME;
+        return this.config.get('title') || this.getBaseName();
     }
     
     get (id) {
@@ -161,12 +162,12 @@ module.exports = class Module extends Base {
     }
 
     createFullName (separator = '.') { // eq - app.admin.profile
-        return this.parent.createFullName(separator) + separator + this.NAME;
+        return this.parent.createFullName(separator) + separator + this.getBaseName();
     }
 
     createRelativeName (separator = '.') {  // eq - admin.profile
         const parent = this.parent.createRelativeName(separator);
-        return parent ? (parent + separator + this.NAME) : this.NAME;
+        return parent ? (parent + separator + this.getBaseName()) : this.getBaseName();
     }
 
     log () {
@@ -282,7 +283,7 @@ module.exports = class Module extends Base {
     }
 
     setMountPath () {
-        this.mountPath = this.getConfig('mountPath', this.parent ? `/${this.NAME}` : '/');
+        this.mountPath = this.getConfig('mountPath', this.parent ? `/${this.getBaseName()}` : '/');
     }
 
     async createClassMapper () {
@@ -460,5 +461,6 @@ const ClassHelper = require('../helper/ClassHelper');
 const CommonHelper = require('../helper/CommonHelper');
 const FileHelper = require('../helper/FileHelper');
 const NestedHelper = require('../helper/NestedHelper');
+const StringHelper = require('../helper/StringHelper');
 const ActionEvent = require('./ActionEvent');
 const DataMap = require('./DataMap');

@@ -4,7 +4,6 @@
 'use strict';
 
 const Base = require('./Module');
-const StringHelper = require('../helper/StringHelper');
 
 module.exports = class Application extends Base {
 
@@ -21,13 +20,16 @@ module.exports = class Application extends Base {
         };
     }
 
-    static getName () {
-        return StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Application'));
-    }
-
     constructor (config) {
         super(config);
         this.mainEngine = this.createEngine();
+    }
+
+    getBaseName () {
+        if (!this._baseName) {
+            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.constructor.name, 'Application'));
+        }
+        return this._baseName;
     }
 
     async init () {
@@ -43,7 +45,7 @@ module.exports = class Application extends Base {
     }
 
     createFullName () {
-        return this.NAME;
+        return this.getBaseName();
     }
 
     createRelativeName () {
@@ -78,3 +80,5 @@ module.exports = class Application extends Base {
     }
 };
 module.exports.init();
+
+const StringHelper = require('../helper/StringHelper');

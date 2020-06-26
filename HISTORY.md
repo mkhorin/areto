@@ -1,3 +1,14 @@
+## 1.3.0
+
+* db/MongoDatabase
+    - add command options
+    - manage client session
+* db/Query
+    - add command options
+    - fix field selection     
+* helper/CommonHelper
+    - fix logging with empty prefix 
+    
 ## 1.2.0
 
 * base/Module

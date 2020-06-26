@@ -18,7 +18,8 @@ module.exports = class CommonHelper {
         if (typeof message === 'string') {
             return logger.log(type, prefix ? `${prefix}: ${message}` : message, data);
         }
-        logger.log(type, `${prefix}:`, message);
+        prefix ? logger.log(type, `${prefix}:`, message)
+               : logger.log(type, message);
     }
 
     static parseJson (data) {

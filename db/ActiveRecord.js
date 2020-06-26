@@ -27,6 +27,10 @@ module.exports = class ActiveRecord extends Base {
     _oldAttrMap = {};
     _related = {};
 
+    isId (id) {
+        return !this._isNew && JSON.stringify(id) === JSON.stringify(this.getId());
+    }
+
     isNew () {
         return this._isNew;
     }

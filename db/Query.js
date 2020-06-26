@@ -48,30 +48,47 @@ module.exports = class Query extends Base {
         return this._raw;
     }
 
+    // OPTIONS
+
+    getOptions () {
+        return this._options;
+    }
+
+    options (data) {
+        this._options = data;
+        return this;
+    }
+
+    addOptions (data) {
+        this._options = this._options ? Object.assign(this._options, data) : data;
+        return this;
+    }
+
     // SELECT
 
     select (data) {
         if (Array.isArray(data)) {
-            for (const item of data) {
-                this.addSelect(item);
+            this.select(data[0]);
+            for (let i = 1; i < data.length; ++i) {
+                this.addSelect(data[i]);
             }
         } else if (typeof data === 'string') {
             this._select = {[data]: 1};
         } else {
-            this._select = data; // { attr1: 1, attr2: 0, ... }
+            this._select = data;
         }
         return this;
     }
 
     addSelect (data) {
+        if (!this._select) {
+            return this.select(data);
+        }
         if (Array.isArray(data)) {
             for (const item of data) {
                 this.addSelect(item);
             }
-        } else if (!this._select) {
-            return this.select(data);
-        }
-        if (typeof data === 'string') {
+        } else if (typeof data === 'string') {
             this._select[data] = 1;
         } else {
             Object.assign(this._select, data);
@@ -79,15 +96,15 @@ module.exports = class Query extends Base {
         return this;
     }
 
+    getSelect () {
+        return this._select;
+    }
+
     // WHERE
 
     where (condition) {
         this._where = condition;
         return this;
-    }
-
-    getWhere () {
-        return this._where;
     }
 
     addWhere (operator, ...conditions) {
@@ -98,6 +115,10 @@ module.exports = class Query extends Base {
         } else {
             this._where = [operator, this._where, ...conditions];
         }
+    }
+
+    getWhere () {
+        return this._where;
     }
 
     and () {
@@ -140,7 +161,7 @@ module.exports = class Query extends Base {
     }
 
     addOrder (data) {
-        this._order = Object.assign(this._order || {}, data);
+        this._order = this._order ? Object.assign(this._order, data) : data;
         return this;
     }
 
@@ -187,6 +208,14 @@ module.exports = class Query extends Base {
 
     distinct (key) {
         return this._db.queryDistinct(this, key);
+    }
+
+    id () {
+        return this._db.queryScalar(this, '_id');
+    }
+
+    ids () {
+        return this._db.queryColumn(this, '_id');
     }
 
     scalar (key) {

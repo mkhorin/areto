@@ -61,6 +61,16 @@ module.exports = class StringHelper {
         return text.split(separator).map(item => item.trim()).filter(item => item.length);
     }
 
+    static splitFirst (text, separator = '.') {
+        const index = text.indexOf(separator);
+        return index === -1 ? [text] : [text.substring(0, index), text.substring(index + 1)];
+    }
+
+    static splitLast (text, separator = '.') {
+        const index = text.lastIndexOf(separator);
+        return index === -1 ? [text] : [text.substring(0, index), text.substring(index + 1)];
+    }
+
     static parseObject (text) {
         if (typeof text !== 'string') {
             return {};

@@ -32,10 +32,11 @@ module.exports = class Database extends Base {
 
     async open () {
         if (this._connection) {
-            throw new Error(`Connection is already opened: ${this.getUri()}`);
+            throw new Error(`Connection is already open: ${this.getUri()}`);
         }
+        this.log('info', `Connection is opening: ${this.getUri()}`);
         this._connection = await this.openConnection();
-        this.log('info', `Connection opened: ${this.getUri()}`);
+        this.log('info', 'Connection is open');
         await this.trigger(this.EVENT_OPEN_CONNECTION);
     }
 
@@ -67,7 +68,7 @@ module.exports = class Database extends Base {
         return `${this.schema}://${auth}${host}:${port}/${database}`;
     }
 
-    logCommand (command, data) {
+    traceCommand (command, data) {
         this.log('trace', `${this.settings.database}: ${command}`, data);
     }
 
@@ -86,6 +87,5 @@ module.exports = class Database extends Base {
     }
 
     dropAllByName (name) {
-
     }
 };
