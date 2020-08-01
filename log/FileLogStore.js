@@ -42,7 +42,7 @@ module.exports = class FileLogStore extends Base {
     }
 
     getFile (suffix) {
-        return path.join(this.basePath, this.name + (suffix ? `-${suffix}` : '') +'.log');
+        return path.join(this.basePath, this.name + (suffix ? `-${suffix}` : '') + '.log');
     }
 
     openFile () {
@@ -97,7 +97,7 @@ module.exports = class FileLogStore extends Base {
         for (let i = files.length - 1; i >= 0; --i) {
             await fs.promises.rename(files[i], this.getFile(i + 1));
         }
-        this.log('info', `Rotate success: ${this.name}`);
+        this.log('info', `Rotation done: ${this.name}`);
     }
 
     async deleteExcessFiles (files) {
@@ -122,7 +122,9 @@ module.exports = class FileLogStore extends Base {
                 }
             }
         }
-        return items.sort((a, b) => b.time - a.time).map(item => item.file);
+        return items
+            .sort((a, b) => b.time - a.time)
+            .map(item => item.file);
     }
 
     async getFiles () {

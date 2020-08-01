@@ -197,7 +197,7 @@ module.exports = class Task extends Base {
     }
 
     log (type, message, data) {
-        this.scheduler.log(type, `${this.constructor.name}: ${this.id}: ${message}`, data);
+        this.scheduler.log(type, `${this.constructor.name}: ${this.name}: ${message}`, data);
     }
 };
 module.exports.init();

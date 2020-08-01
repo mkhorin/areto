@@ -79,10 +79,13 @@ module.exports = class DatabaseRbacStore extends Base {
 
     prepareRule ({name, config}) {
         try {
-            config = CommonHelper.parseJson(config);
-            config = ClassHelper.resolveSpawn(Rule, this.rbac.module, config);
+            const data = CommonHelper.parseJson(config);
+            if (!data) {
+                return this.log('error', `Invalid rule: ${name}:`, config);
+            }
+            config = ClassHelper.resolveSpawn(Rule, this.rbac.module, data);
         } catch {
-            return this.log('error', `Invalid rule: ${JSON.stringify(config)}`);
+            return this.log('error', `Invalid rule: ${name}: ${JSON.stringify(config)}`);
         }
         if (!(config.Class.prototype instanceof Rule) && config.Class !== Rule) {
             return this.log('error', `Base class of ${config.Class.name} must be Rule`);

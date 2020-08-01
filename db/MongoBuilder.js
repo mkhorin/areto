@@ -204,7 +204,7 @@ module.exports = class MongoBuilder extends Base {
         return {[this.normalizeField(field)]: {$nin: [null, '', []]}};
     }
 
-    // NULL (check only null NOT undefined value)
+    // NULL (check only null value)
 
     buildNullCondition (operator, field) {
         return {[this.normalizeField(field)]: {$type: 10}};

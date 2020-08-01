@@ -64,5 +64,5 @@ module.exports = class RouteRbac extends Base {
 };
 
 const PromiseHelper = require('../../helper/PromiseHelper');
-const ServerError = require('../../error/ServerErrorHttpException');
-const Forbidden = require('../../error/ForbiddenHttpException');
+const ServerError = require('../../error/http/ServerError');
+const Forbidden = require('../../error/http/Forbidden');

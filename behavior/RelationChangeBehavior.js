@@ -103,13 +103,15 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         delete this._changes[name];
         if (Array.isArray(data.deletes)) {
-            for (const model of data.deletes) {
-                await model.delete();
-            }
+            this.owner.constructor.delete(data.deletes);
         }
         if (Array.isArray(data.unlinks)) {
-            for (const model of data.unlinks) {
-                await this.owner.getLinker().unlink(name, model);
+            if (this.owner.getDeleteOnUnlink().includes(name)) {
+                this.owner.constructor.delete(data.unlinks);
+            } else {
+                for (const model of data.unlinks) {
+                    await this.owner.getLinker().unlink(name, model);
+                }
             }
         }
         if (Array.isArray(data.links)) {

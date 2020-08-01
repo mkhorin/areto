@@ -25,4 +25,4 @@ module.exports = class CsrfFilter extends Base {
     }
 };
 
-const BadRequest = require('../error/BadRequestHttpException');
+const BadRequest = require('../error/http/BadRequest');

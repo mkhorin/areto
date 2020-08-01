@@ -3,9 +3,9 @@
  */
 'use strict';
 
-const Base = require('./HttpException');
+const Base = require('../HttpException');
 
-module.exports = class NotFoundHttpException extends Base {
+module.exports = class NotFound extends Base {
 
     constructor (err, data) {
         super(404, err || 'Resource is not found', data);

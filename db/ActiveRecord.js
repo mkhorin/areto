@@ -19,7 +19,8 @@ module.exports = class ActiveRecord extends Base {
             EVENT_AFTER_INSERT: 'afterInsert',
             EVENT_AFTER_UPDATE: 'afterUpdate',
             EVENT_AFTER_DELETE: 'afterDelete',
-            // UNLINK_ON_DELETE: [], // unlink relations after model deletion
+            DELETE_ON_UNLINK: [], // delete related models after unlink or model deletion
+            UNLINK_ON_DELETE: [], // unlink relations after model deletion
         };
     }
 
@@ -145,6 +146,7 @@ module.exports = class ActiveRecord extends Base {
     async afterDelete () {
         // call on override: await super.afterDelete()
         await this.unlinkRelations(this.getUnlinkOnDelete());
+        await this.deleteRelatedModels(this.getDeleteOnUnlink());
         return this.trigger(this.EVENT_AFTER_DELETE);
     }
 
@@ -220,7 +222,6 @@ module.exports = class ActiveRecord extends Base {
     static async delete (models) {
         for (const model of models) {
             await model.delete();
-            await PromiseHelper.setImmediate();
         }
     }
 
@@ -229,6 +230,7 @@ module.exports = class ActiveRecord extends Base {
         if (!this.hasError()) {
             await this.findSelf().delete();
             await this.afterDelete();
+            await PromiseHelper.setImmediate();
         }
     }
 
@@ -410,20 +412,36 @@ module.exports = class ActiveRecord extends Base {
     }
 
     async unlinkRelations (relations) {
-        if (Array.isArray(relations)) {
-            const linker = this.getLinker();
-            for (const relation of relations) {
-                await linker.unlinkAll(relation);
+        for (const relation of relations) {
+            await this.getLinker().unlinkAll(relation);
+        }
+    }
+
+    getDeleteOnUnlink () {
+        return this.DELETE_ON_UNLINK;
+    }
+
+    async deleteRelatedModels (relations) {
+        for (const relation of relations) {
+            const result = await this.resolveRelationOnly(relation);
+            if (Array.isArray(result)) {
+                for (const model of result) {
+                    if (model instanceof ActiveRecord) {
+                        await model.delete();
+                    }
+                }
+            } else if (result instanceof ActiveRecord) {
+                await result.delete();
             }
         }
     }
 
     log () {
-        CommonHelper.log(this.module, `${this.constructor.name}: ID: ${this.getId()}`, ...arguments);
+        CommonHelper.log(this.module, this.toString(), ...arguments);
     }
 
     wrapMessage (message) {
-        return `${this.constructor.name}: ID: ${this.getId()}: ${message}`;
+        return `${this.toString()}: ${message}`;
     }
 };
 module.exports.init();

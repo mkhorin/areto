@@ -76,7 +76,7 @@ module.exports = class Module extends Base {
     }
 
     getBaseName () {
-        if (!this._baseName) {
+        if (!this.hasOwnProperty('_baseName')) {
             this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.constructor.name, 'Module'));
         }
         return this._baseName;

@@ -3,9 +3,9 @@
  */
 'use strict';
 
-const Base = require('./HttpException');
+const Base = require('../HttpException');
 
-module.exports = class ForbiddenHttpException extends Base {
+module.exports = class Forbidden extends Base {
 
     constructor (err, data) {
         super(403, err || 'Access denied', data);

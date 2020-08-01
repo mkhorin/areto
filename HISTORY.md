@@ -1,3 +1,14 @@
+## 1.4.0
+
+* base/Controller
+    - fix base name
+* db/ActiveQuery
+    - move related model deletion list to constants
+* error/Exception
+    - replace HTTP exceptions                 
+* scheduler/Task
+    - fix task name
+    
 ## 1.3.0
 
 * db/MongoDatabase

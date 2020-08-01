@@ -37,7 +37,7 @@ module.exports = class Controller extends Base {
     }
 
     static getBaseName () {
-        if (!this._baseName) {
+        if (!this.hasOwnProperty('_baseName')) {
             this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Controller'));
         }
         return this._baseName;
@@ -397,7 +397,7 @@ const ClassHelper = require('../helper/ClassHelper');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
-const Forbidden = require('../error/ForbiddenHttpException');
+const Forbidden = require('../error/http/Forbidden');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
 const Message = require('../i18n/Message');

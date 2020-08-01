@@ -3,9 +3,9 @@
  */
 'use strict';
 
-const Base = require('./HttpException');
+const Base = require('../HttpException');
 
-module.exports = class ServerErrorHttpException extends Base {
+module.exports = class ServerError extends Base {
 
     constructor (err, data) {
         super(500, err || 'Internal server error', data);

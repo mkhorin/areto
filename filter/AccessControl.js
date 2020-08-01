@@ -57,4 +57,4 @@ module.exports = class AccessControl extends Base {
 };
 
 const AccessRule = require('./AccessRule');
-const Forbidden = require('../error/ForbiddenHttpException');
+const Forbidden = require('../error/http/Forbidden');

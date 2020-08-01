@@ -160,10 +160,6 @@ module.exports = class ActiveQuery extends Base {
         return this._viaTable;
     }
 
-    getDeleteOnUnlink () {
-        return this._deleteOnUnlink;
-    }
-
     relateOne (primaryModel, refKey, linkKey) {
         this.primaryModel = primaryModel;
         this.refKey = refKey;
@@ -177,11 +173,6 @@ module.exports = class ActiveQuery extends Base {
         this.refKey = refKey;
         this.linkKey = linkKey;
         this._multiple = true;
-        return this;
-    }
-
-    deleteOnUnlink (value = true) {
-        this._deleteOnUnlink = value;
         return this;
     }
 
