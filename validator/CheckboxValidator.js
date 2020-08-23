@@ -25,7 +25,7 @@ module.exports = class CheckboxValidator extends Base {
         }
         const trueValue = value === 'true' || value === 'on';
         if (value && value !== 'false' && !trueValue) {
-            return this.getMessage();
+            return this.addError(model, attr, this.getMessage());
         }
         model.set(attr, trueValue);
     }
