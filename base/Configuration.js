@@ -17,7 +17,6 @@ module.exports = class Configuration extends Base {
             // original: original configuration,
             ...config
         });
-        this.name = this.name || process.env.NODE_ENV;
     }
 
     get (key, defaults) {

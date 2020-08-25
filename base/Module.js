@@ -238,7 +238,7 @@ module.exports = class Module extends Base {
 
     async init () {
         await this.beforeInit();
-        await this.createOrigin();
+        await this.createOriginal();
         await this.createConfiguration();
         await this.createClassMapper();
         this.extractConfigProperties();
@@ -256,13 +256,20 @@ module.exports = class Module extends Base {
         this.log('info', `Configured as ${this.config.getTitle()}`);
     }
 
-    async createOrigin () {
+    async createOriginal () {
         if (this.original) {
-            this.original = this.spawn(this.original, {parent: this.parent});
+            this.original = this.spawn(this.original, this.getOriginalSpawnParams());
             await this.original.createConfiguration();
             await this.original.createClassMapper();
             this.original.extractConfigProperties();
         }
+    }
+
+    getOriginalSpawnParams () {
+        return {
+            configName: this.configName,
+            parent: this.parent
+        };
     }
 
     async createConfiguration () {
@@ -306,9 +313,16 @@ module.exports = class Module extends Base {
         if (!config.Class) {
             config.Class = this.require('module', id, 'Module.js');
         }
-        const module = ClassHelper.spawn(config, {parent: this});
+        const module = ClassHelper.spawn(config, this.getModuleSpawnParams());
         this.modules.set(id, module);
         return module.init();
+    }
+
+    getModuleSpawnParams () {
+        return {
+            configName: this.configName,
+            parent: this
+        };
     }
 
     // COMPONENTS

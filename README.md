@@ -9,4 +9,7 @@
 #### Ready to Try
  
 - [Demo App](https://github.com/mkhorin/areto-basic-demo)
-- [Evado RAD System](https://github.com/mkhorin/evado)
+
+#### Ready to Use
+
+- [Evado Declarative Framework](https://github.com/mkhorin/evado)

@@ -22,6 +22,7 @@ module.exports = class Application extends Base {
 
     constructor (config) {
         super(config);
+        this.configName = this.configName || process.env.NODE_ENV;
         this.mainEngine = this.createEngine();
     }
 
