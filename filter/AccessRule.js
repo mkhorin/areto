@@ -36,7 +36,7 @@ module.exports = class AccessRule extends Base {
 
     async match (action) {
         if (!Array.isArray(this.permissions)) {
-            return;
+            return true;
         }
         const permissions = [];
         const user = action.user;
