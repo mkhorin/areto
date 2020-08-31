@@ -69,15 +69,25 @@ module.exports = class Application extends Base {
 
     createServer () {
         return new Promise((resolve, reject) => {
-            this.server = this.mainEngine.createServer().on('error', err => {
-                this.log('error', 'Server error', err);
-                reject(err);
-            }).listen(this.getConfig('port'), ()=> {
-                this.log('info', `Started ${this.fullName} as`, this.server.address());
-                this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
-                this.afterStart().then(resolve);
-            });
+            this.server = this.mainEngine.createServer()
+                .on('error', this.onServerError.bind(this, reject))
+                .listen(this.getServerPort(), this.onServerStart.bind(this, resolve));
         });
+    }
+
+    getServerPort () {
+        return this.serverPort || this.getConfig('port');
+    }
+
+    onServerError (reject, err) {
+        this.log('error', 'Server error', err);
+        reject(err);
+    }
+
+    onServerStart (resolve) {
+        this.log('info', `Started ${this.fullName} as`, this.server.address());
+        this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
+        this.afterStart().then(resolve);
     }
 };
 module.exports.init();
