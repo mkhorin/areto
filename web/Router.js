@@ -43,13 +43,17 @@ module.exports = class Router extends Base {
     // CONTROLLER
 
     createControllerMap () {
-        this._controllerMap = this.getControllerMap(this.module.getControllerDirectory());
-        if (this.module.original) {
-            this._controllerMap = {
-                ...this.getControllerMap(this.module.original.getControllerDirectory()),
-                ...this._controllerMap
-            };
+        this._controllerMap = this.getInheritedControllerMap(this.module);
+    }
+
+    getInheritedControllerMap (module) {
+        if (!module.original) {
+            return this.getControllerMap(module.getControllerDirectory());
         }
+        return {
+            ...this.getInheritedControllerMap(module.original),
+            ...this.getControllerMap(module.getControllerDirectory())
+        };
     }
 
     getDefaultController () {

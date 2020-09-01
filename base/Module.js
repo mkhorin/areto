@@ -50,8 +50,7 @@ module.exports = class Module extends Base {
             EVENT_AFTER_MODULE_INIT: 'afterModuleInit',
             EVENT_AFTER_INIT: 'afterInit',
             EVENT_BEFORE_ACTION: 'beforeAction',
-            EVENT_AFTER_ACTION: 'afterAction',
-            VIEW_LAYOUT: 'default' // default template layout
+            EVENT_AFTER_ACTION: 'afterAction'
         };
     }
 
@@ -63,6 +62,12 @@ module.exports = class Module extends Base {
             DependentOrder: require('./DependentOrder'),
             Engine: require('./ExpressEngine'),
             InlineAction: require('./InlineAction'),
+            defaultDbComponentId: 'db',
+            defaultFormatterComponentId: 'formatter',
+            defaultI18nComponentId: 'i18n',
+            defaultUrlManagerComponentId: 'urlManager',
+            defaultViewComponentId: 'view',
+            defaultViewLayout: 'default',
             ...config
         });
         this.module = this;
@@ -85,7 +90,7 @@ module.exports = class Module extends Base {
     getTitle () {
         return this.config.get('title') || this.getBaseName();
     }
-    
+
     get (id) {
         return this.components.get(id);
     }
@@ -95,9 +100,9 @@ module.exports = class Module extends Base {
     }
 
     getDb (id) {
-        return this.components.get(id || 'db');
+        return this.components.get(id || this.defaultDbComponentId);
     }
-    
+
     getClass () {
         return this.classMapper.get(...arguments);
     }
@@ -175,7 +180,7 @@ module.exports = class Module extends Base {
     }
 
     translate (message, params, source = 'app') {
-        const i18n = this.components.get('i18n');
+        const i18n = this.module.components.get(this.defaultI18nComponentId);
         return i18n ? i18n.translateMessage(message, params, source) : message;
     }
 
@@ -246,10 +251,11 @@ module.exports = class Module extends Base {
         this.attachStaticSource(this.getParam('static'));
         this.addViewEngine(this.getParam('template'));
         this.createComponents(this.getConfig('components'));
+        this.createModules(this.getConfig('modules'));
         await this.beforeComponentInit();
         await this.initComponents();
         await this.afterComponentInit();
-        await this.initModules(this.getConfig('modules'));
+        await this.initModules();
         await this.afterModuleInit();
         this.attachModule();
         await this.afterInit();
@@ -259,9 +265,7 @@ module.exports = class Module extends Base {
     async createOriginal () {
         if (this.original) {
             this.original = this.spawn(this.original, this.getOriginalSpawnParams());
-            await this.original.createConfiguration();
-            await this.original.createClassMapper();
-            this.original.extractConfigProperties();
+            await this.original.initOriginal();
         }
     }
 
@@ -270,6 +274,13 @@ module.exports = class Module extends Base {
             configName: this.configName,
             parent: this.parent
         };
+    }
+
+    async initOriginal () {
+        await this.createOriginal();
+        await this.createConfiguration();
+        await this.createClassMapper();
+        this.extractConfigProperties();
     }
 
     async createConfiguration () {
@@ -300,13 +311,13 @@ module.exports = class Module extends Base {
 
     // MODULES
 
-    async initModules (data = {}) {
+    createModules (data = {}) {
         for (const key of Object.keys(data)) {
-            await this.initModule(key, data[key]);
+            this.createModule(key, data[key]);
         }
     }
 
-    initModule (id, config) {
+    createModule (id, config) {
         if (!config) {
             return this.log('info', `Module skipped: ${id}`);
         }
@@ -315,7 +326,6 @@ module.exports = class Module extends Base {
         }
         const module = ClassHelper.spawn(config, this.getModuleSpawnParams());
         this.modules.set(id, module);
-        return module.init();
     }
 
     getModuleSpawnParams () {
@@ -323,6 +333,12 @@ module.exports = class Module extends Base {
             configName: this.configName,
             parent: this
         };
+    }
+
+    async initModules () {
+        for (const module of this.modules) {
+            await module.init();
+        }
     }
 
     // COMPONENTS
@@ -372,7 +388,7 @@ module.exports = class Module extends Base {
     createFormatterComponent (config) {
         return this.spawn({
             Class: require('../i18n/Formatter'),
-            i18n: this.components.get('i18n'),
+            i18n: this.defaultI18nComponentId,
             ...config
         });
     }

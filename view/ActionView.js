@@ -92,7 +92,7 @@ module.exports = class ActionView extends Base {
             _module: this.module,
             _controller: this.controller,
             _view: this,
-            _layout: this.controller.VIEW_LAYOUT || this.module.VIEW_LAYOUT,
+            _layout: this.controller.VIEW_LAYOUT || this.module.defaultViewLayout,
             _baseUrl: this.module.app.baseUrl,
             _format: this.controller.format.bind(this.controller),
             _t: this.controller.translate.bind(this.controller),

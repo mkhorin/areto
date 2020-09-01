@@ -14,7 +14,7 @@ module.exports = class Migrator extends Base {
         });
     }
 
-    getDb (id) {
+    getDb (id) {        
         return this.module.getDb(id || this.db);
     }
 

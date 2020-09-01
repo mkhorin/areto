@@ -22,7 +22,6 @@ module.exports = class Formatter extends Base {
 
     constructor (config) {
         super({
-            language: config.i18n ? config.i18n.language : 'en',
             nullFormat: '<span class="not-set">[not set]</span>',
             booleanFormat: ['No', 'Yes'],
             byteFractionalPart: 100,
@@ -34,6 +33,8 @@ module.exports = class Formatter extends Base {
             timestampFormat: 'L LTS',
             ...config
         });
+        this.i18n = this.module.get(this.i18n);
+        this.language = this.language || (this.i18n ? this.i18n.language : 'en');
     }
 
     format (value, type, params) {

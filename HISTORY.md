@@ -1,3 +1,20 @@
+## 1.5.0
+
+* base/Application
+    - add server port to spawn configuration
+* base/Module
+    - add configuration name override
+    - define default identifiers for components
+    - fix hierarchy of originals
+* db/MongoDatabase
+    - check for table existence before creating
+* filter/AccessFilter
+    - fix undefined permissions to any permission
+* validator/CheckboxValidator
+    - fix error message
+* web/Router
+    - fix inheritance of controllers from originals
+
 ## 1.4.0
 
 * base/Controller

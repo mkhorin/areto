@@ -36,7 +36,6 @@ module.exports = class Logger extends Base {
         });
         this._levelIndex = this.typeNames.indexOf(this.level);
         this._errorConsoleIndex = this.typeNames.indexOf(this.errorConsoleLevel);
-
         this.createStores();
         this.createTypes();
     }
@@ -68,8 +67,9 @@ module.exports = class Logger extends Base {
     }
 
     createStores () {
+        const logger = this;
         for (const name of Object.keys(this.stores)) {
-            this.stores[name] = this.spawn(this.stores[name], {logger: this, name});
+            this.stores[name] = this.spawn(this.stores[name], {logger, name});
         }
     }
 

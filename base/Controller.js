@@ -83,13 +83,11 @@ module.exports = class Controller extends Base {
 
     constructor (config) {
         super(config);
+        this.i18n = this.getI18n();
+        this.language = this.language || (this.i18n && this.i18n.language);
         this.response = new Response;
         this.response.controller = this;
-        this.formatter = this.module.components.get('formatter');
-        this.i18n = this.module.components.get('i18n');
-        this.language = this.language || this.i18n && this.i18n.language;
         this.timestamp = Date.now();
-        this.urlManager = this.module.components.get('urlManager');
     }
 
     createModel (params) {
@@ -299,9 +297,13 @@ module.exports = class Controller extends Base {
     createView (params) {
         return this.spawn(this.ACTION_VIEW || this.module.ActionView, {
             controller: this,
-            theme: this.module.get('view').getTheme(),
+            theme: this.getTheme(),
             ...params
         });
+    }
+
+    getTheme () {
+        return this.module.components.get(this.module.defaultViewComponentId).getTheme();
     }
 
     getViewFileName (name) {
@@ -341,8 +343,15 @@ module.exports = class Controller extends Base {
         return this.req.originalUrl;
     }
 
+    getUrlManager () {
+        return this.module.components.get(this.module.defaultUrlManagerComponentId);
+    }
+
     createUrl (...data) {
-        return this.urlManager.resolve(data.length > 1 ? data : data[0], this.getBaseName());
+        if (this._urlManager === undefined) {
+            this._urlManager = this.getUrlManager();
+        }
+        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getBaseName());
     }
 
     getHostUrl () {
@@ -362,6 +371,14 @@ module.exports = class Controller extends Base {
     }
 
     // I18N
+
+    getFormatter () {
+        return this.module.components.get(this.module.defaultFormatterComponentId);
+    }
+
+    getI18n () {
+        return this.module.components.get(this.module.defaultI18nComponentId);
+    }
 
     translate (message, params, source = 'app') {
         if (Array.isArray(message)) {
@@ -384,10 +401,13 @@ module.exports = class Controller extends Base {
     }
 
     format (value, type, params) {
+        if (this._formatter === undefined) {
+            this._formatter = this.getFormatter();
+        }
         if (this.language) {
           params = {language: this.language, ...params};  
-        } 
-        return this.formatter.format(value, type, params);
+        }
+        return this._formatter.format(value, type, params);
     }
 };
 module.exports.init();
