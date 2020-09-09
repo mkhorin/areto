@@ -19,6 +19,14 @@ module.exports = class RbacStore extends Base {
         throw new Error('Need to override');
     }
 
+    async createAssignments () {
+        throw new Error('Need to override');
+    }
+
+    async createAssignment () {
+        throw new Error('Need to override');
+    }
+
     log () {
         CommonHelper.log(this.rbac, this.constructor.name, ...arguments);
     }

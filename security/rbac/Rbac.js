@@ -123,6 +123,10 @@ module.exports = class Rbac extends Base {
 
     // CREATE
 
+    assignItem () {
+        return this.store.createAssignment(...arguments);
+    }
+
     async createByData (data) {
         if (data) {
             await this.store.createRules(data.rules);

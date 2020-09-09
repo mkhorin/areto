@@ -130,7 +130,7 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     findItemByName (name) {
-        return this.find(this.TABLE_ITEM).and({name});
+        return this.findItem().and({name});
     }
 
     findRoleItem () {
@@ -230,31 +230,34 @@ module.exports = class DatabaseRbacStore extends Base {
     async createAssignments (data) {
         if (data) {
             for (const key of Object.keys(data)) {
-                await this.createAssignment(data[key], key);
+                await this.createAssignmentsByNames(data[key], key);
             }
         }
     }
 
-    async createAssignment (names, user) {
+    async createAssignmentsByNames (names, user) {
         if (typeof names === 'string') {
             names = [names];
         }
         if (!Array.isArray(names)) {
             return false;
         }
-        const items = await this.findItemByName(names).column(this.key);
-        if (items.length !== names.length) {
-            throw new Error(`RBAC: Assignment item not found: ${names}`);
-        }
         const model = await this.rbac.findUser(user).one();
         if (!model) {
-            throw new Error(`RBAC: User not found: ${user}`);
+            return this.log('error', `User not found: ${user}`);
         }
-        user = model.getId();
-        for (const item of items) {
-            if (!await this.findAssignment().and({user, item}).one()) {
-                await this.findAssignment().insert({user, item});
-            }
+        for (const name of names) {
+            await this.createAssignment(name , model.getId());
+        }
+    }
+
+    async createAssignment (name, user) {
+        const item = await this.findItemByName(name).scalar(this.key);
+        if (!item) {
+            return this.log('error', `Assignment item not found: ${name}`);
+        }
+        if (!await this.findAssignment().and({item, user}).one()) {
+            return this.findAssignment().insert({item, user});
         }
     }
 };
