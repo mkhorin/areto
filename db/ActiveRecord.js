@@ -179,7 +179,11 @@ module.exports = class ActiveRecord extends Base {
     }
 
     find () {
-        return (new this.QUERY_CLASS({model: this})).and(...arguments);
+        return this.createQuery().and(...arguments);
+    }
+
+    createQuery () {
+        return new this.QUERY_CLASS({model: this});
     }
 
     // SAVE
@@ -197,7 +201,7 @@ module.exports = class ActiveRecord extends Base {
 
     async insert () {
         await this.beforeSave(true);
-        this.set(this.PK, await this.find().insert(this.filterAttrs()));
+        this.set(this.PK, await this.createQuery().insert(this.filterAttrs()));
         this._isNew = false;
         await this.afterSave(true);
         this.assignOldAttrs();
@@ -306,11 +310,11 @@ module.exports = class ActiveRecord extends Base {
     }
 
     hasMany (RefClass, refKey, linkKey) {
-        return this.spawn(RefClass).find().relateMany(this, refKey, linkKey);
+        return this.spawn(RefClass).createQuery().relateMany(this, refKey, linkKey);
     }
 
     hasOne (RefClass, refKey, linkKey) {
-        return this.spawn(RefClass).find().relateOne(this, refKey, linkKey);
+        return this.spawn(RefClass).createQuery().relateOne(this, refKey, linkKey);
     }
 
     executeRelatedMethod (method, name, ...args) {
