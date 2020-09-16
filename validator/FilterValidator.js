@@ -55,7 +55,7 @@ module.exports = class FilterValidator extends Base {
             return;
         }
         if (typeof value[this.filter] !== 'function') {
-            throw new Error(`Inline filter not found: ${this.filter}: in ${value.constructor.name}`);
+            throw new Error(`Inline filter not found: ${this.filter} in ${value.constructor.name}`);
         }
         model.set(attr, await value[this.filter]());
     }

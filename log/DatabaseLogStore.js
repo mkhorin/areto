@@ -25,7 +25,7 @@ module.exports = class DatabaseLogStore extends Base {
     }
 
     save (type, message, data) {
-        this.find().insert(this.format(type, message, data)).catch(err => {    
+        this.createQuery().insert(this.format(type, message, data)).catch(err => {
             console.error(this.wrapClassMessage('save'), err);
         });
     }
@@ -60,14 +60,14 @@ module.exports = class DatabaseLogStore extends Base {
     }
 
     async truncate () {
-        const counter = await this.find().count();
+        const counter = await this.createQuery().count();
         if (counter >= this.maxRows + this.maxRows / 2) {
-            const id = await this.find().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
-            await this.find().and(['<', this.key, id]).delete();
+            const id = await this.createQuery().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
+            await this.createQuery().and(['<', this.key, id]).delete();
         }                    
     }
 
-    find () {
+    createQuery () {
         return (new Query).db(this.db).from(this.table);
     }
 };

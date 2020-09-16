@@ -11,7 +11,7 @@ module.exports = class Job extends Base {
         return this._canceled;
     }
 
-    async run () {
+    run () {
         // place code here
     }
 

@@ -1,3 +1,17 @@
+## 1.6.0
+
+* db/ActiveRecord
+    - extract query creation method
+* helper/IndexHelper
+    - add hierarchical indexing (nested keys)    
+    - resolve array of key values    
+* security/rbac/Rbac
+    - create runtime assignment
+* view/ActionView
+    - add parent internal template getter
+* view/Theme
+    - remove name as path if template file is missing
+    
 ## 1.5.0
 
 * base/Application

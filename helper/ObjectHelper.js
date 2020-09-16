@@ -123,6 +123,27 @@ module.exports = class ObjectHelper {
         }
     }
 
+    static expandArrayValues (data, keys) {
+        const result = [];
+        if (data) {
+            keys = keys || Object.keys(data);
+            for (let i = 0; i < keys.length; ++i) {
+                const values = data[keys[i]];
+                if (Array.isArray(values)) {
+                    const nextKeys = Array.from(keys);
+                    nextKeys.splice(i, 1);
+                    for (const value of values) {
+                        const nextData = {...data, [keys[i]]: value};
+                        result.push(...this.expandArrayValues(nextData, nextKeys));
+                    }
+                    return result;
+                }
+            }
+            result.push(data);
+        }
+        return result;
+    }
+
     // DELETE PROPERTIES
 
     static deleteEmptyProperties (data, names) {

@@ -119,6 +119,10 @@ module.exports = class WebUser extends Base {
         return this._accessMap[permission] = !!access;
     }
 
+    hasAssignment (name) {
+        return Array.isArray(this.assignments) ? this.assignments.includes(name) : false;
+    }
+
     async setAssignments () {
         if (this.auth.rbac) {
             this.assignments = this.identity

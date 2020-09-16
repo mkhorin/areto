@@ -42,11 +42,9 @@ module.exports = class NumberValidator extends Base {
     validateValue (value) {
         const number = parseFloat(value);
         if (isNaN(number) || String(number).length !== String(value).length) {
-            return this.integerOnly
-                ? this.getNotIntegerMessage()
-                : this.getMessage();
+            return this.getMessage();
         }
-        if (this.integerOnly && !Number.isInteger(number)) {
+        if (this.integerOnly && !Number.isSafeInteger(number)) {
             return this.getNotIntegerMessage();
         }
         if (this.min !== null && number < this.min) {

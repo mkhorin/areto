@@ -82,7 +82,7 @@ module.exports = class FilePack extends Base {
                 if (name === data) {
                     return false;
                 }
-            } else if (data instanceof Function) {
+            } else if (typeof data === 'function') {
                 if (data(name)) {
                     return false;
                 }

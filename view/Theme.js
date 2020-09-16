@@ -51,8 +51,7 @@ module.exports = class Theme extends Base {
 
     getTemplate (name) {
         return this._templates.get(...arguments)
-            || this.parent && this.parent.getTemplate(...arguments)
-            || name;
+            || this.parent && this.parent.getTemplate(...arguments);
     }
 
     getOwnTemplate () {

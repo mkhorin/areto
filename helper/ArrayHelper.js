@@ -97,11 +97,11 @@ module.exports = class ArrayHelper {
         if (!Array.isArray(values)) {
             return false;
         }
-        value = values.indexOf(value);
-        if (value === -1) {
+        const index = values.indexOf(value);
+        if (index === -1) {
             return false;
         }
-        values.splice(value, 1);
+        values.splice(index, 1);
         return true;
     }
 

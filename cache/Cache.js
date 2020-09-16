@@ -36,7 +36,7 @@ module.exports = class Cache extends Base {
     }
 
     set (key, value, duration) {
-        if (!Number.isInteger(duration)) {
+        if (!Number.isSafeInteger(duration)) {
             duration = this.defaultDuration;
         }
         key = this.buildKey(key);

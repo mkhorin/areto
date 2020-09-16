@@ -11,6 +11,10 @@ module.exports = class ActiveQuery extends Base {
     _from = this.model.getTable();
     _raw = null;
 
+    byId (id) {
+        return this.and(['ID', this.model.PK, id]);
+    }
+
     id () {
         return this._db.queryScalar(this, this.model.PK);
     }

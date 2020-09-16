@@ -126,17 +126,35 @@ describe('ObjectHelper', ()=> {
     });
 
     it('addKeyAsNestedValue', () => {
-        let res = {k1: {}, k2: {}};
+        let res = {
+            k1: {},
+            k2: {}
+        };
         ObjectHelper.addKeyAsNestedValue('target', res);
         expect(res.k1['target']).to.eql('k1');
         expect(res.k2['target']).to.eql('k2');
     });
 
     it('replaceKeys', () => {
-        let res = {o1: 1, o2: 2, o3: 3, o4: 4};
-        let keys = {o1: 'n1', o2: 'n2', o3: 'o3', oNone: 'nNone'};
+        let res = {
+            o1: 1,
+            o2: 2,
+            o3: 3,
+            o4: 4
+        };
+        let keys = {
+            o1: 'n1',
+            o2: 'n2',
+            o3: 'o3',
+            oNone: 'nNone'
+        };
         ObjectHelper.replaceKeys(keys, res);
-        expect(res).to.eql({n1: 1, n2: 2, o3: 3, o4: 4});
+        expect(res).to.eql({
+            n1: 1,
+            n2: 2,
+            o3: 3,
+            o4: 4
+        });
     });
 
     // DELETE PROPERTIES
@@ -246,5 +264,58 @@ describe('ObjectHelper', ()=> {
             k2: null,
             k4: ''
         });
+    });
+
+    it('expandArrayValues', ()=> {
+        let data = {
+            a1: 1
+        };
+        expect(ObjectHelper.expandArrayValues(data)).to.eql([{
+            a1: 1
+        }]);
+        data = {
+            a1: [1],
+            a2: [2]
+        };
+        expect(ObjectHelper.expandArrayValues(data)).to.eql([{
+            a1: 1,
+            a2: 2,
+        }]);
+        data = {
+            a1: 1,
+            a2: [2, 3]
+        };
+        expect(ObjectHelper.expandArrayValues(data)).to.eql([{
+            a1: 1,
+            a2: 2,
+        }, {
+            a1: 1,
+            a2: 3
+        }]);
+        data = {
+            a1: [1, 2],
+            a2: [3, 4]
+        };
+        expect(ObjectHelper.expandArrayValues(data)).to.eql([{
+            a1: 1,
+            a2: 3,
+        }, {
+            a1: 1,
+            a2: 4
+        }, {
+            a1: 2,
+            a2: 3,
+        }, {
+            a1: 2,
+            a2: 4
+        }]);
+        expect(ObjectHelper.expandArrayValues(data, ['a2'])).to.eql([{
+            a1: [1, 2],
+            a2: 3,
+        }, {
+            a1: [1, 2],
+            a2: 4
+        }]);
+        expect(ObjectHelper.expandArrayValues(null)).to.eql([]);
     });
 });

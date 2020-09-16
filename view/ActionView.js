@@ -41,6 +41,10 @@ module.exports = class ActionView extends Base {
         return this.theme.getParentTemplate(name, this.controller.language);
     }
 
+    getInternalParentTemplate (name) {
+        return this.getParentTemplate(this.controller.getViewFileName(name));
+    }
+
     getViewOwnTemplate (name) {
         return this.theme.getViewOwnTemplate(name, this.controller.language);
     }
@@ -77,7 +81,7 @@ module.exports = class ActionView extends Base {
 
     async render (template, params) {
         params = this.getRenderParams(params);
-        let content = await this.renderTemplate(this.get(template), params);
+        let content = await this.renderTemplate(this.get(template) || template, params);
         content = await this.renderWidgets(content, params);
         return this._asset ? this._asset.render(content) : content;
     }

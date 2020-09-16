@@ -25,7 +25,7 @@ module.exports = class MathHelper {
         if (!precision) {
             return Math[type](value);
         }
-        if (isNaN(value) || !Number.isInteger(precision)) {
+        if (isNaN(value) || !Number.isSafeInteger(precision)) {
             return NaN;
         }
         value = value.toString().split('e');

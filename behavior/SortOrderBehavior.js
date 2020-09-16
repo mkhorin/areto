@@ -32,7 +32,7 @@ module.exports = class SortOrderBehavior extends Base {
             query.and({[this.filter]: this.owner.get(this.filter)});
         }
         const last = await query.order({[this.orderAttr]: this.step > 0 ? -1 : 1}).scalar(this.orderAttr);
-        return Number.isInteger(last) ? last + this.step : this.start;
+        return Number.isSafeInteger(last) ? last + this.step : this.start;
     }
 
     async update (data) {
