@@ -31,10 +31,16 @@ module.exports = class Formatter extends Base {
             timeLongFormat: 'LTS',
             datetimeFormat: 'LLL',
             timestampFormat: 'L LTS',
+            durationTimeFormat: 'HH:mm:ss',
             ...config
         });
         this.i18n = this.module.get(this.i18n);
         this.language = this.language || (this.i18n ? this.i18n.language : 'en');
+    }
+
+    getMoment (value, params = {}) {
+        value = params.utc ? moment.utc(value) : moment(value);
+        return value.locale(params.language || this.language);
     }
 
     format (value, type, params) {
@@ -100,22 +106,34 @@ module.exports = class Formatter extends Base {
             : this.asRaw(value, params);
     }
 
+    // DURATION
+
+    asDuration (value, params = {}) {
+        if (!value && value !== 0) {
+            return this.asRaw(value, params);
+        }
+        value = moment.duration(value, params.units).locale(params.language || this.language);
+        return value[params.method || 'humanize'](params.suffix);
+    }
+
+    asDurationTime (value, params = {}) {
+        if (!value && value !== 0) {
+            return this.asRaw(value, params);
+        }
+        value = moment.duration(value, params.units).asMilliseconds();
+        return moment.utc(value).format(params.format || this.durationTimeFormat);
+    }
+
     // DATE
 
     asDate (value, params = {}) {
         return value
-            ? moment(value).locale(params.language || this.language).format(params.format || this.dateFormat)
+            ? this.getMoment(value, params).format(params.format || this.dateFormat)
             : this.asRaw(value, params);
     }
 
     asDateLong (value, params) {
         return this.asDate(value, {format: this.dateLongFormat, ...params});
-    }
-
-    asDuration (value, params = {}) {
-        return value || value === 0
-            ? moment.duration(value, params.units).locale(params.language || this.language).humanize(params.suffix)
-            : this.asRaw(value, params);
     }
 
     asTime (value, params) {
@@ -136,37 +154,43 @@ module.exports = class Formatter extends Base {
 
     asFromNow (value, params = {}) {
         return value
-            ? moment(value).locale(params.language || this.language).fromNow()
+            ? this.getMoment(value, params).fromNow()
             : this.asRaw(value, params);
     }
 
     asToNow (value, params = {}) {
         return value
-            ? moment(value).locale(params.language || this.language).toNow()
+            ? this.getMoment(value, params).toNow()
             : this.asRaw(value, params);
     }
 
     asFromDate (value, params = {}) {
         return value && params.date
-            ? moment(value).locale(params.language || this.language).from(params.date)
+            ? this.getMoment(value, params).from(params.date)
             : this.asRaw(value, params);
     }
 
     asToDate (value, params = {}) {
         return value && params.date
-            ? moment(value).locale(params.language || this.language).to(params.date)
+            ? this.getMoment(value, params).to(params.date)
             : this.asRaw(value, params);
     }
 
-    asIso (value, params) {
-        return value ? moment(value).toISOString() : this.asRaw(value, params);
+    asIso (value) {
+        return value ? this.getMoment(value).toISOString() : this.asRaw(value);
     }
 
     asClientDate (value, params = {}) {
         if (!value) {
             return this.asRaw(value, params);
         }
-        value = value instanceof Date ? value.toISOString() : moment(value).toISOString();
+        if (value instanceof Date) {
+            value = value.toISOString();
+        } else if (params.utc) {
+            value = moment.utc(value).toISOString();
+        } else {
+            value = moment(value).toISOString();
+        }
         return `<time datetime="${value}" data-format="${params.format || ''}" data-utc="${params.utc || ''}">${value}</time>`;
     }
 };
