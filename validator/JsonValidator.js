@@ -22,10 +22,8 @@ module.exports = class JsonValidator extends Base {
         let value = model.get(attr);
         if (typeof value === 'string') {
             try {
-                value = JSON.parse(value);
-                if (this.parsed) {
-                    model.set(attr, value);
-                }
+                const data = JSON.parse(value);
+                model.set(attr, this.parsed ? data : value.trim());
             } catch {
                 this.addError(model, attr, this.getMessage());
             }
