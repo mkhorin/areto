@@ -87,13 +87,14 @@ module.exports = class ActiveRecord extends Base {
         if (related instanceof ActiveRecord) {
             return related.get(name);
         }
-        if (Array.isArray(related)) {
-            return related.map(item => item instanceof ActiveRecord
-                ? item.get(name)
-                : item ? item[name] : item
-            );
+        if (!Array.isArray(related)) {
+            return related ? related[name] : related;
         }
-        return related ? related[name] : related;
+        const result = [];
+        for (const item of related) {
+            result.push(item instanceof ActiveRecord ? item.get(name) : item ? item[name] : item);
+        }
+        return result;
     }
     
     getOldAttr (name) {
