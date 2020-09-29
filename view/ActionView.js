@@ -123,7 +123,7 @@ module.exports = class ActionView extends Base {
             this._asset.add(data);
         }
     }
-
+    
     createAssetPosition (pos) {
         return this.getAsset() ? this._asset.createPosition(pos) : '';
     }
@@ -132,15 +132,19 @@ module.exports = class ActionView extends Base {
         if (this._asset !== undefined) {
             return this._asset;
         }
-        const manager = this.module.get('asset');
-        if (manager) {
-            this._asset = manager.createViewAsset();
+        const component = this.getAssetComponent();
+        if (component) {
+            this._asset = component.createViewAsset();
         } else {
             this._asset = null;
             this.log('error', 'Asset component not found');
         }
         return this._asset;
     }
+
+    getAssetComponent () {
+        return this.module.components.get('asset');
+    }     
 
     // WIDGET
 
