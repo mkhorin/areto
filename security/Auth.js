@@ -22,7 +22,9 @@ module.exports = class Auth extends Base {
             autoRenewCookie: true,
             enableAutoLogin: false,
             enableSession: true,
-            identityCookie: {httpOnly: true},
+            identityCookie: {
+                httpOnly: true
+            },
             loginUrl: '',
             defaultAssignments: ['user'],
             guestAssignments: ['guest'],

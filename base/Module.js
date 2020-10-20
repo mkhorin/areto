@@ -21,24 +21,52 @@ module.exports = class Module extends Base {
                 'view': {}
             },
             COMPONENT_CONFIG_MAP: {
-                'asset': {Class: require('../web/asset/AssetManager')},
-                'auth': {Class: require('../security/Auth')},
+                'asset': {
+                    Class: require('../web/asset/AssetManager')
+                },
+                'auth': {
+                    Class: require('../security/Auth')
+                },
                 'bodyParser': {
                     Class: require('../web/BodyParser'),
                     extended: true
                 },
-                'cache': {Class: require('../cache/Cache')},
-                'cookie': {Class: require('../web/Cookie')},
-                'db': {Class: require('../db/Database')},
-                'filePacker': {Class: require('../web/packer/FilePacker')},
-                'forwarder': {Class: require('../web/Forwarder')},
-                'logger': {Class: require('../log/Logger')},
-                'rateLimit': {Class: require('../security/rate-limit/RateLimit')},
-                'rbac': {Class: require('../security/rbac/Rbac')},
-                'router': {Class: require('../web/Router')},
-                'scheduler': {Class: require('../scheduler/Scheduler')},
-                'session': {Class: require('../web/session/Session')},
-                'urlManager': {Class: require('../web/UrlManager')}
+                'cache': {
+                    Class: require('../cache/Cache')
+                },
+                'cookie': {
+                    Class: require('../web/Cookie')
+                },
+                'db': {
+                    Class: require('../db/Database')
+                },
+                'filePacker': {
+                    Class: require('../web/packer/FilePacker')
+                },
+                'forwarder': {
+                    Class: require('../web/Forwarder')
+                },
+                'logger': {
+                    Class: require('../log/Logger')
+                },
+                'rateLimit': {
+                    Class: require('../security/rate-limit/RateLimit')
+                },
+                'rbac': {
+                    Class: require('../security/rbac/Rbac')
+                },
+                'router': {
+                    Class: require('../web/Router')
+                },
+                'scheduler': {
+                    Class: require('../scheduler/Scheduler')
+                },
+                'session': {
+                    Class: require('../web/session/Session')
+                },
+                'urlManager': {
+                    Class: require('../web/UrlManager')
+                }
             },
             INHERITED_UNDEFINED_CONFIG_KEYS: [
                 'params',
@@ -159,7 +187,9 @@ module.exports = class Module extends Base {
             return null;
         }
         module = this.modules.get(name.substring(0, pos));
-        return module ? module.getModule(name.substring(pos + 1)) : null;
+        return module
+            ? module.getModule(name.substring(pos + 1))
+            : null;
     }
 
     getModules () {
@@ -172,7 +202,9 @@ module.exports = class Module extends Base {
 
     createRelativeName (separator = '.') {  // eq - admin.profile
         const parent = this.parent.createRelativeName(separator);
-        return parent ? (parent + separator + this.getBaseName()) : this.getBaseName();
+        return parent
+            ? parent + separator + this.getBaseName()
+            : this.getBaseName();
     }
 
     log () {
@@ -181,7 +213,9 @@ module.exports = class Module extends Base {
 
     translate (message, params, source = 'app') {
         const i18n = this.module.components.get(this.defaultI18nComponentId);
-        return i18n ? i18n.translateMessage(message, params, source) : message;
+        return i18n
+            ? i18n.translateMessage(message, params, source)
+            : message;
     }
 
     // ROUTE
@@ -301,7 +335,8 @@ module.exports = class Module extends Base {
     }
 
     setMountPath () {
-        this.mountPath = this.getConfig('mountPath', this.parent ? `/${this.getBaseName()}` : '/');
+        const defaults = this.parent ? `/${this.getBaseName()}` : '/';
+        this.mountPath = this.getConfig('mountPath', defaults);
     }
 
     async createClassMapper () {

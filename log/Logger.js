@@ -23,8 +23,12 @@ module.exports = class Logger extends Base {
             },
             typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
             types: {
-                error: {stores: ['common', 'error']},
-                fatal: {stores: ['common', 'error']}
+                error: {
+                    stores: ['common', 'error']
+                },
+                fatal: {
+                    stores: ['common', 'error']
+                }
             },
             LogType: {
                 Class: require('./LogType'),

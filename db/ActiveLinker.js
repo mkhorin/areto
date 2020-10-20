@@ -143,7 +143,8 @@ module.exports = class ActiveLinker extends Base {
         }
         const models = this.owner.getRelated(name);
         if (Array.isArray(models)) {
-            const result = models.filter(target => !CommonHelper.isEqual(model.getId(), target.getId()));
+            const id = model.getId();
+            const result = models.filter(target => !CommonHelper.isEqual(id, target.getId()));
             this.owner.populateRelation(name, result);
         }
     }

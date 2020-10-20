@@ -143,7 +143,8 @@ module.exports = class MongoBuilder extends Base {
     // IN
 
     buildInCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: Array.isArray(value) ? {$in: value} : value};
+        value = Array.isArray(value) ? {$in: value} : value;
+        return {[this.normalizeField(field)]: value};
     }
 
     buildNotInCondition (operator, field, value) {

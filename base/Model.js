@@ -101,7 +101,9 @@ module.exports = class Model extends Base {
     }
 
     getFormAttrId (name, prefix) {
-        return prefix ? `${prefix}-${this.getBaseName()}-${name}` : `${this.getBaseName()}-${name}`;
+        return prefix
+            ? `${prefix}-${this.getBaseName()}-${name}`
+            : `${this.getBaseName()}-${name}`;
     }
 
     getFormAttrName (name) {

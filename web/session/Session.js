@@ -14,6 +14,7 @@ module.exports = class Session extends Base {
             name: `${config.module.fullName}.sid`,
             lifetime: 'PT1H', // see ISO_8601#Duration
             // cookie: {maxAge: 3600 * 1000},
+            // secret: 'key', // key to sign session ID cookie
             Store: require('./MemorySessionStore'),
             engine: require('express-session'),
             flash: require('connect-flash'),
