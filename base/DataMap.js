@@ -64,33 +64,31 @@ module.exports = class DataMap {
         return this.forEach(...arguments);
     }
 
-    forEach (handler, context) {
-        for (const item of this.values()) {
-            handler.call(context, item)
-        }
+    forEach () {
+        this.values().forEach(...arguments);
         return this;
     }
 
-    filter (handler, context) {
-        const result = [];
-        for (const item of this.values()) {
-            if (handler.call(context, item)) {
-                result.push(item);
+    filter () {
+        return this.values().filter(...arguments);
+    }
+
+    filterMap (handler, context) {
+        const result = new this.constructor;
+        for (const key of this.keys()) {
+            if (handler.call(context, this._data[key], key)) {
+                result.set(key, this._data[key]);
             }
         }
         return result;
     }
 
-    map (handler, context) {
-        const result = [];
-        for (const item of this.values()) {
-            result.push(handler.call(context, item));
-        }
-        return result;
+    map () {
+        return this.values().map(...arguments);
     }
 
-    sort (handler) {
-        return this.values().sort(handler);
+    sort () {
+        return this.values().sort(...arguments);
     }
 
     [Symbol.iterator] () {
