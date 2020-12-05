@@ -14,6 +14,7 @@ module.exports = class StringValidator extends Base {
             min: null,
             pattern: null, // [RegExp]
             trimming: true, // remove whitespace from ends of a string
+            shrinking: false, // replace multiple spaces with one
             ...config
         });
     }
@@ -45,9 +46,15 @@ module.exports = class StringValidator extends Base {
     }
 
     validateAttr (attr, model) {
-        const value = model.get(attr);
-        if (typeof value === 'string' && this.trimming) {
-            model.set(attr, value.trim());
+        let value = model.get(attr);
+        if (typeof value === 'string') {
+            if (this.trimming) {
+                value = value.trim();
+            }
+            if (this.shrinking) {
+                value = value.replace(/(\s)+/g, '$1');
+            }
+            model.set(attr, value);
         }
         return super.validateAttr(attr, model);
     }
