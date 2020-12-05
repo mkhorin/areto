@@ -31,14 +31,23 @@ module.exports = class ClassHelper {
             return new config(params);
         }
         if (typeof config === 'string') {
-            return new (params.module.getClass(config))(params);
+            return this.spawnByKey(config, params);
         }
         if (params) {
             config = {...config, ...params};
         }
-        return typeof config.Class === 'function'
-            ? new config.Class(config)
-            : new (config.module.getClass(config.Class))(config);
+        if (typeof config.Class === 'function') {
+            return new config.Class(config);
+        }
+        return this.spawnByKey(config.Class, config);
+    }
+
+    static spawnByKey (key, config) {
+        const Class = config.module.getClass(key);
+        if (typeof Class === 'function') {
+            return new Class(config);
+        }
+        throw Error(`Invalid class key: ${key}`);
     }
 
     // to get value from Class[name] and (new Class)[name]

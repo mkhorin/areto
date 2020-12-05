@@ -48,9 +48,12 @@ module.exports = class Validator extends Base {
                 config.method = type;
                 type = this.BUILTIN.inline;
             }
-        } else if (type) {
+        } else if (type instanceof Object) {
             Object.assign(config, type);
             type = type.Class;
+        }
+        if (typeof type === 'string') {
+            type = model.getClass(type);
         }
         if (!type || !(type.prototype instanceof Validator)) {
             throw new Error('Invalid type');
