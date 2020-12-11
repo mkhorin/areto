@@ -492,7 +492,7 @@ module.exports = class Module extends Base {
         const web = module.getPath('web');
         if (fs.existsSync(web)) {
             // use static content handlers before others
-            this.app.mainEngine.attachStatic(this.getRoute(), web, options);
+            this.app.appEngine.attachStatic(this.getRoute(), web, options);
         }
     }
 

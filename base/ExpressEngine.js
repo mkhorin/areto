@@ -54,8 +54,24 @@ module.exports = class ExpressEngine extends Base {
         }
     }
 
-    createServer () {
+    createHttpServer () {
         return http.createServer(this._express);
+    }
+
+    startHttpServer ({port}) {
+        const server = require('http').createServer(this._express);
+        return this.listenServer(port, server);
+    }
+
+    startHttpsServer ({https, port}) {
+        const server = require('https').createServer(https, this._express);
+        return this.listenServer(port, server);
+    }
+
+    listenServer (port, server) {
+        return new Promise((resolve, reject) => {
+            server.on('error', reject).listen(port, () => resolve(server));
+        });
     }
 
     log () {
@@ -64,5 +80,4 @@ module.exports = class ExpressEngine extends Base {
 };
 
 const express = require('express');
-const http = require('http');
 const CommonHelper = require('../helper/CommonHelper');

@@ -23,7 +23,7 @@ module.exports = class Application extends Base {
     constructor (config) {
         super(config);
         this.configName = this.configName || process.env.NODE_ENV;
-        this.mainEngine = this.createEngine();
+        this.appEngine = this.createEngine();
     }
 
     getBaseName () {
@@ -53,9 +53,10 @@ module.exports = class Application extends Base {
         return '';
     }
 
-    start () {
+    async start () {
         this.attachHandlers();
-        return this.createServer();
+        await this.startServer();
+        await this.afterStart();
     }
 
     afterStart () {
@@ -64,32 +65,32 @@ module.exports = class Application extends Base {
 
     attachHandlers () {
         super.attachHandlers();
-        this.mainEngine.attachChild(this.mountPath, this.engine);
+        this.appEngine.attachChild(this.mountPath, this.engine);
     }
 
-    createServer () {
-        return new Promise((resolve, reject) => {
-            this.server = this.mainEngine.createServer()
-                .on('error', this.onServerError.bind(this, reject))
-                .listen(this.getServerPort(), this.onServerStart.bind(this, resolve));
-        });
+    async startServer () {
+        this.log('info', 'Starting server...');
+        const params = {
+            https: this.getConfig('https'),
+            port: this.getServerPort()
+        };
+        await PromiseHelper.setImmediate();
+        this.server = await this.startServerInternal(params);
+        this.log('info', `Started ${this.fullName} as`, this.server.address());
+        this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
     }
 
     getServerPort () {
         return this.serverPort || this.getConfig('port');
     }
 
-    onServerError (reject, err) {
-        this.log('error', 'Server error', err);
-        reject(err);
-    }
-
-    onServerStart (resolve) {
-        this.log('info', `Started ${this.fullName} as`, this.server.address());
-        this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
-        this.afterStart().then(resolve);
+    startServerInternal (params) {
+        return params.https
+            ? this.appEngine.startHttpsServer(params)
+            : this.appEngine.startHttpServer(params);
     }
 };
 module.exports.init();
 
+const PromiseHelper = require('../helper/PromiseHelper');
 const StringHelper = require('../helper/StringHelper');
