@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2020 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -9,13 +9,13 @@ module.exports = class RangeValidator extends Base {
 
     constructor (config) {
         super({
-            range: null,
+            // values: []
             not: false,
             allowArray: false,
             ...config
         });
-        if (!Array.isArray(this.range)) {
-            throw new Error('Range property must be array');
+        if (!Array.isArray(this.values)) {
+            throw new Error('Values property must be array');
         }
     }
 
@@ -30,7 +30,7 @@ module.exports = class RangeValidator extends Base {
         let inRange = true;
         const values = Array.isArray(value) ? value : [value];
         for (const item of values) {
-            if (!this.range.includes(item)) {
+            if (!this.values.includes(item)) {
                 inRange = false;
                 break;
             }
