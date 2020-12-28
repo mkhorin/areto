@@ -84,7 +84,7 @@ module.exports = class Controller extends Base {
     constructor (config) {
         super(config);
         this.i18n = this.getI18n();
-        this.language = this.language || (this.i18n && this.i18n.language);
+        this.language = this.language || this.i18n?.language;
         this.response = new Response;
         this.response.controller = this;
         this.timestamp = Date.now();
@@ -182,11 +182,11 @@ module.exports = class Controller extends Base {
         return this.req.xhr;
     }
 
-    isGet () {
+    isGetRequest () {
         return this.req.method === 'GET';
     }
 
-    isPost () {
+    isPostRequest () {
         return this.req.method === 'POST';
     }
 

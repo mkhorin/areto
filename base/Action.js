@@ -25,12 +25,12 @@ module.exports = class Action extends Base {
         return this.controller.isAjax();
     }
 
-    isGet () {
-        return this.controller.isGet();
+    isGetRequest () {
+        return this.controller.isGetRequest();
     }
 
-    isPost () {
-        return this.controller.isPost();
+    isPostRequest () {
+        return this.controller.isPostRequest();
     }
 
     getQueryParam () {
