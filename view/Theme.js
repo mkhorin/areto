@@ -50,8 +50,7 @@ module.exports = class Theme extends Base {
     // TEMPLATE
 
     getTemplate (name) {
-        return this._templates.get(...arguments)
-            || this.parent && this.parent.getTemplate(...arguments);
+        return this._templates.get(...arguments) || this.parent?.getTemplate(...arguments);
     }
 
     getOwnTemplate () {
@@ -60,21 +59,26 @@ module.exports = class Theme extends Base {
 
     getOwnTemplateWithOrigin () {
         return this._templates.get(...arguments)
-            || this.isOrigin && this.parent && this.parent.getOwnTemplate(...arguments);
+            || this.originalParentView
+            && this.parent?.getOwnTemplate(...arguments);
     }
 
     getParentTemplate () {
-        return this.parent && this.parent.getTemplate(...arguments);
+        return this.parent?.getTemplate(...arguments);
     }
 
     getViewOwnTemplate () {
         return this._templates.get(...arguments)
-            || this.parent && this.parent.view === this.view && this.parent.getViewOwnTemplate(...arguments);
+            || this.parent
+                && this.parent.view === this.view
+                && this.parent.getViewOwnTemplate(...arguments);
     }
 
     getViewOwnTemplateWithOrigin () {
-        return this._templates.get(...arguments) || this.parent
-            && (this.isOrigin || this.parent.view === this.view) && this.parent.getViewOwnTemplate(...arguments);
+        return this._templates.get(...arguments)
+            || this.parent
+                && (this.originalParentView || this.parent.view === this.view)
+                && this.parent.getViewOwnTemplate(...arguments);
     }
 
     getClosestAncestorTemplate () {
@@ -103,17 +107,21 @@ module.exports = class Theme extends Base {
     }
 
     getParentModel (name, language) {
-        return this.parent && this.parent.getModel(name, language);
+        return this.parent?.getModel(name, language);
     }
 
     getViewOwnModel (name, language) {
         return this._models.get(name, language)
-            || this.parent && this.parent.view === this.view && this.parent.getViewOwnModel(name, language);
+            || this.parent
+                && this.parent.view === this.view
+                && this.parent.getViewOwnModel(name, language);
     }
 
     getViewOwnModelWithOrigin () {
-        return this._models.get(...arguments) || this.parent
-            && (this.isOrigin || this.parent.view === this.view) && this.parent.getViewOwnModel(...arguments);
+        return this._models.get(...arguments)
+            || this.parent
+                && (this.originalParentView || this.parent.view === this.view)
+                && this.parent.getViewOwnModel(...arguments);
     }
 };
 
