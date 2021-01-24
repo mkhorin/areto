@@ -30,7 +30,8 @@ module.exports = class FileLogStore extends Base {
         this.file = this.getFile();
         this.fullFile = this.getFile('full');
         this.maxFileSize *= 1024 * 1024; // megabytes to bytes
-        
+        this.outputBuffer = '';
+        this.onWriteHandler = this.onWrite.bind(this);
         fs.mkdirSync(this.basePath, {recursive: true});
         this.openFile();
     }
@@ -46,15 +47,32 @@ module.exports = class FileLogStore extends Base {
     }
 
     openFile () {
-        this._fd = fs.openSync(this.file, 'a');
+        this.fileDescriptor = fs.openSync(this.file, 'a');
+        this.readyWrite = true;
     }
 
     save () {
-        fs.write(this._fd, this.format(...arguments), err => {
-            if (err) {
-                console.error(this.wrapClassMessage(`save`), err);
-            }
-        });
+        this.outputBuffer += this.format(...arguments);
+        if (this.readyWrite) {
+            this.write();
+        }
+    }
+
+    write () {
+        this.readyWrite = false;
+        const content = this.outputBuffer;
+        this.outputBuffer = '';
+        fs.write(this.fileDescriptor, content, this.onWriteHandler);
+    }
+
+    onWrite (err) {
+        if (err) {
+            return console.error(this.wrapClassMessage(`save`), err);
+        }
+        if (this.outputBuffer) {
+            return this.write();
+        }
+        this.readyWrite = true;
     }
 
     format (type, text, data) {
@@ -79,7 +97,7 @@ module.exports = class FileLogStore extends Base {
 
     async checkout () {
         try {
-            const {size} = await PromiseHelper.promise(fs.fstat.bind(fs, this._fd));
+            const {size} = await PromiseHelper.promise(fs.fstat.bind(fs, this.fileDescriptor));
             if (size > this.maxFileSize) {
                 await this.rotate();
             }
@@ -90,7 +108,7 @@ module.exports = class FileLogStore extends Base {
 
     async rotate () {
         await fs.promises.rename(this.file, this.fullFile);
-        fs.closeSync(this._fd);
+        fs.closeSync(this.fileDescriptor);
         this.openFile();
         const files = await this.getSortedFiles();
         await this.deleteExcessFiles(files);
