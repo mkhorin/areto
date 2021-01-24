@@ -9,20 +9,16 @@ module.exports = class FilePack extends Base {
 
     constructor (config) {
         super({
-            // target: relative file name
+            // target: file name relative to module
             includes: [],
             excludes: [],
-            inModule: true,
-            inOriginal: true,
+            fromModule: true,
+            fromOriginal: true,
             ...config
         });
         if (this.Minifier) {
             this.minifier = this.spawn(this.Minifier);
         }
-    }
-
-    getPath () {
-        return this.module.getPath(...arguments);
     }
 
     async pack () {
@@ -36,16 +32,20 @@ module.exports = class FilePack extends Base {
 
     async packByName (name) {
         let file, stat;
-        if (this.inModule) {
-            file = this.getPath(name);
+        if (this.fromModule) {
+            file = this.module.getPath(name);
             stat = await FileHelper.getStat(file);
         }
-        if (!stat && this.inOriginal && this.module.original) {
-            file = this.module.original.getPath(name);
-            stat = await FileHelper.getStat(file);
+        if (!stat && this.fromOriginal) {
+            let module = this.module.original;
+            while (module && !stat) {
+                file = module.getPath(name);
+                stat = await FileHelper.getStat(file);
+                module = module.original;
+            }
         }
         if (!stat) {
-            return this.log('error', 'File not found:', name);
+            return this.log('error', `File not found: ${name}`);
         }
         return stat.isDirectory()
             ? this.packDirectory(file, name)
@@ -97,7 +97,7 @@ module.exports = class FilePack extends Base {
 
     async saveTarget () {
         if (this.target) {
-            const file = this.getPath(this.target);
+            const file = this.module.getPath(this.target);
             await fs.promises.mkdir(path.dirname(file), {recursive: true});
             await fs.promises.writeFile(file, this._data);
             this.log('info', `Target ready: ${this.target}`);    
