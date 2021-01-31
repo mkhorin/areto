@@ -26,16 +26,10 @@ module.exports = class Application extends Base {
         this.appEngine = this.createEngine();
     }
 
-    getBaseName () {
-        if (!this.hasOwnProperty('_baseName')) {
-            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.constructor.name, 'Application'));
-        }
-        return this._baseName;
-    }
-
     async init () {
+        await this.appEngine.init();
         await super.init();
-        this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
+        this.setBaseUrl();
     }
 
     getRoute (url) {
@@ -45,12 +39,20 @@ module.exports = class Application extends Base {
         return url ? `${this._route}/${url}` : this._route;
     }
 
-    createFullName () {
-        return this.getBaseName();
+    createName () {
+        return StringHelper.toFirstLowerCase(StringHelper.trimEnd(this.constructor.name, 'Application'));
     }
 
-    createRelativeName () {
+    createFullName () {
+        return this.name;
+    }
+
+    createInternalName () {
         return '';
+    }
+
+    setBaseUrl () {
+        this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
     }
 
     async start () {
@@ -66,6 +68,7 @@ module.exports = class Application extends Base {
     attachHandlers () {
         super.attachHandlers();
         this.appEngine.attachChild(this.mountPath, this.engine);
+        this.log('info', `${this.getFullName()} is attached to ${this.mountPath}`);
     }
 
     async startServer () {
@@ -76,8 +79,7 @@ module.exports = class Application extends Base {
         };
         await PromiseHelper.setImmediate();
         this.server = await this.startServerInternal(params);
-        this.log('info', `Started ${this.fullName} as`, this.server.address());
-        this.log('info', `Mounted ${this.fullName} as ${this.mountPath}`);
+        this.log('info', `Server is running on port ${this.server.address()?.port}`);
     }
 
     getServerPort () {

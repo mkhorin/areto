@@ -7,6 +7,10 @@ const Base = require('../base/Component');
 
 module.exports = class Router extends Base {
 
+    static createActionPathName (name) {
+        return StringHelper.camelToId(name);
+    }
+
     constructor (config) {
         super({
             depends: '#end',
@@ -60,8 +64,8 @@ module.exports = class Router extends Base {
         return this.getController(this.defaultController);
     }
 
-    getController (id) {
-        return this._controllerMap.hasOwnProperty(id) ? this._controllerMap[id] : null;
+    getController (name) {
+        return this._controllerMap.hasOwnProperty(name) ? this._controllerMap[name] : null;
     }
 
     getControllerMap (dir, relative = '') {
@@ -80,15 +84,11 @@ module.exports = class Router extends Base {
     setControllerMapFile (file, relative, map) {
         const stat = fs.lstatSync(file);
         if (stat.isDirectory()) {
-            Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}/`));
+            Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}-`));
         } else {
-            file = require(file);
-            map[relative + file.getBaseName()] = file;
+            const controller = require(file);
+            map[relative + controller.getPathName()] = controller;
         }
-    }
-
-    resolveControllerId (id) {
-        return id.replace(/\//g, '-');
     }
 
     createController (Controller, config) {
@@ -100,33 +100,33 @@ module.exports = class Router extends Base {
     // ACTION
 
     addDefaultAction (Controller) {
-        if (Controller && Controller.DEFAULT_ACTION) {
-            if (Controller.getActionKeys().includes(Controller.DEFAULT_ACTION)) {
+        if (Controller?.DEFAULT_ACTION) {
+            if (Controller.getActionNames().includes(Controller.DEFAULT_ACTION)) {
                 this.addAction(Controller.DEFAULT_ACTION, Controller, '');
             }
         }
     }
 
     addActions () {
-        for (const id of Object.keys(this._controllerMap)) {
-            const route = `/${this.resolveControllerId(id)}`;
-            const Controller = this._controllerMap[id];
-            for (const actionId of Controller.getActionKeys()) {
-                this.addAction(actionId, Controller, `${route}/${actionId}`);
-                if (Controller.DEFAULT_ACTION === actionId) {
-                    this.addAction(actionId, Controller, route);
+        for (const key of Object.keys(this._controllerMap)) {
+            const route = `/${key}`;
+            const Controller = this._controllerMap[key];
+            for (const name of Controller.getActionNames()) {
+                this.addAction(name, Controller, `${route}/${this.constructor.createActionPathName(name)}`);
+                if (Controller.DEFAULT_ACTION === name) {
+                    this.addAction(name, Controller, route);
                 }
             }
         }
     }
 
-    addAction (id, Controller, route) {
+    addAction (name, Controller, route) {
         const action = (req, res, next) => {
             this.createController(Controller, {req, res, module: res.locals.module})
-                .execute(id)
+                .execute(name)
                 .catch(next);
         };
-        let methods = Controller.METHODS[id] || Controller.METHODS['*'] || ['all'];
+        let methods = Controller.METHODS[name] || Controller.METHODS['*'] || ['all'];
         if (!Array.isArray(methods)) {
             methods = [methods];
         }
@@ -158,3 +158,4 @@ const path = require('path');
 const HttpException = require('../error/HttpException');
 const NotFound = require('../error/http/NotFound');
 const ServerError = require('../error/http/ServerError');
+const StringHelper = require('../helper/StringHelper');

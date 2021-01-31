@@ -9,7 +9,7 @@ module.exports = class Module extends Base {
 
     static getExtendedClassProperties () {
         return [
-            'COMPONENT_CONFIG_MAP'
+            'COMPONENT_CONFIGURATIONS'
         ];
     }
 
@@ -20,7 +20,7 @@ module.exports = class Module extends Base {
                 'urlManager': {},
                 'view': {}
             },
-            COMPONENT_CONFIG_MAP: {
+            COMPONENT_CONFIGURATIONS: {
                 'asset': {
                     Class: require('../web/asset/AssetManager')
                 },
@@ -68,7 +68,7 @@ module.exports = class Module extends Base {
                     Class: require('../web/UrlManager')
                 }
             },
-            INHERITED_UNDEFINED_CONFIG_KEYS: [
+            INHERITED_UNDEFINED_CONFIGURATION_KEYS: [
                 'params',
                 'widgets'
             ],
@@ -103,28 +103,31 @@ module.exports = class Module extends Base {
         this.components = new DataMap; // all components (with inherited)
         this.ownComponents = new DataMap; // own module components
         this.app = this.parent ? this.parent.app : this;
-        this.fullName = this.createFullName();
-        this.relativeName = this.createRelativeName();
         this.engine = this.createEngine();
+        this.name = this.createName();
+        this._pathName = this.createPathName();
+        this._fullName = this.createFullName();
+        this._internalName = this.createInternalName();
     }
 
-    getBaseName () {
-        if (!this.hasOwnProperty('_baseName')) {
-            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.constructor.name, 'Module'));
-        }
-        return this._baseName;
+    getFullName () {
+        return this._fullName;
+    }
+
+    getInternalName () {
+        return this._internalName;
+    }
+
+    getPathName () {
+        return this._pathName;
     }
 
     getTitle () {
-        return this.config.get('title') || this.getBaseName();
+        return this.config.get('title') || this.name;
     }
 
     get (id) {
         return this.components.get(id);
-    }
-
-    getParentComponent (id, defaults) {
-        return this.parent ? this.parent.components.get(id) : defaults;
     }
 
     getDb (id) {
@@ -143,16 +146,24 @@ module.exports = class Module extends Base {
         return NestedHelper.get(key, this.params, defaults);
     }
 
-    getPath () { // ignore absolute path in arguments
+    /**
+     * Get path relative to module (ignore absolute path in arguments)
+     * @returns {string}
+     */
+    getPath () {
         return path.join(this.CLASS_DIRECTORY, ...arguments);
     }
 
-    resolvePath () { // not ignore absolute path in arguments
+    /**
+     * Get path relative to module (not ignore absolute path in arguments)
+     * @returns {string}
+     */
+    resolvePath () {
         return path.resolve(this.CLASS_DIRECTORY, ...arguments);
     }
 
     require () {
-        return this.requireInternal(...arguments) || (this.original && this.original.require(...arguments));
+        return this.requireInternal(...arguments) || this.original?.require(...arguments);
     }
 
     requireInternal () {
@@ -170,11 +181,11 @@ module.exports = class Module extends Base {
         return this.getPath('controller');
     }
 
-    getControllerClass (id) {
-        return require(path.join(this.getControllerDirectory(), `${StringHelper.idToCamel(id)}Controller`));
-    }
-
-    getModule (name) { // name1.name2.name3
+    /**
+     * Get descendant module by internal name: module1.module2.module3
+     * @param {string} name
+     */
+    getModule (name) {
         if (typeof name !== 'string') {
             return null;
         }
@@ -183,32 +194,38 @@ module.exports = class Module extends Base {
             return module;
         }
         const pos = name.indexOf('.');
-        if (pos === -1) {
-            return null;
+        if (pos !== -1) {
+            return this.modules.get(name.substring(0, pos))?.getModule(name.substring(pos + 1));
         }
-        module = this.modules.get(name.substring(0, pos));
-        return module
-            ? module.getModule(name.substring(pos + 1))
-            : null;
     }
 
-    getModules () {
-        return this.modules;
+    createName () {
+        return this.name;
     }
 
-    createFullName (separator = '.') { // eq - app.admin.profile
-        return this.parent.createFullName(separator) + separator + this.getBaseName();
+    /**
+     * Get full module name (eg. app.admin.profile)
+     * @param {string} [separator]
+     */
+    createFullName (separator = '.') {
+        return this.parent.createFullName(separator) + separator + this.name;
     }
 
-    createRelativeName (separator = '.') {  // eq - admin.profile
-        const parent = this.parent.createRelativeName(separator);
-        return parent
-            ? parent + separator + this.getBaseName()
-            : this.getBaseName();
+    /**
+     * Get module name relative to app (eg. admin.profile)
+     * @param {string} [separator]
+     */
+    createInternalName (separator = '.') {
+        const name = this.createFullName(separator);
+        return name.substring(name.indexOf(separator) + 1);
+    }
+
+    createPathName () {
+        return StringHelper.camelToId(this.name);
     }
 
     log () {
-        CommonHelper.log(this.components.get('logger'), this.relativeName, ...arguments);
+        CommonHelper.log(this.components.get('logger'), this._internalName, ...arguments);
     }
 
     translate (message, params, source = 'app') {
@@ -220,6 +237,10 @@ module.exports = class Module extends Base {
 
     // ROUTE
 
+    getHomeUrl () {
+        return this.params.homeUrl || '/';
+    }
+
     getRoute (url) {
         if (this._route === undefined) {
             this._route = this.parent.getRoute() + this.mountPath;
@@ -227,20 +248,21 @@ module.exports = class Module extends Base {
         return url ? `${this._route}/${url}` : this._route;
     }
 
-    getAncestry () {
-        if (!this._ancestry) {
-            this._ancestry = [this];
-            let current = this;
-            while (current.parent) {
-                current = current.parent;
-                this._ancestry.push(current);
-            }
+    getRouteModules () {
+        if (!this._routeModules) {
+            this._routeModules = Object.freeze(this.resolveRouteModules());
         }
-        return this._ancestry;
+        return this._routeModules;
     }
 
-    getHomeUrl () {
-        return this.params.homeUrl || '/';
+    resolveRouteModules () {
+        let modules = [this];
+        let current = this;
+        while (current.parent) {
+            current = current.parent;
+            modules.push(current);
+        }
+        return modules;
     }
 
     // EVENTS
@@ -276,11 +298,12 @@ module.exports = class Module extends Base {
     // INIT
 
     async init () {
+        await this.engine.init();
         await this.beforeInit();
-        await this.createOriginal();
+        await this.createOriginalModule();
         await this.createConfiguration();
         await this.createClassMapper();
-        this.extractConfigProperties();
+        this.extractConfigurationProperties();
         this.setMountPath();
         this.attachStaticSource(this.getParam('static'));
         this.addViewEngine(this.getParam('template'));
@@ -296,47 +319,63 @@ module.exports = class Module extends Base {
         this.log('info', `Configured as ${this.config.getTitle()}`);
     }
 
-    async createOriginal () {
+    async createOriginalModule () {
         if (this.original) {
             this.original = this.spawn(this.original, this.getOriginalSpawnParams());
-            await this.original.initOriginal();
+            await this.original.initOriginalModule(this);
         }
     }
 
     getOriginalSpawnParams () {
         return {
             configName: this.configName,
+            name: this.name,
             parent: this.parent
         };
     }
 
-    async initOriginal () {
-        await this.createOriginal();
+    async initOriginalModule () {
+        await this.createOriginalModule();
         await this.createConfiguration();
         await this.createClassMapper();
-        this.extractConfigProperties();
+        this.extractConfigurationProperties();
+    }
+
+    getOriginalHierarchy () {
+        let modules = [this];
+        let current = this;
+        while (current.original) {
+            current = current.original;
+            modules.push(current);
+        }
+        return modules.reverse();
     }
 
     async createConfiguration () {
         this.config = this.spawn(this.Configuration, {
             directory: this.getPath('config'),
             name: this.configName,
-            parent: this.parent && this.parent.config,
-            original: this.original && this.original.config,
+            parent: this.parent?.config,
+            original: this.original?.config,
             data: this.config
         });
         await this.config.load();
-        this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIG_KEYS);
+        this.config.inheritUndefined(this.INHERITED_UNDEFINED_CONFIGURATION_KEYS);
     }
 
-    extractConfigProperties () {
+    extractConfigurationProperties () {
         const params = this.getConfig('params') || {};
         this.params = Object.assign(params, this.params);
     }
 
-    setMountPath () {
-        const defaults = this.parent ? `/${this.getBaseName()}` : '/';
-        this.mountPath = this.getConfig('mountPath', defaults);
+    setMountPath (value) {
+        this.mountPath = value || this.resolveMountPath();
+        this.original?.setMountPath(this.mountPath);
+    }
+
+    resolveMountPath () {
+        const defaults = this.parent ? `/${this.getPathName()}` : '/';
+        return this.getConfig('mountPath', defaults);
     }
 
     async createClassMapper () {
@@ -347,25 +386,26 @@ module.exports = class Module extends Base {
     // MODULES
 
     createModules (data = {}) {
-        for (const key of Object.keys(data)) {
-            this.createModule(key, data[key]);
+        for (const name of Object.keys(data)) {
+            this.createModule(name, data[name]);
         }
     }
 
-    createModule (id, config) {
+    createModule (name, config) {
         if (!config) {
-            return this.log('info', `Module skipped: ${id}`);
+            return this.log('info', `Module skipped: ${name}`);
         }
         if (!config.Class) {
-            config.Class = this.require('module', id, 'Module.js');
+            config.Class = this.require('module', name, 'Module.js');
         }
-        const module = ClassHelper.spawn(config, this.getModuleSpawnParams());
-        this.modules.set(id, module);
+        const module = ClassHelper.spawn(config, this.getModuleSpawnParams(name));
+        this.modules.set(name, module);
     }
 
-    getModuleSpawnParams () {
+    getModuleSpawnParams (name) {
         return {
             configName: this.configName,
+            name,
             parent: this
         };
     }
@@ -408,11 +448,11 @@ module.exports = class Module extends Base {
             return this.log('info', `Component skipped: ${id}`);
         }
         config = {
-            ...this.COMPONENT_CONFIG_MAP[id],
+            ...this.COMPONENT_CONFIGURATIONS[id],
             ...config
         };
         config.id = id;
-        config.parent = this.getParentComponent(id);
+        config.parent = this.parent?.components.get(id);
         const name = StringHelper.idToCamel(config.componentMethodName || config.id);
         const method = `create${name}Component`;
         return typeof this[method] === 'function'
@@ -438,7 +478,7 @@ module.exports = class Module extends Base {
     createViewComponent (config) {        
         return this.spawn({
             Class: require('../view/View'),
-            original: this.original && this.original.createViewComponent(config),
+            original: this.original?.createViewComponent(config),
             ...config
         });
     }
@@ -475,24 +515,27 @@ module.exports = class Module extends Base {
         this.engine.add(...arguments);
     }
 
-    addViewEngine (data) {
-        this.engine.addViewEngine(data);
+    addViewEngine (params) {
+        this.engine.addViewEngine(params);
     }
 
-    attachStaticSource (data) {
-        if (data) {
-            this.attachStaticByModule(this, data);
-            if (this.original) {
-                this.attachStaticByModule(this.original, data);
-            }
+    attachStaticSource (params) {
+        if (params) {
+            this.attachModuleStaticSource(this, params.options);
         }
     }
 
-    attachStaticByModule (module, {options}) {
-        const web = module.getPath('web');
-        if (fs.existsSync(web)) {
-            // use static content handlers before others
-            this.app.appEngine.attachStatic(this.getRoute(), web, options);
+    attachModuleStaticSource (module, options) {
+        this.app.attachStaticDirectory(this.getRoute(), module.getPath('web'), options);
+        if (module.original) {
+            this.attachModuleStaticSource(module.original, options);
+        }
+    }
+
+    attachStaticDirectory (route, dir, options = this.getParam('static')?.options) {
+        if (fs.existsSync(dir)) {
+            // attach static content handlers before others
+            this.app.appEngine.attachStatic(route, dir, options);
         }
     }
 

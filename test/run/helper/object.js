@@ -23,8 +23,6 @@ describe('ObjectHelper', ()=> {
         expect(res).to.eql(5);
         res = ObjectHelper.getValue('key2', {key: 5});
         expect(res).to.eql(undefined);
-        res = ObjectHelper.getValue(['key1', 'key2'], {key1: 5}, 'def');
-        expect(res).to.eql([5, 'def']);
     });
 
     it('getValueOrKey', ()=> {
@@ -32,8 +30,20 @@ describe('ObjectHelper', ()=> {
         expect(res).to.eql(5);
         res = ObjectHelper.getValueOrKey('key2', {key: 5});
         expect(res).to.eql('key2');
-        res = ObjectHelper.getValueOrKey(['key1', 'key2'], {key1: 1, key2: 2});
-        expect(res).to.eql([1, 2]);
+    });
+
+    it('getValueFromGetterFirst', ()=> {
+        class Test {
+            get (key) {
+                return ['value', key];
+            }
+        }
+        let test = new Test;
+        test.key = 'Some value';
+        let res = ObjectHelper.getValueFromGetterFirst('key', test);
+        expect(res).to.eql(['value', 'key']);
+        res = ObjectHelper.getValueFromGetterFirst('key', {key: 5});
+        expect(res).to.eql(5);
     });
 
     it('getKeyByValue', ()=> {

@@ -7,23 +7,18 @@ const Base = require('../base/Base');
 
 module.exports = class ExpressEngine extends Base {
 
-    constructor (config) {
-        super(config);
+    init () {
         this._express = express();
         this._express.disable('x-powered-by');
-        this._handlers = []; // for deferred assign
-    }
-
-    getExpress () {
-        return this._express;
+        this._handlers = []; // for deferred assignments
     }
 
     add (method, ...args) {
         this._handlers.push({method, args});
     }
 
-    addChild (mountPath, express) {
-        this.add('use', mountPath, express._express);
+    addChild (mountPath, engine) {
+        this.add('use', mountPath, engine._express);
     }
 
     addViewEngine (params) {
@@ -34,9 +29,14 @@ module.exports = class ExpressEngine extends Base {
         }
     }
 
-    attach (method, ...args) {
-        this._express[method](...args);
-        this.log('trace', method, args[0]);
+    attachChild (mountPath, engine) {
+        this.attach('use', mountPath, engine._express);
+    }
+
+    attachHandlers () {
+        for (const item of this._handlers) {
+            this.attach(item.method, ...item.args);
+        }
     }
 
     attachStatic (route, dir, options) {
@@ -44,14 +44,9 @@ module.exports = class ExpressEngine extends Base {
         this.log('trace', 'static', dir);
     }
 
-    attachChild (mountPath, express) {
-        this.attach('use', mountPath, express._express);
-    }
-
-    attachHandlers () {
-        for (const item of this._handlers) {
-            this.attach(item.method, ...item.args);
-        }
+    attach (method, ...args) {
+        this._express[method](...args);
+        this.log('trace', method, args[0]);
     }
 
     createHttpServer () {

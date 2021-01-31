@@ -151,9 +151,9 @@ module.exports = class Query extends Base {
         return this.and(['NOT IN', key, value]);
     }
 
-    // ORDER
     /**
-     * @param data - { attr1: 1, attr2: -1 }
+     * Set sort order
+     * @param {Object} data - {attr1: 1, attr2: -1}
      */
     order (data) {
         this._order = data;
@@ -290,7 +290,9 @@ module.exports = class Query extends Base {
                    : null;
     }
 
-    // operator format: [operator, operand 1, operand 2, ...]
+    /**
+     * @param {Array} data - [operator, operand 1, operand 2, ...]
+     */
     filterOperatorCondition (data) {
         switch (data[0]) {
             case 'NOT':
@@ -316,7 +318,9 @@ module.exports = class Query extends Base {
         return data.length > 1 ? data : null;
     }
 
-    // hash format: { column1: value1, column2: value2, ... }
+    /**
+     * @param {Object} data - {column1: value1, column2: value2, ...}
+     */
     filterHashCondition (data) {
         const result = {};
         for (const key of Object.keys(data)) {
@@ -327,7 +331,11 @@ module.exports = class Query extends Base {
         return Object.values(result).length ? result : null;
     }
 
-    // sort an array of objects with a key attribute by an array of keys
+    /**
+     * Sort an array of objects with a key attribute by an array of keys
+     * @param {Array} docs
+     * @returns {*}
+     */
     sortOrderByKeys (docs) {
         const keys = this._orderByKeys;
         if (!Array.isArray(keys) || keys.length < 2) {

@@ -7,25 +7,25 @@ const Base = require('../base/Base');
 
 module.exports = class Job extends Base {
 
-    isCanceled () {
-        return this._canceled;
+    execute () {
+        // place code here
     }
 
-    run () {
-        // place code here
+    isCanceled () {
+        return this._canceled;
     }
 
     cancel () {
         this._canceled = true;
     }
 
-    async execute () {
+    async start () {
         if (this._started) {
             throw new Error('Job has already started');
         }
         this._started = true;
         await PromiseHelper.setImmediate();
-        await this.run();
+        await this.execute();
     }
 
     log () {

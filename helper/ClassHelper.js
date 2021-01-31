@@ -50,8 +50,14 @@ module.exports = class ClassHelper {
         throw Error(`Invalid class key: ${key}`);
     }
 
-    // to get value from Class[name] and (new Class)[name]
-    static defineClassProperty (Class, name, value, writable) {
+    /**
+     * Set property value accessible from Class and class instances
+     * @param Class - constructor
+     * @param {string} name
+     * @param {*} value
+     * @param {boolean} writable
+     */
+    static defineClassProperty (Class, name, value, writable = false) {
         Object.defineProperty(Class, name, {value, writable});
         Object.defineProperty(Class.prototype, name, {value, writable});
     }
@@ -59,7 +65,7 @@ module.exports = class ClassHelper {
     static defineConstantClassProperties (Class) {
         const data = this.getClassPropertyMap(Class, 'getConstants', Class, 'getExtendedClassProperties');
         for (const key of Object.keys(data)) {
-            this.defineClassProperty(Class, key, data[key], false);
+            this.defineClassProperty(Class, key, Object.freeze(data[key]));
         }
     }
 

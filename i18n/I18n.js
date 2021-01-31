@@ -142,7 +142,7 @@ module.exports = class I18n extends Base {
         if (Array.isArray(message)) {
             return this.translate(...message);
         }
-        if (message instanceof Message) {
+        if (typeof message?.translate === 'function') {
             return message.translate(this);
         }
         return this.translate(...arguments);
@@ -164,4 +164,3 @@ const ObjectHelper = require('../helper/ObjectHelper');
 const MessageSource = require('./MessageSource');
 const FileMessageSource = require('./FileMessageSource');
 const MessageFormatter = require('./MessageFormatter');
-const Message = require('./Message');

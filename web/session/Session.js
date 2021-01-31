@@ -11,7 +11,7 @@ module.exports = class Session extends Base {
         super({
             resave: false,
             saveUninitialized: false,
-            name: `${config.module.fullName}.sid`,
+            name: config.module.getFullName() + '.sid',
             lifetime: 'PT1H', // see ISO_8601#Duration
             // cookie: {maxAge: 3600 * 1000},
             // secret: 'key', // key to sign session ID cookie

@@ -47,6 +47,15 @@ module.exports = class Base {
     wrapClassMessage (message) {
         return this.constructor.wrapClassMessage(message);
     }
+
+    defineConstantProperty (name, value) {
+        return Object.defineProperty(this, name, {
+            configurable: false,
+            enumerable: true,
+            value: value,
+            writable: false
+        });
+    }
 };
 
 // to fix JSON.stringify(new RegExp) => {}

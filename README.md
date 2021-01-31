@@ -1,18 +1,18 @@
 # Areto Framework
 
-### Robust Node.js MVC Framework to accelerate web development
+### Adaptive Node.js MVC Framework to accelerate web development
 
 - Modern JavaScript optimizes coding.
-- MongoDB accelerates development and simplify support.
+- MongoDB simplify development and support.
 - Modular structure eases component customization. 
-- Role-based access control provides user permissions.
+- Role-based access control improves security of user actions.
 - Built-in validators ensure reliable processing of input data.
 - Integrated internationalization expands range of users.
 
-#### Ready to Try
+#### Ready to try
  
-- [Demo App](https://github.com/mkhorin/areto-basic-demo)
+- [Blog App](https://github.com/mkhorin/areto-basic-demo)
 
-#### Ready to Use
+#### Ready to use
 
 - [Evado Declarative Framework](https://github.com/mkhorin/evado)

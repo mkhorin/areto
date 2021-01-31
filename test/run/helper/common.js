@@ -28,6 +28,17 @@ describe('CommonHelper', ()=> {
         expect(CommonHelper.isEqual({m: 2, k: 1}, {k: 1, m: 2})).to.eql(false);
     });
 
+    it('defineConstantProperty', ()=> {
+        const res = {};
+        CommonHelper.defineConstantProperty(res, 'test', 1);
+        expect(res.test).to.eql(1);
+        expect(Object.values(res)).to.eql([1]);
+        try { res.test = 2; } catch {}
+        expect(res.test).to.eql(1);
+        try { delete res.test; } catch {}
+        expect(res.test).to.eql(1);
+    });
+
     it('parseJson', ()=> {
         const res = CommonHelper.parseJson(JSON.stringify({a: 5}));
         expect(res.a).to.eql(5);

@@ -85,7 +85,4 @@ module.exports = class Database extends Base {
         await query.prepare();
         return this._builder.build(query);
     }
-
-    dropAllByName (name) {
-    }
 };

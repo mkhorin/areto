@@ -44,7 +44,7 @@ module.exports = class Pagination extends Base {
         }
         this.setPage(this.page);
     }
-
+                                       
     setPageSize (value) {
         if (value === null) {
             return this.pageSize = null;
@@ -97,11 +97,15 @@ module.exports = class Pagination extends Base {
             [this.LINK_SELF]: this.createUrl(currentPage)
         };
         if (currentPage > 0) {
-            links[this.LINK_FIRST] = this.createUrl(0);
             links[this.LINK_PREV] = this.createUrl(currentPage - 1);
+        }
+        if (currentPage > 1) {
+            links[this.LINK_FIRST] = this.createUrl(0);
         }
         if (currentPage < pageCount - 1) {
             links[this.LINK_NEXT] = this.createUrl(currentPage + 1);
+        }
+        if (currentPage < pageCount - 2) {
             links[this.LINK_LAST] = this.createUrl(pageCount - 1);
         }
         return links;

@@ -13,8 +13,8 @@ module.exports = class Configuration extends Base {
     constructor (config) {
         super({
             // directory: configuration directory,
-            // parent: parent configuration,
-            // original: original configuration,
+            // parent: parent module configuration,
+            // original: original module configuration,
             ...config
         });
     }
@@ -24,7 +24,7 @@ module.exports = class Configuration extends Base {
     }
 
     getTitle () {
-        return this._names.join('.') || (this.original && this.original.getTitle());
+        return this._names.join('.') || this.original?.getTitle();
     }
 
     includes (key, value) {

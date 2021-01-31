@@ -7,13 +7,15 @@ const Base = require('../../base/Base');
 
 module.exports = class AssetBundle extends Base {
 
-    // style: ['style/file1.css', ['style/file2.css', {media: 'print'}]]
-    // script: ['script/file1.js', ['script/file2.js', {position: _view.POS_HEAD}]]
-    // version: '1.2.3' // ?v=1.2.3
-
+    /**
+     * @param {Object} [config]
+     * @param {Array} [config.styles] - ['style/file1.css', ['style/file2.css', {media: 'print'}]]
+     * @param {Array} [config.scripts] - ['script/file1.js', ['script/file2.js', {position: _view.POS_HEAD}]]
+     * @param {string} [config.version] - '1.2.3' (?v=1.2.3)
+     *
+     */
     constructor (config) {
         super(config);
-
         if (this.styles && !Array.isArray(this.styles)) {
             this.styles = [this.styles];
         }
@@ -27,18 +29,20 @@ module.exports = class AssetBundle extends Base {
         this.scriptOptions = this.scriptOptions || {}; // {position: _view.POS_HEAD}
         this.styleOptions.version = this.styleOptions.version || this.version;
         this.scriptOptions.version = this.scriptOptions.version || this.version;
-
         if (!this.name) {
-            // set name as first item name
-            if (this.styles && this.styles.length) {
-                this.name = Array.isArray(this.styles[0]) ? this.styles[0][0] : this.styles[0];
-            } else if (this.scripts && this.scripts.length) {
-                this.name = Array.isArray(this.scripts[0]) ? this.scripts[0][0] : this.scripts[0];
-            } else {
-                this.name = '';
-            }
+            this.name = this.getFirstItemName();
         }
         this._result = {};
+    }
+
+    getFirstItemName () {
+        if (this.styles?.length) {
+            return Array.isArray(this.styles[0]) ? this.styles[0][0] : this.styles[0];
+        }
+        if (this.scripts?.length) {
+            return Array.isArray(this.scripts[0]) ? this.scripts[0][0] : this.scripts[0];
+        }
+        return '';
     }
 
     render (pos) {

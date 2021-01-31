@@ -5,10 +5,6 @@
 
 module.exports = class QueryHelper {
 
-    static getAttr (model, name) {
-        return model instanceof ActiveRecord ? model.get(name) : model[name];
-    }
-
     static indexObjects (docs, key) {
         const result = {};
         for (const doc of docs) {
@@ -68,4 +64,3 @@ module.exports = class QueryHelper {
 };
 
 const ArrayHelper = require('./ArrayHelper');
-const ActiveRecord = require('../db/ActiveRecord');

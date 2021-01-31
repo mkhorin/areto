@@ -23,12 +23,26 @@ module.exports = class ViewModel extends Base {
         }   
     }
 
+    static getAttrLabel (name) {
+        if (!this._GENERATED_LABELS) {
+            this._GENERATED_LABELS = {...this.ATTR_LABELS};
+        }
+        if (!Object.prototype.hasOwnProperty.call(this._GENERATED_LABELS, name)) {
+            this._GENERATED_LABELS[name] = this.generateAttrLabel(name);
+        }
+        return this._GENERATED_LABELS[name];
+    }
+
+    static generateAttrLabel (name) {
+        return StringHelper.generateLabel(name);
+    }
+
     static getAttrValueLabels (name) {
         return this.ATTR_VALUE_LABELS[name];
     }
 
     static getAttrValueLabel (name, value) {
-        return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
+        return this.ATTR_VALUE_LABELS[name]?.[value];
     }
 
     constructor (config) {
@@ -52,18 +66,11 @@ module.exports = class ViewModel extends Base {
     }
 
     getAttrLabel (name) {
-        return Object.prototype.hasOwnProperty.call(this.ATTR_LABELS, name)
-            ? this.ATTR_LABELS[name]
-            : this.generateAttrLabel(name);
+        return this.constructor.getAttrName(name);
     }
 
     getAttrHint (name) {
-        return ObjectHelper.getValue(name, this.ATTR_HINTS, '');
-    }
-
-    generateAttrLabel (name) {
-        this.ATTR_LABELS[name] = StringHelper.camelToWords(StringHelper.camelize(name));
-        return this.ATTR_LABELS[name];
+        return ObjectHelper.getValue(name, this.ATTR_HINTS);
     }
 
     format () {

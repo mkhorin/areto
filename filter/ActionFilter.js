@@ -19,7 +19,7 @@ module.exports = class ActionFilter extends Base {
 
     isActive (action) {
         const name = this.owner instanceof Module
-            ? action.getRelativeModuleName()
+            ? action.getNameRelativeToModule()
             : action.name;
         return (!this.except || !this.except.includes(name))
             && (!this.only || this.only.includes(name));

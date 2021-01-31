@@ -32,7 +32,7 @@ module.exports = class MessageSource extends Base {
         if (data && Object.prototype.hasOwnProperty.call(data, message)) {
             return data[message];
         }
-        return this.parent ? this.parent.translate(message, language) : null;
+        return this.parent?.translate(message, language);
     }
 
     log () {

@@ -9,8 +9,8 @@ module.exports = class View extends Base {
 
     constructor (config) {
         super({
-            // parent: new View
-            // original: new View
+            // parent: parent module View
+            // original: original module View
             theme: config.parent?.theme, // theme name
             ThemeSet: require('./ThemeSet'),
             ...config
@@ -31,7 +31,8 @@ module.exports = class View extends Base {
             theme: this.theme,
             parent: this.parent?.themeSet,
             directory: this.module.getPath(),
-            originalParentView: this.originalParent
+            originalParentView: this.originalParent,
+            view: this
         });
     }
 

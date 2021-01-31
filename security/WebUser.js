@@ -26,7 +26,7 @@ module.exports = class WebUser extends Base {
     }
 
     getId () {
-        return this.identity ? this.identity.getId() : null;
+        return this.identity?.getId();
     }
 
     getIdentity () {
@@ -34,7 +34,7 @@ module.exports = class WebUser extends Base {
     }
 
     getAuthKey () {
-        return this.identity ? this.identity.getAuthKey() : null;
+        return this.identity?.getAuthKey();
     }
 
     getIp () {
@@ -141,7 +141,10 @@ module.exports = class WebUser extends Base {
         this.req.session[name] = value;
     }
 
-    createSession () { // create new session instance
+    /**
+     * Create new session instance
+     */
+    createSession () {
         return PromiseHelper.promise(this.req.session.regenerate, this.req.session);
     }
 

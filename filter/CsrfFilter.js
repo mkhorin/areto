@@ -15,7 +15,7 @@ module.exports = class CsrfFilter extends Base {
     }
 
     isActive (action) {
-        return action.user.auth.csrf && action.isPost() && super.isActive(action);
+        return action.user.auth.csrf && action.isPostRequest() && super.isActive(action);
     }
 
     beforeAction (action) {

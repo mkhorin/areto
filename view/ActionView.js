@@ -172,23 +172,25 @@ module.exports = class ActionView extends Base {
             return delete this.widgets[name];
         }
         this.widgets[name] = widget;
-        return widget.execute(params);
+        return widget.resolveContent(params);
     }
 
     createWidget (id, params) {
-        const key = params && params.id || id;
-        const config = this.getWidgetConfig(key);
+        const key = params?.id || id;
+        const config = this.getWidgetConfiguration(key);
         if (!config) {
             return this.log('error', `Widget configuration not found: ${key}`);
         }
         return ClassHelper.spawn({id, ...config, ...params, view: this});
     }
 
-    getWidgetConfig (key) {
-        if (!this._widgetConfigMap) {
-            this._widgetConfigMap = this.module.getConfig('widgets') || {};
+    getWidgetConfiguration (key) {
+        if (!this._widgetConfigurationMap) {
+            this._widgetConfigurationMap = this.module.getConfig('widgets') || {};
         }
-        return this._widgetConfigMap.hasOwnProperty(key) ? this._widgetConfigMap[key] : null;
+        return this._widgetConfigurationMap.hasOwnProperty(key)
+            ? this._widgetConfigurationMap[key]
+            : null;
     }
 
     insertWidgetContent (content) {

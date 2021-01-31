@@ -29,7 +29,7 @@ module.exports = class ActiveQuery extends Base {
     }
 
     excludeModel (model) {
-        return model && model.getId()
+        return model?.getId()
             ? this.and(['!=', model.PK, model.getId()])
             : this;
     }
@@ -44,7 +44,10 @@ module.exports = class ActiveQuery extends Base {
 
     // PREPARE
 
-    // add condition after relation criteria creating
+    /**
+     * Add condition after relation criteria creating
+     * @param handler - callback function
+     */
     addAfterPrepare (handler) {
         ObjectHelper.push(handler, '_afterPrepareHandlers', this);
         return this;
@@ -297,12 +300,7 @@ module.exports = class ActiveQuery extends Base {
     async populateRelation (name, primaryModels) {
         const [viaModels, viaQuery] = await this.populateViaRelation(primaryModels);
         if (!this._multiple && primaryModels.length === 1) {
-            const models = await this.all();
-            if (!models.length) {
-                return models;
-            }
-            this.populateOneRelation(name, models[0], primaryModels);
-            return models.slice(0, 1);
+            return this.populateOneRelation(name, primaryModels);
         }
         const index = this._index;
         this._index = null;
@@ -314,19 +312,25 @@ module.exports = class ActiveQuery extends Base {
         return models;
     }
 
-    populateOneRelation (name, model, primaryModels) {
+    async populateOneRelation (name, primaryModels) {
+        const models = await this.all();
+        if (!models.length) {
+            return models;
+        }
+        const model = models[0];
         for (const pm of primaryModels) {
-            if (pm instanceof ActiveRecord) {
+            if (typeof pm.populateRelation === 'function') {
                 pm.populateRelation(name, model);
             } else {
                 pm[name] = model;
             }
         }
+        return models.length > 1 ? models.slice(0, 1) : models;
     }
 
     populateMultipleRelation (name, primaryModels, buckets, linkKey) {
         for (const pm of primaryModels) {
-            const key = QueryHelper.getAttr(pm, linkKey);
+            const key = ObjectHelper.getValueFromGetterFirst(linkKey, pm);
             let value = this._multiple ? [] : null;
             if (Array.isArray(key)) {
                 for (const item of key) {
@@ -342,7 +346,7 @@ module.exports = class ActiveQuery extends Base {
                     ? QueryHelper.indexObjects(value, this._index)
                     : QueryHelper.indexModels(value, this._index);
             }
-            if (pm instanceof ActiveRecord) {
+            if (typeof pm.populateRelation === 'function') {
                 pm.populateRelation(name, value);
             } else {
                 pm[name] = value;
@@ -385,15 +389,15 @@ module.exports = class ActiveQuery extends Base {
     buildViaBuckets (models, viaModels, viaRefKey) {
         const buckets = {}, data = {};
         for (const model of viaModels) {
-            const ref = QueryHelper.getAttr(model, viaRefKey);
-            const link = QueryHelper.getAttr(model, this.linkKey);
+            const ref = ObjectHelper.getValueFromGetterFirst(viaRefKey, model);
+            const link = ObjectHelper.getValueFromGetterFirst(this.linkKey, model);
             if (!Object.prototype.hasOwnProperty.call(data, link)) {
                 data[link] = {};
             }
             data[link][ref] = true;
         }
         for (const model of models) {
-            const ref = QueryHelper.getAttr(model, this.refKey);
+            const ref = ObjectHelper.getValueFromGetterFirst(this.refKey, model);
             if (data[ref]) {
                 for (const key of Object.keys(data[ref])) {
                     if (Array.isArray(buckets[key])) {
@@ -410,7 +414,7 @@ module.exports = class ActiveQuery extends Base {
     buildBuckets (models) {
         const buckets = {};
         for (const model of models) {
-            const key = QueryHelper.getAttr(model, this.refKey);
+            const key = ObjectHelper.getValueFromGetterFirst(this.refKey, model);
             if (Array.isArray(buckets[key])) {
                 buckets[key].push(model);
             } else {

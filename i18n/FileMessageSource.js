@@ -18,8 +18,8 @@ module.exports = class FileMessageSource extends Base {
         }
         const dir = module.resolvePath(this.basePath);
         const stat = await FileHelper.getStat(dir);
-        if (stat && stat.isDirectory()) {
-            return FileHelper.handleChildFiles(dir, file => this.loadFile(file, dir));
+        if (stat?.isDirectory()) {
+            return FileHelper.handleFiles(dir, file => this.loadFile(file, dir));
         }
     }
 

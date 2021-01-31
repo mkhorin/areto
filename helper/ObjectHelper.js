@@ -5,34 +5,12 @@
 
 module.exports = class ObjectHelper {
 
-    static push (value, key, data) {
-        if (Array.isArray(data[key])) {
-            data[key].push(value);
-        } else if (data) {
-            data[key] = [value];
-        }
+    static getValue (key, data, defaults) {
+        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults;
     }
 
-    static getValue (keys, data, defaults) {
-        if (!Array.isArray(keys)) {
-            return data && Object.prototype.hasOwnProperty.call(data, keys) ? data[keys] : defaults;
-        }
-        const values = [];
-        for (const key of keys) {
-            values.push(data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults);
-        }
-        return values;
-    }
-
-    static getValueOrKey (keys, data) {
-        if (!Array.isArray(keys)) {
-            return data && Object.prototype.hasOwnProperty.call(data, keys) ? data[keys] : keys;
-        }
-        const result = [];
-        for (const key of keys) {
-            result.push(data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : key);
-        }
-        return result;
+    static getValueOrKey (key, data) {
+        return this.getValue(key, data, key);
     }
 
     static getKeyByValue (value, data) {
@@ -55,6 +33,18 @@ module.exports = class ObjectHelper {
             }
         }
         return keys;
+    }
+
+    static getValueFromGetterFirst (key, data) {
+        if (!data) {
+            return;
+        }
+        if (typeof data.get === 'function') {
+            return data.get(key);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            return data[key];
+        }
     }
 
     static getAllPropertyNames (data) {
@@ -97,7 +87,7 @@ module.exports = class ObjectHelper {
     }
 
     static hasCircularLinks (target, key, source = target) {
-        return target && target[key]
+        return target?.[key]
             ? target[key] === source || this.hasCircularLinks(target[key], key, source)
             : false;
     }
@@ -142,6 +132,14 @@ module.exports = class ObjectHelper {
             result.push(data);
         }
         return result;
+    }
+
+    static push (value, key, data) {
+        if (Array.isArray(data[key])) {
+            data[key].push(value);
+        } else if (data) {
+            data[key] = [value];
+        }
     }
 
     // DELETE PROPERTIES

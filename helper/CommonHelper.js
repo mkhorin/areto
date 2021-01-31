@@ -13,13 +13,23 @@ module.exports = class CommonHelper {
         return a === b || JSON.stringify(a) === JSON.stringify(b);
     }
 
+    static defineConstantProperty (object, name, value) {
+        return Object.defineProperty(object, name, {
+            configurable: false,
+            enumerable: true,
+            value: value,
+            writable: false
+        });
+    }
+
     static log (logger, prefix, type, message, data) {
         logger = logger || console;
         if (typeof message === 'string') {
-            return logger.log(type, prefix ? `${prefix}: ${message}` : message, data);
+            logger.log(type, prefix ? `${prefix}: ${message}` : message, data);
+        } else {
+            prefix ? logger.log(type, `${prefix}:`, message)
+                   : logger.log(type, message);
         }
-        prefix ? logger.log(type, `${prefix}:`, message)
-               : logger.log(type, message);
     }
 
     static parseJson (data) {

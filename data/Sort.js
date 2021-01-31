@@ -88,8 +88,12 @@ module.exports = class Sort extends Base {
     getLink (attr, options = {}) {
         const direction = this.getOrder(attr);
         if (direction) {
-            const className = direction === this.DESC ? 'desc' : 'asc';
-            options.class = options.class ? `${options.class} ${className}` : className;
+            const className = direction === this.DESC
+                ? 'desc'
+                : 'asc';
+            options.class = options.class
+                ? `${options.class} ${className}`
+                : className;
         }
         const url = this.createUrl(attr);
         options['data-sort'] = this.createSortParam(attr);
@@ -101,7 +105,7 @@ module.exports = class Sort extends Base {
         } else {
             label = StringHelper.camelToWords(attr);
         }
-        return {label, url, options}; // Html:a()
+        return {label, url, options};
     }
 
     createUrl (attr) {

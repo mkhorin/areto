@@ -42,14 +42,6 @@ module.exports = class Model extends Base {
         }   
     }
 
-    static getAttrValueLabels (name) {
-        return this.ATTR_VALUE_LABELS[name];
-    }
-
-    static getAttrValueLabel (name, value) {
-        return this.ATTR_VALUE_LABELS[name] && this.ATTR_VALUE_LABELS[name][value];
-    }
-
     _attrMap = {};
     _viewAttrMap = {};
     _errorMap = {};
@@ -86,14 +78,8 @@ module.exports = class Model extends Base {
         return this._attrMap;
     }
 
-    getAttrLabel (name) {
-        return Object.prototype.hasOwnProperty.call(this.ATTR_LABELS, name)
-            ? this.ATTR_LABELS[name]
-            : this.generateAttrLabel(name);
-    }
-
     getAttrHint (name) {
-        return ObjectHelper.getValue(name, this.ATTR_HINTS, '');
+        return ObjectHelper.getValue(name, this.ATTR_HINTS);
     }
 
     getBaseName () {
@@ -111,8 +97,14 @@ module.exports = class Model extends Base {
     }
 
     getSafeAttrNames () {
-        const data = this.getUnsafeAttrMap();
-        return this.getActiveAttrNames().filter(name => !Object.prototype.hasOwnProperty.call(data, name));
+        const unsafeMap = this.getUnsafeAttrMap();
+        const names = [];
+        for (const name of this.getActiveAttrNames()) {
+            if (unsafeMap[name] !== true) {
+                names.push(name);
+            }
+        }
+        return names;
     }
 
     getUnsafeAttrMap () {
@@ -157,7 +149,7 @@ module.exports = class Model extends Base {
     setSafeAttrs (data) {
         if (data) {
             for (const name of this.getSafeAttrNames()) {
-                if (data && Object.prototype.hasOwnProperty.call(data, name)) {
+                if (Object.prototype.hasOwnProperty.call(data, name)) {
                     this.set(name, data[name]);
                 }
             }
@@ -165,7 +157,9 @@ module.exports = class Model extends Base {
     }
 
     setAttrs (data, except) {
-        data = data instanceof Model ? data.getAttrMap() : data;
+        if (data instanceof Model) {
+            data = data.getAttrMap();
+        }
         if (data) {
             for (const key of Object.keys(data)) {
                 if (Array.isArray(except) ? !except.includes(key) : (except !== key)) {
@@ -185,6 +179,42 @@ module.exports = class Model extends Base {
         }
     }
 
+    // LABELS
+
+    static getAttrLabel (name) {
+        if (!this._GENERATED_LABELS) {
+            this._GENERATED_LABELS = {...this.ATTR_LABELS};
+        }
+        if (!Object.prototype.hasOwnProperty.call(this._GENERATED_LABELS, name)) {
+            this._GENERATED_LABELS[name] = this.generateAttrLabel(name);
+        }
+        return this._GENERATED_LABELS[name];
+    }
+
+    static generateAttrLabel (name) {
+        return StringHelper.generateLabel(name);
+    }
+
+    static getAttrValueLabels (name) {
+        return this.ATTR_VALUE_LABELS[name];
+    }
+
+    static getAttrValueLabel (name, value) {
+        return this.ATTR_VALUE_LABELS[name]?.[value];
+    }
+
+    getAttrLabel (name) {
+        return this.constructor.getAttrLabel(name);
+    }
+
+    getAttrValueLabel (name, data) {
+        return ObjectHelper.getValueOrKey(this.get(name), data || this.ATTR_VALUE_LABELS[name]);
+    }
+
+    setAttrValueLabel (name, data) {
+        this.setViewAttr(name, this.getAttrValueLabel(name, data));
+    }
+
     // VIEW ATTRIBUTES
 
     getViewAttr (name) {
@@ -195,21 +225,6 @@ module.exports = class Model extends Base {
 
     setViewAttr (name, value) {
         this._viewAttrMap[name] = value;
-    }
-
-    // LABELS
-
-    generateAttrLabel (name) {
-        this.ATTR_LABELS[name] = StringHelper.generateLabel(name);
-        return this.ATTR_LABELS[name];
-    }
-
-    getAttrValueLabel (name, data) {
-        return ObjectHelper.getValueOrKey(this.get(name), data || this.ATTR_VALUE_LABELS[name]);
-    }
-
-    setAttrValueLabel (name, data) {
-        this.setViewAttr(name, this.getAttrValueLabel(name, data));
     }
 
     // LOAD
@@ -379,10 +394,13 @@ module.exports = class Model extends Base {
     // MODEL CONTROLLER
 
     static getControllerClass () {
-        if (!this.hasOwnProperty('_CONTROLLER_CLASS')) {
+        if (this._CONTROLLER_CLASS === undefined) {
             const closest = FileHelper.getClosestDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
             const dir = path.join(this.CONTROLLER_DIRECTORY, this.getNestedDirectory(), this.getControllerClassName());
-            this._CONTROLLER_CLASS = require(path.join(path.dirname(closest), dir));
+            Object.defineProperty(this, '_CONTROLLER_CLASS', {
+                value: require(path.join(path.dirname(closest), dir)),
+                writable: false
+            });
         }
         return this._CONTROLLER_CLASS;
     }
@@ -392,8 +410,11 @@ module.exports = class Model extends Base {
     }
 
     static getNestedDirectory () {
-        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
-            this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
+        if (this._NESTED_DIRECTORY === undefined) {
+            Object.defineProperty(this, '_NESTED_DIRECTORY', {
+                value: FileHelper.getRelativePathByDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY),
+                writable: false
+            });
         }
         return this._NESTED_DIRECTORY;
     }

@@ -67,7 +67,7 @@ module.exports = class BehaviorManager extends Base {
         } 
         if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
-        } else if (behavior.Class && behavior.Class.prototype instanceof Behavior) {
+        } else if (behavior.Class?.prototype instanceof Behavior) {
             behavior.name = behavior.name || name;
             behavior = new behavior.Class(behavior);
         } else if (!(behavior instanceof Behavior)) {

@@ -9,7 +9,7 @@ module.exports = class ClassMapper extends Base {
 
     init () {
         this._data = {};
-        this._parent = this.module.parent && this.module.parent.classMapper;
+        this._parent = this.module.parent?.classMapper;
         Object.assign(this._data, this.getConfig());
     }
 
@@ -20,7 +20,7 @@ module.exports = class ClassMapper extends Base {
     get (key) {
         return Object.prototype.hasOwnProperty.call(this._data, key)
             ? this._data[key]
-            : this._parent && this._parent.get(key);
+            : this._parent?.get(key);
     }
 
     getOwn (key) {

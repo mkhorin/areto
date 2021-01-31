@@ -9,7 +9,7 @@ module.exports = class Task extends Base {
 
     static getConstants () {
         return {
-            EVENT_BEFORE_RUN: 'beforeRun',
+            EVENT_BEFORE_EXECUTE: 'beforeExecute',
             EVENT_DONE: 'done',
             EVENT_FAIL: 'fail',
             DAY_PERIOD: 24 * 3600 * 1000
@@ -47,8 +47,8 @@ module.exports = class Task extends Base {
 
     start () {
         this.stop();
-        if (this.isRunning()) {
-            return this.fail('Skip task start. Job in progress');
+        if (this.isInProgress()) {
+            return this.fail('Start skipped. Task is already in progress');
         }
         this._counter = 0;
         this._lastStartDate = null;
@@ -62,7 +62,7 @@ module.exports = class Task extends Base {
         return this.active;
     }
 
-    isRunning () {
+    isInProgress () {
         return !!this._job;
     }
 
@@ -127,13 +127,13 @@ module.exports = class Task extends Base {
     }
 
     async execute (data) {
-        if (this.isRunning()) {
+        if (this.isInProgress()) {
             return this.fail('Job not started. Previous one in progress');
         }
         try {
             this._job = this.createJob();
-            await this.beforeRun();
-            this.processInternal(data); // no await
+            await this.beforeExecute();
+            this.processInternal(data); // not await
         } catch (err) {
             this._job = null;
             return this.fail(err);
@@ -145,7 +145,7 @@ module.exports = class Task extends Base {
     }
 
     cancelJob () {
-        if (!this.isRunning()) {
+        if (!this.isInProgress()) {
             return false;
         }
         try {
@@ -156,13 +156,13 @@ module.exports = class Task extends Base {
     }
 
     async processInternal (data) {
-        if (!this.isRunning()) {
+        if (!this.isInProgress()) {
             return false;
         }
         try {
             this.log('info', `Job started: ${this._job.constructor.name}`);
             this._lastStartDate = new Date;
-            const result = await this._job.execute(data);
+            const result = await this._job.start(data);
             if (this._job.isCanceled()) {
                 await this.fail('Job canceled');
             } else {
@@ -180,8 +180,8 @@ module.exports = class Task extends Base {
         this._job = null;
     }
 
-    beforeRun () {
-        return this.trigger(this.EVENT_BEFORE_RUN);
+    beforeExecute () {
+        return this.trigger(this.EVENT_BEFORE_EXECUTE);
     }
 
     done (result) {

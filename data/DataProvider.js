@@ -19,6 +19,13 @@ module.exports = class DataProvider extends Base {
         });
     }
 
+    async prepare () {
+        this.totalCount = await this.prepareTotalCount();
+        this.pagination = this.createPagination(this.pagination);
+        this.sort = this.createSort(this.sort);
+        this.models = await this.prepareModels();
+    }
+
     createPagination (config) {
         if (!config) {
             return null;
@@ -48,12 +55,13 @@ module.exports = class DataProvider extends Base {
         }
         return ClassHelper.spawn(Object.assign(defaults, config));
     }
-   
-    async prepare () {
-        this.totalCount = await this.prepareTotalCount();
-        this.pagination = this.createPagination(this.pagination);
-        this.sort = this.createSort(this.sort);
-        this.models = await this.prepareModels();
+
+    prepareModels () {
+        throw new Error('Need to override');
+    }
+
+    prepareTotalCount () {
+        throw new Error('Need to override');
     }
 };
 

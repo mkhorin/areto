@@ -136,11 +136,11 @@ module.exports = class Event extends Base {
         // check target listeners and its ancestors
         let id = target.CLASS_FILE;
         while (id) {
-            if (targetMap[id] && targetMap[id].length) {
+            if (targetMap[id]?.length) {
                 return true;
             }
             target = Object.getPrototypeOf(target); // get parent class
-            id = target ? target.CLASS_FILE : null;
+            id = target?.CLASS_FILE;
         }
         return false;
     }

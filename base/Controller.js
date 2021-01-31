@@ -18,7 +18,7 @@ module.exports = class Controller extends Base {
         return {
             // declare allowed methods for action if not set then all
             METHODS: {
-                // 'logout': ['POST']
+                // 'logout': ['post']
             },
             // declare external actions for the controller
             ACTIONS: {
@@ -37,24 +37,31 @@ module.exports = class Controller extends Base {
     }
 
     static getBaseName () {
-        if (!this.hasOwnProperty('_baseName')) {
-            this._baseName = StringHelper.camelToId(StringHelper.trimEnd(this.name, 'Controller'));
+        if (this._baseName === undefined) {
+            this._baseName = StringHelper.toFirstLowerCase(StringHelper.trimEnd(this.name, 'Controller'));
         }
         return this._baseName;
     }
 
-    static getActionKeys () {
-        const keys = Object.keys(this.ACTIONS);
-        for (const key of ObjectHelper.getAllFunctionNames(this.prototype)) {
-            if (key.indexOf('action') === 0) {
-                keys.push(StringHelper.camelToId(key.substring(6)));
+    static getPathName () {
+        if (this._pathName === undefined) {
+            this._pathName = StringHelper.camelToId(this.getBaseName());
+        }
+        return this._pathName;
+    }
+
+    static getActionNames () {
+        const names = Object.keys(this.ACTIONS);
+        for (const name of ObjectHelper.getAllFunctionNames(this.prototype)) {
+            if (name.indexOf('action') === 0) {
+                names.push(StringHelper.toFirstLowerCase(name.substring(6)));
             }
         }
-        return keys;
+        return names;
     }
 
     static getModelClass () {
-        if (!this.hasOwnProperty('_MODEL_CLASS')) {
+        if (this._MODEL_CLASS === undefined) {
             const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
             const dir = path.join(this.MODEL_DIRECTORY, this.getNestedDirectory(), this.getModelClassName());
             this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
@@ -67,15 +74,15 @@ module.exports = class Controller extends Base {
     }
 
     static getViewDirectory () {
-        if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
+        if (this._VIEW_DIRECTORY === undefined) {
             const dir = this.getNestedDirectory();
-            this._VIEW_DIRECTORY = dir ? `${dir}/${this.getBaseName()}/` : `${this.getBaseName()}/`;
+            this._VIEW_DIRECTORY = dir ? `${dir}/${this.getPathName()}/` : `${this.getPathName()}/`;
         }
         return this._VIEW_DIRECTORY;
     }
 
     static getNestedDirectory () {
-        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
+        if (this._NESTED_DIRECTORY === undefined) {
             this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
         }
         return this._NESTED_DIRECTORY;
@@ -98,6 +105,14 @@ module.exports = class Controller extends Base {
         return this.constructor.getBaseName();
     }
 
+    getFullName () {
+        return `${this.module.getFullName()}.${this.getBaseName()}`;
+    }
+
+    getPathName () {
+        return this.constructor.getPathName();
+    }
+
     getModelClass () {
         return this.constructor.getModelClass();
     }
@@ -118,7 +133,7 @@ module.exports = class Controller extends Base {
         if (!this.action) {
             throw new Error(`Unable to create action: ${name}`);
         }
-        const modules = this.module.getAncestry();
+        const modules = this.module.getRouteModules();
         // trigger module's beforeAction from root to current
         for (let i = modules.length - 1; i >= 0; --i) {
             await modules[i].beforeAction(this.action);
@@ -151,7 +166,7 @@ module.exports = class Controller extends Base {
     }
 
     createInlineAction (name) {
-        const method = this[`action${StringHelper.idToCamel(name)}`];
+        const method = this[`action${StringHelper.toFirstUpperCase(name)}`];
         if (typeof method === 'function') {
             const config = this.INLINE_ACTION || this.module.InlineAction;
             return this.spawn(config, {controller: this, method, name});
@@ -351,7 +366,7 @@ module.exports = class Controller extends Base {
         if (this._urlManager === undefined) {
             this._urlManager = this.getUrlManager();
         }
-        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getBaseName());
+        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getPathName());
     }
 
     getHostUrl () {
@@ -384,7 +399,7 @@ module.exports = class Controller extends Base {
         if (Array.isArray(message)) {
             return this.translate(...message);
         }
-        if (message instanceof Message) {
+        if (typeof message?.translate === 'function') {
             return message.translate(this.i18n, this.language);
         }
         return source
@@ -420,4 +435,3 @@ const StringHelper = require('../helper/StringHelper');
 const Forbidden = require('../error/http/Forbidden');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
-const Message = require('../i18n/Message');

@@ -27,7 +27,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     has (name) {
-        return this._themes[name] instanceof this.Theme;
+        return Object.prototype.hasOwnProperty.call(this._themes, name);
     }
 
     get (name) {
@@ -49,8 +49,8 @@ module.exports = class ThemeSet extends Base {
             name: null,
             directory: this.defaultThemeDirectory,
             parent: this.parent ? this.parent.get() : null,
-            view: this,
-            originalParentView: this.originalParentView
+            baseParentView: this.baseParentView,
+            themeSet: this
         });
     }
 
@@ -67,7 +67,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     createTheme (name, directory) {
-        this._themes[name] = this.spawn(this.Theme, {view: this, name, directory});
+        this._themes[name] = this.spawn(this.Theme, {themeSet: this, name, directory});
     }
 
     setParents () {

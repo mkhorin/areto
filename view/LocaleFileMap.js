@@ -41,7 +41,7 @@ module.exports = class LocaleFileMap extends Base {
     }
 
     get (name, language) {
-        return this._locales[language] && this._locales[language].get(name) || this._default.get(name);
+        return this._locales[language]?.get(name) || this._default.get(name);
     }
 
     isEmpty () {

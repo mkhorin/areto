@@ -1,14 +1,14 @@
 {
   "name": "areto",
-  "version": "1.6.4",
-  "description": "Robust Node.js MVC Framework",
+  "version": "2.0.0",
+  "description": "Adaptive Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
     "email": "maksimovichu@gmail.com"
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.16.2"
+    "node": ">=14.15.0"
   },
   "homepage": "https://github.com/mkhorin/areto",
   "repository": {

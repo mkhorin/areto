@@ -81,7 +81,7 @@ module.exports = class MongoBuilder extends Base {
 
     buildOrder (order) {
         if (!order) {
-            return undefined;
+            return;
         }
         const result = {};
         for (const key of Object.keys(order)) {
@@ -96,13 +96,16 @@ module.exports = class MongoBuilder extends Base {
 
     buildCondition (data) {
         if (!Array.isArray(data)) {
-            return this.buildHashCondition(data); // hash format: {column1: value1}
+            return this.buildHashCondition(data);
         }
         return this.CONDITION_BUILDERS.hasOwnProperty(data[0])
             ? this[this.CONDITION_BUILDERS[data[0]]](...data)
-            : this.buildSimpleCondition(...data); // format: operator, operand 1, operand 2
+            : this.buildSimpleCondition(...data);
     }
 
+    /**
+     * @param {Object} data - hash format {column1: value1}
+     */
     buildHashCondition (data) {
         if (data) {
             for (const key of Object.keys(data)) {
@@ -114,6 +117,11 @@ module.exports = class MongoBuilder extends Base {
         return data;
     }
 
+    /**
+     * @param {string} operator
+     * @param {string} field - operand 1
+     * @param value - operand 2
+     */
     buildSimpleCondition (operator, field, value) {
         if (!(this.SIMPLE_OPERATORS.hasOwnProperty(operator))) {
             throw new Error(`Invalid simple operator: ${operator}`);

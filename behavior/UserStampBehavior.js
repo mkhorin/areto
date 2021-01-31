@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2019 Maxim Khorin <maksimovichu@gmail.com>
+ * @copyright Copyright (c) 2020 Maxim Khorin <maksimovichu@gmail.com>
  */
 'use strict';
 
@@ -31,11 +31,8 @@ module.exports = class UserStampBehavior extends Base {
     }
 
     getUserId () {
-        return this.owner.user instanceof WebUser
-            ? this.owner.user.getId()
-            : null;
+        return this.owner.user?.getId();
     }
 };
 
 const ActiveRecord = require('../db/ActiveRecord');
-const WebUser = require('../security/WebUser');

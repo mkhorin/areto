@@ -62,7 +62,7 @@ module.exports = class ActiveRecord extends Base {
 
     toJSON () {
         const id = this.getId();
-        return id && id.toJSON ? id.toJSON() : id;
+        return id?.toJSON ? id.toJSON() : id;
     }
 
     // ATTRIBUTES
@@ -82,17 +82,17 @@ module.exports = class ActiveRecord extends Base {
         if (index === -1) {
             return this.rel(name);
         }
-        const related = this._related[name.substring(0, index)];
-        name = name.substring(index + 1);
-        if (related instanceof ActiveRecord) {
-            return related.get(name);
+        const related = this.getRelated(name.substring(0, index));
+        if (!related) {
+            return;
         }
+        name = name.substring(index + 1);
         if (!Array.isArray(related)) {
-            return related ? related[name] : related;
+            return ObjectHelper.getValueFromGetterFirst(name, related);
         }
         const result = [];
         for (const item of related) {
-            result.push(item instanceof ActiveRecord ? item.get(name) : item ? item[name] : item);
+            result.push(ObjectHelper.getValueFromGetterFirst(name, item));
         }
         return result;
     }
@@ -287,7 +287,7 @@ module.exports = class ActiveRecord extends Base {
         }
         const related = this._related[name];
         return Array.isArray(related)
-            ? related.map(model => model instanceof ActiveRecord ? model.getTitle() : null)
+            ? related.map(model => typeof model?.getTitle === 'function' ? model.getTitle() : null)
             : related ? related.getTitle() : this.get(name);
     }
 
@@ -303,11 +303,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getRelation (name) {
-        if (!name || typeof name !== 'string') {
-            return null;
-        }
-        name = 'rel' + StringHelper.toFirstUpperCase(name);
-        return this[name] ? this[name]() : null;
+        return name ? this['rel' + StringHelper.toFirstUpperCase(name)]?.() : null;
     }
 
     hasMany (RefClass, refKey, linkKey) {
@@ -326,14 +322,23 @@ module.exports = class ActiveRecord extends Base {
         if (index < 1) {
             return;
         }
-        const related = this._related[name.substring(0, index)];
+        const related = this.getRelated[name.substring(0, index)];
+        if (!related) {
+            return;
+        }
         name = name.substring(index + 1);
-        if (related instanceof ActiveRecord) {
-            return related[method](name, ...args);
+        if (!Array.isArray(related)) {
+            return typeof related[method] === 'function'
+                ? related[method](name, ...args)
+                : undefined;
         }
-        if (Array.isArray(related)) {
-            return related.map(item => item instanceof ActiveRecord ? item[method](name, ...args) : null);
+        const models = [];
+        for (const model of related) {
+            models.push(typeof model?.[method] === 'function'
+                ? model[method](name, ...args)
+                : null);
         }
+        return models;
     }
 
     populateRelation (name, data) {
@@ -347,16 +352,20 @@ module.exports = class ActiveRecord extends Base {
         }
         let nestedName = name.substring(index + 1);
         let result = await this.resolveRelationOnly(name.substring(0, index));
-        if (result instanceof ActiveRecord) {
+        if (!result) {
+            return result;
+        }
+        if (typeof result.resolveRelation === 'function') {
             return result.resolveRelation(nestedName);
         }
         if (!Array.isArray(result)) {
             return result;
         }
-        result = result.filter(model => model instanceof ActiveRecord);
         const models = [];
         for (const model of result) {
-            models.push(await model.resolveRelation(nestedName));
+            if (typeof model?.resolveRelation === 'function') {
+                models.push(await model.resolveRelation(nestedName));
+            }
         }
         return ArrayHelper.concat(models);
     }

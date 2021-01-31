@@ -55,7 +55,7 @@ module.exports = class Captcha extends Base {
     }
 
     getSessionKey () {
-        return `__captcha/${this.getUniqueName()}`;
+        return `__captcha/${this.getFullName()}`;
     }
 
     generateVerifyCode () {
@@ -67,7 +67,7 @@ module.exports = class Captcha extends Base {
         return buffer.join('');
     }
 
-    async render (code) {
+    render (code) {
         return this.draw(code).jpeg({quality: this.quality}).toBuffer();
     }
 

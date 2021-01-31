@@ -19,7 +19,7 @@ module.exports = class Inspector extends Base {
         if (item === this.assignment) {
             return true;
         }
-        if (item.parents && item.parents.length) {
+        if (Array.isArray(item.parents)) {
             for (const parentItem of item.parents) {
                 if (await this.execute(parentItem)) {
                     return true;
@@ -46,7 +46,9 @@ module.exports = class Inspector extends Base {
     }
 
     getCachedRule (name) {
-        return this._ruleCache[name] instanceof Rule ? this._ruleCache[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._ruleCache, name)
+            ? this._ruleCache[name]
+            : null;
     }
 
     log () {
@@ -55,4 +57,3 @@ module.exports = class Inspector extends Base {
 };
 
 const CommonHelper = require('../../helper/CommonHelper');
-const Rule = require('./Rule');

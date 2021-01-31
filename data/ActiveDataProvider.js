@@ -7,6 +7,11 @@ const Base = require('./DataProvider');
 
 module.exports = class ActiveDataProvider extends Base {
 
+    async prepare () {
+        await super.prepare();
+        this.prepareSort();
+    }
+
     prepareTotalCount () {
         return this.query.count();
     }
@@ -23,9 +28,8 @@ module.exports = class ActiveDataProvider extends Base {
         }
         return this.query.all();
     }
-   
-    setSort (data) {
-        super.setSort(data);
+
+    prepareSort () {
         if (this.sort) {
             const model = this.query.model;
             const names = Object.keys(this.sort.attrs);

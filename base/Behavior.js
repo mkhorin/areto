@@ -18,12 +18,10 @@ module.exports = class Behavior extends Base {
     }
 
     detach () {
-        if (this.owner) {
-            for (const name of Object.keys(this._handlers)) {
-                this.owner.off(name, this._handlers[name]);
-            }
-            this.owner = null;
+        for (const name of Object.keys(this._handlers)) {
+            this.owner?.off(name, this._handlers[name]);
         }
+        this.owner = null;
     }
 
     hasHandler (eventName) {
@@ -35,14 +33,14 @@ module.exports = class Behavior extends Base {
     }
 
     attachHandler (eventName) {
-        if (this.owner && this.hasHandler(eventName)) {
-            this.owner.on(eventName, this._handlers[eventName]);
+        if (this.hasHandler(eventName)) {
+            this.owner?.on(eventName, this._handlers[eventName]);
         }
     }
 
     detachHandler (eventName) {
-        if (this.owner && this.hasHandler(eventName)) {
-            this.owner.off(eventName, this._handlers[eventName]);
+        if (this.hasHandler(eventName)) {
+            this.owner?.off(eventName, this._handlers[eventName]);
         }
     }
 

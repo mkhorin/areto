@@ -90,14 +90,21 @@ module.exports = class DependentOrder extends Base {
     }
 
     getItem (id) {
-        return Object.prototype.hasOwnProperty.call(this._itemMap, id) ? this._itemMap[id] : null;
+        return Object.prototype.hasOwnProperty.call(this._itemMap, id)
+            ? this._itemMap[id]
+            : null;
     }
 
     getItemId (item) {
         return item[this.keyAttr];
     }
 
-    getItemDepends (item) { // ['#start', '#end', 'item id']
+    /**
+     * @param {Object} item
+     * @param {{string|Array)} item.depends - #start, #end, itemId
+     * @returns {Array}
+     */
+    getItemDepends (item) {
         const depends = item[this.dependsAttr];
         return Array.isArray(depends) ? depends : depends ? [depends] : [];
     }

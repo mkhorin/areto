@@ -43,10 +43,8 @@ module.exports = class MongoDatabase extends Base {
     }
 
     async closeConnection () {
-        if (this._client) {
-            await this._client.close(true);
-            this._client = null;
-        }
+        await this._client?.close(true);
+        this._client = null;
     }
 
     async isTableExists (name) {
@@ -270,7 +268,7 @@ module.exports = class MongoDatabase extends Base {
 
     /**
      * @param table
-     * @param data [{key: 1}, { name: [name], unique: true, ... }]
+     * @param data [{key: 1}, {name: [name], unique: true, ...}]
      */ 
     async createIndex (table, data) {
         if (!await this.isTableExists(table)) {

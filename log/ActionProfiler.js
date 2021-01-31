@@ -9,7 +9,7 @@ module.exports = class ActionProfiler extends Base {
 
     constructor (config) {
         super({
-            level: 'debug',
+            level: 'trace',
             threshold: 0, // ms
             logger: 'logger',
             ...config

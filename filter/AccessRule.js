@@ -13,7 +13,7 @@ module.exports = class AccessRule extends Base {
             // actions: ['update'],
             // controllers: ['article'],
             // permissions: ['?', '@', 'reader'],
-            // methods: ['GET', 'POST'],
+            // methods: ['get', 'post'],
             // deny: fn(action, user)
             ...config
         });
@@ -21,7 +21,7 @@ module.exports = class AccessRule extends Base {
 
     async can (action) {
         if ((this.actions && !this.actions.includes(action.name))
-            || (this.methods && !this.methods.includes(action.controller.req.method))
+            || (this.methods && !this.methods.includes(action.controller.req.method?.toLowerCase()))
             || (this.controllers && !this.controllers.includes(action.controller.getBaseName()))) {
             return; // skip rule
         }

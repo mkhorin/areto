@@ -113,7 +113,7 @@ module.exports = class FileHelper {
 
     // HANDLER
 
-    static handleChildDirectories (dir, handler) {
+    static handleDirectories (dir, handler) {
         return this.handleChildren(dir, async file => {
             const stat = await fs.promises.stat(path.join(dir, file));
             if (stat.isDirectory()) {
@@ -122,7 +122,7 @@ module.exports = class FileHelper {
         });
     }
 
-    static handleChildFiles (dir, handler) {
+    static handleFiles (dir, handler) {
         return this.handleChildren(dir, async file => {
             const stat = await fs.promises.stat(path.join(dir, file));
             if (stat.isFile()) {

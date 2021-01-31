@@ -1,3 +1,31 @@
+## 2.0.0
+
+* base/Controller
+    - clarify request type methods
+* base/DataMap
+    - filter data map
+* base/ExpressEngine
+    - add HTTPS server
+* log/FileLogStore
+    - add buffer output to prevent unsafe multiple saves at once
+* use optional chaining
+* validator/FilterValidator
+    - refactor filter validator
+* validator/IntegerValidator
+    - add integer validator
+* validator/RangeValidator
+    - replace range property to values
+* validator/StrigValidator
+    - shrink empties
+* validator/Validator
+    - instantiate a validator by configuration key
+* view/View
+    - fix hierarchy of original parents
+* web/packer/FilePack
+    - add processing of hierarchy of original modules
+* web/packer/Minifier
+    - exclude quoted strings and regex literals
+
 ## 1.6.0
 
 * db/ActiveRecord

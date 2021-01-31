@@ -9,7 +9,7 @@ module.exports = class Scheduler extends Base {
 
     static getConstants () {
         return {
-            EVENT_TASK_BEFORE_RUN: 'taskBeforeRun',
+            EVENT_TASK_BEFORE_EXECUTE: 'taskBeforeExecute',
             EVENT_TASK_DONE: 'taskDone',
             EVENT_TASK_FAIL: 'taskFail'
         };
@@ -23,7 +23,7 @@ module.exports = class Scheduler extends Base {
             ...config
         });
         this._taskMap = new DataMap;
-        this._taskBeforeRunHandler = this.taskBeforeRun.bind(this);
+        this._taskBeforeExecuteHandler = this.taskBeforeExecute.bind(this);
         this._taskDoneHandler = this.taskDone.bind(this);
         this._taskFailHandler = this.taskFail.bind(this);
         this.Task = ClassHelper.normalizeSpawn(this.Task);
@@ -44,10 +44,8 @@ module.exports = class Scheduler extends Base {
     }
 
     stop () {
-        if (this._timer) {
-            clearTimeout(this._timer);
-            this._timer = null;
-        }
+        clearTimeout(this._timer);
+        this._timer = null;
     }
 
     async refresh () {
@@ -88,7 +86,7 @@ module.exports = class Scheduler extends Base {
     createTask (name, config, params) {
         config = {...this.Task, ...config};
         const task = this.spawn(config, {...params, name, scheduler: this});
-        task.on(task.EVENT_BEFORE_RUN, this._taskBeforeRunHandler);
+        task.on(task.EVENT_BEFORE_EXECUTE, this._taskBeforeExecuteHandler);
         task.on(task.EVENT_DONE, this._taskDoneHandler);
         task.on(task.EVENT_FAIL, this._taskFailHandler);
         return task;
@@ -139,8 +137,8 @@ module.exports = class Scheduler extends Base {
         return task.isActive() ? task.execute() : null;
     }
 
-    taskBeforeRun (event) {
-        return this.trigger(this.EVENT_TASK_BEFORE_RUN, event);
+    taskBeforeExecute (event) {
+        return this.trigger(this.EVENT_TASK_BEFORE_EXECUTE, event);
     }
 
     taskDone (event) {

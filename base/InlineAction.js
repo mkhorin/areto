@@ -6,7 +6,7 @@
 const Base = require('./Action');
 
 /**
- * action is defined as controller's method
+ * Inline action is defined as controller's method
  */
 module.exports = class InlineAction extends Base {
 

@@ -15,13 +15,15 @@ module.exports = class Identity extends Base {
         return this.getId();
     }
 
+    /**
+     * Get user's assigned roles
+     */
     getAssignments () {
-        // get user's assigned roles []
         return this.module.get('rbac').getUserAssignments(this.getId());
     }
 
     getAuthKey () {
-        return this.get('authKey'); // key for 'remember me' cookie
+        return this.get('authKey'); // key for Remember Me cookie
     }
 
     setAuthKey () {

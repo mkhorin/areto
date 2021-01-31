@@ -9,7 +9,7 @@ module.exports = class DataHistoryBehavior extends Base {
 
     constructor (config) {
         super({
-            Model: null, // [ActiveRecord]
+            Model: null, // ActiveRecord
             includes: null, // [] tracked attribute names
             excludes: null, // [] tracked attribute names
             ...config

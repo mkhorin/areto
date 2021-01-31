@@ -36,11 +36,11 @@ module.exports = class UrlManager extends Base {
     }
 
     /**
+     * action - relative to controller
+     * controller/action - relative to module
+     * /module/controller/action - relative to app
      * @param data - ['action', { k1: param1, k2: param2 }]
-     *  /module/controller/action - relative app
-     *  controller/action - relative module
-     *  action - relative controller
-     * @param root - [controller or module name]
+     * @param root - Controller or module name
      */
     create (data, root) {
         let params;
@@ -49,14 +49,14 @@ module.exports = class UrlManager extends Base {
             data = data[0];
         }
         const index = data.indexOf('/');
-        if (index === -1) { // relative root
+        if (index === -1) { // relative to root
             data = this.module.getRoute(root ? `${root}/${data}` : data);
-        } else if (index === 0) { // relative app
+        } else if (index === 0) { // relative to app
             root = this.module.app.mountPath;
             if (root !== '/' && data.substring(0, root.length) !== root) {
                 data = root + data;
             }
-        } else if (data.substring(0, 4) !== 'http') { // relative module
+        } else if (data.substring(0, 4) !== 'http') { // relative to module
             data = this.module.getRoute(data);
         }
         if (!params || typeof params !== 'object') {

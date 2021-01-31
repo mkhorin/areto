@@ -105,7 +105,7 @@ module.exports = class Auth extends Base {
             return false;
         }
         const identity = await user.findIdentity(data.id).one();
-        if (identity && identity.checkAuthKey(data.key)) {
+        if (identity?.checkAuthKey(data.key)) {
             return this.login(user, {
                 identity,
                 duration: this.autoRenewCookie ? data.duration : 0,

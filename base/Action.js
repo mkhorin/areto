@@ -11,12 +11,12 @@ module.exports = class Action extends Base {
         throw new Error('Need to override');
     }
 
-    getRelativeModuleName () {
-        return `${this.controller.getBaseName()}/${this.name}`;
+    getFullName () {
+        return `${this.controller.getFullName()}.${this.name}`;
     }
 
-    getUniqueName () {
-        return this.module.getRoute(this.getRelativeModuleName());
+    getNameRelativeToModule () {
+        return `${this.controller.getBaseName()}.${this.name}`;
     }
 
     // REQUEST

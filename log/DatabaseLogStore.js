@@ -36,12 +36,8 @@ module.exports = class DatabaseLogStore extends Base {
         } else if (message instanceof Error) {
             message = `${message.message} ${message.stack}`;
         }
-        return {            
-            type,
-            message,
-            data,
-            createdAt: new Date
-        };
+        const createdAt = new Date;
+        return {type, message, data, createdAt};
     }
 
     observe () {

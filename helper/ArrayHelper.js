@@ -60,7 +60,12 @@ module.exports = class ArrayHelper {
         return result;
     }
 
-    static unique (values) {  // cast value to object key
+    /**
+     * Get unique values by cast value to object key
+     * @param {(number[]|string[])} values
+     * @returns {string[]}
+     */
+    static unique (values) {
         return Object.keys(this.flip(values));
     }
 
@@ -131,7 +136,7 @@ module.exports = class ArrayHelper {
         const result = [];
         if (Array.isArray(items)) {
             for (const item of items) {
-                if (item && item[key] && (item[key] === Base || item[key].prototype instanceof Base)) {
+                if (item?.[key] && (item[key] === Base || item[key].prototype instanceof Base)) {
                     result.push(item);
                 }
             }
