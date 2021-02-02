@@ -24,7 +24,7 @@ module.exports = class ViewModel extends Base {
     }
 
     static getAttrLabel (name) {
-        if (!this._GENERATED_LABELS) {
+        if (!this.hasOwnProperty('_GENERATED_LABELS')) {
             this._GENERATED_LABELS = {...this.ATTR_LABELS};
         }
         if (!Object.prototype.hasOwnProperty.call(this._GENERATED_LABELS, name)) {

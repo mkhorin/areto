@@ -15,7 +15,7 @@
     - add integer validator
 * validator/RangeValidator
     - replace range property to values
-* validator/StrigValidator
+* validator/StringValidator
     - shrink empties
 * validator/Validator
     - instantiate a validator by configuration key

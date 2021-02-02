@@ -37,14 +37,14 @@ module.exports = class Controller extends Base {
     }
 
     static getBaseName () {
-        if (this._baseName === undefined) {
+        if (!this.hasOwnProperty('_baseName')) {
             this._baseName = StringHelper.toFirstLowerCase(StringHelper.trimEnd(this.name, 'Controller'));
         }
         return this._baseName;
     }
 
     static getPathName () {
-        if (this._pathName === undefined) {
+        if (!this.hasOwnProperty('_pathName')) {
             this._pathName = StringHelper.camelToId(this.getBaseName());
         }
         return this._pathName;
@@ -61,7 +61,7 @@ module.exports = class Controller extends Base {
     }
 
     static getModelClass () {
-        if (this._MODEL_CLASS === undefined) {
+        if (!this.hasOwnProperty('_MODEL_CLASS')) {
             const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
             const dir = path.join(this.MODEL_DIRECTORY, this.getNestedDirectory(), this.getModelClassName());
             this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
@@ -74,7 +74,7 @@ module.exports = class Controller extends Base {
     }
 
     static getViewDirectory () {
-        if (this._VIEW_DIRECTORY === undefined) {
+        if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
             const dir = this.getNestedDirectory();
             this._VIEW_DIRECTORY = dir ? `${dir}/${this.getPathName()}/` : `${this.getPathName()}/`;
         }
@@ -82,7 +82,7 @@ module.exports = class Controller extends Base {
     }
 
     static getNestedDirectory () {
-        if (this._NESTED_DIRECTORY === undefined) {
+        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
             this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
         }
         return this._NESTED_DIRECTORY;

@@ -182,7 +182,7 @@ module.exports = class Model extends Base {
     // LABELS
 
     static getAttrLabel (name) {
-        if (!this._GENERATED_LABELS) {
+        if (!this.hasOwnProperty('_GENERATED_LABELS')) {
             this._GENERATED_LABELS = {...this.ATTR_LABELS};
         }
         if (!Object.prototype.hasOwnProperty.call(this._GENERATED_LABELS, name)) {
@@ -394,7 +394,7 @@ module.exports = class Model extends Base {
     // MODEL CONTROLLER
 
     static getControllerClass () {
-        if (this._CONTROLLER_CLASS === undefined) {
+        if (!this.hasOwnProperty('_CONTROLLER_CLASS')) {
             const closest = FileHelper.getClosestDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
             const dir = path.join(this.CONTROLLER_DIRECTORY, this.getNestedDirectory(), this.getControllerClassName());
             Object.defineProperty(this, '_CONTROLLER_CLASS', {
@@ -410,7 +410,7 @@ module.exports = class Model extends Base {
     }
 
     static getNestedDirectory () {
-        if (this._NESTED_DIRECTORY === undefined) {
+        if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
             Object.defineProperty(this, '_NESTED_DIRECTORY', {
                 value: FileHelper.getRelativePathByDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY),
                 writable: false
