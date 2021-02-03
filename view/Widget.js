@@ -43,7 +43,7 @@ module.exports = class Widget extends Base {
         }
         this.log('trace', `Execute widget: ${this.id}`);
         this.content = this.cache
-            ? await this.cache.use(this.getCacheKey(), this.run.bind(this), this.cacheDuration)
+            ? await this.cache.use(this.getCacheKey(), this.execute.bind(this), this.cacheDuration)
             : await this.execute();
         return this.content;
     }
