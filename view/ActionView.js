@@ -45,24 +45,24 @@ module.exports = class ActionView extends Base {
         return this.getParentTemplate(this.controller.getViewFileName(name));
     }
 
-    getViewOwnTemplate (name) {
-        return this.theme.getViewOwnTemplate(name, this.controller.language);
+    getTemplateFromSameView (name) {
+        return this.theme.getTemplateFromSameView(name, this.controller.language);
     }
 
-    getViewOwnTemplateWithOrigin (name) {
-        return this.theme.getViewOwnTemplateWithOrigin(name, this.controller.language);
+    getTemplateFromOriginalOrSameView (name) {
+        return this.theme.getTemplateFromOriginalOrSameView(name, this.controller.language);
     }
 
     getViewModelClass (name) {
         return this.theme.getModel(name, this.controller.language);
     }
 
-    getViewOwnModel (name) {
-        return this.theme.getViewOwnModel(name, this.controller.language);
+    getModelFromSameView (name) {
+        return this.theme.getModelFromSameView(name, this.controller.language);
     }
 
-    getViewOwnModelWithOrigin (name) {
-        return this.theme.getViewOwnModelWithOrigin(name, this.controller.language);
+    getModelFromOriginalOrSameView (name) {
+        return this.theme.getModelFromOriginalOrSameView(name, this.controller.language);
     }
 
     createViewModel (name, config = {}) {

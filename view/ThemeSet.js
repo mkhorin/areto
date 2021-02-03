@@ -48,8 +48,8 @@ module.exports = class ThemeSet extends Base {
         this._defaultTheme = this.spawn(this.Theme, {
             name: null,
             directory: this.defaultThemeDirectory,
-            parent: this.parent ? this.parent.get() : null,
-            baseParentView: this.baseParentView,
+            parent: this.parent?.get(),
+            originalParentView: this.originalParentView,
             themeSet: this
         });
     }

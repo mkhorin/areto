@@ -51,46 +51,50 @@ module.exports = class Theme extends Base {
 
     // TEMPLATE
 
-    getTemplate (name) {
+    getTemplate () {
         return this._templates.get(...arguments) || this.parent?.getTemplate(...arguments);
     }
 
-    getOwnTemplate () {
+    getInternalTemplate () {
         return this._templates.get(...arguments);
-    }
-
-    getOwnTemplateWithOrigin () {
-        return this._templates.get(...arguments)
-            || this.baseParentView
-            && this.parent?.getOwnTemplate(...arguments);
     }
 
     getParentTemplate () {
         return this.parent?.getTemplate(...arguments);
     }
 
-    getViewOwnTemplate () {
+    getTemplateFromOriginal () {
         return this._templates.get(...arguments)
-            || this.sameParentView && this.parent.getViewOwnTemplate(...arguments);
+            || this.originalParentView && this.parent?.getTemplateFromOriginal(...arguments);
     }
 
-    getViewOwnTemplateWithOrigin () {
+    /**
+     * Get own template or get from parent theme if it belongs to the same view
+     */
+    getTemplateFromSameView () {
         return this._templates.get(...arguments)
-            || this.parent
-                && (this.baseParentView || this.sameParentView)
-                && this.parent.getViewOwnTemplate(...arguments);
+            || this.sameParentView && this.parent?.getTemplateFromSameView(...arguments);
+    }
+
+    /**
+     * Get own template or get from parent theme if it belongs to the same view or original module view
+     */
+    getTemplateFromOriginalOrSameView () {
+        return this._templates.get(...arguments)
+            || (this.originalParentView || this.sameParentView)
+                && this.parent?.getTemplateFromOriginalOrSameView(...arguments);
     }
 
     getClosestAncestorTemplate () {
         let ancestor = this, current, closest;
         while (ancestor) {
             if (current) {
-                closest = ancestor.getOwnTemplate(...arguments);
+                closest = ancestor.getInternalTemplate(...arguments);
                 if (closest && current !== closest) {
                     return closest;
                 }
             } else {
-                current = ancestor.getOwnTemplate(...arguments);
+                current = ancestor.getInternalTemplate(...arguments);
             }
             ancestor = ancestor.parent;
         }
@@ -98,28 +102,32 @@ module.exports = class Theme extends Base {
 
     // MODEL
 
-    getModel (name, language) {
-        return this.getOwnModel(name, language) || this.getParentModel(name, language);
+    getModel () {
+        return this.getInternalModel(...arguments) || this.parent?.getModel(...arguments);
     }
 
-    getOwnModel (name, language) {
-        return this._models.get(name, language);
+    getInternalModel () {
+        return this._models.get(...arguments);
     }
 
-    getParentModel (name, language) {
-        return this.parent?.getModel(name, language);
+    getParentModel () {
+        return this.parent?.getModel(...arguments);
     }
 
-    getViewOwnModel (name, language) {
-        return this._models.get(name, language)
-            || this.sameParentView && this.parent.getViewOwnModel(name, language);
-    }
-
-    getViewOwnModelWithOrigin () {
+    getModelFromOriginal () {
         return this._models.get(...arguments)
-            || this.parent
-                && (this.baseParentView || this.sameParentView)
-                && this.parent.getViewOwnModel(...arguments);
+            || this.originalParentView && this.parent?.getModelFromOriginal(...arguments);
+    }
+
+    getModelFromSameView () {
+        return this._models.get(...arguments)
+            || this.sameParentView && this.parent?.getModelFromSameView(...arguments);
+    }
+
+    getModelFromOriginalOrSameView () {
+        return this._models.get(...arguments)
+            || (this.originalParentView || this.sameParentView)
+                && this.parent?.getModelFromOriginalOrSameView(...arguments);
     }
 };
 

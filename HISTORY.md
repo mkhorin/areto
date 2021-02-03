@@ -1,3 +1,13 @@
+## 2.1.0
+
+* base/Controller
+    - prevent from getting value from parent class
+    - use camel case template directory names
+* view/Theme
+    - clarify template getters
+* view/Widget
+    - fix cached widget execution
+
 ## 2.0.0
 
 * base/Controller

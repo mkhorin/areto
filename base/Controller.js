@@ -76,7 +76,7 @@ module.exports = class Controller extends Base {
     static getViewDirectory () {
         if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
             const dir = this.getNestedDirectory();
-            this._VIEW_DIRECTORY = dir ? `${dir}/${this.getPathName()}/` : `${this.getPathName()}/`;
+            this._VIEW_DIRECTORY = dir ? `${dir}/${this.getBaseName()}/` : `${this.getBaseName()}/`;
         }
         return this._VIEW_DIRECTORY;
     }
