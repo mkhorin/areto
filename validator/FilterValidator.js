@@ -32,7 +32,7 @@ module.exports = class FilterValidator extends Base {
             throw new Error('Method property must be set');
         }
         if (typeof method === 'string') {
-            method = `filter${StringHelper.toFirstUpperCase(method)}`;
+            method = `filter${StringHelper.capitalize(method)}`;
             method = this.constructor[method];
             if (typeof method !== 'function') {
                 throw new Error(`Filter not found: ${this.method}`);

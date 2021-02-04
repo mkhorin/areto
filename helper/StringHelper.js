@@ -6,34 +6,39 @@
 const AZ_REGEX = /([A-Z]+)/g;
 const CAMEL_REGEX = /[^A-Za-z0-9]+/g;
 const DASH_REGEX = /^-/;
+const UNDERSCORE_REGEX = /^_/;
 const SEP_REGEX = /[-_.]+/g;
 const SPACE_REGEX = / /g;
-const WORD_FIRST_REGEX = /(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g;
+const WORD_CAP_REGEX = /(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g;
 
 module.exports = class StringHelper {
 
     static generateLabel (name) {
-        return this.toFirstUpperCase(this.camelToWords(name).toLowerCase());
+        return this.capitalize(this.camelToWords(name).toLowerCase());
     }
 
-    static toFirstUpperCase (text) {
+    static capitalize (text) {
         text = typeof text === 'string' ? text : String(text);
         return text.charAt(0).toUpperCase() + text.slice(1);
     }
 
-    static toFirstLowerCase (text) {
+    static capitalizeWords (text) {
+        text = typeof text === 'string' ? text : String(text);
+        return text.replace(WORD_CAP_REGEX, $1 => $1.toUpperCase());
+    }
+
+    static toLowerCaseFirstLetter (text) {
         text = typeof text === 'string' ? text : String(text);
         return text.charAt(0).toLowerCase() + text.slice(1);
     }
 
-    static toWordFirstUpperCase (text) {
-        text = typeof text === 'string' ? text : String(text);
-        return text.replace(WORD_FIRST_REGEX, $1 => $1.toUpperCase());
+    static toLowerCamelCase (text) {
+        return this.toLowerCaseFirstLetter(this.toUpperCamelCase(text));
     }
 
-    static camelize (text) {
+    static toUpperCamelCase (text) {
         text = typeof text === 'string' ? text : String(text);
-        return this.toWordFirstUpperCase(text.replace(CAMEL_REGEX, ' ')).replace(SPACE_REGEX, '');
+        return this.capitalizeWords(text.replace(CAMEL_REGEX, ' ')).replace(SPACE_REGEX, '');
     }
 
     static camelToWords (text) {
@@ -41,14 +46,14 @@ module.exports = class StringHelper {
         return text.replace(SEP_REGEX, ' ').replace(AZ_REGEX, ' $1').trim();
     }
 
-    static camelToId (text) {
+    static camelToKebab (text) {
         text = typeof text === 'string' ? text : String(text);
         return text.replace(AZ_REGEX, '-$1').replace(DASH_REGEX, '').toLowerCase();
     }
 
-    static idToCamel (text) {
+    static camelToSnake (text) {
         text = typeof text === 'string' ? text : String(text);
-        return this.toWordFirstUpperCase(text.split('-').join(' ')).replace(SPACE_REGEX, '');
+        return text.replace(AZ_REGEX, '_$1').replace(UNDERSCORE_REGEX, '').toLowerCase();
     }
 
     static split (text, separator = ',') {

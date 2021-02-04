@@ -50,7 +50,7 @@ module.exports = class Module extends Base {
                     Class: require('../log/Logger')
                 },
                 'rateLimit': {
-                    Class: require('../security/rate-limit/RateLimit')
+                    Class: require('../security/rateLimit/RateLimit')
                 },
                 'rbac': {
                     Class: require('../security/rbac/Rbac')
@@ -105,7 +105,7 @@ module.exports = class Module extends Base {
         this.app = this.parent ? this.parent.app : this;
         this.engine = this.createEngine();
         this.name = this.createName();
-        this._pathName = this.createPathName();
+        this._routeName = this.createRouteName();
         this._fullName = this.createFullName();
         this._internalName = this.createInternalName();
     }
@@ -118,8 +118,8 @@ module.exports = class Module extends Base {
         return this._internalName;
     }
 
-    getPathName () {
-        return this._pathName;
+    getRouteName () {
+        return this._routeName;
     }
 
     getTitle () {
@@ -220,8 +220,8 @@ module.exports = class Module extends Base {
         return name.substring(name.indexOf(separator) + 1);
     }
 
-    createPathName () {
-        return StringHelper.camelToId(this.name);
+    createRouteName () {
+        return StringHelper.camelToKebab(this.name);
     }
 
     log () {
@@ -374,7 +374,7 @@ module.exports = class Module extends Base {
     }
 
     resolveMountPath () {
-        const defaults = this.parent ? `/${this.getPathName()}` : '/';
+        const defaults = this.parent ? `/${this.getRouteName()}` : '/';
         return this.getConfig('mountPath', defaults);
     }
 
@@ -453,7 +453,7 @@ module.exports = class Module extends Base {
         };
         config.id = id;
         config.parent = this.parent?.components.get(id);
-        const name = StringHelper.idToCamel(config.componentMethodName || config.id);
+        const name = StringHelper.capitalize(config.componentMethodName || config.id);
         const method = `create${name}Component`;
         return typeof this[method] === 'function'
             ? this[method](config)
@@ -496,7 +496,7 @@ module.exports = class Module extends Base {
     }
 
     async initComponent (component) {
-        const name = StringHelper.idToCamel(component.componentMethodName || component.id);
+        const name = StringHelper.capitalize(component.componentMethodName || component.id);
         const method = `init${name}Component`;
         if (typeof this[method] === 'function') {
             await this[method](component);

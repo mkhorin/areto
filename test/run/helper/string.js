@@ -14,20 +14,24 @@ describe('StringHelper', ()=> {
         expect(StringHelper.generateLabel('_first-second.third')).to.eql('First second third');
     });
 
-    it('toFirstUpperCase: capitalize the first letter', ()=> {
-        expect(StringHelper.toFirstUpperCase('up first')).to.eql('Up first');
+    it('capitalize: capitalize the first letter', ()=> {
+        expect(StringHelper.capitalize('upper first letter')).to.eql('Upper first letter');
     });
 
-    it('toFirstLowerCase: lowercase the first letter', ()=> {
-        expect(StringHelper.toFirstLowerCase('Low first')).to.eql('low first');
+    it('capitalizeWords: capitalize words', ()=> {
+        expect(StringHelper.capitalizeWords('upper first letters')).to.eql('Upper First Letters');
     });
 
-    it('toWordFirstUpperCase: capitalize the first letters', ()=> {
-        expect(StringHelper.toWordFirstUpperCase('up first letters')).to.eql('Up First Letters');
+    it('toLowerCaseFirstLetter', ()=> {
+        expect(StringHelper.toLowerCaseFirstLetter('LowerFirstLetter')).to.eql('lowerFirstLetter');
     });
 
-    it('camelize', ()=> {
-        expect(StringHelper.camelize('test_block online')).to.eql('TestBlockOnline');
+    it('toLowerCamelCase', ()=> {
+        expect(StringHelper.toLowerCamelCase('Test_my-block online')).to.eql('testMyBlockOnline');
+    });
+
+    it('toUpperCamelCase', ()=> {
+        expect(StringHelper.toUpperCamelCase('test_my-block online')).to.eql('TestMyBlockOnline');
     });
 
     it('camelToWords', ()=> {
@@ -35,12 +39,12 @@ describe('StringHelper', ()=> {
         expect(StringHelper.camelToWords('_first__dot..now')).to.eql('first dot now');
     });
 
-    it('camelToId', ()=> {
-        expect(StringHelper.camelToId('TestBlockOnline')).to.eql('test-block-online');
+    it('camelToKebab', ()=> {
+        expect(StringHelper.camelToKebab('TestBlockOnline')).to.eql('test-block-online');
     });
 
-    it('idToCamel', ()=> {
-        expect(StringHelper.idToCamel('test-block-online')).to.eql('TestBlockOnline');
+    it('camelToSnake', ()=> {
+        expect(StringHelper.camelToSnake('TestBlockOnline')).to.eql('test_block_online');
     });
 
     it('split', ()=> {

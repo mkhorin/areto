@@ -1,3 +1,16 @@
+## 2.2.0
+
+* base/Controller
+    - rename path name to route name
+* base/Module
+    - rename path name to route name
+* helper/StringHelper
+    - add snake-case conversions
+    - rename capitalize methods
+    - rename hyphen naming to kebab
+* security/rateLimit
+    - rename directory to camel case
+    
 ## 2.1.0
 
 * base/Controller

@@ -17,7 +17,7 @@ module.exports = class Formatter extends Base {
     }
 
     static getMethodName (type) {
-        return `as${StringHelper.toFirstUpperCase(type)}`;
+        return `as${StringHelper.capitalize(type)}`;
     }
 
     constructor (config) {

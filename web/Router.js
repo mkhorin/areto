@@ -7,8 +7,8 @@ const Base = require('../base/Component');
 
 module.exports = class Router extends Base {
 
-    static createActionPathName (name) {
-        return StringHelper.camelToId(name);
+    static createActionRouteName (name) {
+        return StringHelper.camelToKebab(name);
     }
 
     constructor (config) {
@@ -87,7 +87,7 @@ module.exports = class Router extends Base {
             Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}-`));
         } else {
             const controller = require(file);
-            map[relative + controller.getPathName()] = controller;
+            map[relative + controller.getRouteName()] = controller;
         }
     }
 
@@ -112,7 +112,7 @@ module.exports = class Router extends Base {
             const route = `/${key}`;
             const Controller = this._controllerMap[key];
             for (const name of Controller.getActionNames()) {
-                this.addAction(name, Controller, `${route}/${this.constructor.createActionPathName(name)}`);
+                this.addAction(name, Controller, `${route}/${this.constructor.createActionRouteName(name)}`);
                 if (Controller.DEFAULT_ACTION === name) {
                     this.addAction(name, Controller, route);
                 }

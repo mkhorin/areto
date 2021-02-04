@@ -40,7 +40,7 @@ module.exports = class Application extends Base {
     }
 
     createName () {
-        return StringHelper.toFirstLowerCase(StringHelper.trimEnd(this.constructor.name, 'Application'));
+        return StringHelper.toLowerCaseFirstLetter(StringHelper.trimEnd(this.constructor.name, 'Application'));
     }
 
     createFullName () {

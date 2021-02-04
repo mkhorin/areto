@@ -303,7 +303,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getRelation (name) {
-        return name ? this['rel' + StringHelper.toFirstUpperCase(name)]?.() : null;
+        return name ? this['rel' + StringHelper.capitalize(name)]?.() : null;
     }
 
     hasMany (RefClass, refKey, linkKey) {

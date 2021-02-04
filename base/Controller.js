@@ -38,23 +38,23 @@ module.exports = class Controller extends Base {
 
     static getBaseName () {
         if (!this.hasOwnProperty('_baseName')) {
-            this._baseName = StringHelper.toFirstLowerCase(StringHelper.trimEnd(this.name, 'Controller'));
+            this._baseName = StringHelper.toLowerCaseFirstLetter(StringHelper.trimEnd(this.name, 'Controller'));
         }
         return this._baseName;
     }
 
-    static getPathName () {
-        if (!this.hasOwnProperty('_pathName')) {
-            this._pathName = StringHelper.camelToId(this.getBaseName());
+    static getRouteName () {
+        if (!this.hasOwnProperty('_routeName')) {
+            this._routeName = StringHelper.camelToKebab(this.getBaseName());
         }
-        return this._pathName;
+        return this._routeName;
     }
 
     static getActionNames () {
         const names = Object.keys(this.ACTIONS);
         for (const name of ObjectHelper.getAllFunctionNames(this.prototype)) {
             if (name.indexOf('action') === 0) {
-                names.push(StringHelper.toFirstLowerCase(name.substring(6)));
+                names.push(StringHelper.toLowerCaseFirstLetter(name.substring(6)));
             }
         }
         return names;
@@ -109,8 +109,8 @@ module.exports = class Controller extends Base {
         return `${this.module.getFullName()}.${this.getBaseName()}`;
     }
 
-    getPathName () {
-        return this.constructor.getPathName();
+    getRouteName () {
+        return this.constructor.getRouteName();
     }
 
     getModelClass () {
@@ -166,7 +166,7 @@ module.exports = class Controller extends Base {
     }
 
     createInlineAction (name) {
-        const method = this[`action${StringHelper.toFirstUpperCase(name)}`];
+        const method = this[`action${StringHelper.capitalize(name)}`];
         if (typeof method === 'function') {
             const config = this.INLINE_ACTION || this.module.InlineAction;
             return this.spawn(config, {controller: this, method, name});
@@ -366,7 +366,7 @@ module.exports = class Controller extends Base {
         if (this._urlManager === undefined) {
             this._urlManager = this.getUrlManager();
         }
-        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getPathName());
+        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getRouteName());
     }
 
     getHostUrl () {
