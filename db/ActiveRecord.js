@@ -322,7 +322,7 @@ module.exports = class ActiveRecord extends Base {
         if (index < 1) {
             return;
         }
-        const related = this.getRelated[name.substring(0, index)];
+        const related = this.getRelated(name.substring(0, index));
         if (!related) {
             return;
         }
