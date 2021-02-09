@@ -72,7 +72,7 @@ module.exports = class ObjectHelper {
 
     static filterByKeys (keys, data) {
         const result = {};
-        if (Array.isArray(keys) && data) {
+        if (data && Array.isArray(keys)) {
             for (const key of keys) {
                 if (Object.prototype.hasOwnProperty.call(data, key)) {
                     result[key] = data[key];

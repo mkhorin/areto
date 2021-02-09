@@ -7,7 +7,7 @@ module.exports = class AssignHelper {
 
     static assignUndefined (target, ...sources) {
         for (const source of sources) {
-            if (source && typeof source === 'object') {
+            if (this.isExtendable(source)) {
                 for (const key of Object.keys(source)) {
                     if (!Object.prototype.hasOwnProperty.call(target, key)) {
                         target[key] = source[key];
@@ -32,10 +32,18 @@ module.exports = class AssignHelper {
         return target;
     }
 
+    static isExtendable (data) {
+        return typeof data === 'object'
+            && data !== null
+            && !(data instanceof Array)
+            && !(data instanceof Date)
+            && !(data instanceof RegExp);
+    }
+
     // INTERNAL
 
     static _assign (to, from) {
-        if (from && typeof from === 'object') {
+        if (this.isExtendable(from)) {
             for (const key of Object.keys(from)) {
                 this._assignProperty(to, from, key);
             }
@@ -48,19 +56,17 @@ module.exports = class AssignHelper {
             return;
         }
         from = from[key];
-        if (from && typeof from === 'object' && !Array.isArray(from)) {
-            if (Object.prototype.hasOwnProperty.call(to, key) && to[key] && typeof to[key] === 'object') {
-                to[key] = this._assign(to[key], from);
-            } else {
-                to[key] = this._assign({}, from);
-            }
+        if (this.isExtendable(from)) {
+            to[key] = Object.prototype.hasOwnProperty.call(to, key) && this.isExtendable(to[key])
+                ? this._assign(to[key], from)
+                : this._assign({}, from);
         } else {
             to[key] = from;
         }
     }
 
     static _assignUndefined (to, from) {
-        if (from && typeof from === 'object') {
+        if (this.isExtendable(from)) {
             for (const key of Object.keys(from)) {
                 this._assignUndefinedProperty(to, from, key);
             }
@@ -77,7 +83,7 @@ module.exports = class AssignHelper {
             return to[key] = from;
         }
         to = to[key];
-        if (from && typeof from === 'object' && to && typeof to === 'object') {
+        if (this.isExtendable(from) && this.isExtendable(to)) {
             this._assignUndefined(to, from);
         }
     }
