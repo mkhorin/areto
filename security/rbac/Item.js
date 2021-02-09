@@ -42,11 +42,11 @@ module.exports = class Item extends Base {
 
     async create () {
         if (!this.constructor.isType(this.data.type)) {
-            throw new Error(`Item: ${this.name}: Invalid type: ${this.data.type}`);
+            return this.log('error', `Invalid type: ${this.data.type}`);
         }
         const item = await this.store.findItemByName(this.name).one();
         if (item) {
-            return this.store.log('warn', `Item already exists: ${this.name}`);
+            return this.log('warn', 'Already exists');
         }
         const data = {
             name: this.name,
@@ -65,11 +65,12 @@ module.exports = class Item extends Base {
 
     async resolveRuleRelation (result) {
         if (!this.data.rule) {
-            return result.rule = null;
+            result.rule = null;
+            return;
         }
         result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
         if (!result.rule) {
-            throw new Error(`Rule not found for item: ${this.name}`);
+            this.log('error', 'Rule not found');
         }
     }
 
@@ -102,11 +103,18 @@ module.exports = class Item extends Base {
     async resolveRelatives (relKey) {
         const item = await this.store.findItemByName(this.name).one();
         this.data.itemId = item ? item[this.store.key] : null;
-        const items = await this.store.findItemByName(this.data[relKey]).all();
-        if (items.length === this.data[relKey].length) {
-            return items.map(item => item[this.store.key])
+        const names = this.data[relKey];
+        const items = await this.store.findItemByName(names).all();
+        if (items.length !== names.length) {
+            const itemNames = items.map(item => item.name);
+            const misses = names.filter(name => !itemNames.includes(name));
+            this.log('error', `No children found: ${misses}`);
         }
-        throw new Error(`'${this.data[relKey]}' not found ${relKey} for item: ${this.name}`);
+        return items.map(item => item[this.store.key]);
+    }
+
+    log (type, message, data) {
+        this.store.log(type, `${this.constructor.name}: ${this.name}: ${message}`, data);
     }
 };
 module.exports.init();
