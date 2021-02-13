@@ -348,10 +348,10 @@ module.exports = class ActiveRecord extends Base {
     async resolveRelation (name) {
         const index = name.indexOf('.');
         if (index === -1) {
-            return this.resolveRelationOnly(name);
+            return this.resolveOneRelation(name);
         }
         let nestedName = name.substring(index + 1);
-        let result = await this.resolveRelationOnly(name.substring(0, index));
+        let result = await this.resolveOneRelation(name.substring(0, index));
         if (!result) {
             return result;
         }
@@ -370,7 +370,7 @@ module.exports = class ActiveRecord extends Base {
         return ArrayHelper.concat(models);
     }
 
-    async resolveRelationOnly (name) {
+    async resolveOneRelation (name) {
         if (this.isRelationPopulated(name)) {
             return this._related[name];
         }
@@ -437,7 +437,7 @@ module.exports = class ActiveRecord extends Base {
 
     async deleteRelatedModels (relations) {
         for (const relation of relations) {
-            const result = await this.resolveRelationOnly(relation);
+            const result = await this.resolveOneRelation(relation);
             if (Array.isArray(result)) {
                 for (const model of result) {
                     if (model instanceof ActiveRecord) {
