@@ -72,8 +72,8 @@ describe('StringHelper', ()=> {
 
     it('trimEnd', ()=> {
         expect(StringHelper.trimEnd('baseEnd', 'End')).to.eql('base');
-        expect(StringHelper.trimEnd('other', 'End')).to.eql('other');
+        expect(StringHelper.trimEnd('notEndBase', 'End')).to.eql('notEndBase');
         expect(StringHelper.trimEnd('other')).to.eql('other');
-        expect(StringHelper.trimEnd(null)).to.eql('null');
+        expect(StringHelper.trimEnd(null)).to.eql(null);
     });
 });

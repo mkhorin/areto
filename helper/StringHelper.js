@@ -91,8 +91,10 @@ module.exports = class StringHelper {
     }
 
     static trimEnd (text, end) {
-        const index = typeof end === 'string' ? text.lastIndexOf(end) : -1;
-        text = typeof text === 'string' ? text : String(text);
-        return index === -1 ? text : text.substring(0, index);
+        if (typeof text !== 'string' || typeof end !== 'string') {
+            return text;
+        }
+        const index = text.length - end.length;
+        return text.lastIndexOf(end) === index ? text.substring(0, index) : text;
     }
 };
