@@ -91,7 +91,7 @@ module.exports = class Controller extends Base {
     constructor (config) {
         super(config);
         this.i18n = this.getI18n();
-        this.language = this.language || this.i18n?.language;
+        this.language = this.getLanguage();
         this.response = new Response;
         this.response.controller = this;
         this.timestamp = Date.now();
@@ -393,6 +393,10 @@ module.exports = class Controller extends Base {
 
     getI18n () {
         return this.module.components.get(this.module.defaultI18nComponentId);
+    }
+
+    getLanguage () {
+        return this.language || this.i18n?.language;
     }
 
     translate (message, params, source = 'app') {
