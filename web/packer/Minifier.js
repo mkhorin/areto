@@ -12,21 +12,29 @@
  * Block comments: \/\*[\s\S]*?\*\/
  */
 const COMMENTS = /((["'`])(?:\\[\s\S]|[\s\S])*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm;
+const LINE_BREAKS = /[\r\n]+/g;
+const MULTIPLE_SPACES = /\s\s+/g;
 
 const Base = require('../../base/Base');
 
 module.exports = class Minifier extends Base {
 
+    static removeComments (text) {
+        return text.replace(COMMENTS, '$1');
+    }
+
+    static removeLineBreaks (text) {
+        return text.replace(LINE_BREAKS, ' ');
+    }
+
+    static removeMultipleSpaces (text) {
+        return text.replace(MULTIPLE_SPACES, ' ');
+    }
+
     execute (text) {
-        if (typeof text !== 'string') {
-            return String(text);
-        }
-        // remove comments
-        text = text.replace(COMMENTS, '$1');
-        // replace new line breaks
-        text = text.replace(/[\r\n]+/g, ' ');
-        // replace multiple spaces
-        text = text.replace(/\s\s+/g, ' ');
+        text = this.constructor.removeComments(text);
+        text = this.constructor.removeLineBreaks(text);
+        text = this.constructor.removeMultipleSpaces(text);
         return text;
     }
 };
