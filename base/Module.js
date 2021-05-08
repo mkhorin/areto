@@ -28,8 +28,7 @@ module.exports = class Module extends Base {
                     Class: require('../security/Auth')
                 },
                 'bodyParser': {
-                    Class: require('../web/BodyParser'),
-                    extended: true
+                    Class: require('../web/BodyParser')
                 },
                 'cache': {
                     Class: require('../cache/Cache')

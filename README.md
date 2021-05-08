@@ -11,8 +11,9 @@
 
 #### Ready to try
  
-- [Blog App](https://github.com/mkhorin/areto-basic-demo)
+- [Demo App: Blog](https://github.com/mkhorin/areto-basic-demo)
 
 #### Ready to use
 
-- [Evado Declarative Framework](https://github.com/mkhorin/evado)
+- [Evado: Declarative Framework](https://github.com/mkhorin/evado)
+- [E-Champ: Server platform for online games](https://github.com/mkhorin/e-champ)

@@ -18,7 +18,7 @@ module.exports = class Controller extends Base {
         return {
             // declare allowed methods for action if not set then all
             METHODS: {
-                // 'logout': ['post']
+                // 'logout': 'post'
             },
             // declare external actions for the controller
             ACTIONS: {

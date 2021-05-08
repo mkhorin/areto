@@ -1,3 +1,21 @@
+## 2.3.0
+
+* base/Controller
+    - extract language getter
+* db/ActiveRecord
+    - fix nested relation name parsing
+    - rename method of resolving one relation
+* helper/AssignHelper
+    - prevent extending of arrays, dates and regex
+* helper/StringHelper
+    - fix string trimming 
+* security/rbac/Item
+    - specify not found children 
+* web/BodyParser
+    - add separate configuration for parsers
+* web/packer/Minifier
+    - refactor component
+
 ## 2.2.0
 
 * base/Controller
