@@ -7,18 +7,35 @@ const Base = require('../base/Component');
 
 module.exports = class BodyParser extends Base {
 
+    static DEFAULTS = {
+        json: null,
+        raw: null,
+        text: null,
+        urlencoded: {
+            extended: true
+        }
+    };
+
     constructor (config) {
         super({
             depends: '#start',
+            json: {},
+            urlencoded: {},
             ...config
         });
-        this.jsonParser = bodyParser.json();
-        this.urlencodeParser = bodyParser.urlencoded(config);
     }
 
     init () {
-        this.module.addHandler('use', this.jsonParser);
-        this.module.addHandler('use', this.urlencodeParser);
+        Object.keys(this.constructor.DEFAULTS).forEach(this.createParser, this);
+    }
+
+    createParser (name) {
+        if (this[name]) {
+            this.module.addHandler('use', bodyParser[name]({
+                ...this.constructor.DEFAULTS[name],
+                ...this[name]
+            }));
+        }
     }
 };
 
