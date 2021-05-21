@@ -10,7 +10,7 @@
  * attr1 and attr2 must exist together, and they both will receive error message
  * [['attr1', 'attr2'], 'exist', {targetAttr: ['attr1', 'attr2']}]
  * attr1 and attr2 must exist together, only attr1 will receive error message
- * ['attr1', 'exist', {targetAttr: ['a1', 'a2']}]
+ * ['attr1', 'exist', {targetAttr: ['attr1', 'attr2']}]
  */
 const Base = require('./Validator');
 

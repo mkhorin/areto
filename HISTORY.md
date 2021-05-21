@@ -1,3 +1,8 @@
+## 2.4.0
+
+* i18n/Message
+    - reorder message arguments
+    
 ## 2.3.0
 
 * base/Controller

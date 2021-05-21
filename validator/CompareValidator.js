@@ -20,8 +20,8 @@ module.exports = class CompareValidator extends Base {
     getMessage (params) {
         let message;
         switch (this.operator) {
-            case '==': message = 'Value must be repeated exactly'; break;
-            case '===': message = 'Value must be repeated exactly'; break;
+            case '==': message = 'Value must be equal to "{compareValue}"'; break;
+            case '===': message = 'Value must be equal to "{compareValue}"'; break;
             case '!=': message = 'Value must not be equal to "{compareValue}"'; break;
             case '!==': message = 'Value must not be equal to "{compareValue}"'; break;
             case '>': message = 'Value must be greater than "{compareValue}"';break;
