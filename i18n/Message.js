@@ -7,11 +7,11 @@ const Base = require('../base/Base');
 
 module.exports = class Message extends Base {
 
-    constructor (message, params, source, language) {
+    constructor (source, message, params, language) {
         super({
+            source,
             message,
             params,
-            source,
             language
         });
     }

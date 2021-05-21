@@ -114,10 +114,10 @@ module.exports = class I18n extends Base {
         return this.messageFormatter.format(...arguments);
     }
 
-    translate (message, params, name, language = this.language) {
-        const source = this.getSource(name);
+    translate (message, params, sourceName, language = this.language) {
+        const source = this.getSource(sourceName);
         if (!source) {
-            this.log('error', `Message source not found: ${name}`);
+            this.log('error', `Message source not found: ${sourceName}`);
             return message;
         }
         let result;
