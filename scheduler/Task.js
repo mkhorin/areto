@@ -202,6 +202,6 @@ module.exports = class Task extends Base {
 };
 module.exports.init();
 
-const moment = require('moment');
 const DateHelper = require('../helper/DateHelper');
 const Event = require('../base/Event');
+const moment = require('moment');

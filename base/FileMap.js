@@ -66,6 +66,6 @@ module.exports = class FileMap extends Base {
     }
 };
 
+const FileHelper = require('../helper/FileHelper');
 const fs = require('fs');
 const path = require('path');
-const FileHelper = require('../helper/FileHelper');

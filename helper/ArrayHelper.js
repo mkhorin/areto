@@ -146,7 +146,7 @@ module.exports = class ArrayHelper {
 
     // RANDOM
 
-    static getRandom (values) {
+    static random (values) {
         if (Array.isArray(values) && values.length) {
             return values[Math.floor(Math.random() * values.length)];
         }

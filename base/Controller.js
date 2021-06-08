@@ -295,11 +295,11 @@ module.exports = class Controller extends Base {
     }
 
     async renderTemplate (template, data) {
-        return this.getView().render(this.getViewFileName(template), data);
+        return this.getView().render(this.getViewFilename(template), data);
     }
 
     createViewModel (name, config = {}) {
-        return this.getView().createViewModel(this.getViewFileName(name), config);
+        return this.getView().createViewModel(this.getViewFilename(name), config);
     }
 
     getView () {
@@ -321,7 +321,7 @@ module.exports = class Controller extends Base {
         return this.module.components.get(this.module.defaultViewComponentId).getTheme();
     }
 
-    getViewFileName (name) {
+    getViewFilename (name) {
         name = typeof name !== 'string' ? String(name) : name;
         return path.isAbsolute(name) ? name : (this.constructor.getViewDirectory() + name);
     }
@@ -431,7 +431,6 @@ module.exports = class Controller extends Base {
 };
 module.exports.init();
 
-const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
@@ -439,3 +438,4 @@ const StringHelper = require('../helper/StringHelper');
 const Forbidden = require('../error/http/Forbidden');
 const ActionEvent = require('./ActionEvent');
 const Response = require('../web/Response');
+const path = require('path');

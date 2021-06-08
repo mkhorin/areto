@@ -53,13 +53,13 @@ module.exports = class QueryHelper {
     static unlinkInternal (ref, link, model, key) {
         if (Array.isArray(ref)) {
             const index = ArrayHelper.indexOf(link, ref);
-            if (index !== - 1) {
+            if (index !== -1) {
                 ref.splice(index, 1);
             }
         } else {
-            model.set(key, null);
+            ref = null;
         }
-        return model.forceSave();
+        return model.directUpdate({[key]: ref});
     }
 };
 

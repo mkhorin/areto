@@ -163,11 +163,11 @@ module.exports = class MongoBuilder extends Base {
     // LIKE
 
     buildLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: EscapeHelper.toRegex(value)};
+        return {[this.normalizeField(field)]: MongoHelper.convertToRegex(value)};
     }
 
     buildNotLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: {$not: EscapeHelper.toRegex(value)}};
+        return {[this.normalizeField(field)]: {$not: MongoHelper.convertToRegex(value)}};
     }
 
     // BETWEEN
@@ -235,4 +235,4 @@ module.exports = class MongoBuilder extends Base {
 };
 module.exports.init();
 
-const EscapeHelper = require('../helper/EscapeHelper');
+const MongoHelper = require('../helper/MongoHelper');

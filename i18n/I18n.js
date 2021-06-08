@@ -158,9 +158,9 @@ module.exports = class I18n extends Base {
 };
 module.exports.init();
 
-const path = require('path');
 const AssignHelper = require('../helper/AssignHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const MessageSource = require('./MessageSource');
 const FileMessageSource = require('./FileMessageSource');
 const MessageFormatter = require('./MessageFormatter');
+const path = require('path');

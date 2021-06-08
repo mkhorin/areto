@@ -34,7 +34,7 @@ module.exports = class ActionView extends Base {
     }
 
     getInternalTemplate (name) {
-        return this.get(this.controller.getViewFileName(name));
+        return this.get(this.controller.getViewFilename(name));
     }
 
     getParentTemplate (name) {
@@ -42,7 +42,7 @@ module.exports = class ActionView extends Base {
     }
 
     getInternalParentTemplate (name) {
-        return this.getParentTemplate(this.controller.getViewFileName(name));
+        return this.getParentTemplate(this.controller.getViewFilename(name));
     }
 
     getTemplateFromSameView (name) {
@@ -88,7 +88,7 @@ module.exports = class ActionView extends Base {
 
     renderTemplate (template, params) {
         const app = this.controller.res.app;
-        return PromiseHelper.promise(app.render.bind(app, template, params));
+        return PromiseHelper.promise(app.render, app, template, params);
     }
 
     getRenderParams (params) {

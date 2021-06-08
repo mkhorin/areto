@@ -58,7 +58,7 @@ module.exports = class ViewModel extends Base {
     }
 
     resolveTemplateData () {
-        return {}; // to override
+        // to override
     }
 
     prepareModels () {

@@ -33,7 +33,6 @@ module.exports = class Minifier extends Base {
 
     execute (text) {
         text = this.constructor.removeComments(text);
-        text = this.constructor.removeLineBreaks(text);
         text = this.constructor.removeMultipleSpaces(text);
         return text;
     }

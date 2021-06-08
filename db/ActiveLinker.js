@@ -108,11 +108,12 @@ module.exports = class ActiveLinker extends Base {
         if (via.getWhere()) {
             condition = ['AND', condition, via.getWhere()];
         }
-        let nulls = {[via.refKey]: null};
+        const nulls = {[via.refKey]: null};
         if (relation.getViaTable()) {
-            condition = this.owner.getDb().buildCondition(condition);
-            deletion ? await this.owner.getDb().delete(via.getTable(), condition)
-                     : await this.owner.getDb().update(via.getTable(), condition, nulls);
+            const db = this.owner.getDb();
+            condition = db.buildCondition(condition);
+            deletion ? await db.delete(via.getTable(), condition)
+                     : await db.update(via.getTable(), condition, nulls);
         } else if (deletion) {
             for (const model of await via.model.find(condition).all()) {
                 await model.delete();
@@ -125,8 +126,7 @@ module.exports = class ActiveLinker extends Base {
     async unlinkInternalAll (relation) {
         // relation via array valued attribute
         if (Array.isArray(this.owner.get(relation.linkKey))) {
-            this.owner.set(relation.linkKey, []);
-            return this.owner.forceSave();
+            return this.owner.directUpdate({[relation.linkKey]: []});
         }
         let condition = {[relation.refKey]: this.owner.get(relation.linkKey)};
         if (relation.getWhere()) {
@@ -155,15 +155,15 @@ module.exports = class ActiveLinker extends Base {
             throw new Error(this.wrapMessage('Primary key is null'));
         }
         if (!relation.getViaArray()) {
-            foreignModel.set(foreignKey, value);
-            return foreignModel.forceSave();
+            return foreignModel.directUpdate({[foreignKey]: value});
         }
-        if (!Array.isArray(foreignModel.get(foreignKey))) {
-            foreignModel.set(foreignKey, []);
+        let values = foreignModel.get(foreignKey);
+        if (!Array.isArray(values)) {
+            values = [];
         }
-        if (!ArrayHelper.includes(value, foreignModel.get(foreignKey))) {
-            foreignModel.get(foreignKey).push(value);
-            return foreignModel.forceSave();
+        if (!ArrayHelper.includes(value, values)) {
+            values.push(value);
+            return foreignModel.directUpdate({[foreignKey]: values});
         }
     }
 

@@ -109,7 +109,7 @@ module.exports = class FilePack extends Base {
     }
 };
 
-const fs = require('fs');
-const path = require('path');
 const CommonHelper = require('../../helper/CommonHelper');
 const FileHelper = require('../../helper/FileHelper');
+const fs = require('fs');
+const path = require('path');

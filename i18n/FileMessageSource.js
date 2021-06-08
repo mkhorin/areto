@@ -32,5 +32,5 @@ module.exports = class FileMessageSource extends Base {
     }
 };
 
-const path = require('path');
 const FileHelper = require('areto/helper/FileHelper');
+const path = require('path');

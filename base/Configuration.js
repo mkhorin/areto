@@ -105,7 +105,7 @@ module.exports = class Configuration extends Base {
     }
 };
 
-const fs = require('fs');
-const path = require('path');
 const AssignHelper = require('../helper/AssignHelper');
 const NestedHelper = require('../helper/NestedHelper');
+const fs = require('fs');
+const path = require('path');

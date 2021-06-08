@@ -3,8 +3,8 @@
  */
 'use strict';
 
-const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
+const path = require('path');
 
 module.exports = class Base {
 

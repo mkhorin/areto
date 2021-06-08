@@ -22,6 +22,13 @@ describe('FileHelper', ()=> {
         expect(res).to.eql('other/dir/file');
     });
 
+    it('getExtension', ()=> {
+        expect(FileHelper.getExtension('file.js')).to.eql('js');
+        expect(FileHelper.getExtension('file')).to.eql('');
+        expect(FileHelper.getExtension('file.txt.png')).to.eql('png');
+        expect(FileHelper.getExtension('file.')).to.eql('');
+    });
+
     it('addExtension', ()=> {
         expect(FileHelper.addExtension('js', 'dir/file')).to.eql('dir/file.js');
         expect(FileHelper.addExtension('js', 'dir/file.js')).to.eql('dir/file.js');

@@ -49,7 +49,7 @@ module.exports = class LocaleFileMap extends Base {
     }
 };
 
-const fs = require('fs');
-const path = require('path');
 const ClassHelper = require('../helper/ClassHelper');
 const FileMap = require('../base/FileMap');
+const fs = require('fs');
+const path = require('path');

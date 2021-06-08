@@ -13,7 +13,7 @@ module.exports = class FileValidator extends Base {
             minSize: 1,
             maxSize: null,
             extensions: null,
-            mimeTypes: null,
+            types: null,
             ...config
         });
     }
@@ -44,22 +44,18 @@ module.exports = class FileValidator extends Base {
         });
     }
 
-    getWrongMimeTypeMessage () {
-        return this.createMessage(this.wrongMimeType, 'Only these file MIME types are allowed: {mimeTypes}', {
-            mimeTypes: this.mimeTypes.join(', ')
+    getWrongTypeMessage () {
+        return this.createMessage(this.wrongType, 'Only these media types are allowed: {types}', {
+            types: this.types.join(', ')
         });
     }
 
-    async validateValue (file) { // file {path, size, extension, mime}
-        if (!file || !file.path) {
+    validateValue (file) {
+        if (!file) {
             return this.getMessage();
         }
-        if (this.imageOnly && (!file.mime || file.mime.indexOf('image') !== 0)) {
+        if (this.imageOnly && (!file.type || file.type.indexOf('image') !== 0)) {
             return this.getNotImageMessage();
-        }
-        const stat = await FileHelper.getStat(file.path);
-        if (!stat || !stat.isFile()) {
-            return this.getMessage();
         }
         if (this.minSize && file.size < this.minSize) {
             return this.getTooSmallMessage();
@@ -71,8 +67,18 @@ module.exports = class FileValidator extends Base {
             && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
             return this.getWrongExtensionMessage();
         }
-        if (Array.isArray(this.mimeTypes) && (!file.mime || !this.mimeTypes.includes(file.mime))) {
-            return this.getWrongMimeTypeMessage();
+        if (Array.isArray(this.types) && (!file.type || !this.types.includes(file.type))) {
+            return this.getWrongTypeMessage();
+        }
+        if (file.path) {
+            return this.validatePath(file);
+        }
+    }
+
+    async validatePath (file) {
+        const stat = await FileHelper.getStat(file.path);
+        if (!stat || !stat.isFile()) {
+            return this.getMessage();
         }
     }
 
@@ -82,11 +88,11 @@ module.exports = class FileValidator extends Base {
             minSize: this.minSize,
             maxSize: this.maxSize,
             extensions: this.extensions,
-            mimeTypes: this.mimeTypes,
+            types: this.types,
             tooSmall: this.tooSmall,
             tooBig: this.tooBig,
             wrongExtension: this.wrongExtension,
-            wrongMimeType: this.wrongMimeType
+            wrongType: this.wrongType
         };
     }
 };

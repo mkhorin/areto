@@ -1,3 +1,14 @@
+## 2.5.0
+
+* db/ActiveLinker
+    - fix backref linking
+* behavior/RelationChangeBehavior
+    - fix immutability of queries
+* validator/FileValidator    
+    - optional file path
+* validator/Validator    
+    - show invalid validator type
+    
 ## 2.4.0
 
 * i18n/Message

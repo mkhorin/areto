@@ -13,8 +13,8 @@ module.exports = class RegexValidator extends Base {
                 'HH:mm': /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
                 'HH:mm:ss': /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/,
                 'duration': /^[0-9]|P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/, // seconds or ISO_8601#Duration
-                'reservedFileNameChars': /[<>:"\/\\|?*\x00-\x1F]/g,
-                'reservedWindowsFileName': /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i
+                'reservedFilenameChars': /[<>:"\/\\|?*\x00-\x1F]/g,
+                'reservedWindowsFilename': /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i
             }
         };
     }

@@ -8,7 +8,6 @@ const Base = require('../base/Behavior');
 module.exports = class RelationChangeBehavior extends Base {
 
     _changes = {};
-    _relations = {};
 
     constructor (config) {
         super(config);
@@ -37,11 +36,8 @@ module.exports = class RelationChangeBehavior extends Base {
         return Object.prototype.hasOwnProperty.call(this._changes, name) ? this._changes[name] : null;
     }
 
-    getRelation (name) {
-        if (!Object.prototype.hasOwnProperty.call(this._relations, name)) {
-            this._relations[name] = this.owner.getRelation(name);
-        }
-        return this._relations[name];
+    getRelation () {
+        return this.owner.getRelation(...arguments);
     }
 
     async resolveChanges () {
@@ -103,11 +99,11 @@ module.exports = class RelationChangeBehavior extends Base {
         }
         delete this._changes[name];
         if (Array.isArray(data.deletes)) {
-            this.owner.constructor.delete(data.deletes);
+            await this.owner.constructor.delete(data.deletes);
         }
         if (Array.isArray(data.unlinks)) {
             if (this.owner.getDeleteOnUnlink().includes(name)) {
-                this.owner.constructor.delete(data.unlinks);
+                await this.owner.constructor.delete(data.unlinks);
             } else {
                 for (const model of data.unlinks) {
                     await this.owner.getLinker().unlink(name, model);

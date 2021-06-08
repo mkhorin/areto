@@ -18,8 +18,12 @@ module.exports = class FileHelper {
         return file.indexOf(basePath) === 0 ? file.substring(basePath.length + 1) : file;
     }
 
+    static getExtension (file) {
+        return path.extname(file).substring(1);
+    }
+
     static addExtension (ext, file) {
-        return file.substring(file.lastIndexOf('.') + 1) !== ext ? file + '.' + ext : file;
+        return file.substring(file.lastIndexOf('.') + 1) !== ext ? `${file}.${ext}` : file;
     }
 
     static trimExtension (file) {
@@ -139,6 +143,6 @@ module.exports = class FileHelper {
     }
 };
 
+const PromiseHelper = require('./PromiseHelper');
 const fs = require('fs');
 const path = require('path');
-const PromiseHelper = require('./PromiseHelper');

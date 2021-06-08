@@ -42,26 +42,27 @@ module.exports = class Validator extends Base {
     }
 
     static createValidator (type, model, attrs, config = {}) {
+        let Class = type;
         if (Object.prototype.hasOwnProperty.call(this.BUILTIN, type)) {
-            type = this.BUILTIN[type];
+            Class = this.BUILTIN[type];
         } else if (typeof type === 'function' || typeof model[type] === 'function') {
-            if (!(type.prototype instanceof Validator)) {
+            if (!(Class.prototype instanceof Validator)) {
                 config.method = type;
-                type = this.BUILTIN.inline;
+                Class = this.BUILTIN.inline;
             }
         } else if (type instanceof Object) {
             Object.assign(config, type);
-            type = type.Class;
+            Class = type.Class;
         }
-        if (typeof type === 'string') {
-            type = model.getClass(type);
+        if (typeof Class === 'string') {
+            Class = model.getClass(type);
         }
-        if (!type || !(type.prototype instanceof Validator)) {
-            throw new Error('Invalid type');
+        if (!Class || !(Class.prototype instanceof Validator)) {
+            throw new Error(`Invalid type: ${type}`);
         }
         config.attrs = Array.isArray(attrs) ? attrs : [attrs];
         config.module = model.module;
-        return new type(config);
+        return new Class(config);
     }
 
     constructor (config) {

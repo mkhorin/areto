@@ -237,7 +237,7 @@ module.exports = class MysqlDatabase extends Base {
 };
 module.exports.init();
 
-const moment = require('moment');
-const mysql = require('mysql');
 const PromiseHelper = require('../helper/PromiseHelper');
 const Expression = require('./Expression');
+const moment = require('moment');
+const mysql = require('mysql');

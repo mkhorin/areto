@@ -97,7 +97,7 @@ module.exports = class FileLogStore extends Base {
 
     async checkout () {
         try {
-            const {size} = await PromiseHelper.promise(fs.fstat.bind(fs, this.fileDescriptor));
+            const {size} = await PromiseHelper.promise(fs.fstat, fs, this.fileDescriptor);
             if (size > this.maxFileSize) {
                 await this.rotate();
             }
@@ -160,9 +160,9 @@ module.exports = class FileLogStore extends Base {
     }
 };
 
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
 const Exception = require('../error/Exception');
 const FileHelper = require('../helper/FileHelper');
 const PromiseHelper = require('../helper/PromiseHelper');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');

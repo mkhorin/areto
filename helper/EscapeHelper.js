@@ -41,14 +41,4 @@ module.exports = class EscapeHelper {
         }
         return text.replace(LT_REGEX, '&lt;').replace(QT_REGEX, '&gt;');
     }
-
-    static toRegex (value) {
-        if (value instanceof RegExp) {
-            return value;
-        }
-        value = this.escapeRegex(value);
-        value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
-        value = value.charAt(value.length - 1) === '%' ? value.substring(0, value.length - 1) : `${value}$`;
-        return new RegExp(value, 'i');
-    }
 };

@@ -10,8 +10,8 @@ module.exports = class NumberValidator extends Base {
     constructor (config) {
         super({
             integerOnly: false,
-            max: null,
-            min: null,
+            max: null, // max value
+            min: null, // min value
             ...config
         });
     }

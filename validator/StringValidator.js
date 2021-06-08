@@ -10,8 +10,8 @@ module.exports = class StringValidator extends Base {
     constructor (config) {
         super({
             length: null,
-            max: null,
-            min: null,
+            max: null, // max length
+            min: null, // min length
             pattern: null, // [RegExp]
             trimming: true, // remove whitespace from ends of a string
             shrinking: false, // replace multiple spaces with one

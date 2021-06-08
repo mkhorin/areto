@@ -561,8 +561,6 @@ module.exports = class Module extends Base {
 };
 module.exports.init();
 
-const fs = require('fs');
-const path = require('path');
 const AssignHelper = require('../helper/AssignHelper');
 const ClassHelper = require('../helper/ClassHelper');
 const CommonHelper = require('../helper/CommonHelper');
@@ -571,3 +569,5 @@ const NestedHelper = require('../helper/NestedHelper');
 const StringHelper = require('../helper/StringHelper');
 const ActionEvent = require('./ActionEvent');
 const DataMap = require('./DataMap');
+const fs = require('fs');
+const path = require('path');

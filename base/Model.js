@@ -429,8 +429,8 @@ module.exports = class Model extends Base {
 };
 module.exports.init();
 
-const path = require('path');
 const FileHelper = require('../helper/FileHelper');
 const ObjectHelper = require('../helper/ObjectHelper');
 const StringHelper = require('../helper/StringHelper');
 const Validator = require('../validator/Validator');
+const path = require('path');

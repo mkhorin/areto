@@ -88,8 +88,19 @@ module.exports = class MongoHelper {
             }
         }
     }
+
+    static convertToRegex (value) {
+        if (value instanceof RegExp) {
+            return value;
+        }
+        value = EscapeHelper.escapeRegex(value);
+        value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
+        value = value.charAt(value.length - 1) === '%' ? value.substring(0, value.length - 1) : `${value}$`;
+        return new RegExp(value, 'i');
+    }
 };
 
 const ObjectID = require('mongodb').ObjectID;
 const ArrayHelper = require('./ArrayHelper');
 const DateHelper = require('./DateHelper');
+const EscapeHelper = require('./EscapeHelper');

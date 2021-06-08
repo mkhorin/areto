@@ -23,7 +23,7 @@ module.exports = class SecurityHelper {
 
     static createSalt (length = DEFAULT_SALT_LENGTH) {
         if (length % 2) {
-            throw new Error('length must be a multiple of 2');
+            throw new Error('Length must be a multiple of 2');
         }
         return crypto.randomBytes(length / 2).toString('hex');
     }

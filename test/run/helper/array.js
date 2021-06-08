@@ -81,10 +81,8 @@ describe('ArrayHelper', ()=> {
         expect(res).to.eql(2);
     });
 
-    // RANDOM
-
-    it('getRandom', ()=> {
-        expect(ArrayHelper.getRandom([7, 8, 9])).to.be.within(7, 9);
+    it('random', ()=> {
+        expect(ArrayHelper.random([7, 8, 9])).to.be.within(7, 9);
     });
 
     it('shuffle', ()=> {

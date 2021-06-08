@@ -196,6 +196,6 @@ module.exports = class Formatter extends Base {
 };
 module.exports.init();
 
-const moment = require('moment');
 const I18n = require('./I18n');
 const StringHelper = require('../helper/StringHelper');
+const moment = require('moment');
