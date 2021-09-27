@@ -22,6 +22,9 @@ describe('NumberValidator', ()=> {
         model.set('attr', '3456.34');
         await validator.validateAttr('attr', model);
         expect(model.hasError()).to.eql(false);
+        model.set('attr', '0123.450');
+        await validator.validateAttr('attr', model);
+        expect(model.hasError()).to.eql(false);
     });
 
     it('invalid integer only', async ()=> {
