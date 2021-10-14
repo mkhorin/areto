@@ -50,45 +50,70 @@ module.exports = class Rbac extends Base {
     }
 
     build (data) {
-        this.ruleMap = {};
-        for (const name of Object.keys(data.rules)) {
-            this.ruleMap[name] = ClassHelper.normalizeSpawn(data.rules[name], {name});
+        this.ruleMap = this.createRuleMap(data.rules);
+        this.itemMap = this.createItemMap(data.items);
+        for (const item of Object.values(this.itemMap)) {
+            item.rules = this.resolveItemRules(item);
+            item.children = this.resolveItemLinks(item);
         }
-        this.resolveItemRules(data.items);
-        this.itemMap = {};
-        for (const name of Object.keys(data.items)) {
-            this.itemMap[name] = this.spawn(this.Item, {...data.items[name], rbac: this});
-        }
-        for (const id of Object.keys(data.items)) {
-            this.resolveItemLinks(this.itemMap[id]);
-        }
-        this.assignmentMap = data.assignments;
+        this.assignmentMap = this.createAssignmentMap(data.assignments);
     }
 
-    resolveItemRules (itemMap) {
-        for (const item of Object.values(itemMap)) {
-            const rule = item.rule;
-            if (rule) {
-                item.rule = Object.prototype.hasOwnProperty.call(this.ruleMap, rule)
-                    ? this.ruleMap[rule]
-                    : ClassHelper.normalizeSpawn(rule);
-            }
+    createRuleMap (data) {
+        const result = {};
+        for (const name of Object.keys(data)) {
+            result[name] = ClassHelper.normalizeSpawn(data[name], {name});
         }
+        return result;
+    }
+
+    createItemMap (data) {
+        const result = {};
+        for (const name of Object.keys(data)) {
+            result[name] = this.spawn(this.Item, {...data[name], rbac: this});
+        }
+        return result;
+    }
+
+    createAssignmentMap (data) {
+        return data;
+    }
+
+    resolveItemRules ({rules}) {
+        if (!rules) {
+            return null;
+        }
+        const result = [];
+        for (const data of rules) {
+            const rule = this.resolveRuleByData(data);
+            rule ? result.push(rule)
+                 : this.log('error', 'Invalid rule:', data);
+        }
+        return result.length ? result : null;
+    }
+
+    resolveRuleByData (data) {
+        const rule = Object.prototype.hasOwnProperty.call(this.ruleMap, data)
+            ? this.ruleMap[data]
+            : ClassHelper.normalizeSpawn(data);
+        return typeof rule.Class === 'function' ? rule : null;
     }
 
     resolveItemLinks (item) {
         if (!Array.isArray(item.children)) {
-            return;
+            return null;
         }
-        const children = [];
-        for (const id of item.children) {
-            if (!(this.itemMap[id] instanceof this.Item)) {
-                throw new Error(`Unknown child: ${id}`);
+        const result = [];
+        for (const name of item.children) {
+            const child = this.itemMap[name];
+            if (child instanceof this.Item) {
+                result.push(child);
+                child.addParent(item);
+            } else {
+                this.log('error', `Unknown child: ${name}`);
             }
-            children.push(this.itemMap[id]);
-            this.itemMap[id].addParent(item);
         }
-        item.children = children;
+        return result.length ? result : null;
     }
 
     getItem (id) {

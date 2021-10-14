@@ -50,28 +50,37 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     prepare (data) {
-        const {ruleMap, itemMap} = data;
-        const rules = this.prepareRules(ruleMap);
-        const items = {};
-        for (const id of Object.keys(itemMap)) {
-            const item = itemMap[id];
-            item.children = this.getItemChildren(id, data);
-            item.rule = ruleMap.hasOwnProperty(item.rule) ? ruleMap[item.rule].name : null;
-            items[item.name] = item;
-        }
+        const rules = this.prepareRules(data);
+        const items = this.prepareItems(data);
         const assignments = this.prepareAssignments(data);
         return {rules, items, assignments};
     }
 
-    prepareRules (data) {
+    prepareItems (data) {
         const result = {};
-        for (const id of Object.keys(data)) {
-            const rule = this.prepareRule(data[id]);
+        for (const id of Object.keys(data.itemMap)) {
+            const item = this.prepareItem(id, data);
+            result[item.name] = item;
+        }
+        return result;
+    }
+
+    prepareItem (id, data) {
+        const item = data.itemMap[id];
+        item.children = this.getItemChildren(id, data);
+        item.rules = this.getItemRules(item, data.ruleMap);
+        return item;
+    }
+
+    prepareRules ({ruleMap}) {
+        const result = {};
+        for (const id of Object.keys(ruleMap)) {
+            const rule = this.prepareRule(ruleMap[id]);
             if (rule) {
-                data[id] = rule;
+                ruleMap[id] = rule;
                 result[rule.name] = rule;
             } else {
-                delete data[id];
+                delete ruleMap[id];
             }
         }
         return result;
@@ -107,14 +116,27 @@ module.exports = class DatabaseRbacStore extends Base {
         return result;
     }
 
+    getItemRules (item, ruleMap) {
+        if (!item.rules) {
+            return null;
+        }
+        const names = [];
+        for (const id of item.rules) {
+            ruleMap.hasOwnProperty(id)
+                ? names.push(ruleMap[id].name)
+                : this.log('error', `Rule not found: ${id}`);
+        }
+        return names.length ? names : null;
+    }
+
     getItemChildren (id, {links, itemMap}) {
-        const children = [];
-        for (const link of links) {
-            if (CommonHelper.isEqual(link.parent, id) && itemMap[link.child]) {
-                children.push(itemMap[link.child].name);
+        const result = [];
+        for (const {child, parent} of links) {
+            if (CommonHelper.isEqual(parent, id) && itemMap[child]) {
+                result.push(itemMap[child].name);
             }
         }
-        return children;
+        return result;
     }
 
     getTableName (name) {

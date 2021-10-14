@@ -14,8 +14,8 @@ module.exports = class FileRbacStore extends Base {
         });
         this.basePath = this.module.resolvePath(this.basePath);
     }
-    
-    async load () {
+
+    load () {
         return {
             items: this.getItems(),
             rules: this.getRules(),
@@ -27,12 +27,25 @@ module.exports = class FileRbacStore extends Base {
         try {
             const items = this.require('items');
             for (const name of Object.keys(items)) {
-                items[name].name = name;
+                this.prepareItem(name, items[name]);
             }
             return items;
         } catch (err) {
             this.log('error', 'getItems', err);
             return {};
+        }
+    }
+
+    prepareItem (name, data) {
+        data.name = name;
+        this.normalizeArray('children', data);
+        this.normalizeArray('parents', data);
+        this.normalizeArray('rules', data);
+    }
+
+    normalizeArray (key, data) {
+        if (data[key] && !Array.isArray(data[key])) {
+            data[key] = [data[key]];
         }
     }
 
@@ -49,14 +62,18 @@ module.exports = class FileRbacStore extends Base {
         try {
             const assignments = this.require('assignments');
             for (const id of Object.keys(assignments)) {
-                const items = Array.isArray(assignments[id]) ? assignments[id] : [assignments[id]];
-                assignments[id] = {id, items};
+                this.prepareAssignments(id, assignments);
             }
             return assignments;
         } catch (err) {
             this.log('error', 'getAssignments', err);
             return {};
         }
+    }
+
+    prepareAssignments (id, data) {
+        const items = Array.isArray(data[id]) ? data[id] : [data[id]];
+        data[id] = {id, items};
     }
 
     require (target) {

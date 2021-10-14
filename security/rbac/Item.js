@@ -59,58 +59,76 @@ module.exports = class Item extends Base {
 
     async resolveRelations () {
         const result = {};
-        await this.resolveRuleRelation(result);
+        result.rules = await this.resolveRuleRelation();
         return result;
     }
 
-    async resolveRuleRelation (result) {
-        if (!this.data.rule) {
-            result.rule = null;
-            return;
+    async resolveRuleRelation () {
+        let data = this.data.rules;
+        if (!data) {
+            return null;
         }
-        result.rule = await this.store.findRuleByName(this.data.rule).scalar(this.store.key);
-        if (!result.rule) {
-            this.log('error', 'Rule not found');
+        if (!Array.isArray(data)) {
+            data = [data];
         }
+        const rules = [];
+        for (const name of data) {
+            const rule = await this.getRuleByName(name);
+            if (rule) {
+                rules.push(rule);
+            }
+        }
+        return rules;
+    }
+
+    async getRuleByName (name) {
+        const rule = await this.store.findRuleByName(name).scalar(this.store.key);
+        if (!rule) {
+            this.log('error', `Rule not found: ${name}`);
+            return null;
+        }
+        return rule;
     }
 
     async setChildren () {
         if (!this.data.children || !this.data.children.length) {
             return null;
         }
-        this.data.children = await this.resolveRelatives('children');
-        await this.store.findItemChild().and({
-            parent: this.data.itemId,
-            child: this.data.children
-        }).delete();
-        const items = this.data.children.map(child => ({parent: this.data.itemId, child}));
+        const child = await this.resolveRelatives('children');
+        const parent = this.data.itemId;
+        await this.store.findItemChild().and({child, parent}).delete();
+        const items = child.map(child => ({child, parent}));
         await this.store.findItemChild().insert(items);
+        this.data.children = child;
     }
 
     async setParents () {
         if (!this.data.parents || !this.data.parents.length) {
             return null;
         }
-        this.data.parents = await this.resolveRelatives('parents');
-        await this.store.findItemChild().and({
-            parent: this.data.parents,
-            child: this.data.itemId
-        }).delete();
-        const items = this.data.parents.map(parent => ({child: this.data.itemId, parent}));
+        const parent = await this.resolveRelatives('parents');
+        const child = this.data.itemId;
+        await this.store.findItemChild().and({child, parent}).delete();
+        const items = parent.map(parent => ({child, parent}));
         await this.store.findItemChild().insert(items);
+        this.data.parents = parent;
     }
 
-    async resolveRelatives (relKey) {
+    async resolveRelatives (key) {
         const item = await this.store.findItemByName(this.name).one();
         this.data.itemId = item ? item[this.store.key] : null;
-        const names = this.data[relKey];
+        const names = this.data[key];
         const items = await this.store.findItemByName(names).all();
-        if (items.length !== names.length) {
-            const itemNames = items.map(item => item.name);
-            const misses = names.filter(name => !itemNames.includes(name));
-            this.log('error', `No children found: ${misses}`);
-        }
+        this.checkFoundRelatives(items, names);
         return items.map(item => item[this.store.key]);
+    }
+
+    checkFoundRelatives (items, targets) {
+        if (items.length !== targets.length) {
+            const names = items.map(item => item.name);
+            const misses = targets.filter(target => !names.includes(target));
+            this.log('error', `No relatives found: ${misses}`);
+        }
     }
 
     log (type, message, data) {
