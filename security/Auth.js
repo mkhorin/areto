@@ -16,20 +16,23 @@ module.exports = class Auth extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {number} config.timeout - In seconds (depends on last user activity)
+     * @param {number} config.absoluteTimeout - In seconds (depends on last login)
+     * @param {Object} config.identityCookie - Cookie options
+     */
     constructor (config) {
         super({
             depends: ['cookie', 'session'],
             autoRenewCookie: true,
             enableAutoLogin: false,
             enableSession: true,
-            identityCookie: {
-                httpOnly: true
-            },
             loginUrl: '',
             defaultAssignments: ['user'],
             guestAssignments: ['guest'],
-            timeout: null, // in seconds (depends on last user activity)
-            absoluteTimeout: null, // in seconds (depends on last login)
+            timeout: null,
+            absoluteTimeout: null,
             rbac: 'rbac',
             timeoutParam: '__expire',
             absoluteTimeoutParam: '__absoluteExpire',
@@ -46,8 +49,16 @@ module.exports = class Auth extends Base {
     }
 
     init () {
+        this.identityCookie = Object.assign(this.getDefaultCookieOptions(), this.identityCookie);
         this.rbac = this.module.get(this.rbac);
         this.module.addHandler('use', this.createUser.bind(this));
+    }
+
+    getDefaultCookieOptions () {
+        return {
+            httpOnly: true,
+            sameSite: 'strict'
+        };
     }
 
     createUser (req, res, next) {

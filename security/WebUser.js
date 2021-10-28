@@ -154,8 +154,14 @@ module.exports = class WebUser extends Base {
         return this.req.cookies[name];
     }
 
-    setCookie () {
-        this.res.cookie(...arguments);
+    setCookie (name, value, options) {
+        this.res.cookie(name, value, Object.assign(this.getDefaultCookieOptions(), options));
+    }
+
+    getDefaultCookieOptions () {
+        return {
+            sameSite: 'strict'
+        };
     }
 
     clearCookie () {

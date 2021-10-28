@@ -7,12 +7,13 @@ const Base = require('../base/Component');
 
 module.exports = class Cookie extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.secret - Key to sign cookie
+     * @param {Object} config.options - Cookie options
+     */
     constructor (config) {
-        super({
-            // secret: 'key' // // key to sign cookie
-            // options: {} // cookie options
-            ...config
-        });
+        super(config);
     }
 
     init () {
