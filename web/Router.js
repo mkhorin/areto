@@ -11,11 +11,14 @@ module.exports = class Router extends Base {
         return StringHelper.camelToKebab(name);
     }
 
+    /**
+     * @param {Object} config
+     * @param {string} config.defaultModule - Default module name
+     */
     constructor (config) {
         super({
             depends: '#end',
             defaultController: 'default',
-            // defaultModule: 'moduleName'
             ...config
         });
     }

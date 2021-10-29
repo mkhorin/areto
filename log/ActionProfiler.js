@@ -7,10 +7,14 @@ const Base = require('../base/Component');
 
 module.exports = class ActionProfiler extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number} config.threshold - In milliseconds
+     */
     constructor (config) {
         super({
             level: 'trace',
-            threshold: 0, // ms
+            threshold: 0,
             logger: 'logger',
             ...config
         });

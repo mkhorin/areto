@@ -62,7 +62,7 @@ module.exports = {
     'Value must be a string': 'Значение должно быть строкой',
     'Value must be "{requiredValue}"': 'Значение должно быть "{requiredValue}"',
     'Value must be "{true}" or "{false}"': 'Значение должно быть "{true}" или "{false}"',
-    'Value must be equal to {compareValue}': 'Значение должно быть равно {compareValue}',    
+    'Value must be equal to {compareValue}': 'Значение должно быть равно {compareValue}',
     'Value must not be equal to {compareValue}': 'Значение должно быть не равно {compareValue}',
     'Value must be greater than {compareValue}': 'Значение должно быть больше {compareValue}',
     'Value must be greater than or equal to "{compareValue}"': 'Значение должно быть больше или равно {compareValue}',

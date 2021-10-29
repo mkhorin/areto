@@ -31,7 +31,8 @@ module.exports = class SortOrderBehavior extends Base {
         } else if (typeof this.filter === 'string') {
             query.and({[this.filter]: this.owner.get(this.filter)});
         }
-        const last = await query.order({[this.orderAttr]: this.step > 0 ? -1 : 1}).scalar(this.orderAttr);
+        const direction = this.step > 0 ? -1 : 1;
+        const last = await query.order({[this.orderAttr]: direction}).scalar(this.orderAttr);
         return Number.isSafeInteger(last) ? last + this.step : this.start;
     }
 

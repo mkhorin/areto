@@ -7,10 +7,14 @@ const Base = require('../base/Component');
 
 module.exports = class Cache extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number} config.defaultDuration - In seconds
+     */
     constructor (config) {
         super({
             keyPrefix: null,
-            defaultDuration: 100, // seconds
+            defaultDuration: 100,
             serializer: null,
             ...config
         });

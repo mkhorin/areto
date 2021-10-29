@@ -7,11 +7,12 @@ const Base = require('../base/Base');
 
 module.exports = class Migration extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Object} config.migrator - Migrator instance
+     */
     constructor (config) {
-        super({
-            // migrator: [migrator]
-            ...config
-        });
+        super(config);
     }
 
     getDb (id) {

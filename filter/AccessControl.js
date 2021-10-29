@@ -7,10 +7,13 @@ const Base = require('./ActionFilter');
 
 module.exports = class AccessControl extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Object[]} config.rules - Rule configurations
+     * @param {function} config.deny - (action) => ...
+     */
     constructor (config) {
         super({
-            // rules: [] rule configurations
-            // deny: [fn(action, user)]
             AccessRule,
             ...config
         });

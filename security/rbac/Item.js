@@ -64,30 +64,30 @@ module.exports = class Item extends Base {
     }
 
     async resolveRuleRelation () {
-        let data = this.data.rules;
-        if (!data) {
+        let names = this.data.rules;
+        if (!names) {
             return null;
         }
-        if (!Array.isArray(data)) {
-            data = [data];
+        if (!Array.isArray(names)) {
+            this.data.rules = names = [names];
         }
-        const rules = [];
-        for (const name of data) {
-            const rule = await this.getRuleByName(name);
-            if (rule) {
-                rules.push(rule);
+        const result = [];
+        for (const name of names) {
+            const id = await this.getRuleIdByName(name);
+            if (id) {
+                result.push(id);
             }
         }
-        return rules;
+        return result.length ? result : null;
     }
 
-    async getRuleByName (name) {
-        const rule = await this.store.findRuleByName(name).scalar(this.store.key);
-        if (!rule) {
+    async getRuleIdByName (name) {
+        const id = await this.store.findRuleByName(name).scalar(this.store.key);
+        if (!id) {
             this.log('error', `Rule not found: ${name}`);
             return null;
         }
-        return rule;
+        return id;
     }
 
     async setChildren () {

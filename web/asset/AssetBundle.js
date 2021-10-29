@@ -8,11 +8,10 @@ const Base = require('../../base/Base');
 module.exports = class AssetBundle extends Base {
 
     /**
-     * @param {Object} [config]
-     * @param {Array} [config.styles] - ['style/file1.css', ['style/file2.css', {media: 'print'}]]
-     * @param {Array} [config.scripts] - ['script/file1.js', ['script/file2.js', {position: _view.POS_HEAD}]]
-     * @param {string} [config.version] - '1.2.3' (?v=1.2.3)
-     *
+     * @param {Object} config
+     * @param {Array} config.styles - ['style/file1.css', ['style/file2.css', {media: 'print'}]]
+     * @param {Array} config.scripts] - ['script/file1.js', ['script/file2.js', {position: _view.POS_HEAD}]]
+     * @param {string} config.version - Version: '1.2.3' (?v=1.2.3)
      */
     constructor (config) {
         super(config);

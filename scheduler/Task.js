@@ -16,14 +16,22 @@ module.exports = class Task extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.startup - Start immediately
+     * @param {Object} config.startDate - Date instance
+     * @param {string} config.startTime - Time format: 00:00:00
+     * @param {number} config.period - Repeat timeout (in seconds or ISO_8601#Duration)
+     * @param {number} config.repeats - Zero is endless
+     */
     constructor (config) {
         super({
             active: true,
-            startup: false, // start immediately
-            startDate: null, // Date
-            startTime: null, // 00:00:00
-            period: 0, // repeat timeout (seconds or ISO_8601#Duration)
-            repeats: 0, // 0 - endless
+            startup: false,
+            startDate: null,
+            startTime: null,
+            period: 0,
+            repeats: 0,
             stopOnFail: true,
             ...config
         });

@@ -7,11 +7,15 @@ const Base = require('../base/Component');
 
 module.exports = class View extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Object} config.parent - View instance of parent module
+     * @param {Object} config.original - View instance of original module
+     * @param {string} config.theme - Theme name
+     */
     constructor (config) {
         super({
-            // parent: parent module View
-            // original: original module View
-            theme: config.parent?.theme, // theme name
+            theme: config.parent?.theme,
             ThemeSet: require('./ThemeSet'),
             ...config
         });

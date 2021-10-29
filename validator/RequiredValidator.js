@@ -7,11 +7,15 @@ const Base = require('./Validator');
 
 module.exports = class RequiredValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.skip - Skip validation
+     */
     constructor (config) {
         super({
             requiredValue: null,
             strict: false,
-            skip: false, // skip validation
+            skip: false,
             trimming: true,
             ...config
         });

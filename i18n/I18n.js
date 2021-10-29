@@ -10,7 +10,8 @@ module.exports = class I18n extends Base {
     static getConstants () {
         return {
             CORE_SOURCE: 'areto',
-            APP_SOURCE: 'app'
+            APP_SOURCE: 'app',
+            BASE_LANGUAGE: 'en'
         };
     }
 

@@ -7,11 +7,16 @@ const Base = require('./Validator');
 
 module.exports = class NumberValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number} config.max - Max value
+     * @param {number} config.min - Min value
+     */
     constructor (config) {
         super({
             integerOnly: false,
-            max: null, // max value
-            min: null, // min value
+            max: null,
+            min: null,
             ...config
         });
     }

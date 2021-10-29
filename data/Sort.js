@@ -14,15 +14,18 @@ module.exports = class Sort extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {Object} config.defaultOrder - Default order: {[attrName]: 1}
+     * @param {string} config.route - URL route
+     * @param {string} config.params - Additional params: 'attrName1,-attrName2'
+     */
     constructor (config) {
         super({
             attrs: {},
             enableMultiSort: false,
             sortParam: 'sort',
             separator: ',',
-            // defaultOrder
-            // route
-            // params: 'attrName1,-attrName2',
             ...config
         });
         this.initAttrs();

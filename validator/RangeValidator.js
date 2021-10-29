@@ -7,9 +7,12 @@ const Base = require('./Validator');
 
 module.exports = class RangeValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number[]|string[]} config.values - Range values
+     */
     constructor (config) {
         super({
-            // values: []
             not: false,
             allowArray: false,
             ...config

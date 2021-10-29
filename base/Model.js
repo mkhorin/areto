@@ -26,15 +26,15 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
                 // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
                 // [['attr1'], 'unsafe'] // skip attribute loading  
-            ],            
+            ],
             SCENARIOS: {
                 // default: ['attr1', 'attr2']
                 // scenario1: ['attr2']
             },
-            DEFAULT_SCENARIO: 'default',            
+            DEFAULT_SCENARIO: 'default',
             ATTR_LABELS: {},
             ATTR_VALUE_LABELS: {},
-            ATTR_HINTS: {},            
+            ATTR_HINTS: {},
             EVENT_BEFORE_VALIDATE: 'beforeValidate',
             EVENT_AFTER_VALIDATE: 'afterValidate',
             CONTROLLER_DIRECTORY: 'controller',

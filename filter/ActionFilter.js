@@ -7,12 +7,13 @@ const Base = require('../base/Behavior');
 
 module.exports = class ActionFilter extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Object[]} config.only - Include actions: ['action1', ...]
+     * @param {Object[]} config.except - Exclude actions: ['action1', ...]
+     */
     constructor (config) {
-        super({
-            only: null, // ['action1', 'action2']
-            except: null, // ['action1', 'action2']
-            ...config
-        });
+        super(config);
         this.setHandler(Controller.EVENT_BEFORE_ACTION, this.beforeFilter);
         this.setHandler(Controller.EVENT_AFTER_ACTION, this.afterFilter);
     }

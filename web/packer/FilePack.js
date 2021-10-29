@@ -7,9 +7,12 @@ const Base = require('../../base/Base');
 
 module.exports = class FilePack extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.target - File name relative to module
+     */
     constructor (config) {
         super({
-            // target: file name relative to module
             includes: [],
             excludes: [],
             fromModule: true,

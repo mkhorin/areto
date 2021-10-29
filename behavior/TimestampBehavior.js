@@ -7,10 +7,15 @@ const Base = require('../base/Behavior');
 
 module.exports = class TimestampBehavior extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.format - Timestamp format: YY-MM-DD HH:mm:ss
+     * @param {string} config.creatorAttr - Null to skip
+     * @param {string} config.editorAttr - Null to skip
+     */
     constructor (config) {
         super({
-            format: null, // 'YYYY-MM-DD HH:mm:ss';
-            createdAttr: 'createdAt', // or false
+            createdAttr: 'createdAt',
             updatedAttr: 'updatedAt',
             ...config
         });

@@ -15,10 +15,14 @@ module.exports = class Scheduler extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {number} config.refreshInterval - In seconds
+     */
     constructor (config) {
         super({
             tasks: {},
-            refreshInterval: 60, // seconds
+            refreshInterval: 60,
             Task: require('./Task'),
             ...config
         });

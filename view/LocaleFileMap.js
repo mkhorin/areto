@@ -7,10 +7,14 @@ const Base = require('../base/Base');
 
 module.exports = class LocaleFileMap extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.required - Require files
+     */
     constructor (config) {
         super({
             localeDirectory: 'locale',
-            required: false, // require files
+            required: false,
             ...config
         });
         try {

@@ -7,11 +7,15 @@ const Base = require('./LogStore');
 
 module.exports = class DatabaseLogStore extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number} config.observePeriod - In seconds (null to off)
+     */
     constructor (config) {
         super({
             table: 'log',
             key: '_id',
-            observePeriod: 60, // seconds, null - off
+            observePeriod: 60,
             maxRows: 10000,
             ...config
         });

@@ -13,11 +13,17 @@ module.exports = class RateLimit extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {number} config.attempts - Max attempts to pass
+     * @param {number|string} config.timeout - Seconds or value for moment.duration()
+     * @param {Object} config.types - Separate configurations for types
+     */
     constructor (config) {
         super({
             attempts: 3,
-            timeout: 0, // seconds or [2d]
-            types: {}, // separate configurations for types
+            timeout: 0,
+            types: {},
             Store: require('./MemoryRateLimitStore'),
             ...config
         });

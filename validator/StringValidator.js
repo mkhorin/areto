@@ -7,14 +7,22 @@ const Base = require('./Validator');
 
 module.exports = class StringValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {number} config.max - Max value length
+     * @param {number} config.min - Min value length
+     * @param {Object} config.pattern - RegExp instance
+     * @param {boolean} config.trimming - Remove whitespace from ends of a string
+     * @param {boolean} config.shrinking - Replace multiple spaces with one
+     */
     constructor (config) {
         super({
             length: null,
-            max: null, // max length
-            min: null, // min length
-            pattern: null, // [RegExp]
-            trimming: true, // remove whitespace from ends of a string
-            shrinking: false, // replace multiple spaces with one
+            max: null,
+            min: null,
+            pattern: null,
+            trimming: true,
+            shrinking: false,
             ...config
         });
     }

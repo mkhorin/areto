@@ -7,14 +7,17 @@ const Base = require('../base/Base');
 
 module.exports = class DataProvider extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Object} config.controller - Controller instance
+     * @param {Object[]} config.allModels
+     * @param {number} config.totalCount
+     * @param {string} config.id
+     */
     constructor (config) {
         super({
             pagination: {},
             sort: null,
-            // controller: this,
-            // allModels: [],
-            // totalCount: 100,
-            // id: 'id',
             ...config
         });
     }

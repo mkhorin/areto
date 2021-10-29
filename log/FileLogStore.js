@@ -18,11 +18,16 @@ module.exports = class FileLogStore extends Base {
             : [name];
     }
 
+    /**
+     * @param {Object} config
+     * @param {number} config.observePeriod - In seconds (null to off)
+     * @param {number} config.maxFileSize - In megabytes
+     */
     constructor (config) {
         super({
             basePath: 'log',
-            observePeriod: 30, // seconds, 0 - off
-            maxFileSize: 2, // megabytes
+            observePeriod: 30,
+            maxFileSize: 2,
             maxFiles: 1,
             ...config
         });

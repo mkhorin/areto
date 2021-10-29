@@ -7,9 +7,13 @@ const Base = require('../base/Base');
 
 module.exports = class MessageSource extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.forceTranslation - Translate source language
+     */
     constructor (config) {
         super({
-            forceTranslation: false, // translate source language
+            forceTranslation: false,
             sourceLanguage: config.i18n.sourceLanguage,
             ...config
         });

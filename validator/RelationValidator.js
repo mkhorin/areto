@@ -7,15 +7,22 @@ const Base = require('./Validator');
 
 module.exports = class RelationValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string[]} config.allow - Allow changes: ['links', 'unlinks', 'deletes']
+     * @param {string[]} config.deny - Deny changes: ['links', 'unlinks', 'deletes']
+     * @param {function} config.filter - (value, attr, model) => ...
+     * @param {string} config.behavior - Relation changing behavior
+     */
     constructor (config) {
         super({
             required: false,
             min: null,
             max: null,
             unique: null, 
-            allow: null, // allow changes ['links', 'unlinks', 'deletes']
-            deny: null, // deny changes ['links', 'unlinks', 'deletes']
-            filter: null, // handler(value, model, attr)
+            allow: null,
+            deny: null,
+            filter: null,
             behavior: 'relationChange',
             ...config
         });

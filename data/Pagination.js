@@ -17,19 +17,22 @@ module.exports = class Pagination extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {number} config.totalCount
+     * @param {string} config.route
+     * @param {Object} config.params
+     */
     constructor (config) {
         super({
             pageParam: 'page',
             pageSizeParam: 'pageSize',
             defaultPageSize: 10,
-            pageSizeLimit: [1, 50],            
+            pageSizeLimit: [1, 50],
             forcePageParam: true,
             validatePage: true,
             pageSize: null,
             page: null,
-            // totalCount: 0,
-            // route:
-            // params: {},
             ...config
         });
         if (!this.route) {

@@ -7,14 +7,18 @@ const Base = require('../base/Component');
 
 module.exports = class AccessRule extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.allow - Allow or deny rule result
+     * @param {string[]} config.actions - Action names
+     * @param {string[]} config.controllers - Controller names
+     * @param {string[]} config.permissions - Permission names: ['?', '@', 'reader']
+     * @param {string[]} config.methods - Method names: ['get', 'post']
+     * @param {function} config.deny - (action) => ...
+     */
     constructor (config) {
         super({
-            allow: true, // allow or deny rule result
-            // actions: ['update'],
-            // controllers: ['article'],
-            // permissions: ['?', '@', 'reader'],
-            // methods: ['get', 'post'],
-            // deny: fn(action, user)
+            allow: true,
             ...config
         });
     }

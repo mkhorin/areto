@@ -7,10 +7,14 @@ const Base = require('../base/Base');
 
 module.exports = class FileMap extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.directory - Directory path
+     * @param {boolean} config.required - Require files
+     */
     constructor (config) {
         super({
-            // directory: [path],
-            required: false, // require files
+            required: false,
             ...config
         });
         this.indexFiles();

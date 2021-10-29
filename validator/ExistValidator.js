@@ -16,10 +16,14 @@ const Base = require('./Validator');
 
 module.exports = class ExistValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string|string[]} config.targetAttr - Target attribute name or names
+     */
     constructor (config) {
         super({
             targetClass: null,
-            targetAttr: null, // can be array
+            targetAttr: null,
             filter: null,
             ignoreCase: false,
             ...config

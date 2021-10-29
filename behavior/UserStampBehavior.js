@@ -7,10 +7,15 @@ const Base = require('../base/Behavior');
 
 module.exports = class UserStampBehavior extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.creatorAttr - Null to skip
+     * @param {string} config.editorAttr - Null to skip
+     */
     constructor (config) {
         super({
-            creatorAttr: 'creator', // or false
-            editorAttr: 'editor', // or false
+            creatorAttr: 'creator',
+            editorAttr: 'editor',
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);

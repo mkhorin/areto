@@ -40,7 +40,7 @@ module.exports = class DependentOrder extends Base {
     createItem (source, index) {
         return {
             id: this.getItemId(source),
-            depends: this.getItemDepends(source),            
+            depends: this.getItemDepends(source),
             source,
             index
         };

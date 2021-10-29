@@ -7,11 +7,14 @@ const Base = require('../base/Base');
 
 module.exports = class ThemeSet extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.directory - Base directory
+     * @param {string} config.parent - ThemeSet instance
+     * @param {string} config.theme - Theme name
+     */
     constructor (config) {
         super({
-            // directory: [base directory]
-            // parent: [ThemeMap]
-            // theme: [theme name]
             defaultThemeDirectory: 'view',
             themeDirectory: 'theme',
             modulePriority: false,

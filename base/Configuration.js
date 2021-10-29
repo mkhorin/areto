@@ -10,13 +10,14 @@ module.exports = class Configuration extends Base {
     _names = [];
     _sources = [];
 
+    /**
+     * @param {Object} config
+     * @param {string} config.directory - Configuration directory
+     * @param {Object} config.parent - Parent module configuration instance
+     * @param {Object} config.original - Original module configuration instance
+     */
     constructor (config) {
-        super({
-            // directory: configuration directory,
-            // parent: parent module configuration,
-            // original: original module configuration,
-            ...config
-        });
+        super(config);
     }
 
     get (key, defaults) {

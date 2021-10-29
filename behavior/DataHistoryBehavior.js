@@ -7,11 +7,18 @@ const Base = require('../base/Behavior');
 
 module.exports = class DataHistoryBehavior extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {class} config.Model - ActiveRecord class
+     * @param {string[]} config.includes - Tracked attribute names
+     * @param {string[]} config.excludes - Not tracked attribute names
+     * @param {Object} config.themeSet - Theme set instance
+     */
     constructor (config) {
         super({
-            Model: null, // ActiveRecord
-            includes: null, // [] tracked attribute names
-            excludes: null, // [] tracked attribute names
+            Model: null,
+            includes: null,
+            excludes: null,
             ...config
         });
         this.setHandler(ActiveRecord.EVENT_BEFORE_UPDATE, this.beforeUpdate);

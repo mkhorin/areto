@@ -7,12 +7,15 @@ const Base = require('../base/Base');
 
 module.exports = class Theme extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string} config.name - Theme name
+     * @param {string} config.directory - Theme directory name
+     * @param {Object} config.parent - Theme instance
+     * @param {Object} config.themeSet - Theme set instance
+     */
     constructor (config) {
         super({
-            // name: theme name
-            // directory: theme directory
-            // parent: Theme
-            // themeSet: ThemeSet
             LocaleFileMap: require('./LocaleFileMap'),
             ...config
         });

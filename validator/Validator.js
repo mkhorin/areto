@@ -65,16 +65,27 @@ module.exports = class Validator extends Base {
         return new Class(config);
     }
 
+    /**
+     * @param {Object} config
+     * @param {string[]} config.attrs - Names of attributes to be validated
+     * @param {boolean} config.skipOnEmpty - Skip validation if attribute value is empty
+     * @param {boolean} config.skipOnError - Skip validation if attribute already contains error
+     * @param {boolean} config.skipOnAnyError - Skip validation if model already contains error
+     * @param {string[]} config.on - Validate only in these scenarios
+     * @param {string} config.except - Validate except these scenarios
+     * @param {function} config.when - Check need for validation: (model, attr) => false/true
+     * @param {function} config.isEmpty - Check empty value: (value) => false/true
+     * @param {string} config.messageSource - Source of translations of custom error messages
+     * @param {string} config.defaultMessageSource - Source of translations of default error messages
+     */
     constructor (config) {
         super({
-            // on: [] // only scenarios
-            // except: [] // excepted scenarios
             attrs: [],
             skipOnError: true,
             skipOnAnyError: false,
             skipOnEmpty: true,
-            when: null, // (model, attr) => false/true
-            isEmpty: null, // value => false/true
+            when: null,
+            isEmpty: null,
             messageSource: 'app',
             defaultMessageSource: 'areto',
             ...config

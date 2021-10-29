@@ -13,7 +13,6 @@ module.exports = {
                 user: '',
                 password: '',
                 options: {
-                    bufferMaxEntries: 0,
                     keepAlive: true,
                     useNewUrlParser: true
                 }

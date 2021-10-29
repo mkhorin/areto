@@ -7,11 +7,14 @@ const Base = require('../base/Base');
 
 module.exports = class Widget extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {boolean} config.disabled - Disable widget
+     * @param {boolean} config.caching - Cache widget
+     * @param {number} config.cacheDuration - Cache duration: seconds
+     */
     constructor (config) {
         super({
-            // disabled: false,
-            // caching: false,
-            // cacheDuration: 100, // seconds
             cacheComponentId: 'cache',
             ...config
         });

@@ -25,8 +25,22 @@ module.exports = class MongoHelper {
         return true;
     }
 
-    static createObjectId (value) {
+    static createId (value) {
         return value ? ObjectID(value) : new ObjectID;
+    }
+
+    static normalizeId (data) {
+        return Array.isArray(data)
+            ? data.map(this.normalizeOneId, this)
+            : this.normalizeOneId(data);
+    }
+
+    static normalizeOneId (value) {
+        return value instanceof ObjectID ? value : ObjectID.isValid(value) ? ObjectID(value) : null;
+    }
+
+    static includes () {
+        return this.indexOf(...arguments) !== -1;
     }
 
     static indexOf (id, values) {
@@ -42,6 +56,10 @@ module.exports = class MongoHelper {
             }
         }
         return -1;
+    }
+
+    static hasDiff (targets, sources) {
+        return ArrayHelper.hasDiff(targets, sources, this.indexOf);
     }
 
     static diff (targets, sources) {
@@ -100,7 +118,7 @@ module.exports = class MongoHelper {
     }
 };
 
-const ObjectID = require('mongodb').ObjectID;
+const {ObjectID} = require('mongodb');
 const ArrayHelper = require('./ArrayHelper');
 const DateHelper = require('./DateHelper');
 const EscapeHelper = require('./EscapeHelper');

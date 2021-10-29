@@ -19,10 +19,15 @@ module.exports = class RegexValidator extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {Object|string} config.pattern - Regex pattern
+     * @param {boolean} config.not - Not match pattern (invert result)
+     */
     constructor (config) {
         super({
             pattern: null,
-            not: false, // not match pattern
+            not: false,
             ...config
         });
         this.resolvePattern();

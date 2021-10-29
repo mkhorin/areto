@@ -7,11 +7,12 @@ const Base = require('../base/Behavior');
 
 module.exports = class TrimBehavior extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {string[]} config.attrs
+     */
     constructor (config) {
-        super({
-            // attrs: []
-            ...config
-        });
+        super(config);
         this.setHandler(ActiveRecord.EVENT_BEFORE_VALIDATE, this.beforeValidate);
     }
 

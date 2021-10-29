@@ -20,12 +20,13 @@ module.exports = class Component extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {string|string[]} config.depends - Initialize after these: '#start', '#end', '${componentId}'
+     * @param {string} config.parent - Component from parent module
+     */
     constructor (config) {
-        super({
-            // depends: ['#start', '#end', 'componentId'] // order of component init
-            // parent: [component from parent module]
-            ...config
-        });
+        super(config);
         this.events = ClassHelper.spawn(this.eventManager || EventManager, {
             owner: this
         });

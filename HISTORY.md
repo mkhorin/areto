@@ -1,3 +1,14 @@
+## 3.0.0
+
+* security/rbac
+    - multiple rules for one permission
+* security/WebUser
+    - add default cookie options
+* validator/NumberValidator
+    - ignore useless leading or trailing zeros
+* upgrade dependencies
+* upgrade Node.js version
+
 ## 2.5.0
 
 * db/ActiveLinker

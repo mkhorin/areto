@@ -4,19 +4,11 @@
 'use strict';
 
 const Base = require('./Database');
-const mongodb = require('mongodb');
-const ObjectId = mongodb.ObjectID;
 
 module.exports = class MongoDatabase extends Base {
 
     static normalizeId (value) {
-        return Array.isArray(value)
-            ? value.map(this.normalizeObjectId, this)
-            : this.normalizeObjectId(value);
-    }
-
-    static normalizeObjectId (value) {
-        return value instanceof ObjectId ? value : ObjectId.isValid(value) ? ObjectId(value) : null;
+        return MongoHelper.normalizeId(value);
     }
 
     constructor (config) {
@@ -27,7 +19,6 @@ module.exports = class MongoDatabase extends Base {
             ...config
         });
         this.settings.options = {
-            bufferMaxEntries: 0,
             keepAlive: true,
             readPreference: 'primary',
             useNewUrlParser: true,
@@ -314,3 +305,6 @@ module.exports = class MongoDatabase extends Base {
     }
 };
 module.exports.init();
+
+const MongoHelper = require('../helper/MongoHelper');
+const mongodb = require('mongodb');
