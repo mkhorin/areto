@@ -49,17 +49,17 @@ module.exports = class CommonHelper {
                 return false;
             }
         }
-        if (!data) {
+        if (typeof data !== 'object' || !data) {
             return null;
         }
         if (!Array.isArray(data.links)) {
-            data.links = [];
+            data.links = data.links ? [data.links] : [];
         }
         if (!Array.isArray(data.unlinks)) {
-            data.unlinks = [];
+            data.unlinks = data.unlinks ? [data.unlinks] : [];
         }
         if (!Array.isArray(data.deletes)) {
-            data.deletes = [];
+            data.deletes = data.deletes ? [data.deletes] : [];
         }
         const all = data.links.concat(data.unlinks, data.deletes);
         return all.length === ArrayHelper.unique(all).length ? data : false;
