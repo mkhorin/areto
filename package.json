@@ -1,6 +1,6 @@
 {
   "name": "areto",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Adaptive Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
@@ -22,7 +22,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "moment": "^2.29.0",
-    "mongodb": "^4.1.2",
+    "mongodb": "^4.2.2",
     "mysql": "^2.18.1",
     "path-to-regexp": "^6.2.0"
   },
