@@ -1,3 +1,10 @@
+## 3.1.0
+
+* db/Builder
+    - update names of condition operators
+* helper/CommonHelper
+    - fix relation change parsing
+
 ## 3.0.0
 
 * security/rbac
@@ -182,7 +189,7 @@
 ## 0.36.0
 
 * db/MongoBuilder
-    - fix NOT EQUAL condition for arrays 
+    - fix not equal condition for arrays
 * validator/StringValidator
     - add string trimming by default
     

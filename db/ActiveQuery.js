@@ -12,7 +12,7 @@ module.exports = class ActiveQuery extends Base {
     _raw = null;
 
     byId (id) {
-        return this.and(['ID', this.model.PK, id]);
+        return this.and(['id', this.model.PK, id]);
     }
 
     id () {
@@ -76,12 +76,12 @@ module.exports = class ActiveQuery extends Base {
         this._whereBeforeFilter = this._where;
         const value = this.primaryModel.get(this.linkKey);
         if (value === undefined || value === null) {
-            this.where(['FALSE']);
+            this.where(['false']);
         } else if (Array.isArray(value)) {
             if (this._orderByKeys) {
                 this._orderByKeys = value;
             }
-            this.and(['IN', this.refKey, value]);
+            this.and(['in', this.refKey, value]);
         } else { // back reference to array
             this.and({[this.refKey]: value});
         }
@@ -445,8 +445,8 @@ module.exports = class ActiveQuery extends Base {
             this._orderByKeys = values;
         }
         values.length
-            ? this.and(['IN', this.refKey, values])
-            : this.where(['FALSE']);
+            ? this.and(['in', this.refKey, values])
+            : this.where(['false']);
     }
 
     resolveJunctionRows (models) {

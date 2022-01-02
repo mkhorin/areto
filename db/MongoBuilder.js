@@ -3,34 +3,12 @@
  */
 'use strict';
 
-const Base = require('../base/Base');
+const Base = require('./Builder');
 
 module.exports = class MongoBuilder extends Base {
 
     static getConstants () {
         return {
-            CONDITION_BUILDERS: {
-                'AND': 'buildLogicCondition',
-                'OR': 'buildLogicCondition',
-                'NOR': 'buildLogicCondition',
-                'EQUAL': 'buildEqualCondition',
-                'NOT EQUAL': 'buildNotEqualCondition',
-                'BETWEEN': 'buildBetweenCondition',
-                'NOT BETWEEN':'buildNotBetweenCondition',
-                'IN': 'buildInCondition',
-                'NOT IN': 'buildNotInCondition',
-                'LIKE': 'buildLikeCondition',
-                'NOT LIKE': 'buildNotLikeCondition',
-                'ID': 'buildIdCondition',
-                'NOT ID': 'buildNotIdCondition',
-                'FALSE': 'buildFalseCondition',
-                'EMPTY': 'buildEmptyCondition',
-                'NOT EMPTY': 'buildNotEmptyCondition',
-                'NULL': 'buildNullCondition',
-                'NOT NULL': 'buildNotNullCondition',
-                'EXISTS': 'buildExistsCondition',
-                'NOT EXISTS': 'buildNotExistsCondition'
-            },
             SIMPLE_OPERATORS: {
                 '=': '$eq',
                 '!=': '$ne',
@@ -98,8 +76,8 @@ module.exports = class MongoBuilder extends Base {
         if (!Array.isArray(data)) {
             return this.buildHashCondition(data);
         }
-        return this.CONDITION_BUILDERS.hasOwnProperty(data[0])
-            ? this[this.CONDITION_BUILDERS[data[0]]](...data)
+        return this.CONDITION_METHODS.hasOwnProperty(data[0])
+            ? this[this.CONDITION_METHODS[data[0]]](...data)
             : this.buildSimpleCondition(...data);
     }
 
@@ -129,13 +107,18 @@ module.exports = class MongoBuilder extends Base {
         return {[this.normalizeField(field)]: {[this.SIMPLE_OPERATORS[operator]]: value}};
     }
 
-    buildLogicCondition (operator, ...operands) {
-        const items = [];
-        for (const operand of operands) {
-            items.push(this.buildCondition(operand));
-        }
-        operator = operator === 'AND' ? '$and' : operator === 'OR' ? '$or' : '$nor';
-        return {[operator]: items};
+    // LOGIC
+
+    buildAndCondition (operator, ...operands) {
+        return {$and: operands.map(this.buildCondition, this)};
+    }
+
+    buildOrCondition (operator, ...operands) {
+        return {$or: operands.map(this.buildCondition, this)};
+    }
+
+    buildNotCondition (operator, ...operands) {
+        return {$nor: operands.map(this.buildCondition, this)};
     }
 
     // EQUAL

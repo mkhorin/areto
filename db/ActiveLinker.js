@@ -106,7 +106,7 @@ module.exports = class ActiveLinker extends Base {
         const via = relation.getViaTable() || relation.getViaRelation();
         let condition = {[via.refKey]: this.owner.get(via.linkKey)};
         if (via.getWhere()) {
-            condition = ['AND', condition, via.getWhere()];
+            condition = ['and', condition, via.getWhere()];
         }
         const nulls = {[via.refKey]: null};
         if (relation.getViaTable()) {
@@ -130,7 +130,7 @@ module.exports = class ActiveLinker extends Base {
         }
         let condition = {[relation.refKey]: this.owner.get(relation.linkKey)};
         if (relation.getWhere()) {
-            condition = ['AND', condition, relation.getWhere()];
+            condition = ['and', condition, relation.getWhere()];
         }
         relation.getViaArray()
             ? await relation.model.getDb().updateAllPull(relation.model.getTable(), {}, condition)

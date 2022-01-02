@@ -172,7 +172,7 @@ module.exports = class ActiveRecord extends Base {
     // FIND
 
     findById (id) {
-        return this.find(['ID', this.PK, id]);
+        return this.find(['id', this.PK, id]);
     }
 
     findSelf () {

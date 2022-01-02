@@ -89,7 +89,7 @@ module.exports = class RelationChangeBehavior extends Base {
         const changes = this._changes[name];
         if (changes[key].length) {
             const query = this.getRelation(name);
-            changes[key] = await query.and(['ID', query.model.PK, changes[key]]).all();
+            changes[key] = await query.and(['id', query.model.PK, changes[key]]).all();
         }
     }
 

@@ -49,7 +49,7 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     deleteByUserId (userId) {
-        return this.find(['ID', 'userId', userId]).delete();
+        return this.find(['id', 'userId', userId]).delete();
     }
 
     findBySid (sid) {

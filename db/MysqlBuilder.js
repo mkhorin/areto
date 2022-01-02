@@ -3,33 +3,12 @@
  */
 'use strict';
 
-const Base = require('../base/Base');
+const Base = require('./Builder');
 
 module.exports = class MysqlBuilder extends Base {
 
     static getConstants () {
         return {
-            CONDITION_BUILDERS: {
-                'AND': 'buildLogicCondition',
-                'OR': 'buildLogicCondition',
-                'EQUAL': 'buildEqualCondition',
-                'NOT EQUAL': 'buildNotEqualCondition',
-                'BETWEEN': 'buildBetweenCondition',
-                'NOT BETWEEN': 'buildNotBetweenCondition',
-                'IN': 'buildInCondition',
-                'NOT IN': 'buildNotInCondition',
-                'LIKE': 'buildLikeCondition',
-                'NOT LIKE': 'buildNotLikeCondition',
-                'ID': 'buildIdCondition',
-                'NOT ID': 'buildNotIdCondition',
-                'FALSE': 'buildFalseCondition',
-                'EMPTY': 'buildEmptyCondition',
-                'NOT EMPTY': 'buildNotEmptyCondition',
-                'NULL': 'buildNullCondition',
-                'NOT NULL': 'buildNotNullCondition',
-                'EXISTS': 'buildExistsCondition',
-                'NOT EXISTS': 'buildNotExistsCondition'
-            },
             SIMPLE_OPERATORS: {
                 '=': ' = ',
                 '!=': ' != ',
@@ -89,7 +68,7 @@ module.exports = class MysqlBuilder extends Base {
             sql +=` ORDER BY ${cmd.order}`;
         } 
         if (cmd.offset) {
-            sql +=` LIMIT ${cmd.offset},${cmd.limit ? cmd.limit : 9999999999}`;
+            sql +=` LIMIT ${cmd.offset},${cmd.limit ? cmd.limit : 99999999}`;
         } else if (cmd.limit) {
             sql +=` LIMIT ${cmd.limit}`;
         }
@@ -110,8 +89,8 @@ module.exports = class MysqlBuilder extends Base {
         if (!Array.isArray(data)) {
             return this.buildHashCondition(data);
         }
-        return Object.prototype.hasOwnProperty.call(this.CONDITION_BUILDERS, data[0])
-            ? this[this.CONDITION_BUILDERS[data[0]]](...data)
+        return Object.prototype.hasOwnProperty.call(this.CONDITION_METHODS, data[0])
+            ? this[this.CONDITION_METHODS[data[0]]](...data)
             : this.buildSimpleCondition(...data);
     }
 
@@ -145,13 +124,21 @@ module.exports = class MysqlBuilder extends Base {
             : field + this.SIMPLE_OPERATORS[operator] + this.escape(value);
     }
 
-    buildLogicCondition (operator, ...operands) {
-        const items = [];
-        for (const operand of operands) {
-            items.push(this.buildCondition(operand));
-        }
-        return '('+ items.join(operator === 'AND' ? ') AND (' : ') OR (') +')';
+    // LOGIC
+
+    buildAndCondition (operator, ...operands) {
+        return '('+ operands.map(this.buildCondition, this).join(') AND (') +')';
     }
+
+    buildOrCondition (operator, ...operands) {
+        return '('+ operands.map(this.buildCondition, this).join(') OR (') +')';
+    }
+
+    buildNotCondition (operator, ...operands) {
+        return 'NOT (('+ operands.map(this.buildCondition, this).join(') OR (') +'))';
+    }
+
+    // EQUAL
 
     buildEqualCondition (operator, field, value) {
         return `${this.normalizeField(field)}=${this.escape(value)}`;

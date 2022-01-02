@@ -123,14 +123,14 @@ module.exports = class Query extends Base {
 
     and () {
         if (arguments[0]) {
-            this.addWhere('AND', ...arguments);
+            this.addWhere('and', ...arguments);
         }
         return this;
     }
 
     or () {
         if (arguments[0]) {
-            this.addWhere('OR', ...arguments);
+            this.addWhere('or', ...arguments);
         }
         return this;
     }
@@ -148,7 +148,7 @@ module.exports = class Query extends Base {
     }
 
     andNotIn (key, value) {
-        return this.and(['NOT IN', key, value]);
+        return this.and(['notIn', key, value]);
     }
 
     /**
@@ -295,18 +295,18 @@ module.exports = class Query extends Base {
      */
     filterOperatorCondition (data) {
         switch (data[0]) {
-            case 'NOT':
-            case 'AND':
-            case 'OR':
+            case 'and':
+            case 'or':
+            case 'not':
                 return this.filterSerialCondition();
-            case 'BETWEEN':
-            case 'NOT BETWEEN':
+            case 'between':
+            case 'notBetween':
                 return !this.isEmptyValue(data[1]) && !this.isEmptyValue(data[2]) ? data : null;
         }
         return this.isEmptyValue(data[1]) ? null : data;
     }
 
-    filterSerialCondition (data) { // OR AND NOT
+    filterSerialCondition (data) {
         for (let i = data.length - 1; i > 0; --i) {
             const item = this.filterCondition(data[i]);
             if (this.isEmptyValue(item)) {

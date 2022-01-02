@@ -60,7 +60,7 @@ module.exports = class ExistValidator extends Base {
         const query = queryModel.find();
         if (this.ignoreCase) {
             for (const name of Object.keys(values)) {
-                query.and(['LIKE', name, values[name]]);
+                query.and(['like', name, values[name]]);
             }
         } else {
             query.and(values);
