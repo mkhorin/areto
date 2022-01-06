@@ -24,6 +24,10 @@ module.exports = class Configuration extends Base {
         return NestedHelper.get(key, this._data, defaults);
     }
 
+    getOwn (key, defaults) {
+        return NestedHelper.get(key, this._ownData, defaults);
+    }
+
     getTitle () {
         return this._names.join('.') || this.original?.getTitle();
     }
@@ -32,8 +36,14 @@ module.exports = class Configuration extends Base {
         return NestedHelper.includes(value, key, this._data);
     }
 
+    includesOwn (key, value) {
+        return NestedHelper.includes(value, key, this._ownData);
+    }
+
     mergeWithParents (key) {
-        return this.parent ? {...this.parent.mergeWithParents(key), ...this.get(key)} : this.get(key);
+        return this.parent
+            ? {...this.parent.mergeWithParents(key), ...this.get(key)}
+            : this.get(key);
     }
 
     deepMergeWithParents (key) {
@@ -48,13 +58,18 @@ module.exports = class Configuration extends Base {
         }
         this._sources.push({});
         this._data = AssignHelper.deepAssign(...this._sources.reverse());
+        this._ownData = AssignHelper.deepAssign({}, this._data, this.data);
         if (this.original) {
-            if (!this._names.includes(this.original.name)) {
-                this._names.unshift(this.original.name);
-            }
-            this._data = AssignHelper.deepAssign({}, this.original._data, this._data);
+            this.loadFromOriginal();
         }
         AssignHelper.deepAssign(this._data, this.data);
+    }
+
+    loadFromOriginal () {
+        if (!this._names.includes(this.original.name)) {
+            this._names.unshift(this.original.name);
+        }
+        this._data = AssignHelper.deepAssign({}, this.original._data, this._data);
     }
 
     loadByName (name) {
