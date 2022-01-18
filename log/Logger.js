@@ -17,12 +17,11 @@ module.exports = class Logger extends Base {
         super({
             depends: '#start',
             level: 'trace',
-            stores: {
+            defaultStores: {
                 common: require('./FileLogStore'),
                 error: require('./FileLogStore')
-            },
-            typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
-            types: {
+            },            
+            defaultTypes: {
                 error: {
                     stores: ['common', 'error']
                 },
@@ -30,6 +29,7 @@ module.exports = class Logger extends Base {
                     stores: ['common', 'error']
                 }
             },
+            typeNames: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
             LogType: {
                 Class: require('./LogType'),
                 stores: ['common']
@@ -72,12 +72,14 @@ module.exports = class Logger extends Base {
 
     createStores () {
         const logger = this;
+        this.stores = {...this.defaultStores, ...this.stores};
         for (const name of Object.keys(this.stores)) {
             this.stores[name] = this.spawn(this.stores[name], {logger, name});
         }
     }
 
     createTypes () {
+        this.types = {...this.defaultTypes, ...this.types};
         for (let i = 0; i < this.typeNames.length; ++i) {
             const name = this.typeNames[i];
             this.types[name] = this._levelIndex > i ? null : this.createType(name, i);
@@ -88,11 +90,15 @@ module.exports = class Logger extends Base {
         return this.spawn({
             ...this.LogType,
             consoleOutput: this.consoleOutput,
-            consoleMethod: index < this._errorConsoleIndex ? 'log' : 'error',
+            consoleMethod: this.getConsoleMethod(index),
             ...this.types[name],
             logger: this,
             name
         });
+    }
+
+    getConsoleMethod (index) {
+        return index < this._errorConsoleIndex ? 'log' : 'error';
     }
 
     log (type, message, data) {

@@ -12,7 +12,7 @@ module.exports = class LogType extends Base {
             stores: [],
             consoleOutput: true,
             consoleMethod: 'log',
-            dataStringifyOptions: {depth: 10},
+            stringifyOptions: {depth: 10},
             ...config
         });
         this._counter = 0;
@@ -41,7 +41,11 @@ module.exports = class LogType extends Base {
         if (data instanceof Error) {
             return data.stack;
         }
-        return data === undefined ? '' : util.inspect(data, this.dataStringifyOptions);
+        return data === undefined ? '' : util.inspect(data, this.stringifyOptions);
+    }
+
+    setStringifyOptions (data) {
+        Object.assign(this.stringifyOptions, data);
     }
 };
 
