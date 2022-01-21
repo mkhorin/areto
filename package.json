@@ -1,6 +1,6 @@
 {
   "name": "areto",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Adaptive Node.js MVC Framework",
   "author": {
     "name": "Maxim Khorin",
@@ -16,18 +16,18 @@
     "url": "https://github.com/mkhorin/areto.git"
   },
   "dependencies": {
-    "body-parser": "^1.19.1",
-    "connect-flash": "^0.1.1",
-    "cookie-parser": "^1.4.6",
-    "express": "^4.17.2",
-    "express-session": "^1.17.2",
-    "moment": "^2.29.1",
-    "mongodb": "^4.2.2",
-    "mysql": "^2.18.1",
-    "path-to-regexp": "^6.2.0"
+    "body-parser": "~1.19.1",
+    "connect-flash": "~0.1.1",
+    "cookie-parser": "~1.4.6",
+    "express": "~4.17.2",
+    "express-session": "~1.17.2",
+    "moment": "~2.29.1",
+    "mongodb": "~4.3.0",
+    "mysql": "~2.18.1",
+    "path-to-regexp": "~6.2.0"
   },
   "devDependencies": {
-    "chai": "^4.3.4"
+    "chai": "~4.3.4"
   },
   "scripts": {
     "test": "mocha test/run --recursive"

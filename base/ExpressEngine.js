@@ -41,12 +41,12 @@ module.exports = class ExpressEngine extends Base {
 
     attachStatic (route, dir, options) {
         this.attach('use', route, express.static(dir, options));
-        this.log('trace', 'static', dir);
+        this.log('info', 'static', dir);
     }
 
     attach (method, ...args) {
         this._express[method](...args);
-        this.log('trace', method, args[0]);
+        this.log('info', method, args[0]);
     }
 
     createHttpServer () {

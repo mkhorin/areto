@@ -433,7 +433,7 @@ module.exports = class Module extends Base {
         }
         AssignHelper.assignUndefined(data, this.DEFAULT_COMPONENTS);
         for (const id of Object.keys(data)) {
-            this.log('trace', `Create component: ${id}`);
+            this.log('info', `Create component: ${id}`);
             const component = this.createComponent(id, data[id]);
             if (component) {
                 this.ownComponents.set(id, component);
