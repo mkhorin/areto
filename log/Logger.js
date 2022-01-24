@@ -38,8 +38,8 @@ module.exports = class Logger extends Base {
             errorConsoleLevel: 'warn',
             ...config
         });
-        this._levelIndex = this.typeNames.indexOf(this.level);
-        this._errorConsoleIndex = this.typeNames.indexOf(this.errorConsoleLevel);
+        this._levelIndex = this.getTypeNameIndex(this.level);
+        this._errorConsoleIndex = this.getTypeNameIndex(this.errorConsoleLevel);
         this.createStores();
         this.createTypes();
     }
@@ -60,6 +60,14 @@ module.exports = class Logger extends Base {
 
     isDebug () {
         return this.types.debug;
+    }
+
+    getTypeNameIndex (name) {
+        const index = this.typeNames.indexOf(name);
+        if (index < 0) {
+            throw Error(`Unknown type name: ${name}`);
+        }
+        return index;
     }
 
     getType (name) {
