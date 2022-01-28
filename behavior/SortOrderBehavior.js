@@ -39,8 +39,16 @@ module.exports = class SortOrderBehavior extends Base {
     async update (data) {
         if (data) {
             for (const id of Object.keys(data)) {
-                await this.owner.findById(id).update({[this.orderAttr]: data[id]});
+                await this.updateById(id, data);
             }
+        }
+    }
+
+    async updateById (id, data) {
+        const model = await this.owner.findById(id).one();
+        if (model) {
+            model.set(this.orderAttr, data[id]);
+            return model.update();
         }
     }
 };

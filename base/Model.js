@@ -39,7 +39,7 @@ module.exports = class Model extends Base {
             EVENT_AFTER_VALIDATE: 'afterValidate',
             CONTROLLER_DIRECTORY: 'controller',
             MODEL_DIRECTORY: 'model'
-        }   
+        };
     }
 
     _attrMap = {};

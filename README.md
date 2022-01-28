@@ -1,8 +1,8 @@
-# Areto Framework
+# Areto MVC Framework
 
-### Adaptive Node.js MVC Framework to accelerate web development
+### Adaptive Node.js Framework to accelerate web development
 
-- Modern JavaScript optimizes coding.
+- Pure modern JavaScript optimizes coding.
 - MongoDB simplify development and support.
 - Modular structure eases component customization. 
 - Role-based access control improves security of user actions.
@@ -11,9 +11,9 @@
 
 #### Ready to try
  
-- [Demo App: Blog](https://github.com/mkhorin/areto-basic-demo)
+- [Blog App](https://github.com/mkhorin/areto-basic-demo)
 
 #### Ready to use
 
-- [Evado: Declarative Framework](https://github.com/mkhorin/evado)
-- [E-Champ: Server platform for online games](https://github.com/mkhorin/e-champ)
+- [Declarative Framework Evado](https://github.com/mkhorin/evado)
+- [Online Games Platform E-Champ](https://github.com/mkhorin/e-champ)
