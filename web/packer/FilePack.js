@@ -103,7 +103,7 @@ module.exports = class FilePack extends Base {
             const file = this.module.getPath(this.target);
             await fs.promises.mkdir(path.dirname(file), {recursive: true});
             await fs.promises.writeFile(file, this._data);
-            this.log('info', `Target ready: ${this.target}`);    
+            this.log('info', `Target ready: ${this.target}`);
         }
     }
 

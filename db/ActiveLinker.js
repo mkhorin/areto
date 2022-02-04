@@ -17,7 +17,7 @@ module.exports = class ActiveLinker extends Base {
         }
         const related = this.owner.getRelated(name);
         if (!related) {
-            return PromiseHelper.setImmediate();            
+            return PromiseHelper.setImmediate();
         }
         const index = relation.getIndex();
         if (index) {
@@ -39,7 +39,7 @@ module.exports = class ActiveLinker extends Base {
         const columns = {
             [via.refKey]: this.owner.get(via.linkKey),
             [relation.linkKey]: model.get(relation.refKey)
-        };        
+        };
         if (extraColumns) {
             Object.assign(columns, extraColumns);
         }

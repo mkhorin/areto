@@ -28,7 +28,7 @@ module.exports = class ArrayDataProvider extends Base {
 
     sortModels (models, sort) {
         const Sort = require('./Sort');
-        const orders = sort.getOrders();        
+        const orders = sort.getOrders();
         if (orders) {
             const directions = {};
             for (const attr of Object.keys(orders)) {

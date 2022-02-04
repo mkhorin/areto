@@ -27,7 +27,7 @@ module.exports = class BehaviorManager extends Base {
             delete this._behaviorMap[name];
             behavior.detach();
         }
-        return behavior;        
+        return behavior;
     }
 
     getAll () {

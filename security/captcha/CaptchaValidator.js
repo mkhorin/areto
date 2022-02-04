@@ -11,7 +11,7 @@ module.exports = class CaptchaValidator extends Base {
         super({
             captchaActionProperty: 'captchaAction',
             ...config
-        });        
+        });
         this.skipOnEmpty = false;
     }
 

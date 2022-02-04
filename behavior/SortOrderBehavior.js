@@ -14,7 +14,7 @@ module.exports = class SortOrderBehavior extends Base {
             step: 10,
             filter: null,
             ...config
-        });        
+        });
         this.setHandler(ActiveRecord.EVENT_BEFORE_INSERT, this.beforeInsert);
     }
 

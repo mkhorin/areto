@@ -30,7 +30,7 @@ module.exports = class Forwarder extends Base {
     createItems () {
         this._urls = [];
         for (const source of Object.keys(this.items)) {
-            let data = this.items[source];            
+            let data = this.items[source];
             data = data instanceof Object ? data : {target: data};
             data.source = source;
             this._urls.push(ClassHelper.spawn(this.Url, data));

@@ -424,7 +424,10 @@ module.exports = class Controller extends Base {
             this._formatter = this.getFormatter();
         }
         if (this.language) {
-          params = {language: this.language, ...params};  
+          params = {
+              language: this.language,
+              ...params
+          };
         }
         return this._formatter.format(value, type, params);
     }
