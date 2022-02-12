@@ -124,6 +124,9 @@ module.exports = class Item extends Base {
     }
 
     checkFoundRelatives (items, targets) {
+        if (!Array.isArray(targets)) {
+            targets = [targets];
+        }
         if (items.length !== targets.length) {
             const names = items.map(item => item.name);
             const misses = targets.filter(target => !names.includes(target));
