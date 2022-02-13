@@ -66,7 +66,7 @@ module.exports = class MysqlBuilder extends Base {
         }
         if (cmd.order) {
             sql +=` ORDER BY ${cmd.order}`;
-        } 
+        }
         if (cmd.offset) {
             sql +=` LIMIT ${cmd.offset},${cmd.limit ? cmd.limit : 99999999}`;
         } else if (cmd.limit) {

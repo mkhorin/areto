@@ -40,7 +40,7 @@ module.exports = class BooleanValidator extends Base {
     }
 
     validateValue (value) {
-        if ((!this.strict && (value == this.trueValue || value == this.falseValue)) 
+        if ((!this.strict && (value == this.trueValue || value == this.falseValue))
             || (this.strict && (value === this.trueValue || value === this.falseValue))) {
             return;
         }

@@ -7,7 +7,7 @@ const Base = require('../base/Model');
 
 module.exports = class ActiveRecord extends Base {
 
-    static getConstants () {        
+    static getConstants () {
         return {
             // TABLE: 'tableName',
             PK: '_id', // primary key
@@ -96,13 +96,13 @@ module.exports = class ActiveRecord extends Base {
         }
         return result;
     }
-    
+
     getOldAttr (name) {
         if (Object.prototype.hasOwnProperty.call(this._oldAttrMap, name)) {
             return this._oldAttrMap[name];
         }
-    }       
-    
+    }
+
     assignOldAttrs () {
         this._oldAttrMap = {...this._attrMap};
     }

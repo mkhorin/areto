@@ -37,8 +37,8 @@ module.exports = class TimestampBehavior extends Base {
     }
 
     formatDate () {
-        return this.format 
-            ? moment().format(this.format) 
+        return this.format
+            ? moment().format(this.format)
             : new Date;
     }
 };

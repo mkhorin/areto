@@ -19,7 +19,7 @@ module.exports = class RelationValidator extends Base {
             required: false,
             min: null,
             max: null,
-            unique: null, 
+            unique: null,
             allow: null,
             deny: null,
             filter: null,

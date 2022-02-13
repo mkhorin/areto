@@ -60,7 +60,7 @@ module.exports = class Scheduler extends Base {
     }
 
     // TASKS
-    
+
     getTask (name) {
         return this._taskMap.get(name);
     }
@@ -149,7 +149,7 @@ module.exports = class Scheduler extends Base {
         this.log('info', `Task done: ${event.sender.name}`, event.result);
         return this.trigger(this.EVENT_TASK_DONE, event);
     }
-    
+
     taskFail (event) {
         this.log('error', `Task failed: ${event.sender.name}:`, event.error);
         return this.trigger(this.EVENT_TASK_FAIL, event);

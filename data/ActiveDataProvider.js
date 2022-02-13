@@ -15,7 +15,7 @@ module.exports = class ActiveDataProvider extends Base {
     prepareTotalCount () {
         return this.query.count();
     }
-    
+
     prepareModels () {
         if (this.pagination) {
             this.pagination.totalCount = this.totalCount;

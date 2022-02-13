@@ -235,7 +235,7 @@ module.exports = class ActiveQuery extends Base {
         return this;
     }
 
-    viaArray () {        
+    viaArray () {
         this._viaArray = true;
         if (this._orderByKeys === undefined) {
             this._orderByKeys = true;

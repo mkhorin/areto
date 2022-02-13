@@ -6,6 +6,6 @@
 const Base = require('areto/base/Application');
 
 module.exports = class Main extends Base {
-    
+
 };
 module.exports.init(module);

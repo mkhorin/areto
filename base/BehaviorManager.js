@@ -64,7 +64,7 @@ module.exports = class BehaviorManager extends Base {
     attachInternal (name, behavior) {
         if (!behavior) {
             throw new Error(`Attach undefined behavior: ${name}`);
-        } 
+        }
         if (behavior.prototype instanceof Behavior) {
             behavior = new behavior({name});
         } else if (behavior.Class?.prototype instanceof Behavior) {

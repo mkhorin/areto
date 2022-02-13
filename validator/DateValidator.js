@@ -54,7 +54,7 @@ module.exports = class DateValidator extends Base {
         }
         if (this.min && value < this.min) {
             return this.getTooSmallMessage();
-        } 
+        }
         if (this.max && value > this.max) {
             return this.getTooBigMessage();
         }

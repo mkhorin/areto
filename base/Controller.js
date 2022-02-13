@@ -190,7 +190,7 @@ module.exports = class Controller extends Base {
         // call await super.afterAction() if override it
         return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
     }
-    
+
     // REQUEST
 
     isAjax () {
@@ -242,7 +242,7 @@ module.exports = class Controller extends Base {
             ? this.req.flash(key)
             : null;
     }
-    
+
     // RESPONSE
 
     goHome () {

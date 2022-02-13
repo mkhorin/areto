@@ -20,7 +20,7 @@ module.exports = class ViewModel extends Base {
             ATTR_HINTS: {},
             ATTR_LABELS: {},
             ATTR_VALUE_LABELS: {}
-        }   
+        }
     }
 
     static getAttrLabel (name) {

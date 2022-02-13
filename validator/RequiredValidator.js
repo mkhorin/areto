@@ -42,7 +42,7 @@ module.exports = class RequiredValidator extends Base {
                return;
             }
             return this.getMessage();
-        } 
+        }
         if (this.strict ? value === this.requiredValue : value == this.requiredValue) {
             return;
         }

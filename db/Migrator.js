@@ -15,7 +15,7 @@ module.exports = class Migrator extends Base {
         super(config);
     }
 
-    getDb (id) {        
+    getDb (id) {
         return this.module.getDb(id || this.db);
     }
 
@@ -43,7 +43,7 @@ module.exports = class Migrator extends Base {
         this.log('info', `Done: ${file}`);
     }
 
-    log () {        
+    log () {
         CommonHelper.log(this.module, this.constructor.name, ...arguments);
     }
 };

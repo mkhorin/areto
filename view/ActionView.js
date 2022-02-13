@@ -124,7 +124,7 @@ module.exports = class ActionView extends Base {
             this._asset.add(data);
         }
     }
-    
+
     createAssetPosition (pos) {
         return this.getAsset() ? this._asset.createPosition(pos) : '';
     }
@@ -145,7 +145,7 @@ module.exports = class ActionView extends Base {
 
     getAssetComponent () {
         return this.module.components.get('asset');
-    }     
+    }
 
     // WIDGET
 

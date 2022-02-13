@@ -64,7 +64,7 @@ module.exports = class DatabaseLogStore extends Base {
         if (counter >= this.maxRows + this.maxRows / 2) {
             const id = await this.createQuery().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
             await this.createQuery().and(['<', this.key, id]).delete();
-        }                    
+        }
     }
 
     createQuery () {

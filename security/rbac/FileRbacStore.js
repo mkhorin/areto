@@ -22,7 +22,7 @@ module.exports = class FileRbacStore extends Base {
             assignments: this.getAssignments()
         };
     }
-    
+
     getItems () {
         try {
             const items = this.require('items');

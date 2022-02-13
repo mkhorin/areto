@@ -12,7 +12,7 @@ module.exports = class ActiveLinker extends Base {
         const method = relation.isOuterLink() ? 'linkVia' : 'linkInternal';
         await this[method](relation, model, extraColumns);
         if (!relation.isMultiple()) {
-            this.owner.populateRelation(name, model); 
+            this.owner.populateRelation(name, model);
             return PromiseHelper.setImmediate();
         }
         const related = this.owner.getRelated(name);

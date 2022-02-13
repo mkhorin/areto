@@ -20,7 +20,7 @@ module.exports = class Logger extends Base {
             defaultStores: {
                 common: require('./FileLogStore'),
                 error: require('./FileLogStore')
-            },            
+            },
             defaultTypes: {
                 error: {
                     stores: ['common', 'error']

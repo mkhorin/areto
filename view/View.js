@@ -29,7 +29,7 @@ module.exports = class View extends Base {
         }
         this.createThemeMap();
     }
-    
+
     createThemeMap () {
         this.themeSet = ClassHelper.spawn(this.ThemeSet, {
             theme: this.theme,
@@ -43,7 +43,7 @@ module.exports = class View extends Base {
     getTheme (name) {
         return this.themeSet.get(name);
     }
-    
+
     isEmpty () {
         return this.themeSet.isEmpty();
     }

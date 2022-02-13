@@ -22,7 +22,7 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     set (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).upsert({            
+        PromiseHelper.callback(this.findBySid(sid).upsert({
             userId: data[this.userIdParam],
             updatedAt: new Date,
             data

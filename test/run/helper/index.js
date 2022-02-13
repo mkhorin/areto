@@ -63,7 +63,7 @@ describe('IndexHelper', ()=> {
             13: items[3]
         });
     });
-    
+
     it('indexObjectArrays', ()=> {
         const items = [
             {id: 0, k1: 11, k2: 101},

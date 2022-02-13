@@ -47,7 +47,7 @@ module.exports = class IndexHelper {
                             result[key] = [value];
                         }
                     }
-                } else if (!Object.prototype.hasOwnProperty.call(item, keyProp)) {                    
+                } else if (!Object.prototype.hasOwnProperty.call(item, keyProp)) {
                 } else if (Array.isArray(result[item[keyProp]])) {
                     result[item[keyProp]].push(value);
                 } else {

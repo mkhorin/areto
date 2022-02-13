@@ -14,7 +14,7 @@ module.exports = class DatabaseRateLimitStore extends Base {
         });
         this.db = this.module.getDb(this.db);
     }
-    
+
     async find (type, user) {
         const model = this.createModel({type, user});
         model.setData(await this.getQueryBy(type, user).one());
@@ -25,7 +25,7 @@ module.exports = class DatabaseRateLimitStore extends Base {
         return this.getQueryBy(model.type, model.user).upsert(model.getData());
     }
 
-    getQueryBy (type, user) {        
+    getQueryBy (type, user) {
         const data = {type};
         if (user.isGuest()) {
             data.userId = null;

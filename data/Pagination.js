@@ -47,7 +47,7 @@ module.exports = class Pagination extends Base {
         }
         this.setPage(this.page);
     }
-                                       
+
     setPageSize (value) {
         if (value === null) {
             return this.pageSize = null;
@@ -76,7 +76,7 @@ module.exports = class Pagination extends Base {
         }
         this.page = value < 0 ? 0 : value;
     }
-    
+
     getPageCount () {
         if (this.pageSize < 1) {
             return this.totalCount > 0 ? 1 : 0;
@@ -89,7 +89,7 @@ module.exports = class Pagination extends Base {
         return this.pageSize < 1 ? 0 : this.page * this.pageSize;
     }
 
-    getLimit () {        
+    getLimit () {
         return this.pageSize < 1 ? -1 : this.pageSize;
     }
 

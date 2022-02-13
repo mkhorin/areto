@@ -22,16 +22,16 @@
     - fix backref linking
 * behavior/RelationChangeBehavior
     - fix immutability of queries
-* validator/FileValidator    
+* validator/FileValidator
     - optional file path
-* validator/Validator    
+* validator/Validator
     - show invalid validator type
-    
+
 ## 2.4.0
 
 * i18n/Message
     - reorder message arguments
-    
+
 ## 2.3.0
 
 * base/Controller
@@ -42,9 +42,9 @@
 * helper/AssignHelper
     - prevent extending of arrays, dates and regex
 * helper/StringHelper
-    - fix string trimming 
+    - fix string trimming
 * security/rbac/Item
-    - specify not found children 
+    - specify not found children
 * web/BodyParser
     - add separate configuration for parsers
 * web/packer/Minifier
@@ -62,7 +62,7 @@
     - rename hyphen naming to kebab
 * security/rateLimit
     - rename directory to camel case
-    
+
 ## 2.1.0
 
 * base/Controller
@@ -106,15 +106,15 @@
 * db/ActiveRecord
     - extract query creation method
 * helper/IndexHelper
-    - add hierarchical indexing (nested keys)    
-    - resolve array of key values    
+    - add hierarchical indexing (nested keys)
+    - resolve array of key values
 * security/rbac/Rbac
     - create runtime assignment
 * view/ActionView
     - add parent internal template getter
 * view/Theme
     - remove name as path if template file is missing
-    
+
 ## 1.5.0
 
 * base/Application
@@ -139,10 +139,10 @@
 * db/ActiveQuery
     - move related model deletion list to constants
 * error/Exception
-    - replace HTTP exceptions                 
+    - replace HTTP exceptions
 * scheduler/Task
     - fix task name
-    
+
 ## 1.3.0
 
 * db/MongoDatabase
@@ -150,49 +150,49 @@
     - manage client session
 * db/Query
     - add command options
-    - fix field selection     
+    - fix field selection
 * helper/CommonHelper
-    - fix logging with empty prefix 
-    
+    - fix logging with empty prefix
+
 ## 1.2.0
 
 * base/Module
     - show errors while requiring file
 * helper/EscapeHelper
-    - fix escape RegExp    
-    - fix escape tags    
+    - fix escape RegExp
+    - fix escape tags
 * helper/SpawnValidator
-    - show file errors   
+    - show file errors
 
 ## 1.1.0
 
 * db/MongoBuilder
     - add EMPTY condition
-    - fix column query for indexed result   
+    - fix column query for indexed result
 * db/MysqlBuilder
     - add EMPTY condition
     - add EXISTS condition
-    - fix column query for indexed result   
-    
+    - fix column query for indexed result
+
 ## 1.0.0
 
 * helper/ObjectHelper
     - replace keys in data map
 * helper/NestedHelper
     - get whole array element by index
-    - rename NestedValueHelper     
+    - rename NestedValueHelper
 * i18n/I18n
     - swap translation arguments
 * i18n/MessageSource
-    - fix force translation by parent sources     
-    
+    - fix force translation by parent sources
+
 ## 0.36.0
 
 * db/MongoBuilder
     - fix not equal condition for arrays
 * validator/StringValidator
     - add string trimming by default
-    
+
 ## 0.35.1
 
 * security/WebUser
@@ -235,7 +235,7 @@
 
 * validator/ExistValidator
     - add string filter as attribute value filter
-    
+
 ## 0.32.0
 
 * base/Module
@@ -244,7 +244,7 @@
     - fix unlink all via relation
 * web/Router
     - add selector of all actions for request methods
-    
+
 ## 0.31.0
 
 * base/Controller

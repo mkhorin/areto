@@ -12,7 +12,7 @@ module.exports = class Url extends Base {
 
         const sources = pathToRegexp.parse(this.source);
         const targets = pathToRegexp.parse(this.target);
-        
+
         this.sourceParamNames = this.getParamNames(sources);
         this.targetParamNames = this.getParamNames(targets);
 
@@ -20,7 +20,7 @@ module.exports = class Url extends Base {
         this.targetRegExp = pathToRegexp.tokensToRegExp(targets);
         this.createSource = pathToRegexp.tokensToFunction(sources);
         this.createTarget = pathToRegexp.tokensToFunction(targets);
-            
+
         // target params must be a subset of the source's params
         const names = ArrayHelper.intersect(this.sourceParamNames, this.targetParamNames);
         if (names.length !== this.targetParamNames.length) {

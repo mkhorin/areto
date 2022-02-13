@@ -79,7 +79,7 @@ module.exports = class MysqlDatabase extends Base {
         const result = await this.execute(sql);
         return result.insertId;
     }
-    
+
     upsert (table, condition, data) {
         const columns = this.escapeId(Object.keys(data));
         const values = this.escape(Object.values(data));
@@ -186,7 +186,7 @@ module.exports = class MysqlDatabase extends Base {
 
     escapeId (id) {
         return Array.isArray(id)
-            ? id.map(id => this.escapeOneId(id)) 
+            ? id.map(id => this.escapeOneId(id))
             : this.escapeOneId(id);
     }
 

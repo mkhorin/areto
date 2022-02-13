@@ -31,7 +31,7 @@ module.exports = class Sort extends Base {
         this.initAttrs();
     }
 
-    initAttrs () {        
+    initAttrs () {
         for (const name of Object.keys(this.attrs)) {
             let attr = this.attrs[name];
             if (typeof attr !== 'object') {
@@ -135,7 +135,7 @@ module.exports = class Sort extends Base {
             sorts.push(directions[attr] === this.DESC ? `-${attr}` : attr);
         }
         return sorts.join(this.separator);
-    }    
+    }
 };
 module.exports.init();
 

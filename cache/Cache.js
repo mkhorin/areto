@@ -60,7 +60,7 @@ module.exports = class Cache extends Base {
         // need to override
     }
 
-    flush () {        
+    flush () {
         return this.flushValues();
     }
 

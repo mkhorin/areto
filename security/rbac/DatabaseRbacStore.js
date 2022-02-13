@@ -35,7 +35,7 @@ module.exports = class DatabaseRbacStore extends Base {
         await db.truncate(this.getTableName(this.TABLE_ITEM));
         await db.truncate(this.getTableName(this.TABLE_RULE));
     }
-    
+
     async load () {
         return this.prepare(await this.loadData());
     }

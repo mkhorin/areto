@@ -103,7 +103,7 @@ module.exports = class MongoBuilder extends Base {
     buildSimpleCondition (operator, field, value) {
         if (!(this.SIMPLE_OPERATORS.hasOwnProperty(operator))) {
             throw new Error(`Invalid simple operator: ${operator}`);
-        }        
+        }
         return {[this.normalizeField(field)]: {[this.SIMPLE_OPERATORS[operator]]: value}};
     }
 

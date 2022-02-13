@@ -474,7 +474,7 @@ module.exports = class Module extends Base {
         });
     }
 
-    createViewComponent (config) {        
+    createViewComponent (config) {
         return this.spawn({
             Class: require('../view/View'),
             original: this.original?.createViewComponent(config),

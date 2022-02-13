@@ -93,7 +93,7 @@ module.exports = class AssetBundle extends Base {
         return `<script src="${source}${version}"></script>\n`;
     }
 
-    log (type, message) {        
+    log (type, message) {
         this.manager.log(type, this.wrapClassMessage(message), util.inspect([this.scripts, this.styles]));
     }
 };

@@ -10,7 +10,7 @@ module.exports = class ArrayDataProvider extends Base {
     prepareTotalCount () {
         return this.allModels ? this.allModels.length : 0;
     }
-    
+
     prepareModels () {
         let models = this.allModels || [];
         if (this.sort) {
@@ -22,9 +22,9 @@ module.exports = class ArrayDataProvider extends Base {
                 const offset = this.pagination.getOffset();
                 models = models.slice(offset, offset + this.pagination.getLimit());
             }
-        }        
+        }
         return models;
-    }    
+    }
 
     sortModels (models, sort) {
         const Sort = require('./Sort');

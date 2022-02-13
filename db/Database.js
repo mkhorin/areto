@@ -8,7 +8,7 @@ const Base = require('../base/Component');
 module.exports = class Database extends Base {
 
     static getConstants () {
-        return {            
+        return {
             EVENT_OPEN_CONNECTION: 'openConnection',
             EVENT_CLOSE_CONNECTION: 'closeConnection',
             EVENT_ERROR: 'error',

@@ -58,7 +58,7 @@ module.exports = class NumberValidator extends Base {
         }
         if (this.min !== null && number < this.min) {
             return this.getTooSmallMessage();
-        } 
+        }
         if (this.max !== null && number > this.max) {
             return this.getTooBigMessage();
         }

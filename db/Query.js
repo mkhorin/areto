@@ -265,7 +265,7 @@ module.exports = class Query extends Base {
             || (typeof value === 'string' && value.trim() === '')
             || (typeof value === 'object' && !Object.values(value).length);
     }
-    
+
     prepare () {
     }
 

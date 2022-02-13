@@ -25,7 +25,7 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], {validator class} ]
                 // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
                 // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
-                // [['attr1'], 'unsafe'] // skip attribute loading  
+                // [['attr1'], 'unsafe'] // skip attribute loading
             ],
             SCENARIOS: {
                 // default: ['attr1', 'attr2']
@@ -229,13 +229,13 @@ module.exports = class Model extends Base {
 
     // LOAD
 
-    load (data) {        
+    load (data) {
         if (data) {
             this.setSafeAttrs(data[this.getBaseName()]);
         }
         return this;
     }
-    
+
     // EVENTS
 
     beforeValidate () {
@@ -294,7 +294,7 @@ module.exports = class Model extends Base {
         }
     }
 
-    async validate (attrNames) {       
+    async validate (attrNames) {
         await this.beforeValidate();
         attrNames = attrNames || this.getActiveAttrNames();
         for (const validator of this.getActiveValidators()) {
