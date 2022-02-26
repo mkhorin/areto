@@ -258,7 +258,7 @@ module.exports = class Controller extends Base {
     }
 
     reload () {
-        this.setHttpStatus(200);
+        this.setHttpStatus(Response.OK);
         this.response.redirect(this.req.originalUrl);
     }
 
