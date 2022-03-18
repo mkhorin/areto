@@ -34,14 +34,14 @@ module.exports = class UrlHelper {
         return {segments, params, anchor};
     }
 
-    static serialize (data) {
+    static serialize (data, encode) {
         if (!data) {
             return '';
         }
         const result = [];
         for (const key of Object.keys(data)) {
             if (data[key] !== undefined && data[key] !== null) {
-                result.push(key +'='+ data[key]);
+                result.push(key +'='+ (encode ? encodeURIComponent(data[key]) : data[key]));
             }
         }
         return result.join('&');
