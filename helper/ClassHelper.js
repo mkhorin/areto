@@ -7,10 +7,16 @@ module.exports = class ClassHelper {
 
     static resolveSpawn (config, module, ...args) {
         config = this.normalizeSpawn(config, ...args);
-        if (config && typeof config.Class !== 'function') {
-            config.Class = module.getClass(config.Class) || module.require(config.Class) || require(config.Class);
+        if (config) {
+            config.Class = this.resolveSpawnClass(config.Class, module);
         }
         return config;
+    }
+
+    static resolveSpawnClass (cls, module) {
+        return typeof cls !== 'function'
+            ? module.getClass(cls) || module.require(cls) || require(cls)
+            : cls;
     }
 
     static normalizeSpawn (config, params, defaults) {

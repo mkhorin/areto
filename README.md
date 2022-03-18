@@ -1,4 +1,4 @@
-# Areto MVC Framework
+# Areto Framework
 
 ### Adaptive Node.js Framework to accelerate web development
 

@@ -1,3 +1,19 @@
+## 3.2.0
+
+* base/Configuration
+    - keep internal configuration data
+* helper/UrlHelper
+    - add optional params encoding
+* log/Logger
+    - check logging type name
+    - separate default types and stores for custom changes
+* security/rbac/Item
+    - cast targets to array
+* view/ActionView
+    - add a shortcut to escape tags in templates
+* web/Response
+    - add HTTP code constants
+
 ## 3.1.0
 
 * db/Builder

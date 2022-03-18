@@ -46,7 +46,7 @@ module.exports = {
     'Number must be a integer': 'Число должно быть целым',
 
     'Only these file extensions are allowed: {extensions}': 'Допустимы только эти расширения файлов: {extensions}',
-    'Only these media types are allowed: {types}': 'Допустимы только эти медиа типы: {types}',
+    'Only these media types are allowed: {types}': 'Допустимы только эти типы медиа: {types}',
 
     'Password': 'Пароль',
     'Password Repeat': 'Повтор пароля',
