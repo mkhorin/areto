@@ -58,9 +58,9 @@ module.exports = class Item extends Base {
     }
 
     async resolveRelations () {
-        const result = {};
-        result.rules = await this.resolveRuleRelation();
-        return result;
+        return {
+            rules: await this.resolveRuleRelation()
+        };
     }
 
     async resolveRuleRelation () {

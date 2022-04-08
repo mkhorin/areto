@@ -27,15 +27,16 @@ module.exports = class Scheduler extends Base {
             ...config
         });
         this._taskMap = new DataMap;
-        this._taskBeforeExecuteHandler = this.taskBeforeExecute.bind(this);
-        this._taskDoneHandler = this.taskDone.bind(this);
-        this._taskFailHandler = this.taskFail.bind(this);
+        this._taskBeforeExecute = this.taskBeforeExecute.bind(this);
+        this._taskDone = this.taskDone.bind(this);
+        this._taskFail = this.taskFail.bind(this);
+        this._refresh = this.refresh.bind(this);
         this.Task = ClassHelper.normalizeSpawn(this.Task);
     }
 
     init () {
         this.addTasks(this.tasks);
-        this.module.app.on(this.module.app.EVENT_AFTER_START, this.refresh.bind(this));
+        this.module.app.on(this.module.app.EVENT_AFTER_START, this._refresh);
     }
 
     isActive () {
@@ -44,7 +45,7 @@ module.exports = class Scheduler extends Base {
 
     start () {
         this.stop();
-        this._timer = setTimeout(this.refresh.bind(this), this.refreshInterval * 1000);
+        this._timer = setTimeout(this._refresh, this.refreshInterval * 1000);
     }
 
     stop () {
@@ -90,9 +91,9 @@ module.exports = class Scheduler extends Base {
     createTask (name, config, params) {
         config = {...this.Task, ...config};
         const task = this.spawn(config, {...params, name, scheduler: this});
-        task.on(task.EVENT_BEFORE_EXECUTE, this._taskBeforeExecuteHandler);
-        task.on(task.EVENT_DONE, this._taskDoneHandler);
-        task.on(task.EVENT_FAIL, this._taskFailHandler);
+        task.on(task.EVENT_BEFORE_EXECUTE, this._taskBeforeExecute);
+        task.on(task.EVENT_DONE, this._taskDone);
+        task.on(task.EVENT_FAIL, this._taskFail);
         return task;
     }
 

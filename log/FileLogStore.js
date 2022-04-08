@@ -36,7 +36,7 @@ module.exports = class FileLogStore extends Base {
         this.fullFile = this.getFile('full');
         this.maxFileSize *= 1024 * 1024; // megabytes to bytes
         this.outputBuffer = '';
-        this.onWriteHandler = this.onWrite.bind(this);
+        this.onWrite = this.onWrite.bind(this);
         fs.mkdirSync(this.basePath, {recursive: true});
         this.openFile();
     }
@@ -67,7 +67,7 @@ module.exports = class FileLogStore extends Base {
         this.readyWrite = false;
         const content = this.outputBuffer;
         this.outputBuffer = '';
-        fs.write(this.fileDescriptor, content, this.onWriteHandler);
+        fs.write(this.fileDescriptor, content, this.onWrite);
     }
 
     onWrite (err) {

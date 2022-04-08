@@ -23,6 +23,7 @@ module.exports = class Widget extends Base {
         if (this.caching && !this.cache) {
             this.cache = this.module.get(this.cacheComponentId);
         }
+        this.execute = this.execute.bind(this);
     }
 
     execute () {
@@ -46,7 +47,7 @@ module.exports = class Widget extends Base {
         }
         this.log('trace', `Execute widget: ${this.id}`);
         this.content = this.cache
-            ? await this.cache.use(this.getCacheKey(), this.execute.bind(this), this.cacheDuration)
+            ? await this.cache.use(this.getCacheKey(), this.execute, this.cacheDuration)
             : await this.execute();
         return this.content;
     }
