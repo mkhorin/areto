@@ -7,69 +7,89 @@ const Base = require('./SessionStore');
 
 module.exports = class MemorySessionStore extends Base {
 
-    _sessions = {};
-    _users = {};
+    _items = {};
 
-    get (sid, callback) {
-        if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            const item = this._sessions[sid];
-            if (!this.session.lifetime || (new Date) - item.updatedAt < this.session.lifetime) {
-                return callback(null, item.data);
-            }
-        }
-        return callback(null, undefined);
+    get (id, callback) {
+        callback(null, this.isExpired(id) ? undefined : this._items[id].data);
     }
 
-    set (sid, data, callback) {
-        this._sessions[sid] = {updatedAt: new Date, data};
-        if (data[this.userIdParam]) {
-            this._users[data[this.userIdParam]] = sid;
+    set (id, data, callback) {
+        this._items[id] = {
+            sid: id,
+            updatedAt: new Date,
+            data
+        };
+        callback();
+    }
+
+    touch (id, data, callback) {
+        if (Object.prototype.hasOwnProperty.call(this._items, id)) {
+            this._items[id].updatedAt = new Date;
         }
         callback();
     }
 
-    touch (sid, data, callback) {
-        if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            this._sessions[sid].updatedAt = new Date;
-        }
-        callback();
-    }
-
-    destroy (sid, callback) {
-        if (Object.prototype.hasOwnProperty.call(this._sessions, sid)) {
-            if (this._sessions[sid][this.userIdParam]) {
-                delete this._users[this._sessions[sid][this.userIdParam]];
-            }
-            delete this._sessions[sid];
-        }
+    destroy (id, callback) {
+        this.deleteById(id);
         callback();
     }
 
     clear (callback) {
-        this._sessions = {};
-        this._users = {};
+        this._items = {};
         callback();
     }
 
+    getById (id) {
+        return Object.prototype.hasOwnProperty.call(this._items, id)
+            ? this._items[id]
+            : null;
+    }
+
+    count (search) {
+        return this.filterItems(search).length;
+    }
+
+    list (start, length, search) {
+        return this.filterItems(search).slice(start, start + length);
+    }
+
     deleteExpired () {
-        if (!this.session.lifetime) {
-            return null;
-        }
-        const now = new Date;
-        for (const sid of Object.keys(this._sessions)) {
-            if (now - this._sessions[sid].updatedAt > this.session.lifetime) {
-                if (this._sessions[sid][this.userIdParam]) {
-                    delete this._users[this._sessions[sid][this.userIdParam]];
-                }
-                delete this._sessions[sid];
+        for (const id of Object.keys(this._items)) {
+            if (this.isExpired(id)) {
+                this.deleteById(id);
             }
         }
     }
 
-    deleteByUserId (userId) {
-        if (Object.prototype.hasOwnProperty.call(this._users, userId)) {
-            delete this._sessions[this._users[userId]];
-            delete this._users[userId];
+    deleteById (id) {
+        if (Object.prototype.hasOwnProperty.call(this._items, id)) {
+            delete this._items[id];
         }
+    }
+
+    deleteByUserId (id) {
+        id = String(id);
+        for (const key of Object.keys(this._items)) {
+            if (String(this._items[key].data[this.userIdParam]) === id) {
+                delete this._items[key];
+            }
+        }
+    }
+
+    isExpired (id) {
+        return Object.prototype.hasOwnProperty.call(this._items, id)
+            ? this.session.isExpired(this._items[id].updatedAt)
+            : true;
+    }
+
+    filterItems (value) {
+        const items = Object.values(this._items);
+        return value
+            ? items.filter(item => this.filterItem(item, value))
+            : items;
+    }
+
+    filterItem (item, value) {
+        return item.sid === value || String(item.data[this.userIdParam]) === value;
     }
 };

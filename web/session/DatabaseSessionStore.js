@@ -15,49 +15,76 @@ module.exports = class DatabaseSessionStore extends Base {
         this.db = this.module.getDb(this.db);
     }
 
-    get (sid, callback) {
-        this.findBySid(sid).one().then(result => {
+    get (id, callback) {
+        this.findById(id).one().then(result => {
             callback(null, result ? result.data : undefined);
         }, callback);
     }
 
-    set (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).upsert({
-            userId: data[this.userIdParam],
+    set (id, data, callback) {
+        PromiseHelper.callback(this.findById(id).upsert({
+            sid: id,
+            uid: data[this.userIdParam],
             updatedAt: new Date,
             data
         }), callback);
     }
 
-    touch (sid, data, callback) {
-        PromiseHelper.callback(this.findBySid(sid).update({updatedAt: new Date}), callback);
+    touch (id, data, callback) {
+        PromiseHelper.callback(this.findById(id).update({updatedAt: new Date}), callback);
     }
 
-    destroy (sid, callback) {
-        PromiseHelper.callback(this.findBySid(sid).delete(), callback);
+    destroy (id, callback) {
+        PromiseHelper.callback(this.deleteById(id), callback);
     }
 
     clear (callback) {
         PromiseHelper.callback(this.find().delete(), callback);
     }
 
+    getById (id) {
+        return this.findById(id).one();
+    }
+
+    count (search) {
+        return this.findBySearch(search).count();
+    }
+
+    list (start, length, search) {
+        return this.findBySearch(search).offset(start).limit(length).all();
+    }
+
     deleteExpired () {
         if (this.session.lifetime) {
-            const expired = new Date(Date.now() - this.session.lifetime);
-            return this.find(['<', 'updatedAt', expired]).delete();
+            const date = new Date(Date.now() - this.session.lifetime);
+            return this.find(['<', 'updatedAt', date]).delete();
         }
     }
 
-    deleteByUserId (userId) {
-        return this.find(['id', 'userId', userId]).delete();
+    deleteById (id) {
+        return this.findById(id).delete();
     }
 
-    findBySid (sid) {
+    deleteByUserId (id) {
+        return this.find(this.getUserIdCondition(id)).delete();
+    }
+
+    findBySearch (value) {
+        return value
+            ? this.find(['or', {sid: value}, this.getUserIdCondition(value)])
+            : this.find();
+    }
+
+    findById (sid) {
         return this.find({sid});
     }
 
     find (condition) {
         return (new Query).db(this.db).from(this.table).where(condition);
+    }
+
+    getUserIdCondition (id) {
+        return ['id', 'uid', id];
     }
 };
 

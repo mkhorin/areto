@@ -9,9 +9,17 @@ module.exports = class Session extends Base {
 
     /**
      * @param {Object} config
-     * @param {number|string} config.lifetime - In seconds or ISO_8601#Duration
-     * @param {Object} config.cookie - Cookie options: {maxAge: 3600 * 1000, ...}
-     * @param {string} config.secret - Key to sign session ID cookie
+     * @param {boolean} config.resave - Force to resave unchanged session data
+     * @param {boolean} config.saveUninitialized - Force to save a new session with unchanged data
+     * @param {string} config.name - Session ID cookie name
+     * @param {number|string} config.lifetime - In seconds or ISO_8601#Duration. Zero is an infinite lifetime
+     * @param {Object} config.cookie - Options for session ID cookie
+     * @param {number} config.cookie.maxAge - In milliseconds
+     * @param {boolean} config.cookie.httpOnly - By default, this is true
+     * @param {string} config.cookie.path -  By default, this is the root path
+     * @param {boolean|string} config.cookie.sameSite -  By default, this is false
+     * @param {boolean|string} config.cookie.secure - It requires https. By default, this is false
+     * @param {string|Array} config.secret - Key to sign session ID cookie
      */
     constructor (config) {
         super({
@@ -34,6 +42,16 @@ module.exports = class Session extends Base {
         this.module.addHandler('use', this.flash());
     }
 
+    isExpired (date) {
+        return this.lifetime > 0 && Date.now() - date?.getTime() > this.lifetime;
+    }
+
+    getExpiryDate (date) {
+        return this.lifetime
+            ? new Date(date?.getTime() + this.lifetime)
+            : null;
+    }
+
     getDefaultCookieOptions () {
         return {
             sameSite: 'strict'
@@ -41,15 +59,19 @@ module.exports = class Session extends Base {
     }
 
     deleteExpired () {
-        return this.store.deleteExpired();
+        return this.store.deleteExpired(...arguments);
     }
 
-    deleteByUserId (id) {
-        return this.store.deleteByUserId(id);
+    deleteById () {
+        return this.store.deleteById(...arguments);
+    }
+
+    deleteByUserId () {
+        return this.store.deleteByUserId(...arguments);
     }
 
     clear () {
-        return this.store.clear();
+        return this.store.clear(...arguments);
     }
 };
 
