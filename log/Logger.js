@@ -65,7 +65,7 @@ module.exports = class Logger extends Base {
     getTypeNameIndex (name) {
         const index = this.typeNames.indexOf(name);
         if (index < 0) {
-            throw Error(`Unknown type name: ${name}`);
+            throw new Error(`Unknown type name: ${name}`);
         }
         return index;
     }

@@ -53,7 +53,7 @@ module.exports = class ClassHelper {
         if (typeof Class === 'function') {
             return new Class(config);
         }
-        throw Error(`Invalid class key: ${key}`);
+        throw new Error(`Invalid class key: ${key}`);
     }
 
     /**

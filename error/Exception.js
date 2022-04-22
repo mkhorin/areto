@@ -10,7 +10,6 @@ module.exports = class Exception {
             Object.assign(this, err);
         } else if (err instanceof Error) {
             this.message = err.message;
-            this.data = err.stack;
             this.error = err;
         } else if (typeof err === 'string') {
             this.message = err;
