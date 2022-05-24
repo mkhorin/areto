@@ -1,3 +1,9 @@
+## 3.3.0
+
+* web/session
+    - refactor session stores
+* upgrade dependencies    
+    
 ## 3.2.0
 
 * base/Configuration
