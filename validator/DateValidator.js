@@ -7,22 +7,69 @@ const Base = require('./Validator');
 
 module.exports = class DateValidator extends Base {
 
+    /**
+     * @param {Object} config
+     * @param {Date) config.min - Minimum date
+     * @param {Date) config.max - Maximum date
+     * @param {Array) config.minExpression - Calculate date: [[method, ...arguments], ...]
+     * [] - today
+     * ['add', 1, 'years'] - Add 1 year to today
+     * ['subtract', 5, 'months'] - Subtract 5 months from today
+     * [['subtract', 3, 'days'], ['startOf', 'month']] - Subtract 3 days from today and get the the month start
+     * ['endOf', 'week'] - Get the end of the current week
+     * @param {Array) config.maxExpression - Calculate date
+     * @param {string) config.format - Format: date | datetime | timestamp
+     */
     constructor (config) {
         super({
             min: null,
             max: null,
+            minExpression: null,
+            maxExpression: null,
+            format: 'date',
             ...config
         });
-        this.min = this.min && this.resolveDate(this.min);
-        this.max = this.max && this.resolveDate(this.max);
+        this.min = this.resolveDate(this.min, this.minExpression);
+        this.max = this.resolveDate(this.max, this.maxExpression);
     }
 
-    resolveDate (src) {
-        const date = src instanceof Date ? src : src === 'now' ? new Date : new Date(src);
-        if (DateHelper.isValid(date)) {
-            return date;
+    resolveDate (date, expression) {
+        let result = null;
+        if (date) {
+            result = this.resolveStaticDate(date);
         }
-        throw new Error(`Invalid date: ${src}`);
+        if (expression) {
+            result = this.resolveDynamicDate(expression);
+        }
+        if (result && this.format === 'date') {
+            result.setHours(0, 0, 0, 0);
+        }
+        return result;
+    }
+
+    resolveStaticDate (date) {
+        const result = date instanceof Date ? date : new Date(date);
+        if (DateHelper.isValid(result)) {
+            return result;
+        }
+        throw new Error(`Invalid date: ${date}`);
+    }
+
+    resolveDynamicDate (data) {
+        if (!Array.isArray(data)) {
+            throw new Error(`Invalid expression: ${data}`);
+        }
+        if (!data.length) {
+            return new Date;
+        }
+        if (!Array.isArray(data[0])) {
+            data = [data];
+        }
+        let date = moment();
+        for (let [method, ...args] of data) {
+            date = date[method](...args);
+        }
+        return date.toDate();
     }
 
     getMessage () {
@@ -31,13 +78,13 @@ module.exports = class DateValidator extends Base {
 
     getTooSmallMessage () {
         return this.createMessage(this.tooSmall, 'Date must be no less than {min}', {
-            min: this.min.toISOString()
+            min: [this.min, this.format]
         });
     }
 
     getTooBigMessage () {
         return this.createMessage(this.tooBig, 'Date must be no greater than {max}', {
-            max: this.max.toISOString()
+            max: [this.max, this.format]
         });
     }
 
