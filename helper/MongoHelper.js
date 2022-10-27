@@ -36,23 +36,25 @@ module.exports = class MongoHelper {
     }
 
     static normalizeOneId (value) {
-        return value instanceof ObjectID ? value : ObjectID.isValid(value) ? ObjectID(value) : null;
+        if (value instanceof ObjectID) {
+            return value;
+        }
+        return ObjectID.isValid(value) ? ObjectID(value) : null;
     }
 
     static includes () {
         return this.indexOf(...arguments) !== -1;
     }
 
-    static indexOf (id, values) {
-        if (!Array.isArray(values)) {
-            return -1;
+    static indexOf (target, values) {
+        if (!(target instanceof ObjectID)) {
+            return ArrayHelper.indexOf(target, values);
         }
-        if (!(id instanceof ObjectID)) {
-            return values.indexOf(id);
-        }
-        for (let i = 0; i < values.length; ++i) {
-            if (id.equals(values[i])) {
-                return i;
+        if (Array.isArray(values)) {
+            for (let i = 0; i < values.length; ++i) {
+                if (target.equals(values[i])) {
+                    return i;
+                }
             }
         }
         return -1;
@@ -112,8 +114,12 @@ module.exports = class MongoHelper {
             return value;
         }
         value = EscapeHelper.escapeRegex(value);
-        value = value.charAt(0) === '%' ? value.substring(1) : `^${value}`;
-        value = value.charAt(value.length - 1) === '%' ? value.substring(0, value.length - 1) : `${value}$`;
+        value = value.charAt(0) === '%'
+            ? value.substring(1)
+            : `^${value}`;
+        value = value.charAt(value.length - 1) === '%'
+            ? value.substring(0, value.length - 1)
+            : `${value}$`;
         return new RegExp(value, 'i');
     }
 };
