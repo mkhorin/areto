@@ -45,24 +45,29 @@ module.exports = class CommonHelper {
         if (data && typeof data === 'string') {
             try {
                 data = JSON.parse(data);
-            } catch {
-                return false;
-            }
+            } catch {}
         }
-        if (typeof data !== 'object' || !data) {
+        if (!data) {
             return null;
         }
-        if (!Array.isArray(data.links)) {
-            data.links = data.links ? [data.links] : [];
+        if (!data.links && !data.unlinks && !data.deletes) {
+            data = {links: data};
         }
-        if (!Array.isArray(data.unlinks)) {
-            data.unlinks = data.unlinks ? [data.unlinks] : [];
+        this.resolveRelationChangeAction('links', data);
+        this.resolveRelationChangeAction('unlinks', data);
+        this.resolveRelationChangeAction('deletes', data);
+        return this.isRelationChangeUnique(data) ? data : null;
+    }
+
+    static resolveRelationChangeAction (action, data) {
+        if (!Array.isArray(data[action])) {
+            data[action] = data[action] ? [data[action]] : [];
         }
-        if (!Array.isArray(data.deletes)) {
-            data.deletes = data.deletes ? [data.deletes] : [];
-        }
+    }
+
+    static isRelationChangeUnique (data) {
         const all = data.links.concat(data.unlinks, data.deletes);
-        return all.length === ArrayHelper.unique(all).length ? data : false;
+        return ArrayHelper.unique(all).length === all.length;
     }
 };
 

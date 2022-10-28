@@ -44,4 +44,53 @@ describe('CommonHelper', ()=> {
         expect(res.a).to.eql(5);
         expect(CommonHelper.parseJson('non-json')).to.eql(undefined);
     });
+
+    it('parseRelationChanges', ()=> {
+        const parse = CommonHelper.parseRelationChanges.bind(CommonHelper);
+
+        expect(parse(null)).to.eql(null);
+        expect(parse('')).to.eql(null);
+
+        expect(parse('{"links": 1, "unlinks": [2, 3]}')).to.eql({links: [1], unlinks: [2, 3], deletes: []});
+        expect(parse('{"links": [1, 2], "deletes": 3}')).to.eql({links: [1, 2], unlinks: [], deletes: [3]});
+
+        expect(parse('1')).to.eql({links: [1], unlinks: [], deletes: []});
+        expect(parse('ab')).to.eql({links: ['ab'], unlinks: [], deletes: []});
+        expect(parse({links: 1})).to.eql({links: [1], unlinks: [], deletes: []});
+        expect(parse([1, 2])).to.eql({links: [1, 2], unlinks: [], deletes: []});
+    });
+
+    it('resolveRelationChangeAction', ()=> {
+        const d1 = {links: [1]};
+        CommonHelper.resolveRelationChangeAction('links', d1);
+        expect(d1).to.eql({links: [1]});
+
+        const d2 = {links: 2};
+        CommonHelper.resolveRelationChangeAction('links', d2);
+        expect(d2).to.eql({links: [2]});
+
+        const d3 = {};
+        CommonHelper.resolveRelationChangeAction('links', d3);
+        expect(d3).to.eql({links: []});
+    });
+
+    it('isRelationChangeUnique', ()=> {
+        expect(CommonHelper.isRelationChangeUnique({
+            links: [1, 2],
+            unlinks: [3, 4],
+            deletes: [5, 6]
+        })).to.eql(true);
+
+        expect(CommonHelper.isRelationChangeUnique({
+            links: [1, 2],
+            unlinks: [1, 4],
+            deletes: [5, 6]
+        })).to.eql(false);
+
+        expect(CommonHelper.isRelationChangeUnique({
+            links: [1, 2],
+            unlinks: [3, 4],
+            deletes: [5, 4]
+        })).to.eql(false);
+    });
 });
