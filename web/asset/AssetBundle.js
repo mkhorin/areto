@@ -36,10 +36,14 @@ module.exports = class AssetBundle extends Base {
 
     getFirstItemName () {
         if (this.styles?.length) {
-            return Array.isArray(this.styles[0]) ? this.styles[0][0] : this.styles[0];
+            return Array.isArray(this.styles[0])
+                ? this.styles[0][0]
+                : this.styles[0];
         }
         if (this.scripts?.length) {
-            return Array.isArray(this.scripts[0]) ? this.scripts[0][0] : this.scripts[0];
+            return Array.isArray(this.scripts[0])
+                ? this.scripts[0][0]
+                : this.scripts[0];
         }
         return '';
     }
@@ -62,7 +66,7 @@ module.exports = class AssetBundle extends Base {
         for (const item of this.styles) {
             result += Array.isArray(item)
                 ? this.renderStyle(item[0], {...this.styleOptions, ...item[1]})
-                : this.renderScript(item, this.styleOptions);
+                : this.renderStyle(item, this.styleOptions);
         }
         return result;
     }
@@ -94,7 +98,8 @@ module.exports = class AssetBundle extends Base {
     }
 
     log (type, message) {
-        this.manager.log(type, this.wrapClassMessage(message), util.inspect([this.scripts, this.styles]));
+        const data = util.inspect([this.scripts, this.styles]);
+        this.manager.log(type, this.wrapClassMessage(message), data);
     }
 };
 
