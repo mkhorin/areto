@@ -57,7 +57,9 @@ module.exports = class WebUser extends Base {
     }
 
     getCsrfToken () {
-        return this.auth.csrf ? this.getSession(this.auth.csrfParam) : '';
+        return this.auth.csrf
+            ? this.getSession(this.auth.csrfParam)
+            : '';
     }
 
     checkCsrfToken (token) {
@@ -120,7 +122,9 @@ module.exports = class WebUser extends Base {
     }
 
     hasAssignment (name) {
-        return Array.isArray(this.assignments) ? this.assignments.includes(name) : false;
+        return Array.isArray(this.assignments)
+            ? this.assignments.includes(name)
+            : false;
     }
 
     async setAssignments () {
@@ -155,7 +159,8 @@ module.exports = class WebUser extends Base {
     }
 
     setCookie (name, value, options) {
-        this.res.cookie(name, value, Object.assign(this.getDefaultCookieOptions(), options));
+        options = Object.assign(this.getDefaultCookieOptions(), options);
+        this.res.cookie(name, value, options);
     }
 
     getDefaultCookieOptions () {

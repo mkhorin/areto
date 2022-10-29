@@ -89,8 +89,8 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     update (table, condition, data) {
-        let values = Object.keys(data).map(key => `${this.escapeId(key)}=${this.escape(data[key])}`).join();
-        let sql = `UPDATE ${this.escapeId(table)} SET ${values}`;
+        let values = Object.keys(data).map(key => `${this.escapeId(key)}=${this.escape(data[key])}`);
+        let sql = `UPDATE ${this.escapeId(table)} SET ${values.join()}`;
         if (condition) {
             sql += condition;
         }
@@ -226,14 +226,15 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     escapeValueArray (items) {
-        return items.map(item => Array.isArray(item)
-            ? this.escapeValueArray(item)
-            : this.escape(item)
-        ).join();
+        const result = [];
+        for (const item of items) {
+            const value = Array.isArray(item)
+                ? this.escapeValueArray(item)
+                : this.escape(item);
+            result.push(value);
+        }
+        return result.join();
     }
-
-    // INDEXES
-
 };
 module.exports.init();
 

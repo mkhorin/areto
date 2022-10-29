@@ -24,7 +24,9 @@ module.exports = class ClassMapper extends Base {
     }
 
     getOwn (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
+        return Object.prototype.hasOwnProperty.call(this._data, key)
+            ? this._data[key]
+            : null;
     }
 
     spawn (key, params) {

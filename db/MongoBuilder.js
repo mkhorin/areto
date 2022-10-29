@@ -104,7 +104,8 @@ module.exports = class MongoBuilder extends Base {
         if (!(this.SIMPLE_OPERATORS.hasOwnProperty(operator))) {
             throw new Error(`Invalid simple operator: ${operator}`);
         }
-        return {[this.normalizeField(field)]: {[this.SIMPLE_OPERATORS[operator]]: value}};
+        value = {[this.SIMPLE_OPERATORS[operator]]: value};
+        return {[this.normalizeField(field)]: value};
     }
 
     // LOGIC
@@ -146,11 +147,13 @@ module.exports = class MongoBuilder extends Base {
     // LIKE
 
     buildLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: MongoHelper.convertToRegex(value)};
+        value = MongoHelper.convertToRegex(value);
+        return {[this.normalizeField(field)]: value};
     }
 
     buildNotLikeCondition (operator, field, value) {
-        return {[this.normalizeField(field)]: {$not: MongoHelper.convertToRegex(value)}};
+        value = {$not: MongoHelper.convertToRegex(value)};
+        return {[this.normalizeField(field)]: value};
     }
 
     // BETWEEN
@@ -168,7 +171,8 @@ module.exports = class MongoBuilder extends Base {
 
     buildIdCondition (operator, field, value) {
         value = this.db.constructor.normalizeId(value);
-        return {[this.normalizeField(field)]: Array.isArray(value) ? {$in: value} : value};
+        value = Array.isArray(value) ? {$in: value} : value;
+        return {[this.normalizeField(field)]: value};
     }
 
     buildNotIdCondition (operator, field, value) {
@@ -177,7 +181,8 @@ module.exports = class MongoBuilder extends Base {
             return {$or: [{[field]: {$ne: null}}, {[field]: {$exists: false}}]};
         }
         value = this.db.constructor.normalizeId(value);
-        return {[field]: Array.isArray(value) ? {$nin: value} : {$ne: value}};
+        value = Array.isArray(value) ? {$nin: value} : {$ne: value};
+        return {[field]: value};
     }
 
     // FALSE

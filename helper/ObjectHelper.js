@@ -52,7 +52,8 @@ module.exports = class ObjectHelper {
             return [];
         }
         const names = Object.getOwnPropertyNames(data);
-        for (const name of this.getAllPropertyNames(Object.getPrototypeOf(data))) {
+        const allNames = this.getAllPropertyNames(Object.getPrototypeOf(data));
+        for (const name of allNames) {
             if (!names.includes(name)) {
                 names.push(name);
             }
@@ -145,18 +146,27 @@ module.exports = class ObjectHelper {
     // DELETE PROPERTIES
 
     static deleteEmptyProperties (data, names) {
-        const check = value => value === null || value === '' || value === undefined;
-        this.deletePropertiesByValue(check, data, names);
+        this.deletePropertiesByValue(this.checkEmptyValue, data, names);
+    }
+
+    static checkEmptyValue (value) {
+        return value === null || value === '' || value === undefined;
     }
 
     static deleteEmptyArrayProperties (data, names) {
-        const check = value => Array.isArray(value) && !value.length;
-        this.deletePropertiesByValue(check, data, names);
+        this.deletePropertiesByValue(this.checkEmptyArray, data, names);
+    }
+
+    static checkEmptyArray (values) {
+        return Array.isArray(values) && !values.length;
     }
 
     static deleteEmptyObjectProperties (data, names) {
-        const check = obj => obj && obj.constructor === Object && !Object.values(obj).length;
-        this.deletePropertiesByValue(check, data, names);
+        this.deletePropertiesByValue(this.checkEmptyObject, data, names);
+    }
+
+    static checkEmptyObject (obj) {
+        return obj?.constructor === Object && !Object.values(obj).length;
     }
 
     static deletePropertiesByValue (value, data, names) {
@@ -166,8 +176,9 @@ module.exports = class ObjectHelper {
         if (!Array.isArray(names)) {
             names = Object.keys(data);
         }
+        const isFunction = typeof value === 'function';
         for (const name of names) {
-            if (typeof value === 'function' ? value(data[name]) : (data[name] === value)) {
+            if (isFunction ? value(data[name]) : (data[name] === value)) {
                 delete data[name];
             }
         }

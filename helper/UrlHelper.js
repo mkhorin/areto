@@ -40,8 +40,9 @@ module.exports = class UrlHelper {
         }
         const result = [];
         for (const key of Object.keys(data)) {
-            if (data[key] !== undefined && data[key] !== null) {
-                result.push(key +'='+ (encode ? encodeURIComponent(data[key]) : data[key]));
+            const value = data[key];
+            if (value !== undefined && value !== null) {
+                result.push(key +'='+ (encode ? encodeURIComponent(value) : value));
             }
         }
         return result.join('&');

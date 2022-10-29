@@ -286,9 +286,17 @@ module.exports = class ActiveRecord extends Base {
             return this.executeRelatedMethod('getRelatedTitle', name) || this.get(name);
         }
         const related = this._related[name];
-        return Array.isArray(related)
-            ? related.map(model => typeof model?.getTitle === 'function' ? model.getTitle() : null)
-            : related ? related.getTitle() : this.get(name);
+        if (!Array.isArray(related)) {
+            return related ? related.getTitle() : this.get(name);
+        }
+        const titles = [];
+        for (const model of related) {
+            const title = typeof model?.getTitle === 'function'
+                ? model.getTitle()
+                : null;
+            titles.push(title);
+        }
+        return titles;
     }
 
     getAllRelationNames () {

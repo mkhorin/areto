@@ -24,10 +24,20 @@ module.exports = class AccessRule extends Base {
     }
 
     async can (action) {
-        if ((this.actions && !this.actions.includes(action.name))
-            || (this.methods && !this.methods.includes(action.controller.req.method?.toLowerCase()))
-            || (this.controllers && !this.controllers.includes(action.controller.getBaseName()))) {
-            return; // skip rule
+        if (this.actions) {
+            if (!this.actions.includes(action.name)) {
+                return; // skip rule
+            }
+        }
+        if (this.methods) {
+            if (!this.methods.includes(action.controller.req.method?.toLowerCase())) {
+                return;
+            }
+        }
+        if (this.controllers) {
+            if (!this.controllers.includes(action.controller.getBaseName())) {
+                return;
+            }
         }
         const access = await this.match(action);
         if (access === true) {

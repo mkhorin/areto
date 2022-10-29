@@ -48,11 +48,13 @@ module.exports = class DataHistoryBehavior extends Base {
     }
 
     getAttrNames () {
-        return Array.isArray(this.includes)
-            ? this.includes
-            : Array.isArray(this.excludes)
-                ? ArrayHelper.exclude(this.excludes, this.owner.ATTRS)
-                : [];
+        if (Array.isArray(this.includes)) {
+            return this.includes;
+        }
+        if (Array.isArray(this.excludes)) {
+            return ArrayHelper.exclude(this.excludes, this.owner.ATTRS);
+        }
+        return [];
     }
 
     hasAttr (name) {

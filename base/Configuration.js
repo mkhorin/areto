@@ -41,15 +41,21 @@ module.exports = class Configuration extends Base {
     }
 
     mergeWithParents (key) {
-        return this.parent
-            ? {...this.parent.mergeWithParents(key), ...this.get(key)}
-            : this.get(key);
+        if (!this.parent) {
+            return this.get(key);
+        }
+        return {
+            ...this.parent.mergeWithParents(key),
+            ...this.get(key)
+        };
     }
 
     deepMergeWithParents (key) {
-        return this.parent
-            ? ArrayHelper.deepAssign({}, this.parent.deepMergeWithParents(key), this.get(key))
-            : this.get(key);
+        if (!this.parent) {
+            return this.get(key);
+        }
+        const data = this.parent.deepMergeWithParents(key);
+        return ArrayHelper.deepAssign({}, data, this.get(key));
     }
 
     async load () {

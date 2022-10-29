@@ -11,11 +11,15 @@ module.exports = class FileHelper {
 
     static getRelativePathByDirectory (name, file) {
         const basePath = this.getClosestDirectory(name, file);
-        return basePath ? this.getRelativePath(basePath, file) : file;
+        return basePath
+            ? this.getRelativePath(basePath, file)
+            : file;
     }
 
     static getRelativePath (basePath, file) {
-        return file.indexOf(basePath) === 0 ? file.substring(basePath.length + 1) : file;
+        return file.indexOf(basePath) === 0
+            ? file.substring(basePath.length + 1)
+            : file;
     }
 
     static getExtension (file) {
@@ -23,15 +27,21 @@ module.exports = class FileHelper {
     }
 
     static addExtension (ext, file) {
-        return file.substring(file.lastIndexOf('.') + 1) !== ext ? `${file}.${ext}` : file;
+        const old = file.substring(file.lastIndexOf('.') + 1);
+        return old !== ext ? `${file}.${ext}` : file;
     }
 
     static trimExtension (file) {
-        return file.substring(0, file.length - path.extname(file).length);
+        const ext = path.extname(file);
+        return file.substring(0, file.length - ext.length);
     }
 
     static getStat (file) {
-        return new Promise(resolve => fs.stat(file, (err, stat) => resolve(err ? null : stat)));
+        return new Promise(resolve => {
+            return fs.stat(file, (err, stat) => {
+                return resolve(err ? null : stat);
+            })
+        });
     }
 
     static async delete (file) {
@@ -43,20 +53,23 @@ module.exports = class FileHelper {
             return fs.promises.unlink(file);
         }
         await PromiseHelper.setImmediate(); // flush calling stack
-        await this.handleChildren(file, child => this.delete(path.join(file, child)));
+        await this.handleChildren(file, child => {
+            return this.delete(path.join(file, child));
+        });
         return fs.promises.rmdir(file);
     }
 
     static async copy (source, target, flags) {
         const stat = await fs.promises.stat(source);
+        const mode = {mode: stat.mode};
         if (stat.isFile()) {
-            await this.createDirectory(path.dirname(target), {mode: stat.mode});
+            await this.createDirectory(path.dirname(target), mode);
             return fs.promises.copyFile(source, target, flags);
         }
-        await this.createDirectory(target, {mode: stat.mode});
+        await this.createDirectory(target, mode);
         await PromiseHelper.setImmediate(); // flush calling stack
         await this.handleChildren(source, file => {
-            return this.copy(path.join(source, file), path.join(target, file), flags);
+            return this.copyFileInternal(file, ...arguments);
         });
     }
 
@@ -64,15 +77,25 @@ module.exports = class FileHelper {
         const stat = await fs.promises.stat(source);
         if (stat.isDirectory()) {
             await this.handleChildren(source, file => {
-                return this.copy(path.join(source, file), path.join(target, file), flags);
+                return this.copyFileInternal(file, ...arguments);
             });
         }
+    }
+
+    static copyFileInternal (file, source, target, flags) {
+        source = path.join(source, file);
+        target = path.join(target, file);
+        return this.copy(source, target, flags);
     }
 
     // DIRECTORY
 
     static readDirectory (dir) {
-        return new Promise(resolve => fs.readdir(dir, (err, result) => resolve(err ? [] : result)));
+        return new Promise(resolve => {
+            return fs.readdir(dir, (err, result) => {
+                return resolve(err ? [] : result);
+            });
+        });
     }
 
     static createDirectory (dir, options) {
@@ -83,7 +106,9 @@ module.exports = class FileHelper {
     }
 
     static emptyDirectory (dir) {
-        return this.handleChildren(dir, file => this.delete(path.join(dir, file)));
+        return this.handleChildren(dir, file => {
+            return this.delete(path.join(dir, file));
+        });
     }
 
     static getClosestDirectory (name, dir) {

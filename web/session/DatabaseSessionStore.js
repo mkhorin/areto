@@ -69,9 +69,9 @@ module.exports = class DatabaseSessionStore extends Base {
         return this.find(this.getUserIdCondition(id)).delete();
     }
 
-    findBySearch (value) {
-        return value
-            ? this.find(['or', {sid: value}, this.getUserIdCondition(value)])
+    findBySearch (sid) {
+        return sid
+            ? this.find(['or', {sid}, this.getUserIdCondition(sid)])
             : this.find();
     }
 

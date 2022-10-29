@@ -122,7 +122,9 @@ module.exports = class Task extends Base {
             return this.log('error', `Invalid start time: ${date}`);
         }
         date = (new Date(date)).getTime();
-        return date < Date.now() ? (date + this.DAY_PERIOD) : date;
+        return date < Date.now()
+            ? date + this.DAY_PERIOD
+            : date;
     }
 
     refresh () {

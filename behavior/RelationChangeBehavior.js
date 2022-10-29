@@ -33,7 +33,9 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     getChanges (name) {
-        return Object.prototype.hasOwnProperty.call(this._changes, name) ? this._changes[name] : null;
+        return Object.prototype.hasOwnProperty.call(this._changes, name)
+            ? this._changes[name]
+            : null;
     }
 
     getRelation () {
@@ -63,8 +65,10 @@ module.exports = class RelationChangeBehavior extends Base {
     getActiveRelationNames () {
         let names = [];
         for (const item of this.owner.getValidators()) {
-            if (item instanceof RelationValidator && item.isActive(this.owner.scenario)) {
-                names = names.concat(item.attrs);
+            if (item instanceof RelationValidator) {
+                if (item.isActive(this.owner.scenario)) {
+                    names = names.concat(item.attrs);
+                }
             }
         }
         return ArrayHelper.unique(names);
@@ -89,7 +93,8 @@ module.exports = class RelationChangeBehavior extends Base {
         const changes = this._changes[name];
         if (changes[key].length) {
             const query = this.getRelation(name);
-            changes[key] = await query.and(['id', query.model.PK, changes[key]]).all();
+            const condition = ['id', query.model.PK, changes[key]];
+            changes[key] = await query.and(condition).all();
         }
     }
 
@@ -161,17 +166,21 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     async checkRefExist ({refKey, linkKey}, doc) {
-        const ids = await this.owner.find({[linkKey]: doc[refKey]}).limit(2).ids();
+        const condition = {[linkKey]: doc[refKey]};
+        const ids = await this.owner.find(condition).limit(2).ids();
         return this.isExistingId(this.owner.getId(), ids);
     }
 
     async checkBackRefExist ({model, refKey, linkAttr}, doc) {
-        const ids = await model.find({[refKey]: this.owner.get(linkAttr)}).limit(2).ids();
+        const condition = {[refKey]: this.owner.get(linkAttr)};
+        const ids = await model.find(condition).limit(2).ids();
         return this.isExistingId(doc[model.PK], ids);
     }
 
     isExistingId (id, ids) {
-        return ids.length === 1 ? !CommonHelper.isEqual(id, ids[0]) : ids.length > 1;
+        return ids.length === 1
+            ? !CommonHelper.isEqual(id, ids[0])
+            : ids.length > 1;
     }
 };
 

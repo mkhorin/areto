@@ -134,9 +134,11 @@ module.exports = class ActiveQuery extends Base {
     }
 
     isBackRef () {
-        return this._asBackRef === undefined
-            ? (this.primaryModel.PK === this.linkKey || !this.primaryModel.ATTRS.includes(this.linkKey))
-            : this._asBackRef;
+        if (this._asBackRef !== undefined) {
+            return this._asBackRef;
+        }
+        return this.primaryModel.PK === this.linkKey
+            || !this.primaryModel.ATTRS.includes(this.linkKey);
     }
 
     isMultiple () {
@@ -270,7 +272,9 @@ module.exports = class ActiveQuery extends Base {
             return true;
         }
         const link = this.primaryModel.get(this.linkKey);
-        return link !== null && link !== undefined && (!Array.isArray(link) || link.length);
+        return link !== null
+            && link !== undefined
+            && (!Array.isArray(link) || link.length);
     }
 
     // POPULATE

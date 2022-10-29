@@ -1,3 +1,16 @@
+## 3.4.0
+
+* helper/CommonHelper
+    - accept simple values to change relation
+* helper/MongoHelper
+    - fix string ID search among ObjectIDs
+* validator/DateValidator
+    - add validation by dynamic dates
+* validator/Validator
+    - fix checking of active scenarios
+* web/asset/AssetBundle
+    - fix style asset render    
+    
 ## 3.3.0
 
 * web/session

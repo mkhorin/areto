@@ -19,7 +19,7 @@ module.exports = class JsonValidator extends Base {
     }
 
     async validateAttr (attr, model) {
-        let value = model.get(attr);
+        const value = model.get(attr);
         if (typeof value === 'string') {
             try {
                 const data = JSON.parse(value);

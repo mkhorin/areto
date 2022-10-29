@@ -95,7 +95,9 @@ module.exports = class FilePack extends Base {
     }
 
     processFileData (data) {
-        return this.minifier ? this.minifier.execute(data.toString()) : data;
+        return this.minifier
+            ? this.minifier.execute(data.toString())
+            : data;
     }
 
     async saveTarget () {

@@ -29,9 +29,14 @@ module.exports = class DatabaseLogStore extends Base {
     }
 
     save (type, message, data) {
-        this.createQuery().insert(this.format(type, message, data)).catch(err => {
-            console.error(this.wrapClassMessage('save'), err);
-        });
+        data = this.format(type, message, data);
+        this.createQuery()
+            .insert(data)
+            .catch(this.onError.bind(this, 'save'));
+    }
+
+    onError (name, error) {
+        console.error(this.wrapClassMessage(name), error);
     }
 
     format (type, message, data) {
@@ -54,16 +59,22 @@ module.exports = class DatabaseLogStore extends Base {
     async checkout () {
         try {
             await this.truncate();
-        } catch (err) {
-            this.log('error', this.wrapClassMessage('checkout'), err);
+        } catch (error) {
+            this.onError('checkout', error);
         }
     }
 
     async truncate () {
         const counter = await this.createQuery().count();
         if (counter >= this.maxRows + this.maxRows / 2) {
-            const id = await this.createQuery().offset(this.maxRows).order({[this.key]: -1}).scalar(this.key);
-            await this.createQuery().and(['<', this.key, id]).delete();
+            const order = {[this.key]: -1};
+            const id = await this.createQuery()
+                .offset(this.maxRows)
+                .order(order)
+                .scalar(this.key);
+            await this.createQuery()
+                .and(['<', this.key, id])
+                .delete();
         }
     }
 

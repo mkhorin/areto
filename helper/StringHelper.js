@@ -38,22 +38,33 @@ module.exports = class StringHelper {
 
     static toUpperCamelCase (text) {
         text = typeof text === 'string' ? text : String(text);
-        return this.capitalizeWords(text.replace(CAMEL_REGEX, ' ')).replace(SPACE_REGEX, '');
+        return this
+            .capitalizeWords(text.replace(CAMEL_REGEX, ' '))
+            .replace(SPACE_REGEX, '');
     }
 
     static camelToWords (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(SEP_REGEX, ' ').replace(AZ_REGEX, ' $1').trim();
+        return text
+            .replace(SEP_REGEX, ' ')
+            .replace(AZ_REGEX, ' $1')
+            .trim();
     }
 
     static camelToKebab (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(AZ_REGEX, '-$1').replace(DASH_REGEX, '').toLowerCase();
+        return text
+            .replace(AZ_REGEX, '-$1')
+            .replace(DASH_REGEX, '')
+            .toLowerCase();
     }
 
     static camelToSnake (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.replace(AZ_REGEX, '_$1').replace(UNDERSCORE_REGEX, '').toLowerCase();
+        return text
+            .replace(AZ_REGEX, '_$1')
+            .replace(UNDERSCORE_REGEX, '')
+            .toLowerCase();
     }
 
     static split (text, separator = ',') {
@@ -63,17 +74,24 @@ module.exports = class StringHelper {
         if (typeof text !== 'string') {
             return [];
         }
-        return text.split(separator).map(item => item.trim()).filter(item => item.length);
+        return text
+            .split(separator)
+            .map(item => item.trim())
+            .filter(item => item.length);
     }
 
     static splitFirst (text, separator = '.') {
         const index = text.indexOf(separator);
-        return index === -1 ? [text] : [text.substring(0, index), text.substring(index + 1)];
+        return index !== -1
+            ? [text.substring(0, index), text.substring(index + 1)]
+            : [text];
     }
 
     static splitLast (text, separator = '.') {
         const index = text.lastIndexOf(separator);
-        return index === -1 ? [text] : [text.substring(0, index), text.substring(index + 1)];
+        return index !== -1
+            ? [text.substring(0, index), text.substring(index + 1)]
+            : [text];
     }
 
     static parseObject (text) {
@@ -95,6 +113,8 @@ module.exports = class StringHelper {
             return text;
         }
         const index = text.length - end.length;
-        return text.lastIndexOf(end) === index ? text.substring(0, index) : text;
+        return text.lastIndexOf(end) === index
+            ? text.substring(0, index)
+            : text;
     }
 };

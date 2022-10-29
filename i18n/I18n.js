@@ -34,7 +34,9 @@ module.exports = class I18n extends Base {
     }
 
     getSource (name) {
-        return Object.prototype.hasOwnProperty.call(this.sources, name) ? this.sources[name] : null;
+        return Object.prototype.hasOwnProperty.call(this.sources, name)
+            ? this.sources[name]
+            : null;
     }
 
     async loadSources () {
@@ -107,8 +109,9 @@ module.exports = class I18n extends Base {
     }
 
     getSourceParent (name) {
-        const parent = this.parent;
-        return parent ? (parent.getSource(name) || parent.getSourceParent(name)) : null;
+        return this.parent
+            ? (this.parent.getSource(name) || this.parent.getSourceParent(name))
+            : null;
     }
 
     format () {

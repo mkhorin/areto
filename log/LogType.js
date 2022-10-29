@@ -41,7 +41,9 @@ module.exports = class LogType extends Base {
         if (data instanceof Error) {
             return data.stack;
         }
-        return data === undefined ? '' : util.inspect(data, this.stringifyOptions);
+        return data !== undefined
+            ? util.inspect(data, this.stringifyOptions)
+            : '';
     }
 
     setStringifyOptions (data) {

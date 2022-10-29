@@ -39,7 +39,8 @@ module.exports = class ViewAsset extends Base {
         }
         this.resolveBundles();
         const anchors = Object.keys(this._positions).join('|');
-        return content.replace(new RegExp(`#asset{(${anchors})}`, 'g'), this.renderPosition.bind(this));
+        const regex = new RegExp(`#asset{(${anchors})}`, 'g');
+        return content.replace(regex, this.renderPosition.bind(this));
     }
 
     renderPosition (match, pos) {

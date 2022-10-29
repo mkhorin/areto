@@ -47,7 +47,9 @@ module.exports = class EventManager extends Base {
 
     trigger (name, event) {
         // prevent runtime handler list changes
-        const items = Array.isArray(this._eventMap[name]) ? this._eventMap[name].slice() : [];
+        const items = Array.isArray(this._eventMap[name])
+            ? this._eventMap[name].slice()
+            : [];
         return Event.trigger(this.owner, name, event, items);
     }
 };

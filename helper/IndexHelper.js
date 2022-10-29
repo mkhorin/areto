@@ -15,7 +15,9 @@ module.exports = class IndexHelper {
         }
         for (const item of items) {
             if (item !== null && item !== undefined) {
-                const value = valueProp === undefined ? item : item[valueProp];
+                const value = valueProp !== undefined
+                    ? item[valueProp]
+                    : item;
                 if (Array.isArray(item[keyProp])) {
                     for (const key of item[keyProp]) {
                         result[key] = value;
@@ -38,7 +40,9 @@ module.exports = class IndexHelper {
         }
         for (const item of items) {
             if (item) {
-                const value = valueProp === undefined ? item : item[valueProp];
+                const value = valueProp !== undefined
+                    ? item[valueProp]
+                    : item;
                 if (Array.isArray(item[keyProp])) {
                     for (const key of item[keyProp]) {
                         if (Array.isArray(result[key])) {
@@ -77,7 +81,9 @@ module.exports = class IndexHelper {
         const result = {};
         if (Array.isArray(models)) {
             for (const model of models) {
-                result[model.get(keyAttr)] = valueAttr ? model.get(valueAttr) : model;
+                result[model.get(keyAttr)] = valueAttr
+                    ? model.get(valueAttr)
+                    : model;
             }
         }
         return result;
@@ -89,7 +95,9 @@ module.exports = class IndexHelper {
             return result;
         }
         for (const model of models) {
-            const value = valueAttr ? model.get(valueAttr) : model;
+            const value = valueAttr
+                ? model.get(valueAttr)
+                : model;
             const key = model.get(keyAttr);
             if (Array.isArray(result[key])) {
                 result[key].push(value);

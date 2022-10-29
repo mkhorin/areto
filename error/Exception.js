@@ -17,6 +17,7 @@ module.exports = class Exception {
                 this.data = data;
             }
         } else if (err !== undefined) {
+            this.message = err?.toString?.();
             this.data = err;
         }
     }

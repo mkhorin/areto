@@ -85,7 +85,9 @@ module.exports = class Sort extends Base {
 
     getOrder (attr) {
         const orders = this.getOrders();
-        return Object.prototype.hasOwnProperty.call(orders, attr) ? orders[attr] : null;
+        return Object.prototype.hasOwnProperty.call(orders, attr)
+            ? orders[attr]
+            : null;
     }
 
     getLink (attr, options = {}) {

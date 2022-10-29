@@ -40,7 +40,8 @@ module.exports = class Application extends Base {
     }
 
     createName () {
-        return StringHelper.toLowerCaseFirstLetter(StringHelper.trimEnd(this.constructor.name, 'Application'));
+        const name = StringHelper.trimEnd(this.constructor.name, 'Application');
+        return StringHelper.toLowerCaseFirstLetter(name);
     }
 
     createFullName () {
@@ -52,7 +53,9 @@ module.exports = class Application extends Base {
     }
 
     setBaseUrl () {
-        this.baseUrl = this.mountPath === '/' ? this.mountPath : `${this.mountPath}/`;
+        this.baseUrl = this.mountPath === '/'
+            ? this.mountPath
+            : `${this.mountPath}/`;
     }
 
     async start () {

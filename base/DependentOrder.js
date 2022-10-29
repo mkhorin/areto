@@ -69,7 +69,8 @@ module.exports = class DependentOrder extends Base {
     orderItem (item) {
         this._chain.push(item);
         if (item.sorting) {
-            throw new Error('Circular dependency: '+ this._chain.map(item => item.id));
+            const items = this._chain.map(item => item.id);
+            throw new Error(`Circular dependency: ${items}`);
         }
         item.sorting = true;
         this.orderItemDepends(item);
@@ -106,6 +107,8 @@ module.exports = class DependentOrder extends Base {
      */
     getItemDepends (item) {
         const depends = item[this.dependsAttr];
-        return Array.isArray(depends) ? depends : depends ? [depends] : [];
+        return Array.isArray(depends)
+            ? depends
+            : depends ? [depends] : [];
     }
 };

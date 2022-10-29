@@ -65,7 +65,9 @@ module.exports = class Inspector extends Base {
             inspector: this,
             module: this.module
         });
-        rule.params = data.params ? {...data.params, ...this.params} : this.params;
+        rule.params = data.params
+            ? {...data.params, ...this.params}
+            : this.params;
         return rule.execute();
     }
 

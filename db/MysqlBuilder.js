@@ -16,7 +16,8 @@ module.exports = class MysqlBuilder extends Base {
                 '>=': ' >= ',
                 '<': ' < ',
                 '<=': ' <= '
-            }
+            },
+            MAX_LIMIT: 99999999
         };
     }
 
@@ -54,7 +55,8 @@ module.exports = class MysqlBuilder extends Base {
         }
         const result = [];
         for (const key of Object.keys(order)) {
-            result.push(`${this.db.escapeId(key)} ${order[key] === 1 ? 'ASC' : 'DESC'}`);
+            const direction = order[key] === 1 ? 'ASC' : 'DESC';
+            result.push(`${this.db.escapeId(key)} ${direction}`);
         }
         return result.length ? result.join(',') : null;
     }
@@ -68,7 +70,7 @@ module.exports = class MysqlBuilder extends Base {
             sql +=` ORDER BY ${cmd.order}`;
         }
         if (cmd.offset) {
-            sql +=` LIMIT ${cmd.offset},${cmd.limit ? cmd.limit : 99999999}`;
+            sql +=` LIMIT ${cmd.offset},${cmd.limit ? cmd.limit : this.MAX_LIMIT}`;
         } else if (cmd.limit) {
             sql +=` LIMIT ${cmd.limit}`;
         }

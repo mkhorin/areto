@@ -42,6 +42,9 @@ module.exports = class ActionProfiler extends Base {
     }
 
     formatTime (time, controller) {
-        return `${controller.response.code} ${controller.req.method} ${time} ms ${controller.getOriginalUrl()}`;
+        const code = controller.response.code;
+        const method = controller.response.method;
+        const url = controller.getOriginalUrl();
+        return `${code} ${method} ${time} ms ${url}`;
     }
 };

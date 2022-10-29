@@ -68,7 +68,9 @@ module.exports = class Router extends Base {
     }
 
     getController (name) {
-        return this._controllerMap.hasOwnProperty(name) ? this._controllerMap[name] : null;
+        return this._controllerMap.hasOwnProperty(name)
+            ? this._controllerMap[name]
+            : null;
     }
 
     getControllerMap (dir, relative = '') {
@@ -115,7 +117,8 @@ module.exports = class Router extends Base {
             const route = `/${key}`;
             const Controller = this._controllerMap[key];
             for (const name of Controller.getActionNames()) {
-                this.addAction(name, Controller, `${route}/${this.constructor.createActionRouteName(name)}`);
+                const action = this.constructor.createActionRouteName(name);
+                this.addAction(name, Controller, `${route}/${action}`);
                 if (Controller.DEFAULT_ACTION === name) {
                     this.addAction(name, Controller, route);
                 }
@@ -125,7 +128,8 @@ module.exports = class Router extends Base {
 
     addAction (name, Controller, route) {
         const action = (req, res, next) => {
-            this.createController(Controller, {req, res, module: res.locals.module})
+            const module = res.locals.module;
+            this.createController(Controller, {req, res, module})
                 .execute(name)
                 .catch(next);
         };
@@ -140,8 +144,9 @@ module.exports = class Router extends Base {
 
     addErrorHandlers (config) {
         const Controller = this.getController(config.controller) || this.getDefaultController();
-        this.module.addHandler('all', '*', (req, res, next) => next(new NotFound));
-        this.module.addHandler('use', (err, req, res, next) => {
+        const module = this.module;
+        module.addHandler('all', '*', (req, res, next) => next(new NotFound));
+        module.addHandler('use', (err, req, res, next) => {
             if (!(err instanceof HttpException)) {
                 err = new ServerError(err);
             }
@@ -149,7 +154,7 @@ module.exports = class Router extends Base {
             if (!Controller) {
                 return next(err);
             }
-            this.createController(Controller, {err, req, res, module: this.module})
+            this.createController(Controller, {err, req, res, module})
                 .execute(config.action || 'error')
                 .catch(next);
         });

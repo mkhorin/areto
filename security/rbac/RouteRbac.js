@@ -42,7 +42,8 @@ module.exports = class RouteRbac extends Base {
             return next(new Forbidden);
         }
         user.setReturnUrl(req.originalUrl);
-        const url = user.module.get('urlManager').resolve(user.getLoginUrl(), user.module.getRouteName());
+        const urlManager = user.module.get('urlManager');
+        const url = urlManager.resolve(user.getLoginUrl(), user.module.getRouteName());
         return res.redirect(url);
     }
 

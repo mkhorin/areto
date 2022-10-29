@@ -23,8 +23,8 @@ module.exports = class Model extends Base {
                 // [['attr1', 'attr2'], '{type}', {...params}]
                 // [['attr1', 'attr2'], '{model method name}']
                 // [['attr1', 'attr2'], {validator class} ]
-                // [['attr1', 'attr2'], '{type}', {on: ['scenario1']} ]
-                // [['attr1', 'attr2'], '{type}', {except: ['scenario2']} ]
+                // [['attr1', 'attr2'], '{type}', {on: ['scenario1', ...]} ]
+                // [['attr1', 'attr2'], '{type}', {except: ['scenario2', ...]} ]
                 // [['attr1'], 'unsafe'] // skip attribute loading
             ],
             SCENARIOS: {
@@ -170,7 +170,9 @@ module.exports = class Model extends Base {
     }
 
     assign (data) {
-        Object.assign(this._attrMap, data instanceof Model ? data.getAttrMap() : data);
+        Object.assign(this._attrMap, data instanceof Model
+            ? data.getAttrMap()
+            : data);
     }
 
     unset (...names) {
@@ -255,23 +257,39 @@ module.exports = class Model extends Base {
     }
 
     getActiveValidatorsByClass (Class, attr) {
-        return this.getValidators().filter(validator => {
-            return validator instanceof Class
-                && validator.isActive(this.scenario)
-                && (!attr || validator.attrs.includes(attr));
-        });
+        const result = [];
+        for (const validator of this.getValidators()) {
+            if (validator instanceof Class && validator.isActive(this.scenario)) {
+                if (!attr || validator.attrs.includes(attr)) {
+                    result.push(validator);
+                }
+            }
+        }
+        return result;
     }
 
     getActiveValidators (attr) {
-        return this.getValidators().filter(validator => {
-            return validator.isActive(this.scenario) && (!attr || validator.attrs.includes(attr));
-        });
+        const result = [];
+        for (const validator of this.getValidators()) {
+            if (validator.isActive(this.scenario)) {
+                if (!attr || validator.attrs.includes(attr)) {
+                    result.push(validator);
+                }
+            }
+        }
+        return result;
     }
 
     getValidatorsByClass (Class, attr) {
-        return this.getValidators().filter(validator => {
-            return validator instanceof Class && (!attr || validator.attrs.includes(attr));
-        });
+        const result = [];
+        for (const validator of this.getValidators()) {
+            if (validator instanceof Class) {
+                if (!attr || validator.attrs.includes(attr)) {
+                    result.push(validator);
+                }
+            }
+        }
+        return result;
     }
 
     getValidators () {
@@ -334,7 +352,9 @@ module.exports = class Model extends Base {
     }
 
     getErrors (attr) {
-        return !attr ? this._errorMap : this.hasError(attr) ? this._errorMap[attr] : [];
+        return attr
+            ? this.hasError(attr) ? this._errorMap[attr] : []
+            : this._errorMap;
     }
 
     getFirstError (attr) {

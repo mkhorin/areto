@@ -48,7 +48,8 @@ module.exports = class FileLogStore extends Base {
     }
 
     getFile (suffix) {
-        return path.join(this.basePath, this.name + (suffix ? `-${suffix}` : '') + '.log');
+        suffix = suffix ? `-${suffix}` : '';
+        return path.join(this.basePath, `${this.name}${suffix}.log`);
     }
 
     openFile () {

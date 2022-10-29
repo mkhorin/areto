@@ -15,7 +15,8 @@ module.exports = class Expression {
             this._value = this.value;
             if (this.params) {
                 for (const key of Object.keys(this.params)) {
-                    this._value = this._value.replace(new RegExp(`:${key}`, 'g'), db.escape(this.params[key]));
+                    const regex = new RegExp(`:${key}`, 'g');
+                    this._value = this._value.replace(regex, db.escape(this.params[key]));
                 }
             }
         }

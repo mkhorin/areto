@@ -452,7 +452,7 @@ module.exports = class Module extends Base {
         };
         config.id = id;
         config.parent = this.parent?.components.get(id);
-        const name = StringHelper.capitalize(config.componentMethodName || config.id);
+        const name = StringHelper.capitalize(config.componentMethodName || id);
         const method = `create${name}Component`;
         return typeof this[method] === 'function'
             ? this[method](config)

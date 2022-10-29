@@ -117,11 +117,15 @@ module.exports = class Rbac extends Base {
     }
 
     getItem (id) {
-        return Object.prototype.hasOwnProperty.call(this.itemMap, id) ? this.itemMap[id] : null;
+        return Object.prototype.hasOwnProperty.call(this.itemMap, id)
+            ? this.itemMap[id]
+            : null;
     }
 
     findUser (name) {
-        return this.spawn(this.module.get('auth').Identity).find({name});
+        return this
+            .spawn(this.module.get('auth').Identity)
+            .find({name});
     }
 
     getUserAssignments (userId) {

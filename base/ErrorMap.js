@@ -8,14 +8,16 @@ module.exports = class ErrorMap {
     _data = {};
 
     has (key) {
-        return key ? Object.prototype.hasOwnProperty.call(this._data, key)
-                   : Object.values(this._data).length > 0;
+        return key
+            ? Object.prototype.hasOwnProperty.call(this._data, key)
+            : Object.values(this._data).length > 0;
     }
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : [];
+        return Object.prototype.hasOwnProperty.call(this._data, key)
+            ? this._data[key]
+            : [];
     }
-
 
     getFirst (key) {
         if (key) {

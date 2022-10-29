@@ -25,7 +25,9 @@ module.exports = class DatabaseCache extends Base {
     }
 
     setValue (key, value, duration) {
-        const expiredAt = duration ? Math.trunc(Date.now() / 1000 + duration) : 0;
+        const expiredAt = duration
+            ? Math.trunc(Date.now() / 1000 + duration)
+            : 0;
         return this.getQuery().and({key}).upsert({key, value, expiredAt});
     }
 

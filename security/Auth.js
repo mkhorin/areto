@@ -65,7 +65,8 @@ module.exports = class Auth extends Base {
         res.locals.user = new this.WebUser({
             auth: this,
             module: res.locals.module,
-            req, res
+            req,
+            res
         });
         this.resolveUser(res.locals.user).then(next, next);
     }
@@ -118,9 +119,9 @@ module.exports = class Auth extends Base {
         const identity = await user.findIdentity(data.id).one();
         if (identity?.checkAuthKey(data.key)) {
             return this.login(user, {
-                identity,
                 duration: this.autoRenewCookie ? data.duration : 0,
-                cookieBased: true
+                cookieBased: true,
+                identity
             });
         }
     }
@@ -160,7 +161,10 @@ module.exports = class Auth extends Base {
             const absoluteExpire = this.absoluteTimeout !== null
                 ? user.getSession(this.absoluteTimeoutParam)
                 : null;
-            if (expire !== null && expire < now || absoluteExpire !== null && absoluteExpire < now) {
+            if (expire !== null && expire < now) {
+                return false;
+            }
+            if (absoluteExpire !== null && absoluteExpire < now){
                 return false;
             }
             if (this.timeout !== null) {
@@ -171,7 +175,7 @@ module.exports = class Auth extends Base {
 
     renewCookie (user) {
         const value = user.getCookie(this.identityCookieParam);
-        if (value && typeof value.duration === 'number') {
+        if (typeof value?.duration === 'number') {
             this.identityCookie.maxAge = value.duration * 1000;
             user.setCookie(this.identityCookieParam, value, this.identityCookie);
         }

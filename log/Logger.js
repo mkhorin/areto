@@ -71,26 +71,38 @@ module.exports = class Logger extends Base {
     }
 
     getType (name) {
-        return this.types.hasOwnProperty(name) ? this.types[name] : null;
+        return this.types.hasOwnProperty(name)
+            ? this.types[name]
+            : null;
     }
 
     getStore (name) {
-        return this.stores[name] instanceof LogStore ? this.stores[name] : null;
+        return this.stores[name] instanceof LogStore
+            ? this.stores[name]
+            : null;
     }
 
     createStores () {
         const logger = this;
-        this.stores = {...this.defaultStores, ...this.stores};
+        this.stores = {
+            ...this.defaultStores,
+            ...this.stores
+        };
         for (const name of Object.keys(this.stores)) {
             this.stores[name] = this.spawn(this.stores[name], {logger, name});
         }
     }
 
     createTypes () {
-        this.types = {...this.defaultTypes, ...this.types};
+        this.types = {
+            ...this.defaultTypes,
+            ...this.types
+        };
         for (let i = 0; i < this.typeNames.length; ++i) {
             const name = this.typeNames[i];
-            this.types[name] = this._levelIndex > i ? null : this.createType(name, i);
+            this.types[name] = this._levelIndex <= i
+                ? this.createType(name, i)
+                : null;
         }
     }
 
