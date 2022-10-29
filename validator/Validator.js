@@ -71,8 +71,8 @@ module.exports = class Validator extends Base {
      * @param {boolean} config.skipOnEmpty - Skip validation if attribute value is empty
      * @param {boolean} config.skipOnError - Skip validation if attribute already contains error
      * @param {boolean} config.skipOnAnyError - Skip validation if model already contains error
-     * @param {string[]} config.on - Validate only in these scenarios
-     * @param {string} config.except - Validate except these scenarios
+     * @param {string | string[]} config.on - Validate only in these scenarios
+     * @param {string | string[]} config.except - Validate except these scenarios
      * @param {function} config.when - Check need for validation: (model, attr) => false/true
      * @param {function} config.isEmpty - Check empty value: (value) => false/true
      * @param {string} config.messageSource - Source of translations of custom error messages
@@ -132,9 +132,19 @@ module.exports = class Validator extends Base {
     }
 
     isActive (scenario) {
-        return scenario
-            ? (!this.except || !this.except.includes(scenario)) && (!this.on || this.on.includes(scenario))
-            : !this.on;
+        if (!scenario) {
+            return !this.on;
+        }
+        if (this.except === scenario) {
+            return false;
+        }
+        if (Array.isArray(this.except) && this.except.includes(scenario)) {
+            return false;
+        }
+        if (!this.on || this.on === scenario) {
+            return true;
+        }
+        return Array.isArray(this.on) && this.on.includes(scenario);
     }
 
     isEmptyValue (value) {
