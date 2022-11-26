@@ -73,14 +73,17 @@ module.exports = class Forwarder extends Base {
     }
 
     createSourceUrl (data) {
-        const index = data.segments.indexOf(this.module.getRouteName()) + 1;
+        const route = this.module.getRouteName();
+        const index = data.segments.indexOf(route) + 1;
         data.path = index > 0
             ? `/${data.segments.slice(index).join('/')}`
             : `/${data.segments.join('/')}`;
         for (let url of this._urls) {
             url = url.createSourceUrl(data);
             if (url) {
-                return index > 0 ? `/${data.segments.slice(0, index).join('/')}${url}` : url;
+                return index > 0
+                    ? `/${data.segments.slice(0, index).join('/')}${url}`
+                    : url;
             }
         }
         return null;

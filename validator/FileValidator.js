@@ -54,8 +54,10 @@ module.exports = class FileValidator extends Base {
         if (!file) {
             return this.getMessage();
         }
-        if (this.imageOnly && (!file.type || file.type.indexOf('image') !== 0)) {
-            return this.getNotImageMessage();
+        if (this.imageOnly) {
+            if (!file.type || file.type.indexOf('image') !== 0) {
+                return this.getNotImageMessage();    
+            }
         }
         if (this.minSize && file.size < this.minSize) {
             return this.getTooSmallMessage();
@@ -63,12 +65,15 @@ module.exports = class FileValidator extends Base {
         if (this.maxSize && file.size > this.maxSize) {
             return this.getTooBigMessage();
         }
-        if (Array.isArray(this.extensions)
-            && (!file.extension || !this.extensions.includes(file.extension.toLowerCase()))) {
-            return this.getWrongExtensionMessage();
+        if (Array.isArray(this.extensions)) {
+            if (!file.extension || !this.extensions.includes(file.extension.toLowerCase())) {
+                return this.getWrongExtensionMessage();    
+            }
         }
-        if (Array.isArray(this.types) && (!file.type || !this.types.includes(file.type))) {
-            return this.getWrongTypeMessage();
+        if (Array.isArray(this.types)) {
+            if (!file.type || !this.types.includes(file.type)) {
+                return this.getWrongTypeMessage();    
+            }
         }
         if (file.path) {
             return this.validatePath(file);

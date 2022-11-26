@@ -9,7 +9,9 @@ module.exports = class BehaviorManager extends Base {
 
     get (name) {
         this.ensure();
-        return this._behaviorMap[name] instanceof Behavior ? this._behaviorMap[name] : null;
+        return this._behaviorMap[name] instanceof Behavior
+            ? this._behaviorMap[name]
+            : null;
     }
 
     attach (name, data) {

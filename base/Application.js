@@ -82,7 +82,8 @@ module.exports = class Application extends Base {
         };
         await PromiseHelper.setImmediate();
         this.server = await this.startServerInternal(params);
-        this.log('info', `Server is running on port ${this.server.address()?.port}`);
+        const address = this.server.address();
+        this.log('info', `Server is running on port ${address?.port}`);
     }
 
     getServerPort () {

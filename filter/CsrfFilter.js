@@ -15,11 +15,13 @@ module.exports = class CsrfFilter extends Base {
     }
 
     isActive (action) {
-        return action.user.auth.csrf && action.isPostRequest() && super.isActive(action);
+        return action.user.auth.csrf
+            && action.isPostRequest()
+            && super.isActive(action);
     }
 
-    beforeAction (action) {
-        if (action.getPostParam(this.csrfParam) !== action.controller.getCsrfToken()) {
+    beforeAction ({controller}) {
+        if (controller.getPostParam(this.csrfParam) !== controller.getCsrfToken()) {
             throw new BadRequest('Invalid CSRF token');
         }
     }

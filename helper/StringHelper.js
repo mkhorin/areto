@@ -19,7 +19,7 @@ module.exports = class StringHelper {
 
     static capitalize (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.charAt(0).toUpperCase() + text.slice(1);
+        return text[0].toUpperCase() + text.slice(1);
     }
 
     static capitalizeWords (text) {
@@ -29,7 +29,7 @@ module.exports = class StringHelper {
 
     static toLowerCaseFirstLetter (text) {
         text = typeof text === 'string' ? text : String(text);
-        return text.charAt(0).toLowerCase() + text.slice(1);
+        return text[0].toLowerCase() + text.slice(1);
     }
 
     static toLowerCamelCase (text) {

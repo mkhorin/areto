@@ -56,7 +56,9 @@ module.exports = class ExistValidator extends Base {
     }
 
     createQuery (values, attr, model) {
-        const queryModel = this.targetClass ? model.spawn(this.targetClass) : model;
+        const queryModel = this.targetClass
+            ? model.spawn(this.targetClass)
+            : model;
         const query = queryModel.find();
         if (this.ignoreCase) {
             for (const name of Object.keys(values)) {

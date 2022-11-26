@@ -24,7 +24,8 @@ module.exports = class UniqueValidator extends Base {
     checkExists (ids, model, targetClass) {
         if (ids.length === 1) {
             if (targetClass === model.constructor) {
-                return !model.getId() || !CommonHelper.isEqual(model.getId(), ids[0]);
+                const id = model.getId();
+                return !id || !CommonHelper.isEqual(id, ids[0]);
             }
         } else if (ids.length === 0) {
             return false;

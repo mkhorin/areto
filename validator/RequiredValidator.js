@@ -37,7 +37,9 @@ module.exports = class RequiredValidator extends Base {
             return;
         }
         if (this.requiredValue === null) {
-            value = typeof value === 'string' && this.trimming ? value.trim() : value;
+            if (this.trimming && typeof value === 'string') {
+                value = value.trim();
+            }
             if (this.strict ? value !== null : !this.isEmptyValue(value)) {
                return;
             }

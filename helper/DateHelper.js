@@ -6,7 +6,8 @@
 module.exports = class DateHelper {
 
     static isExpired (date, period, now = new Date) {
-        return date.valueOf() + this.parseDuration(period) < now.valueOf();
+        const target = date.valueOf() + this.parseDuration(period);
+        return target < now.valueOf();
     }
 
     static isValid (date) {
@@ -31,7 +32,10 @@ module.exports = class DateHelper {
         }
         date = date instanceof Date ? date : new Date(date);
         const time = date.getTime();
-        return isNaN(time) ? null : (new Date(time + date.getTimezoneOffset() * 60000));
+        if (isNaN(time)) {
+            return null;
+        }
+        return new Date(time + date.getTimezoneOffset() * 60000);
     }
 
     static getDayInterval (date) {

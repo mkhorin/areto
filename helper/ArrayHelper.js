@@ -24,7 +24,9 @@ module.exports = class ArrayHelper {
 
     static hasDiff (targets, sources, indexOf) {
         for (const source of sources) {
-            const index  = indexOf ? indexOf(source, targets) : targets.indexOf(source);
+            const index  = indexOf 
+                ? indexOf(source, targets) 
+                : targets.indexOf(source);
             if (index === -1) {
                 return true;
             }
@@ -41,7 +43,9 @@ module.exports = class ArrayHelper {
     static exclude (targets, sources, indexOf) {
         const result = [];
         for (const source of sources) {
-            const index = indexOf ? indexOf(source, targets) : targets.indexOf(source);
+            const index = indexOf 
+                ? indexOf(source, targets) 
+                : targets.indexOf(source);
             if (index === -1) {
                 result.push(source);
             }
@@ -52,7 +56,9 @@ module.exports = class ArrayHelper {
     static intersect (targets, sources, indexOf) {
         const result = [];
         for (const target of targets) {
-            const index = indexOf ? indexOf(target, sources) : sources.indexOf(target);
+            const index = indexOf
+                ? indexOf(target, sources)
+                : sources.indexOf(target);
             if (index !== -1) {
                 result.push(target);
             }
@@ -72,7 +78,9 @@ module.exports = class ArrayHelper {
     static uniqueStrict (values, indexOf) {
         const result = [];
         for (let i = 0; i < values.length; ++i) {
-            const index = indexOf ? indexOf(values[i], values) : values.indexOf(values[i]);
+            const index = indexOf
+                ? indexOf(values[i], values)
+                : values.indexOf(values[i]);
             if (index === i) {
                 result.push(values[i]);
             }
@@ -136,8 +144,10 @@ module.exports = class ArrayHelper {
         const result = [];
         if (Array.isArray(items)) {
             for (const item of items) {
-                if (item?.[key] && (item[key] === Base || item[key].prototype instanceof Base)) {
-                    result.push(item);
+                if (item?.[key]) {
+                    if (item[key] === Base || item[key].prototype instanceof Base) {
+                        result.push(item);
+                    }
                 }
             }
         }
@@ -147,7 +157,7 @@ module.exports = class ArrayHelper {
     // RANDOM
 
     static random (values) {
-        if (Array.isArray(values) && values.length) {
+        if (Array.isArray(values)) {
             return values[Math.floor(Math.random() * values.length)];
         }
     }

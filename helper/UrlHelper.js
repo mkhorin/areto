@@ -13,10 +13,10 @@ module.exports = class UrlHelper {
         }
         index = url.indexOf('?');
         let path = index !== -1 ? url.substring(0, index) : url;
-        if (path.charAt(0) === '/') {
+        if (path[0] === '/') {
             path = path.substring(1);
         }
-        if (path.charAt(path.length - 1) === '/') {
+        if (path[path.length - 1] === '/') {
             path = path.substring(0, path.length - 1);
         }
         const segments = path.split('/');

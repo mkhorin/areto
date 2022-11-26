@@ -89,7 +89,8 @@ module.exports = class Router extends Base {
     setControllerMapFile (file, relative, map) {
         const stat = fs.lstatSync(file);
         if (stat.isDirectory()) {
-            Object.assign(map, this.getControllerMap(file, `${relative}${path.basename(file)}-`));
+            const prefix = `${relative}${path.basename(file)}-`;
+            Object.assign(map, this.getControllerMap(file, prefix));
         } else {
             const controller = require(file);
             map[relative + controller.getRouteName()] = controller;

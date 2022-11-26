@@ -96,7 +96,8 @@ module.exports = class Configuration extends Base {
     readFiles (name) {
         const base = this.readFile(name);
         if (base) {
-            return AssignHelper.deepAssign(base, this.readFile(`${name}.local`));
+            const data = this.readFile(`${name}.local`);
+            return AssignHelper.deepAssign(base, data);
         }
     }
 

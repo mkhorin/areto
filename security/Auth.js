@@ -49,7 +49,8 @@ module.exports = class Auth extends Base {
     }
 
     init () {
-        this.identityCookie = Object.assign(this.getDefaultCookieOptions(), this.identityCookie);
+        const options = this.getDefaultCookieOptions();
+        this.identityCookie = Object.assign(options, this.identityCookie);
         this.rbac = this.module.get(this.rbac);
         this.module.addHandler('use', this.createUser.bind(this));
     }
@@ -211,12 +212,13 @@ module.exports = class Auth extends Base {
     }
 
     renewIdentityCookie (user, duration) {
-        this.identityCookie.maxAge = duration * 1000;
-        user.setCookie(this.identityCookieParam, {
+        const data = {
             id: user.getId(),
             key: user.getAuthKey(),
             duration
-        }, this.identityCookie);
+        };
+        this.identityCookie.maxAge = duration * 1000;
+        user.setCookie(this.identityCookieParam, data, this.identityCookie);
     }
 };
 

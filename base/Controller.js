@@ -38,7 +38,8 @@ module.exports = class Controller extends Base {
 
     static getBaseName () {
         if (!this.hasOwnProperty('_baseName')) {
-            this._baseName = StringHelper.toLowerCaseFirstLetter(StringHelper.trimEnd(this.name, 'Controller'));
+            const name = StringHelper.trimEnd(this.name, 'Controller');
+            this._baseName = StringHelper.toLowerCaseFirstLetter(name);
         }
         return this._baseName;
     }
@@ -52,9 +53,10 @@ module.exports = class Controller extends Base {
 
     static getActionNames () {
         const names = Object.keys(this.ACTIONS);
-        for (const name of ObjectHelper.getAllFunctionNames(this.prototype)) {
+        for (let name of ObjectHelper.getAllFunctionNames(this.prototype)) {
             if (name.indexOf('action') === 0) {
-                names.push(StringHelper.toLowerCaseFirstLetter(name.substring(6)));
+                name = StringHelper.toLowerCaseFirstLetter(name.substring(6));
+                names.push(name);
             }
         }
         return names;
@@ -63,7 +65,9 @@ module.exports = class Controller extends Base {
     static getModelClass () {
         if (!this.hasOwnProperty('_MODEL_CLASS')) {
             const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
-            const dir = path.join(this.MODEL_DIRECTORY, this.getNestedDirectory(), this.getModelClassName());
+            const nested = this.getNestedDirectory();
+            const className = this.getModelClassName();
+            const dir = path.join(this.MODEL_DIRECTORY, nested, className);
             this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
         }
         return this._MODEL_CLASS;
@@ -75,9 +79,9 @@ module.exports = class Controller extends Base {
 
     static getViewDirectory () {
         if (!this.hasOwnProperty('_VIEW_DIRECTORY')) {
-            const dir = this.getNestedDirectory();
-            this._VIEW_DIRECTORY = dir
-                ? `${dir}/${this.getBaseName()}/`
+            const nested = this.getNestedDirectory();
+            this._VIEW_DIRECTORY = nested
+                ? `${nested}/${this.getBaseName()}/`
                 : `${this.getBaseName()}/`;
         }
         return this._VIEW_DIRECTORY;
@@ -170,14 +174,20 @@ module.exports = class Controller extends Base {
     createInlineAction (name) {
         const method = this[`action${StringHelper.capitalize(name)}`];
         if (typeof method === 'function') {
-            const config = this.INLINE_ACTION || this.module.InlineAction;
-            return this.spawn(config, {controller: this, method, name});
+            return this.spawn(this.INLINE_ACTION || this.module.InlineAction, {
+                controller: this,
+                method,
+                name
+            });
         }
     }
 
     createMappedAction (name) {
         if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
-            return this.spawn(this.ACTIONS[name], {controller: this, name});
+            return this.spawn(this.ACTIONS[name], {
+                controller: this,
+                name
+            });
         }
     }
 
@@ -185,12 +195,14 @@ module.exports = class Controller extends Base {
 
     beforeAction () {
         // call await super.beforeAction() if override it
-        return this.trigger(this.EVENT_BEFORE_ACTION, new ActionEvent(this.action));
+        const event = new ActionEvent(this.action);
+        return this.trigger(this.EVENT_BEFORE_ACTION, event);
     }
 
     afterAction () {
         // call await super.afterAction() if override it
-        return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(this.action));
+        const event = new ActionEvent(this.action);
+        return this.trigger(this.EVENT_AFTER_ACTION, event);
     }
 
     // REQUEST
@@ -297,11 +309,13 @@ module.exports = class Controller extends Base {
     }
 
     async renderTemplate (template, data) {
-        return this.getView().render(this.getViewFilename(template), data);
+        const file = this.getViewFilename(template);
+        return this.getView().render(file, data);
     }
 
     createViewModel (name, config = {}) {
-        return this.getView().createViewModel(this.getViewFilename(name), config);
+        const file = this.getViewFilename(name);
+        return this.getView().createViewModel(file, config);
     }
 
     getView () {
@@ -320,12 +334,18 @@ module.exports = class Controller extends Base {
     }
 
     getTheme () {
-        return this.module.components.get(this.module.defaultViewComponentId).getTheme();
+        return this.module.components
+            .get(this.module.defaultViewComponentId)
+            .getTheme();
     }
 
     getViewFilename (name) {
-        name = typeof name !== 'string' ? String(name) : name;
-        return path.isAbsolute(name) ? name : (this.constructor.getViewDirectory() + name);
+        if (typeof name !== 'string') {
+            name = String(name);
+        }
+        return !path.isAbsolute(name)
+            ? this.constructor.getViewDirectory() + name
+            : name;
     }
 
     // SEND
@@ -368,7 +388,10 @@ module.exports = class Controller extends Base {
         if (this._urlManager === undefined) {
             this._urlManager = this.getUrlManager();
         }
-        return this._urlManager.resolve(data.length > 1 ? data : data[0], this.getRouteName());
+        if (data.length === 1) {
+            data = data[0];
+        }
+        return this._urlManager.resolve(data, this.getRouteName());
     }
 
     getHostUrl () {

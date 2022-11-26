@@ -52,12 +52,13 @@ module.exports = class Pagination extends Base {
         if (value === null) {
             return this.pageSize = null;
         }
+        const limit = this.pageSizeLimit;
         value = parseInt(value);
-        if (Array.isArray(this.pageSizeLimit) && this.pageSizeLimit.length === 2) {
-            if (value < this.pageSizeLimit[0]) {
-                value = this.pageSizeLimit[0];
-            } else if (value > this.pageSizeLimit[1]) {
-                value = this.pageSizeLimit[1];
+        if (limit?.length === 2) {
+            if (value < limit[0]) {
+                value = limit[0];
+            } else if (value > limit[1]) {
+                value = limit[1];
             }
         }
         this.pageSize = value;

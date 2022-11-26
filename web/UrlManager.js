@@ -16,7 +16,7 @@ module.exports = class UrlManager extends Base {
 
     init () {
         this.forwarder = this.module.get(this.forwarder);
-        this.serverAddress = this.module.getParam('serverAddress');
+        this.serverAddress = this.module.params.serverAddress;
     }
 
     resolveAbsolute () {
@@ -28,7 +28,9 @@ module.exports = class UrlManager extends Base {
     }
 
     forward (url) {
-        return this.forwarder ? this.forwarder.resolve(url) : url;
+        return this.forwarder
+            ? this.forwarder.resolve(url)
+            : url;
     }
 
     createAbsolute () {

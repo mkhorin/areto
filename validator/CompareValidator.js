@@ -18,19 +18,22 @@ module.exports = class CompareValidator extends Base {
     }
 
     getMessage (params) {
-        let message;
-        switch (this.operator) {
-            case '==': message = 'Value must be equal to "{compareValue}"'; break;
-            case '===': message = 'Value must be equal to "{compareValue}"'; break;
-            case '!=': message = 'Value must not be equal to "{compareValue}"'; break;
-            case '!==': message = 'Value must not be equal to "{compareValue}"'; break;
-            case '>': message = 'Value must be greater than "{compareValue}"';break;
-            case '>=': message = 'Value must be greater than or equal to "{compareValue}"'; break;
-            case '<': message = 'Value must be less than "{compareValue}"'; break;
-            case '<=': message = 'Value must be less than or equal to "{compareValue}"'; break;
-            default: message = `Unknown operator: ${this.operator}`;
-        }
+        const message = this.getOperatorMessage(this.operator);
         return this.createMessage(this.message, message, params);
+    }
+
+    getOperatorMessage (operator) {
+        switch (this.operator) {
+            case '==': return 'Value must be equal to "{compareValue}"';
+            case '===': return 'Value must be equal to "{compareValue}"';
+            case '!=': return 'Value must not be equal to "{compareValue}"';
+            case '!==': return 'Value must not be equal to "{compareValue}"';
+            case '>': return 'Value must be greater than "{compareValue}"';
+            case '>=': return 'Value must be greater than or equal to "{compareValue}"';
+            case '<': return 'Value must be less than "{compareValue}"';
+            case '<=': return 'Value must be less than or equal to "{compareValue}"';
+        }
+        return `Unknown operator: ${operator}`;
     }
 
     getInvalidValueMessage () {

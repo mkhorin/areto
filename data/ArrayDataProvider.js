@@ -19,20 +19,20 @@ module.exports = class ArrayDataProvider extends Base {
         if (this.pagination) {
             this.pagination.totalCount = this.totalCount;
             if (this.pagination.pageSize > 0) {
+                const limit = this.pagination.getLimit();
                 const offset = this.pagination.getOffset();
-                models = models.slice(offset, offset + this.pagination.getLimit());
+                models = models.slice(offset, offset + limit);
             }
         }
         return models;
     }
 
     sortModels (models, sort) {
-        const Sort = require('./Sort');
         const orders = sort.getOrders();
         if (orders) {
             const directions = {};
             for (const attr of Object.keys(orders)) {
-                directions[attr] = orders[attr] === Sort.ASC ? 1 : -1;
+                directions[attr] = orders[attr] === sort.ASC ? 1 : -1;
             }
             models.sort(this.compareModels.bind(this, orders, directions));
         }
@@ -41,7 +41,7 @@ module.exports = class ArrayDataProvider extends Base {
 
     compareModels (orders, directions, a, b) {
         for (const attr of Object.keys(orders)) {
-            const result = a[attr].toString().localeCompare(b[attr].toString());
+            const result = String(a[attr]).localeCompare(String(b[attr]));
             if (result !== 0) {
                 return result * directions[attr];
             }

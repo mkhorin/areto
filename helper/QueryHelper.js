@@ -7,16 +7,28 @@ module.exports = class QueryHelper {
 
     static indexObjects (docs, key) {
         const result = {};
-        for (const doc of docs) {
-            result[typeof key === 'function' ? key(doc) : doc[key]] = doc;
+        if (typeof key === 'function') {
+            for (const doc of docs) {
+                result[key(doc)] = doc;
+            }
+        } else {
+            for (const doc of docs) {
+                result[doc[key]] = doc;
+            }
         }
         return result;
     }
 
     static indexModels (models, key) {
         const result = {};
-        for (const model of models) {
-            result[typeof key === 'function' ? key(model) : model.get(key)] = model;
+        if (typeof key === 'function') {
+            for (const model of models) {
+                result[key(model)] = model;
+            }
+        } else {
+            for (const model of models) {
+                result[model.get(key)] = model;
+            }
         }
         return result;
     }

@@ -191,7 +191,7 @@ module.exports = class MysqlDatabase extends Base {
     }
 
     escapeOneId (id) {
-        return id.charAt(0) === '`' ? id : ('`'+ id +'`');
+        return id[0] === '`' ? id : ('`'+ id +'`');
     }
 
     escape (value) {

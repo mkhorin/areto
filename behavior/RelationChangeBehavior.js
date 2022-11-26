@@ -85,7 +85,8 @@ module.exports = class RelationChangeBehavior extends Base {
     async resolveLinks (name) {
         const changes = this._changes[name];
         if (changes.links.length) {
-            changes.links = await this.getRelation(name).model.findById(changes.links).all();
+            const query = this.getRelation(name).model.findById(changes.links);
+            changes.links = await query.all();
         }
     }
 

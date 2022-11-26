@@ -114,10 +114,10 @@ module.exports = class MongoHelper {
             return value;
         }
         value = EscapeHelper.escapeRegex(value);
-        value = value.charAt(0) === '%'
+        value = value[0] === '%'
             ? value.substring(1)
             : `^${value}`;
-        value = value.charAt(value.length - 1) === '%'
+        value = value[value.length - 1] === '%'
             ? value.substring(0, value.length - 1)
             : `${value}$`;
         return new RegExp(value, 'i');

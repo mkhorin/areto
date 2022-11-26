@@ -297,11 +297,13 @@ module.exports = class Query extends Base {
         switch (data[0]) {
             case 'and':
             case 'or':
-            case 'not':
+            case 'not': {
                 return this.filterSerialCondition();
+            }
             case 'between':
-            case 'notBetween':
+            case 'notBetween': {
                 return !this.isEmptyValue(data[1]) && !this.isEmptyValue(data[2]) ? data : null;
+            }
         }
         return this.isEmptyValue(data[1]) ? null : data;
     }

@@ -199,8 +199,8 @@ module.exports = class ActionView extends Base {
         if (!names.length) {
             return content;
         }
-        const reg = new RegExp(`#{(${names.join('|')})}`, 'g');
-        return content.replace(reg, (match, name) => this.widgets[name].content);
+        const regex = new RegExp(`#{(${names.join('|')})}`, 'g');
+        return content.replace(regex, (match, name) => this.widgets[name].content);
     }
 };
 module.exports.init();

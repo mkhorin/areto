@@ -79,7 +79,7 @@ module.exports = class AssetBundle extends Base {
                 options = {...this.scriptOptions, ...item[1]};
                 item = item[0];
             }
-            if (options.position ? (pos === options.position) : (pos === ActionView.POS_BODY_END)) {
+            if (pos === (options.position || ActionView.POS_BODY_END)) {
                 result += this.renderScript(item, options);
             }
         }

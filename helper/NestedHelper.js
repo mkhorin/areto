@@ -25,7 +25,9 @@ module.exports = class NestedHelper {
         if (Array.isArray(data)) {
             return data.map(item => this.get(key, item, defaults));
         }
-        return data ? this.get(key, data, defaults) : defaults;
+        return data
+            ? this.get(key, data, defaults)
+            : defaults;
     }
 
     static getAlone (key, data, defaults) {
@@ -40,9 +42,11 @@ module.exports = class NestedHelper {
             return defaults;
         }
         const token = key.substring(0, index);
-        return data[token] && Object.prototype.hasOwnProperty.call(data, token)
-            ? this.getAlone(key.substring(index + 1), data[token], defaults)
-            : defaults;
+        if (!Object.prototype.hasOwnProperty.call(data, token)) {
+            return defaults;
+        }
+        key = key.substring(index + 1);
+        return this.getAlone(key, data[token], defaults);
     }
 
     static set (value, key, data) {
@@ -54,7 +58,8 @@ module.exports = class NestedHelper {
         if (!(data[token] instanceof Object)) {
             data[token] = {};
         }
-        this.set(value, key.substring(index + 1), data[token]);
+        key = key.substring(index + 1);
+        this.set(value, key, data[token]);
     }
 
     static includes () {

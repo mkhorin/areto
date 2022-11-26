@@ -20,7 +20,9 @@ module.exports = class ActiveDataProvider extends Base {
         if (this.pagination) {
             this.pagination.totalCount = this.totalCount;
             if (this.pagination.pageSize > 0) {
-                this.query.limit(this.pagination.getLimit()).offset(this.pagination.getOffset());
+                this.query
+                    .limit(this.pagination.getLimit())
+                    .offset(this.pagination.getOffset());
             }
         }
         if (this.sort) {

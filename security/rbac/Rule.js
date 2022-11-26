@@ -19,8 +19,16 @@ module.exports = class Rule extends Base {
         return this.params.controller.getPostParam(...arguments);
     }
 
+    getPostParams () {
+        return this.params.controller.getPostParams();
+    }
+
     getQueryParam () {
         return this.params.controller.getQueryParam(...arguments);
+    }
+
+    getQueryParams () {
+        return this.params.controller.getQueryParams();
     }
 
     getUser () {

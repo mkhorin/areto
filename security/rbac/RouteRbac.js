@@ -43,7 +43,9 @@ module.exports = class RouteRbac extends Base {
         }
         user.setReturnUrl(req.originalUrl);
         const urlManager = user.module.get('urlManager');
-        const url = urlManager.resolve(user.getLoginUrl(), user.module.getRouteName());
+        const loginUrl = user.getLoginUrl();
+        const routeName = user.module.getRouteName();
+        const url = urlManager.resolve(loginUrl, routeName);
         return res.redirect(url);
     }
 

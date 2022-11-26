@@ -57,8 +57,10 @@ module.exports = class Model extends Base {
 
     isAttrRequired (name) {
         for (const validator of this.getActiveValidators(name)) {
-            if (validator instanceof Validator.BUILTIN.required && validator.when === null) {
-                return true;
+            if (validator instanceof Validator.BUILTIN.required) {
+                if (validator.when === null) {
+                    return true;
+                }
             }
         }
         return false;
@@ -109,7 +111,8 @@ module.exports = class Model extends Base {
 
     getUnsafeAttrMap () {
         const data = {};
-        for (const validator of this.getActiveValidatorsByClass(Validator.BUILTIN.unsafe)) {
+        const validators = this.getActiveValidatorsByClass(Validator.BUILTIN.unsafe);
+        for (const validator of validators) {
             for (const attr of validator.attrs) {
                 data[attr] = true;
             }
@@ -157,22 +160,25 @@ module.exports = class Model extends Base {
     }
 
     setAttrs (data, except) {
+        if (!data) {
+            return;
+        }
         if (data instanceof Model) {
             data = data.getAttrMap();
         }
-        if (data) {
-            for (const key of Object.keys(data)) {
-                if (Array.isArray(except) ? !except.includes(key) : (except !== key)) {
-                    this._attrMap[key] = data[key];
-                }
+        const arrayed = Array.isArray(except);
+        for (const key of Object.keys(data)) {
+            if (arrayed ? !except.includes(key) : except !== key) {
+                this._attrMap[key] = data[key];
             }
         }
     }
 
     assign (data) {
-        Object.assign(this._attrMap, data instanceof Model
-            ? data.getAttrMap()
-            : data);
+        if (data instanceof Model) {
+            data = data.getAttrMap();
+        }
+        Object.assign(this._attrMap, data);
     }
 
     unset (...names) {
@@ -307,7 +313,8 @@ module.exports = class Model extends Base {
     }
 
     async setDefaultValues () {
-        for (const validator of this.getActiveValidatorsByClass(Validator.BUILTIN.default)) {
+        const validators = this.getActiveValidatorsByClass(Validator.BUILTIN.default);
+        for (const validator of validators) {
             await validator.validateModel(this);
         }
     }
@@ -416,7 +423,9 @@ module.exports = class Model extends Base {
     static getControllerClass () {
         if (!this.hasOwnProperty('_CONTROLLER_CLASS')) {
             const closest = FileHelper.getClosestDirectory(this.MODEL_DIRECTORY, this.CLASS_DIRECTORY);
-            const dir = path.join(this.CONTROLLER_DIRECTORY, this.getNestedDirectory(), this.getControllerClassName());
+            const nested = this.getNestedDirectory();
+            const className = this.getControllerClassName();
+            const dir = path.join(this.CONTROLLER_DIRECTORY, nested, className);
             Object.defineProperty(this, '_CONTROLLER_CLASS', {
                 value: require(path.join(path.dirname(closest), dir)),
                 writable: false

@@ -166,7 +166,8 @@ module.exports = class Module extends Base {
     }
 
     requireInternal () {
-        const file = FileHelper.addExtension('js', this.resolvePath(...arguments));
+        const path = this.resolvePath(...arguments);
+        const file = FileHelper.addExtension('js', path);
         if (fs.existsSync(file)) {
             return require(file);
         }
@@ -194,7 +195,8 @@ module.exports = class Module extends Base {
         }
         const pos = name.indexOf('.');
         if (pos !== -1) {
-            return this.modules.get(name.substring(0, pos))?.getModule(name.substring(pos + 1));
+            module = this.modules.get(name.substring(0, pos));
+            return module?.getModule(name.substring(pos + 1));
         }
     }
 
@@ -304,8 +306,8 @@ module.exports = class Module extends Base {
         await this.createClassMapper();
         this.extractConfigurationProperties();
         this.setMountPath();
-        this.attachStaticSource(this.getParam('static'));
-        this.addViewEngine(this.getParam('template'));
+        this.attachStaticSource(this.params.static);
+        this.addViewEngine(this.params.template);
         this.createComponents(this.getConfig('components'));
         this.createModules(this.getConfig('modules'));
         await this.beforeComponentInit();
@@ -320,7 +322,8 @@ module.exports = class Module extends Base {
 
     async createOriginalModule () {
         if (this.original) {
-            this.original = this.spawn(this.original, this.getOriginalSpawnParams());
+            const params = this.getOriginalSpawnParams();
+            this.original = this.spawn(this.original, params);
             await this.original.initOriginalModule(this);
         }
     }
@@ -397,7 +400,8 @@ module.exports = class Module extends Base {
         if (!config.Class) {
             config.Class = this.require('module', name, 'Module.js');
         }
-        const module = ClassHelper.spawn(config, this.getModuleSpawnParams(name));
+        const params = this.getModuleSpawnParams(name);
+        const module = ClassHelper.spawn(config, params);
         this.modules.set(name, module);
     }
 
@@ -491,7 +495,8 @@ module.exports = class Module extends Base {
     }
 
     sortComponents () {
-        return this.spawn(this.DependentOrder).sort(this.ownComponents.values());
+        const components = this.ownComponents.values();
+        return this.spawn(this.DependentOrder).sort(components);
     }
 
     async initComponent (component) {
@@ -525,13 +530,15 @@ module.exports = class Module extends Base {
     }
 
     attachModuleStaticSource (module, options) {
-        this.app.attachStaticDirectory(this.getRoute(), module.getPath('web'), options);
+        const route = this.getRoute();
+        const web = module.getPath('web');
+        this.app.attachStaticDirectory(route, web, options);
         if (module.original) {
             this.attachModuleStaticSource(module.original, options);
         }
     }
 
-    attachStaticDirectory (route, dir, options = this.getParam('static')?.options) {
+    attachStaticDirectory (route, dir, options = this.params.static?.options) {
         if (fs.existsSync(dir)) {
             // attach static content handlers before others
             this.app.appEngine.attachStatic(route, dir, options);

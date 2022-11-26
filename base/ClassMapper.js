@@ -30,7 +30,8 @@ module.exports = class ClassMapper extends Base {
     }
 
     spawn (key, params) {
-        return ClassHelper.spawn(this.get(key), Object.assign({module: this.module}, params));
+        params = Object.assign({module: this.module}, params);
+        return ClassHelper.spawn(this.get(key), params);
     }
 };
 

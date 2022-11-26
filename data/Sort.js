@@ -65,7 +65,7 @@ module.exports = class Sort extends Base {
             attrs = attrs.split(this.separator);
             for (let attr of attrs) {
                 let desc = false;
-                if (attr.charAt(0) === '-') {
+                if (attr[0] === '-') {
                     desc = true;
                     attr = attr.substring(1);
                 }

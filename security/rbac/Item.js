@@ -82,7 +82,8 @@ module.exports = class Item extends Base {
     }
 
     async getRuleIdByName (name) {
-        const id = await this.store.findRuleByName(name).scalar(this.store.key);
+        const query = this.store.findRuleByName(name);
+        const id = await query.scalar(this.store.key);
         if (!id) {
             this.log('error', `Rule not found: ${name}`);
             return null;
