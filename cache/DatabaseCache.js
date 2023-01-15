@@ -9,6 +9,10 @@ module.exports = class DatabaseCache extends Base {
 
     _cache = {};
 
+    static getNow () {
+        return Date.now() / 1000;
+    }
+
     constructor (config) {
         super({
             table: 'cache',
@@ -18,17 +22,21 @@ module.exports = class DatabaseCache extends Base {
     }
 
     async getValue (key) {
-        const doc = await this.getQuery().and({key}).one();
-        if (doc && (!doc.expiredAt || doc.expiredAt > Date.now() / 1000)) {
-            return doc.value;
+        const query = this.getQuery().and({key});
+        const data = await query.one();
+        if (data) {
+            if (!data.expiredAt || data.expiredAt > this.constructor.getNow()) {
+                return data.value;
+            }
         }
     }
 
     setValue (key, value, duration) {
         const expiredAt = duration
-            ? Math.trunc(Date.now() / 1000 + duration)
+            ? Math.trunc(this.constructor.getNow() + duration)
             : 0;
-        return this.getQuery().and({key}).upsert({key, value, expiredAt});
+        const query = this.getQuery().and({key});
+        return query.upsert({key, value, expiredAt});
     }
 
     removeValue (key) {

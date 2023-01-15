@@ -37,7 +37,8 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     async load () {
-        return this.prepare(await this.loadData());
+        const data = await this.loadData();
+        return this.prepare(data);
     }
 
     async loadData () {
@@ -94,10 +95,13 @@ module.exports = class DatabaseRbacStore extends Base {
             }
             config = ClassHelper.resolveSpawn(Rule, this.rbac.module, data);
         } catch {
-            return this.log('error', `Invalid rule: ${name}: ${JSON.stringify(config)}`);
+            const data = JSON.stringify(config);
+            return this.log('error', `Invalid rule: ${name}: ${data}`);
         }
-        if (!(config.Class.prototype instanceof Rule) && config.Class !== Rule) {
-            return this.log('error', `Base class of ${config.Class.name} must be Rule`);
+        if (!(config.Class.prototype instanceof Rule)) {
+            if (config.Class !== Rule) {
+                return this.log('error', `Base class of ${config.Class.name} must be Rule`);
+            }
         }
         return {...config, name};
     }
@@ -122,9 +126,11 @@ module.exports = class DatabaseRbacStore extends Base {
         }
         const names = [];
         for (const id of item.rules) {
-            ruleMap.hasOwnProperty(id)
-                ? names.push(ruleMap[id].name)
-                : this.log('error', `Rule not found: ${id}`);
+            if (ruleMap.hasOwnProperty(id)) {
+                names.push(ruleMap[id].name);
+            } else {
+                this.log('error', `Rule not found: ${id}`);
+            }
         }
         return names.length ? names : null;
     }
@@ -144,7 +150,8 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     find (table) {
-        return (new Query).db(this.getDb()).from(this.getTableName(table));
+        table = this.getTableName(table);
+        return (new Query).db(this.getDb()).from(table);
     }
 
     findItem () {
@@ -156,15 +163,21 @@ module.exports = class DatabaseRbacStore extends Base {
     }
 
     findRoleItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_ROLE});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_ROLE
+        });
     }
 
     findPermissionItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_PERMISSION});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_PERMISSION
+        });
     }
 
     findRouteItem () {
-        return this.findItem().and({type: this.rbac.Item.TYPE_ROUTE});
+        return this.findItem().and({
+            type: this.rbac.Item.TYPE_ROUTE
+        });
     }
 
     findItemChild () {

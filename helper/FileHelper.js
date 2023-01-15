@@ -133,7 +133,8 @@ module.exports = class FileHelper {
     }
 
     static async readJsonFile (file) {
-        return JSON.parse(await fs.promises.readFile(file));
+        const data = await fs.promises.readFile(file);
+        return JSON.parse(data);
     }
 
     static filterJsonFiles (files) {

@@ -17,12 +17,16 @@ module.exports = class DatabaseRateLimitStore extends Base {
 
     async find (type, user) {
         const model = this.createModel({type, user});
-        model.setData(await this.getQueryBy(type, user).one());
+        const query = this.getQueryBy(type, user);
+        const data = await query.one();
+        model.setData(data);
         return model;
     }
 
     save (model) {
-        return this.getQueryBy(model.type, model.user).upsert(model.getData());
+        const data = model.getData();
+        const query = this.getQueryBy(model.type, model.user);
+        return query.upsert(data);
     }
 
     getQueryBy (type, user) {

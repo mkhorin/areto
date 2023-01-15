@@ -77,8 +77,10 @@ module.exports = class Sort extends Base {
                 }
             }
         }
-        if (this.defaultOrder && !Object.values(this._attrOrders).length) {
-            this._attrOrders = this.defaultOrder;
+        if (this.defaultOrder) {
+            if (!Object.values(this._attrOrders).length) {
+                this._attrOrders = this.defaultOrder;
+            }
         }
         return this._attrOrders;
     }

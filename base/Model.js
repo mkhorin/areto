@@ -225,8 +225,12 @@ module.exports = class Model extends Base {
 
     // VIEW ATTRIBUTES
 
+    hasViewAttr (name) {
+        return Object.prototype.hasOwnProperty.call(this._viewAttrMap, name);
+    }
+
     getViewAttr (name) {
-        return Object.prototype.hasOwnProperty.call(this._viewAttrMap, name)
+        return this.hasViewAttr(name)
             ? this._viewAttrMap[name]
             : this.get(name);
     }
@@ -265,9 +269,11 @@ module.exports = class Model extends Base {
     getActiveValidatorsByClass (Class, attr) {
         const result = [];
         for (const validator of this.getValidators()) {
-            if (validator instanceof Class && validator.isActive(this.scenario)) {
-                if (!attr || validator.attrs.includes(attr)) {
-                    result.push(validator);
+            if (validator instanceof Class) {
+                if (validator.isActive(this.scenario)) {
+                    if (!attr || validator.attrs.includes(attr)) {
+                        result.push(validator);
+                    }
                 }
             }
         }

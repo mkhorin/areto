@@ -134,7 +134,9 @@ module.exports = class ArrayHelper {
         if (Array.isArray(items)) {
             for (const item of items) {
                 if (item && item[searchKey] === value) {
-                    return returnKey === undefined ? item : item[returnKey];
+                    return returnKey === undefined
+                        ? item
+                        : item[returnKey];
                 }
             }
         }

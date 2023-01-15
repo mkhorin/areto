@@ -97,11 +97,15 @@ module.exports = class ClassHelper {
 
     static getExtendedClassProperty (name, child, parent) {
         if (child && parent) {
-            if (Array.isArray(child) && Array.isArray(parent)) {
-                return [...parent, ...child];
+            if (Array.isArray(child)) {
+                if (Array.isArray(parent)) {
+                    return [...parent, ...child];
+                }
             }
-            if (typeof child === 'object' && typeof parent === 'object') {
-                return {...parent, ...child};
+            if (typeof child === 'object') {
+                if (typeof parent === 'object') {
+                    return {...parent, ...child};
+                }
             }
         }
         return null;

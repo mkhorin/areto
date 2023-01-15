@@ -106,9 +106,11 @@ module.exports = class ObjectHelper {
     static replaceKeys (keys, data) {
         if (keys && data) {
             for (const key of Object.keys(data)) {
-                if (Object.prototype.hasOwnProperty.call(keys, key) && key !== keys[key]) {
-                    data[keys[key]] = data[key];
-                    delete data[key];
+                if (Object.prototype.hasOwnProperty.call(keys, key)) {
+                    if (key !== keys[key]) {
+                        data[keys[key]] = data[key];
+                        delete data[key];
+                    }
                 }
             }
         }
