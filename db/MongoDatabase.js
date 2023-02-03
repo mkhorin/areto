@@ -283,13 +283,6 @@ module.exports = class MongoDatabase extends Base {
         }
     }
 
-    async reindex (table) {
-        if (await this.isTableExists(table)) {
-            this.traceCommand('reindex', {table});
-            return this.getTable(table).reIndex();
-        }
-    }
-
     async transact (handler) {
         if (!this.enableTransactions) {
             return handler();
