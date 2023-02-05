@@ -71,7 +71,8 @@ module.exports = class Application extends Base {
     attachHandlers () {
         super.attachHandlers();
         this.appEngine.attachChild(this.mountPath, this.engine);
-        this.log('info', `${this.getFullName()} app is attached to ${this.mountPath}`);
+        const name = this.getFullName();
+        this.log('info', `${name} app is attached to ${this.mountPath}`);
     }
 
     async startServer () {

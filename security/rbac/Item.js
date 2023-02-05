@@ -48,19 +48,19 @@ module.exports = class Item extends Base {
         if (item) {
             return this.log('warn', 'Already exists');
         }
+        const relations = await this.resolveRelations();
         const data = {
             name: this.name,
             ...this.data,
-            ...await this.resolveRelations()
+            ...relations
         };
         ObjectHelper.deleteProperties(['children', 'parents'], data);
         await this.store.findItem().insert(data);
     }
 
     async resolveRelations () {
-        return {
-            rules: await this.resolveRuleRelation()
-        };
+        const rules = await this.resolveRuleRelation();
+        return {rules};
     }
 
     async resolveRuleRelation () {
@@ -109,7 +109,8 @@ module.exports = class Item extends Base {
         }
         const parent = await this.resolveRelatives('parents');
         const child = this.data.itemId;
-        await this.store.findItemChild().and({child, parent}).delete();
+        const deletionQuery = this.store.findItemChild().and({child, parent});
+        await deletionQuery.delete();
         const items = parent.map(parent => ({child, parent}));
         await this.store.findItemChild().insert(items);
         this.data.parents = parent;

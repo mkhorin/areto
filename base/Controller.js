@@ -68,7 +68,8 @@ module.exports = class Controller extends Base {
             const nested = this.getNestedDirectory();
             const className = this.getModelClassName();
             const dir = path.join(this.MODEL_DIRECTORY, nested, className);
-            this._MODEL_CLASS = require(path.join(path.dirname(closest), dir));
+            const file = path.join(path.dirname(closest), dir);
+            this._MODEL_CLASS = require(file);
         }
         return this._MODEL_CLASS;
     }

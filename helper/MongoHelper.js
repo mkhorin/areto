@@ -6,11 +6,11 @@
 module.exports = class MongoHelper {
 
     static isObjectId (id) {
-        return id instanceof ObjectID;
+        return id instanceof ObjectId;
     }
 
     static isValidId (id) {
-        return ObjectID.isValid(id);
+        return ObjectId.isValid(id);
     }
 
     static isValidIds (ids) {
@@ -18,7 +18,7 @@ module.exports = class MongoHelper {
             return false;
         }
         for (const id of ids) {
-            if (!ObjectID.isValid(id)) {
+            if (!ObjectId.isValid(id)) {
                 return false;
             }
         }
@@ -26,7 +26,9 @@ module.exports = class MongoHelper {
     }
 
     static createId (value) {
-        return value ? ObjectID(value) : new ObjectID;
+        return value
+            ? new ObjectId(value)
+            : new ObjectId;
     }
 
     static normalizeId (data) {
@@ -36,10 +38,12 @@ module.exports = class MongoHelper {
     }
 
     static normalizeOneId (value) {
-        if (value instanceof ObjectID) {
+        if (value instanceof ObjectId) {
             return value;
         }
-        return ObjectID.isValid(value) ? ObjectID(value) : null;
+        return ObjectId.isValid(value)
+            ? new ObjectId(value)
+            : null;
     }
 
     static includes () {
@@ -47,7 +51,7 @@ module.exports = class MongoHelper {
     }
 
     static indexOf (target, values) {
-        if (!(target instanceof ObjectID)) {
+        if (!(target instanceof ObjectId)) {
             return ArrayHelper.indexOf(target, values);
         }
         if (Array.isArray(values)) {
@@ -84,7 +88,7 @@ module.exports = class MongoHelper {
         data = data || {};
         for (const key of Object.keys(data)) {
             const value = data[key];
-            if (value instanceof ObjectID) {
+            if (value instanceof ObjectId) {
                 data[key] = {$oid: value.toString()};
             } else if (value instanceof Date) {
                 data[key] = {$date: value.toISOString()};
@@ -101,8 +105,8 @@ module.exports = class MongoHelper {
             if (!value || !(value instanceof Object)) {
             } else if (DateHelper.isValid(value.$date)) {
                 data[key] = new Date(value.$date);
-            } else if (ObjectID.isValid(value.$oid)) {
-                data[key] = ObjectID(value.$oid);
+            } else if (ObjectId.isValid(value.$oid)) {
+                data[key] = new ObjectId(value.$oid);
             } else {
                 this.normalizeImportData(value);
             }
@@ -124,7 +128,7 @@ module.exports = class MongoHelper {
     }
 };
 
-const {ObjectID} = require('mongodb');
+const {ObjectId} = require('mongodb');
 const ArrayHelper = require('./ArrayHelper');
 const DateHelper = require('./DateHelper');
 const EscapeHelper = require('./EscapeHelper');

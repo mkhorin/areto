@@ -56,7 +56,9 @@ module.exports = class FileHelper {
         await this.handleChildren(file, child => {
             return this.delete(path.join(file, child));
         });
-        return fs.promises.rmdir(file);
+        return fs.promises.rm(file, {
+            recursive: true
+        });
     }
 
     static async copy (source, target, flags) {

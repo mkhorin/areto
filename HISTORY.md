@@ -1,3 +1,9 @@
+## 3.5.0
+
+* db/MongoDatabase
+    - remove deprecated reindexing
+* upgrade dependencies       
+    
 ## 3.4.0
 
 * helper/CommonHelper
