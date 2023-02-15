@@ -8,6 +8,23 @@ const ArrayHelper = require('../../../helper/ArrayHelper');
 
 describe('ArrayHelper', ()=> {
 
+    it('equals', () => {
+        expect(ArrayHelper.equals([1, 2, 3], [1, 2, 3])).to.eql(true);
+        expect(ArrayHelper.equals([1, 2, 3], [2, 1, 3])).to.eql(false);
+        expect(ArrayHelper.equals([1, 2, 3], [1, 2])).to.eql(false);
+        expect(ArrayHelper.equals([1, 2], [1, 2, 3])).to.eql(false);
+        expect(ArrayHelper.equals('a', 'b')).to.eql(false);
+    });
+
+    it('equalsUnordered', () => {
+        expect(ArrayHelper.equalsUnordered([1, 2, 3], [1, 2, 3])).to.eql(true);
+        expect(ArrayHelper.equalsUnordered([2, 1, 3], [3, 2, 1])).to.eql(true);
+        expect(ArrayHelper.equalsUnordered([2, 2, 3], [2, 3, 2])).to.eql(true);
+        expect(ArrayHelper.equalsUnordered([1, 2, 3], [1, 2])).to.eql(false);
+        expect(ArrayHelper.equalsUnordered([1, 2], [1, 2, 3])).to.eql(false);
+        expect(ArrayHelper.equalsUnordered(1, 1)).to.eql(false);
+    });
+
     it('hasDiff', ()=> {
         expect(ArrayHelper.hasDiff([2, 4, 7, 4], [4, 7, 2, 2])).to.eql(false);
         expect(ArrayHelper.hasDiff([1, 2, 3], [2, 7])).to.eql(true);

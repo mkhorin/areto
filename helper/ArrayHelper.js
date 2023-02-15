@@ -5,6 +5,34 @@
 
 module.exports = class ArrayHelper {
 
+    static equals (a, b) {
+        if (!Array.isArray(a) || !Array.isArray(b)) {
+            return false;
+        }
+        if (a.length !== b.length) {
+            return false;
+        }
+        return !a.find((v, index) => v !== b[index]);
+    }
+
+    static equalsUnordered (a, b) {
+        if (!Array.isArray(a) || !Array.isArray(b)) {
+            return false;
+        }
+        if (a.length !== b.length) {
+            return false;
+        }
+        const values = Array.from(b);
+        for (let i = 0; i < a.length; ++i) {
+            const index = values.indexOf(a[i]);
+            if (index === -1) {
+                return false;
+            }
+            delete values[index];
+        }
+        return true;
+    }
+
     static includes () {
         return this.indexOf(...arguments) !== -1;
     }
@@ -99,11 +127,15 @@ module.exports = class ArrayHelper {
     }
 
     static concat (values) {
-        return Array.isArray(values) ? [].concat(...values) : values;
+        return Array.isArray(values)
+            ? [].concat(...values)
+            : values;
     }
 
     static join (values, separator = ', ') {
-        return Array.isArray(values) ? values.join(separator) : values;
+        return Array.isArray(values)
+            ? values.join(separator)
+            : values;
     }
 
     static remove (value, values) {
