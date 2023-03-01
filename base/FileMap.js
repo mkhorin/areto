@@ -41,12 +41,15 @@ module.exports = class FileMap extends Base {
     }
 
     indexDirectoryFiles (dir) {
-        for (const name of fs.readdirSync(dir)) {
+        const names = fs.readdirSync(dir);
+        for (const name of names) {
             const file = path.join(dir, name);
-            if (fs.lstatSync(file).isDirectory()) {
+            const stat = fs.lstatSync(file);
+            if (stat.isDirectory()) {
                 this.indexDirectoryFiles(file);
             } else {
-                this._files[this.getKey(file)] = file;
+                const key = this.getKey(file);
+                this._files[key] = file;
             }
         }
     }
@@ -54,7 +57,8 @@ module.exports = class FileMap extends Base {
     getKey (file) {
         const relative = file.substring(this.directory.length + 1);
         const parts = relative.split(path.sep);
-        parts.push(FileHelper.trimExtension(parts.pop()));
+        const name = parts.pop();
+        parts.push(FileHelper.trimExtension(name));
         return parts.join('/'); // normalize separator
     }
 

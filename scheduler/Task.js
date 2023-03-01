@@ -117,14 +117,14 @@ module.exports = class Task extends Base {
     }
 
     formatStartTime () {
-        let date = `${moment().format('YYYY-MM-DD')} ${this.startTime}`;
+        const date = `${moment().format('YYYY-MM-DD')} ${this.startTime}`;
         if (!DateHelper.isValid(date)) {
             return this.log('error', `Invalid start time: ${date}`);
         }
-        date = (new Date(date)).getTime();
-        return date < Date.now()
-            ? date + this.DAY_PERIOD
-            : date;
+        const time = (new Date(date)).getTime();
+        return time < Date.now()
+            ? time + this.DAY_PERIOD
+            : time;
     }
 
     refresh () {
@@ -195,7 +195,8 @@ module.exports = class Task extends Base {
     }
 
     done (result) {
-        return this.trigger(this.EVENT_DONE, new Event({result}));
+        const event = new Event({result});
+        return this.trigger(this.EVENT_DONE, event);
     }
 
     fail (error) {
@@ -203,7 +204,8 @@ module.exports = class Task extends Base {
             this._nextDate = null;
         }
         this._lastError = error;
-        return this.trigger(this.EVENT_FAIL, new Event({error}));
+        const event = new Event({error});
+        return this.trigger(this.EVENT_FAIL, event);
     }
 
     log (type, message, data) {

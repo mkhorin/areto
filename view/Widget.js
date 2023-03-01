@@ -16,6 +16,8 @@ module.exports = class Widget extends Base {
     constructor (config) {
         super({
             cacheComponentId: 'cache',
+            caching: false,
+            cacheDuration: 60,
             ...config
         });
         this.module = this.view.module;

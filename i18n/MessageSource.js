@@ -26,9 +26,13 @@ module.exports = class MessageSource extends Base {
 
     setParent (parent) {
         this.parent = parent;
-        this.forceTranslationParent = parent
-            ? (parent.forceTranslation ? parent : parent.forceTranslationParent)
-            : null;
+        if (parent) {
+            this.forceTranslationParent = parent.forceTranslation
+                ? parent
+                : parent.forceTranslationParent
+        } else {
+            this.forceTranslationParent = null;
+        }
     }
 
     translate (message, language) {

@@ -44,7 +44,8 @@ module.exports = class Item extends Base {
         if (!this.constructor.isType(this.data.type)) {
             return this.log('error', `Invalid type: ${this.data.type}`);
         }
-        const item = await this.store.findItemByName(this.name).one();
+        const query = this.store.findItemByName(this.name);
+        const item = await query.one();
         if (item) {
             return this.log('warn', 'Already exists');
         }
@@ -55,7 +56,8 @@ module.exports = class Item extends Base {
             ...relations
         };
         ObjectHelper.deleteProperties(['children', 'parents'], data);
-        await this.store.findItem().insert(data);
+        const creationQuery = this.store.findItem();
+        await creationQuery.insert(data);
     }
 
     async resolveRelations () {
@@ -97,9 +99,11 @@ module.exports = class Item extends Base {
         }
         const child = await this.resolveRelatives('children');
         const parent = this.data.itemId;
-        await this.store.findItemChild().and({child, parent}).delete();
+        const deletionQuery = this.store.findItemChild().and({child, parent});
+        await deletionQuery.delete();
         const items = child.map(child => ({child, parent}));
-        await this.store.findItemChild().insert(items);
+        const creationQuery = this.store.findItemChild();
+        await creationQuery.insert(items);
         this.data.children = child;
     }
 
@@ -112,12 +116,14 @@ module.exports = class Item extends Base {
         const deletionQuery = this.store.findItemChild().and({child, parent});
         await deletionQuery.delete();
         const items = parent.map(parent => ({child, parent}));
-        await this.store.findItemChild().insert(items);
+        const creationQuery = this.store.findItemChild();
+        await creationQuery.insert(items);
         this.data.parents = parent;
     }
 
     async resolveRelatives (key) {
-        const item = await this.store.findItemByName(this.name).one();
+        const query = this.store.findItemByName(this.name);
+        const item = await query.one();
         this.data.itemId = item ? item[this.store.key] : null;
         const names = this.data[key];
         const items = await this.store.findItemByName(names).all();

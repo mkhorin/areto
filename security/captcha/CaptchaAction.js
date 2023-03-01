@@ -78,7 +78,9 @@ module.exports = class Captcha extends Base {
             content += this.drawGrid();
         }
         const sharp = require('sharp');
-        const image = sharp(new Buffer(this.drawBack(content)));
+        const result = this.drawBack(content);
+        const buffer = new Buffer(result);
+        const image = sharp(buffer);
         if (this.median) {
             image.median(this.median);
         }

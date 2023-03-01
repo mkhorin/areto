@@ -66,8 +66,11 @@ module.exports = class FileValidator extends Base {
             return this.getTooBigMessage();
         }
         if (Array.isArray(this.extensions)) {
-            if (!file.extension || !this.extensions.includes(file.extension.toLowerCase())) {
+            if (!file.extension) {
                 return this.getWrongExtensionMessage();    
+            }
+            if (!this.extensions.includes(file.extension.toLowerCase())) {
+                return this.getWrongExtensionMessage();
             }
         }
         if (Array.isArray(this.types)) {

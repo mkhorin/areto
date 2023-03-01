@@ -93,7 +93,9 @@ module.exports = class ActiveLinker extends Base {
     async unlinkAll (name, deletion) {
         const relation = this.owner.getRelation(name);
         if (relation) {
-            const method = relation.isOuterLink() ? 'unlinkViaAll' : 'unlinkInternalAll';
+            const method = relation.isOuterLink()
+                ? 'unlinkViaAll'
+                : 'unlinkInternalAll';
             await this[method](relation, deletion);
             this.owner.unsetRelated(name);
         }
@@ -115,7 +117,8 @@ module.exports = class ActiveLinker extends Base {
             deletion ? await db.delete(via.getTable(), condition)
                      : await db.update(via.getTable(), condition, nulls);
         } else if (deletion) {
-            for (const model of await via.model.find(condition).all()) {
+            const models = await via.model.find(condition).all();
+            for (const model of models) {
                 await model.delete();
             }
         } else {
@@ -125,16 +128,20 @@ module.exports = class ActiveLinker extends Base {
 
     async unlinkInternalAll (relation) {
         // relation via array valued attribute
-        if (Array.isArray(this.owner.get(relation.linkKey))) {
+        const link = this.owner.get(relation.linkKey);
+        if (Array.isArray(link)) {
             return this.owner.directUpdate({[relation.linkKey]: []});
         }
-        let condition = {[relation.refKey]: this.owner.get(relation.linkKey)};
+        let condition = {[relation.refKey]: link};
         if (relation.getWhere()) {
             condition = ['and', condition, relation.getWhere()];
         }
-        relation.getViaArray()
-            ? await relation.model.getDb().updateAllPull(relation.model.getTable(), {}, condition)
-            : await relation.model.find(condition).updateAll({[relation.refKey]: null});
+        if (relation.getViaArray()) {
+            const table = relation.model.getTable();
+            await relation.model.getDb().updateAllPull(table, {}, condition);
+        } else {
+            await relation.model.find(condition).updateAll({[relation.refKey]: null});
+        }
     }
 
     unsetUnlinked (name, model, relation) {
@@ -144,7 +151,7 @@ module.exports = class ActiveLinker extends Base {
         const models = this.owner.getRelated(name);
         if (Array.isArray(models)) {
             const id = model.getId();
-            const result = models.filter(target => !CommonHelper.isEqual(id, target.getId()));
+            const result = models.filter(m => !CommonHelper.isEqual(id, m.getId()));
             this.owner.populateRelation(name, result);
         }
     }

@@ -30,9 +30,12 @@ module.exports = class Router extends Base {
     }
 
     afterModuleInit () {
-        this.defaultModule
-            ? this.addDefaultModule(this.defaultModule)
-            : this.addDefaultAction(this.getDefaultController());
+        if (this.defaultModule) {
+            this.addDefaultModule(this.defaultModule)
+        } else {
+            const controller = this.getDefaultController();
+            this.addDefaultAction(controller);
+        }
         if (this.errors) {
             this.addErrorHandlers(this.errors);
         }
@@ -54,13 +57,14 @@ module.exports = class Router extends Base {
     }
 
     getInheritedControllerMap (module) {
-        if (!module.original) {
-            return this.getControllerMap(module.getControllerDirectory());
+        const dir = module.getControllerDirectory();
+        const data = this.getControllerMap(dir);
+        const original = module.original;
+        if (!original) {
+            return data;
         }
-        return {
-            ...this.getInheritedControllerMap(module.original),
-            ...this.getControllerMap(module.getControllerDirectory())
-        };
+        const inheritedData = this.getInheritedControllerMap(original);
+        return {...inheritedData, ...data};
     }
 
     getDefaultController () {
@@ -74,14 +78,15 @@ module.exports = class Router extends Base {
     }
 
     getControllerMap (dir, relative = '') {
-        let files = [];
+        let names = [];
         try {
-            files = fs.readdirSync(dir);
+            names = fs.readdirSync(dir);
         } catch {
         }
         const result = {};
-        for (const file of files) {
-            this.setControllerMapFile(path.join(dir, file), relative, result);
+        for (const name of names) {
+            const file = path.join(dir, name);
+            this.setControllerMapFile(file, relative, result);
         }
         return result;
     }
@@ -90,10 +95,12 @@ module.exports = class Router extends Base {
         const stat = fs.lstatSync(file);
         if (stat.isDirectory()) {
             const prefix = `${relative}${path.basename(file)}-`;
-            Object.assign(map, this.getControllerMap(file, prefix));
+            const data = this.getControllerMap(file, prefix);
+            Object.assign(map, data);
         } else {
             const controller = require(file);
-            map[relative + controller.getRouteName()] = controller;
+            const key = relative + controller.getRouteName();
+            map[key] = controller;
         }
     }
 
@@ -107,7 +114,8 @@ module.exports = class Router extends Base {
 
     addDefaultAction (Controller) {
         if (Controller?.DEFAULT_ACTION) {
-            if (Controller.getActionNames().includes(Controller.DEFAULT_ACTION)) {
+            const names = Controller.getActionNames();
+            if (names.includes(Controller.DEFAULT_ACTION)) {
                 this.addAction(Controller.DEFAULT_ACTION, Controller, '');
             }
         }
@@ -117,7 +125,8 @@ module.exports = class Router extends Base {
         for (const key of Object.keys(this._controllerMap)) {
             const route = `/${key}`;
             const Controller = this._controllerMap[key];
-            for (const name of Controller.getActionNames()) {
+            const names = Controller.getActionNames();
+            for (const name of names) {
                 const action = this.constructor.createActionRouteName(name);
                 this.addAction(name, Controller, `${route}/${action}`);
                 if (Controller.DEFAULT_ACTION === name) {

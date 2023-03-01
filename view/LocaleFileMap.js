@@ -33,9 +33,11 @@ module.exports = class LocaleFileMap extends Base {
     createLocaleMap () {
         this._locales = {};
         const localePath = path.join(this.baseDirectory, this.localeDirectory);
-        for (const language of fs.readdirSync(localePath)) {
+        const languages = fs.readdirSync(localePath);
+        for (const language of languages) {
             const directory = path.join(localePath, language, this.directory);
-            if (fs.lstatSync(directory).isDirectory()) {
+            const stat = fs.lstatSync(directory);
+            if (stat.isDirectory()) {
                 const fileMap = ClassHelper.spawn(FileMap, {directory});
                 if (!fileMap.isEmpty()) {
                     this._locales[language] = fileMap;
@@ -45,11 +47,13 @@ module.exports = class LocaleFileMap extends Base {
     }
 
     get (name, language) {
-        return this._locales[language]?.get(name) || this._default.get(name);
+        return this._locales[language]?.get(name)
+            || this._default.get(name);
     }
 
     isEmpty () {
-        return this._default.isEmpty() && Object.values(this._locales).length === 0;
+        return this._default.isEmpty()
+            && Object.values(this._locales).length === 0;
     }
 };
 

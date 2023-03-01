@@ -63,7 +63,8 @@ module.exports = class ThemeSet extends Base {
             const names = fs.readdirSync(this.themeDirectory);
             for (const name of names) {
                 const dir = path.join(this.themeDirectory, name);
-                if (fs.lstatSync(dir).isDirectory()) {
+                const stat = fs.lstatSync(dir);
+                if (stat.isDirectory()) {
                     this.createTheme(name, dir);
                 }
             }
@@ -79,8 +80,8 @@ module.exports = class ThemeSet extends Base {
     }
 
     setParents () {
-        for (const name of Object.keys(this._themes)) {
-            this._themes[name].parent = this.getParentByName(name) || this._defaultTheme;
+        for (const [name, theme] of Object.entries(this._themes)) {
+            theme.parent = this.getParentByName(name) || this._defaultTheme;
         }
     }
 

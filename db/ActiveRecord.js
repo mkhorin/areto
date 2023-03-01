@@ -202,7 +202,9 @@ module.exports = class ActiveRecord extends Base {
 
     async insert () {
         await this.beforeSave(true);
-        this.set(this.PK, await this.createQuery().insert(this.filterAttrs()));
+        const data = this.filterAttrs();
+        const id = await this.createQuery().insert(data);
+        this.set(this.PK, id);
         this._isNew = false;
         await this.afterSave(true);
         this.assignOldAttrs();
@@ -210,7 +212,8 @@ module.exports = class ActiveRecord extends Base {
 
     async update () {
         await this.beforeSave(false);
-        await this.findSelf().update(this.filterAttrs());
+        const data = this.filterAttrs();
+        await this.findSelf().update(data);
         await this.afterSave(false);
         this.assignOldAttrs();
     }
@@ -218,7 +221,8 @@ module.exports = class ActiveRecord extends Base {
     // skip before and after save triggers
     async directUpdate (data) {
         this.assign(data);
-        await this.findSelf().update(this.filterAttrs());
+        data = this.filterAttrs();
+        await this.findSelf().update(data);
         this.assignOldAttrs();
     }
 
@@ -244,7 +248,8 @@ module.exports = class ActiveRecord extends Base {
     static async resolveRelation (name, models) {
         const relations = [];
         for (const model of models) {
-            relations.push(await model.resolveRelation(name));
+            const result = await model.resolveRelation(name);
+            relations.push(result);
         }
         return relations;
     }
@@ -252,7 +257,8 @@ module.exports = class ActiveRecord extends Base {
     static async resolveRelations (names, models) {
         const relations = [];
         for (const model of models) {
-            relations.push(await model.resolveRelations(names));
+            const result = await model.resolveRelations(names);
+            relations.push(result);
         }
         return relations;
     }
@@ -372,7 +378,8 @@ module.exports = class ActiveRecord extends Base {
         const models = [];
         for (const model of result) {
             if (typeof model?.resolveRelation === 'function') {
-                models.push(await model.resolveRelation(nestedName));
+                const items = await model.resolveRelation(nestedName);
+                models.push(items);
             }
         }
         return ArrayHelper.concat(models);
@@ -397,7 +404,8 @@ module.exports = class ActiveRecord extends Base {
     async resolveRelations (names) {
         const result = [];
         for (const name of names) {
-            result.push(await this.resolveRelation(name));
+            const data = await this.resolveRelation(name);
+            result.push(data);
         }
         return result;
     }

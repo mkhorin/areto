@@ -30,12 +30,14 @@ module.exports = class AccessRule extends Base {
             }
         }
         if (this.methods) {
-            if (!this.methods.includes(action.controller.req.method?.toLowerCase())) {
+            const name = action.controller.req.method?.toLowerCase();
+            if (!this.methods.includes(name)) {
                 return;
             }
         }
         if (this.controllers) {
-            if (!this.controllers.includes(action.controller.getBaseName())) {
+            const name = action.controller.getBaseName();
+            if (!this.controllers.includes(name)) {
                 return;
             }
         }

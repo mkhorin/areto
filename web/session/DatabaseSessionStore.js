@@ -56,7 +56,8 @@ module.exports = class DatabaseSessionStore extends Base {
 
     deleteExpired () {
         if (this.session.lifetime) {
-            const date = new Date(Date.now() - this.session.lifetime);
+            const time = Date.now() - this.session.lifetime;
+            const date = new Date(time);
             return this.find(['<', 'updatedAt', date]).delete();
         }
     }

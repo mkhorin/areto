@@ -48,7 +48,8 @@ module.exports = class EachValidator extends Base {
         model.set(attr, filteredValues);
         for (const value of values) {
             if (!(Array.isArray(value) && validator.skipOnArray)) {
-                filteredValues.push(await validator.filter(value, attr, model));
+                const result = await validator.filter(value, attr, model);
+                filteredValues.push(result);
             }
         }
     }

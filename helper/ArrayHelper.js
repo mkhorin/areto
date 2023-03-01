@@ -52,7 +52,7 @@ module.exports = class ArrayHelper {
 
     static hasDiff (targets, sources, indexOf) {
         for (const source of sources) {
-            const index  = indexOf 
+            const index = indexOf
                 ? indexOf(source, targets) 
                 : targets.indexOf(source);
             if (index === -1) {

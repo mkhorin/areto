@@ -25,7 +25,10 @@ module.exports = class DatabaseCache extends Base {
         const query = this.getQuery().and({key});
         const data = await query.one();
         if (data) {
-            if (!data.expiredAt || data.expiredAt > this.constructor.getNow()) {
+            if (!data.expiredAt) {
+                return data.value;
+            }
+            if (data.expiredAt > this.constructor.getNow()) {
                 return data.value;
             }
         }

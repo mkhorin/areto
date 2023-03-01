@@ -43,7 +43,8 @@ module.exports = class RateLimit extends Base {
     }
 
     afterRateUpdate (model) {
-        return this.trigger(this.EVENT_AFTER_RATE_UPDATE, new Event({model}));
+        const event = new Event({model});
+        return this.trigger(this.EVENT_AFTER_RATE_UPDATE, event);
     }
 
     getAttempts (type) {
@@ -55,13 +56,17 @@ module.exports = class RateLimit extends Base {
     }
 
     getInternalParam (type, name) {
-        if (!this.types || !Object.prototype.hasOwnProperty.call(this.types, type)) {
+        if (!this.types) {
+            return this[name];
+        }
+        if (!Object.prototype.hasOwnProperty.call(this.types, type)) {
             return this[name];
         }
         type = this.types[type];
-        return type && Object.prototype.hasOwnProperty.call(type, name)
-            ? type[name]
-            : this[name];
+        if (type && Object.prototype.hasOwnProperty.call(type, name)) {
+            return type[name];
+        }
+        return this[name];
     }
 };
 module.exports.init();

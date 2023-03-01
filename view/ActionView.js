@@ -150,7 +150,7 @@ module.exports = class ActionView extends Base {
     // WIDGET
 
     placeWidget (name, params) {
-        if (!this.widgets.hasOwnProperty(name)) {
+        if (!Object.prototype.hasOwnProperty.call(this.widgets, name)) {
             this.widgets[name] = params || {};
         }
         return `#{${name}}`;

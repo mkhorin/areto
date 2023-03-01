@@ -56,7 +56,8 @@ module.exports = class FilePack extends Base {
     }
 
     async packDirectory (dir, baseName) {
-        for (let name of await FileHelper.readDirectory(dir)) {
+        const names = await FileHelper.readDirectory(dir);
+        for (let name of names) {
             const file = dir + '/' + name;
             const stat = await FileHelper.getStat(file);
             name = baseName + '/' + name;

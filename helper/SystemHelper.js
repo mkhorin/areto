@@ -19,7 +19,7 @@ module.exports = class CommonHelper {
                 const value = item === 'true' ? true : item === 'false' ? false : item;
                 if (Array.isArray(result[key])) {
                     result[key].push(value);
-                } else if (result.hasOwnProperty(key)) {
+                } else if (Object.prototype.hasOwnProperty.call(result, key)) {
                     result[key] = [result[key], value];
                 } else {
                     result[key] = value;

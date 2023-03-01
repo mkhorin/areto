@@ -29,7 +29,9 @@ module.exports = class AccessControl extends Base {
     createRules () {
         const rules = [];
         for (const config of this.rules) {
-            config.Class = config.Class || this.AccessRule;
+            if (!config.Class) {
+                config.Class = this.AccessRule;
+            }
             rules.push(this.spawn(config));
         }
         return rules;

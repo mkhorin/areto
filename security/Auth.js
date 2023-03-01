@@ -80,22 +80,26 @@ module.exports = class Auth extends Base {
 
     beforeLogin (data) {
         // call await super.beforeLogin(data) if override it
-        return this.trigger(this.EVENT_BEFORE_LOGIN, new Event(data));
+        const event = new Event(data);
+        return this.trigger(this.EVENT_BEFORE_LOGIN, event);
     }
 
     afterLogin (data) {
         // call await super.afterLogin(data) if override it
-        return this.trigger(this.EVENT_AFTER_LOGIN, new Event(data));
+        const event = new Event(data);
+        return this.trigger(this.EVENT_AFTER_LOGIN, event);
     }
 
     beforeLogout (data) {
         // call await super.beforeLogout(data) if override it
-        return this.trigger(this.EVENT_BEFORE_LOGOUT, new Event(data));
+        const event = new Event(data);
+        return this.trigger(this.EVENT_BEFORE_LOGOUT, event);
     }
 
     afterLogout (data) {
         // call await super.afterLogout(data) if override it
-        return this.trigger(this.EVENT_AFTER_LOGOUT, new Event(data));
+        const event = new Event(data);
+        return this.trigger(this.EVENT_AFTER_LOGOUT, event);
     }
 
     // LOGIN

@@ -2,8 +2,8 @@
 
 * db/MongoDatabase
     - remove deprecated reindexing
-* upgrade dependencies       
-    
+* upgrade dependencies
+
 ## 3.4.0
 
 * helper/CommonHelper
@@ -15,14 +15,14 @@
 * validator/Validator
     - fix checking of active scenarios
 * web/asset/AssetBundle
-    - fix style asset render    
-    
+    - fix style asset render
+
 ## 3.3.0
 
 * web/session
     - refactor session stores
-* upgrade dependencies    
-    
+* upgrade dependencies
+
 ## 3.2.0
 
 * base/Configuration

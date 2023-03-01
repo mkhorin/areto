@@ -39,7 +39,8 @@ module.exports = class MongoDatabase extends Base {
     }
 
     async isTableExists (name) {
-        for (const {collectionName} of await this._connection.collections()) {
+        const collections = await this._connection.collections();
+        for (const {collectionName} of collections) {
             if (name === collectionName) {
                 return true;
             }
@@ -48,7 +49,8 @@ module.exports = class MongoDatabase extends Base {
 
     async getTableNames () {
         const names = [];
-        for (const {collectionName} of await this._connection.collections()) {
+        const collections = await this._connection.collections();
+        for (const {collectionName} of collections) {
             names.push(collectionName);
         }
         return names;
@@ -100,7 +102,10 @@ module.exports = class MongoDatabase extends Base {
 
     upsert (table, query, data, options) {
         this.traceCommand('upsert', {table, query, data});
-        return this.getTable(table).updateOne(query, {$set: data}, {upsert: true, ...options});
+        return this.getTable(table).updateOne(query, {$set: data}, {
+            upsert: true,
+            ...options
+        });
     }
 
     update (table, query, data, options) {
@@ -147,7 +152,8 @@ module.exports = class MongoDatabase extends Base {
 
     async dropAll () {
         this.traceCommand('dropAll');
-        for (const name of await this.getTableNames()) {
+        const names = await this.getTableNames();
+        for (const name of names) {
             await this.drop(name);
         }
     }

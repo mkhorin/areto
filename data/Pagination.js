@@ -43,7 +43,8 @@ module.exports = class Pagination extends Base {
         }
         this.setPageSize(this.pageSize);
         if (this.page === null) {
-            this.page = parseInt(this.getQueryParam(this.pageParam, 1)) - 1;
+            const page = this.getQueryParam(this.pageParam, 1);
+            this.page = parseInt(page) - 1;
         }
         this.setPage(this.page);
     }
@@ -128,7 +129,9 @@ module.exports = class Pagination extends Base {
         } else {
             delete params[this.pageParam];
         }
-        pageSize = pageSize || this.pageSize;
+        if (!pageSize) {
+            pageSize = this.pageSize;
+        }
         if (pageSize !== this.defaultPageSize) {
             params[this.pageSizeParam] = pageSize;
         } else {

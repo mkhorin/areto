@@ -289,11 +289,13 @@ module.exports = class Module extends Base {
     }
 
     beforeAction (action) {
-        return this.trigger(this.EVENT_BEFORE_ACTION, new ActionEvent(action));
+        const event = new ActionEvent(action);
+        return this.trigger(this.EVENT_BEFORE_ACTION, event);
     }
 
     afterAction (action) {
-        return this.trigger(this.EVENT_AFTER_ACTION, new ActionEvent(action));
+        const event = new ActionEvent(action);
+        return this.trigger(this.EVENT_AFTER_ACTION, event);
     }
 
     // INIT

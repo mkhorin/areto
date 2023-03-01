@@ -23,7 +23,8 @@ module.exports = class EmailValidator extends Base {
         if (typeof value !== 'string' || value.length > this.maxLength) {
             return this.getMessage();
         }
-        if (!(new RegExp(this.pattern)).test(value)) {
+        const regex = new RegExp(this.pattern);
+        if (!regex.test(value)) {
             return this.getMessage();
         }
     }

@@ -33,7 +33,7 @@ module.exports = class SecurityHelper {
     }
 
     static hashPassword (password) {
-        return !password ? '' : this.hashValue(password, this.createSalt());
+        return password ? this.hashValue(password, this.createSalt()) : '';
     }
 
     static hashValue (value, salt, method = DEFAULT_HASH_METHOD) {

@@ -119,7 +119,8 @@ module.exports = class FileLogStore extends Base {
         const files = await this.getSortedFiles();
         await this.deleteExcessFiles(files);
         for (let i = files.length - 1; i >= 0; --i) {
-            await fs.promises.rename(files[i], this.getFile(i + 1));
+            const file = this.getFile(i + 1);
+            await fs.promises.rename(files[i], file);
         }
         this.log('info', `Rotation done: ${this.name}`);
     }
@@ -136,7 +137,8 @@ module.exports = class FileLogStore extends Base {
     async getSortedFiles () {
         const baseName = path.basename(this.file);
         const items = [];
-        for (let name of await fs.promises.readdir(this.basePath)) {
+        const names = await fs.promises.readdir(this.basePath);
+        for (let name of names) {
             if (name.indexOf(this.name) === 0 && name !== baseName) {
                 const file = path.join(this.basePath, name);
                 const stat = await fs.promises.stat(file);
@@ -153,7 +155,8 @@ module.exports = class FileLogStore extends Base {
 
     async getFiles () {
         const items = [];
-        for (let name of await fs.promises.readdir(this.basePath)) {
+        const names = await fs.promises.readdir(this.basePath);
+        for (let name of names) {
             if (name.indexOf(this.name) === 0) {
                 const file = path.join(this.basePath, name);
                 const stat = await fs.promises.stat(file);

@@ -55,7 +55,8 @@ module.exports = class PromiseHelper {
         const result = [];
         if (Array.isArray(items)) {
             for (const item of items) {
-                result.push(await handler.call(context, item));
+                const value = await handler.call(context, item);
+                result.push(value);
             }
         }
         return result;

@@ -272,9 +272,10 @@ module.exports = class ActiveQuery extends Base {
             return true;
         }
         const link = this.primaryModel.get(this.linkKey);
-        return link !== null
-            && link !== undefined
-            && (!Array.isArray(link) || link.length);
+        if (link === null || link === undefined) {
+            return false;
+        }
+        return !Array.isArray(link) || link.length;
     }
 
     // POPULATE

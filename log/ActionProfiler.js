@@ -37,7 +37,8 @@ module.exports = class ActionProfiler extends Base {
         const controller = event.action.controller;
         const time = Date.now() - controller.res.locals.startActionTimeProfiler;
         if (time >= this.threshold) {
-            this.logger.log(this.level, this.formatTime(time, controller));
+            const message = this.formatTime(time, controller);
+            this.logger.log(this.level, message);
         }
     }
 

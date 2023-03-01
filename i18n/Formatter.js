@@ -177,7 +177,9 @@ module.exports = class Formatter extends Base {
     }
 
     asIso (value) {
-        return value ? this.getMoment(value).toISOString() : this.asRaw(value);
+        return value
+            ? this.getMoment(value).toISOString()
+            : this.asRaw(value);
     }
 
     asClientDate (value, params = {}) {

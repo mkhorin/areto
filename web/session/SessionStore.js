@@ -17,7 +17,7 @@ module.exports = class SessionStore extends Base {
 
     /**
      * Get session data by ID
-     * @param {string} id  - Session ID
+     * @param {string} id - Session ID
      * @param {function} callback - Transmit error or session data: callback(err, data)
      */
     get (id, callback) {
@@ -26,8 +26,8 @@ module.exports = class SessionStore extends Base {
 
     /**
      * Set session data by ID
-     * @param {string} id  - Session ID
-     * @param {Object} data  - Session data
+     * @param {string} id - Session ID
+     * @param {Object} data - Session data
      * @param {function} callback - After done
      */
     set (id, data, callback) {
@@ -36,8 +36,8 @@ module.exports = class SessionStore extends Base {
 
     /**
      * Update session access time
-     * @param {string} id  - Session ID
-     * @param {Object} data  - Session data
+     * @param {string} id - Session ID
+     * @param {Object} data - Session data
      * @param {function} callback - After done
      */
     touch (id, data, callback) {
@@ -46,7 +46,7 @@ module.exports = class SessionStore extends Base {
 
     /**
      * Delete session by ID
-     * @param {string} id  - Session ID
+     * @param {string} id - Session ID
      * @param {function} callback - After done
      */
     destroy (id, callback) {

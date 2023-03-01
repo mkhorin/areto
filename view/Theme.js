@@ -55,7 +55,8 @@ module.exports = class Theme extends Base {
     // TEMPLATE
 
     getTemplate () {
-        return this._templates.get(...arguments) || this.parent?.getTemplate(...arguments);
+        return this._templates.get(...arguments)
+            || this.parent?.getTemplate(...arguments);
     }
 
     getInternalTemplate () {
@@ -68,7 +69,8 @@ module.exports = class Theme extends Base {
 
     getTemplateFromOriginal () {
         return this._templates.get(...arguments)
-            || this.originalParentView && this.parent?.getTemplateFromOriginal(...arguments);
+            || this.originalParentView
+            && this.parent?.getTemplateFromOriginal(...arguments);
     }
 
     /**
@@ -76,7 +78,8 @@ module.exports = class Theme extends Base {
      */
     getTemplateFromSameView () {
         return this._templates.get(...arguments)
-            || this.sameParentView && this.parent?.getTemplateFromSameView(...arguments);
+            || this.sameParentView
+            && this.parent?.getTemplateFromSameView(...arguments);
     }
 
     /**
@@ -85,7 +88,7 @@ module.exports = class Theme extends Base {
     getTemplateFromOriginalOrSameView () {
         return this._templates.get(...arguments)
             || (this.originalParentView || this.sameParentView)
-                && this.parent?.getTemplateFromOriginalOrSameView(...arguments);
+            && this.parent?.getTemplateFromOriginalOrSameView(...arguments);
     }
 
     getClosestAncestorTemplate () {
@@ -106,7 +109,8 @@ module.exports = class Theme extends Base {
     // MODEL
 
     getModel () {
-        return this.getInternalModel(...arguments) || this.parent?.getModel(...arguments);
+        return this.getInternalModel(...arguments)
+            || this.parent?.getModel(...arguments);
     }
 
     getInternalModel () {
@@ -119,18 +123,20 @@ module.exports = class Theme extends Base {
 
     getModelFromOriginal () {
         return this._models.get(...arguments)
-            || this.originalParentView && this.parent?.getModelFromOriginal(...arguments);
+            || this.originalParentView
+            && this.parent?.getModelFromOriginal(...arguments);
     }
 
     getModelFromSameView () {
         return this._models.get(...arguments)
-            || this.sameParentView && this.parent?.getModelFromSameView(...arguments);
+            || this.sameParentView
+            && this.parent?.getModelFromSameView(...arguments);
     }
 
     getModelFromOriginalOrSameView () {
         return this._models.get(...arguments)
             || (this.originalParentView || this.sameParentView)
-                && this.parent?.getModelFromOriginalOrSameView(...arguments);
+            && this.parent?.getModelFromOriginalOrSameView(...arguments);
     }
 };
 

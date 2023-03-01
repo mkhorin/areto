@@ -44,7 +44,8 @@ module.exports = class NumberValidator extends Base {
     async validateAttr (attr, model) {
         await super.validateAttr(...arguments);
         if (!model.hasError()) {
-            model.set(attr, Number(model.get(attr)));
+            const value = model.get(attr);
+            model.set(attr, Number(value));
         }
     }
 

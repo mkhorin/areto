@@ -64,7 +64,10 @@ module.exports = class Controller extends Base {
 
     static getModelClass () {
         if (!this.hasOwnProperty('_MODEL_CLASS')) {
-            const closest = FileHelper.getClosestDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
+            const closest = FileHelper.getClosestDirectory(
+                this.CONTROLLER_DIRECTORY,
+                this.CLASS_DIRECTORY
+            );
             const nested = this.getNestedDirectory();
             const className = this.getModelClassName();
             const dir = path.join(this.MODEL_DIRECTORY, nested, className);
@@ -90,7 +93,10 @@ module.exports = class Controller extends Base {
 
     static getNestedDirectory () {
         if (!this.hasOwnProperty('_NESTED_DIRECTORY')) {
-            this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(this.CONTROLLER_DIRECTORY, this.CLASS_DIRECTORY);
+            this._NESTED_DIRECTORY = FileHelper.getRelativePathByDirectory(
+                this.CONTROLLER_DIRECTORY,
+                this.CLASS_DIRECTORY
+            );
         }
         return this._NESTED_DIRECTORY;
     }

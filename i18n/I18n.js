@@ -91,7 +91,8 @@ module.exports = class I18n extends Base {
 
     resolveSourceParents () {
         for (const name of Object.keys(this.sources)) {
-            this.sources[name].setParent(this.resolveSourceParent(name));
+            const parent = this.resolveSourceParent(name);
+            this.sources[name].setParent(parent);
             if (ObjectHelper.hasCircularLinks(this.sources[name], 'parent')) {
                 throw new Error(`Circular source parents: ${name}`);
             }
@@ -110,7 +111,7 @@ module.exports = class I18n extends Base {
 
     getSourceParent (name) {
         return this.parent
-            ? (this.parent.getSource(name) || this.parent.getSourceParent(name))
+            ? this.parent.getSource(name) || this.parent.getSourceParent(name)
             : null;
     }
 

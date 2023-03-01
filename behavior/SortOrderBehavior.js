@@ -19,8 +19,10 @@ module.exports = class SortOrderBehavior extends Base {
     }
 
     async beforeInsert () {
-        if (CommonHelper.isEmpty(this.owner.get(this.orderAttr))) {
-            this.owner.set(this.orderAttr, await this.getNextNumber());
+        const order = this.owner.get(this.orderAttr);
+        if (CommonHelper.isEmpty(order)) {
+            const next = await this.getNextNumber();
+            this.owner.set(this.orderAttr, next);
         }
     }
 
@@ -29,7 +31,8 @@ module.exports = class SortOrderBehavior extends Base {
         if (typeof this.filter === 'function') {
             this.filter(query, this.owner);
         } else if (typeof this.filter === 'string') {
-            query.and({[this.filter]: this.owner.get(this.filter)});
+            const value = this.owner.get(this.filter);
+            query.and({[this.filter]: value});
         }
         const direction = this.step > 0 ? -1 : 1;
         const order = {[this.orderAttr]: direction};

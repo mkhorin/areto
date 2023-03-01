@@ -16,14 +16,16 @@ module.exports = class AsyncHelper {
         if (!keys.length) {
             return callback(null, result);
         }
-        (new this({items, callback, keys, result})).series();
+        const instance = new this({items, callback, keys, result});
+        instance.series();
     }
 
     static eachSeries (items, handler, callback) {
         if (!Array.isArray(items) || !items.length) {
             return callback();
         }
-        (new this({items, handler, callback})).eachSeries();
+        const instance = new this({items, handler, callback});
+        instance.eachSeries();
     }
 
     static eachOfSeries (items, handler, callback) {
@@ -34,7 +36,8 @@ module.exports = class AsyncHelper {
         if (!keys.length) {
             return callback();
         }
-        (new this({items, handler, callback, keys})).eachOfSeries();
+        const instance = new this({items, handler, callback, keys});
+        instance.eachOfSeries();
     }
 
     static mapSeries (items, handler, callback) {
@@ -42,7 +45,8 @@ module.exports = class AsyncHelper {
         if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
-        (new this({items, handler, callback, result})).mapSeries();
+        const instance = new this({items, handler, callback, result});
+        instance.mapSeries();
     }
 
     static filterSeries (items, handler, callback) {
@@ -50,14 +54,16 @@ module.exports = class AsyncHelper {
         if (!Array.isArray(items) || !items.length) {
             return callback(null, result);
         }
-        (new this({items, handler, callback, result})).filterSeries();
+        const instance = new this({items, handler, callback, result});
+        instance.filterSeries();
     }
 
     static someSeries (items, handler, callback) {
         if (!Array.isArray(items) || !items.length) {
             return callback(null, false);
         }
-        (new this({items, handler, callback})).someSeries();
+        const instance = new this({items, handler, callback});
+        instance.someSeries();
     }
 
     static mapValuesSeries (items, handler, callback) {
@@ -69,14 +75,16 @@ module.exports = class AsyncHelper {
         if (!keys.length) {
             return callback(null, result);
         }
-        (new this({items, handler, callback, keys, result})).mapValuesSeries();
+        const instance = new this({items, handler, callback, keys, result});
+        instance.mapValuesSeries();
     }
 
     static waterfall (items, callback) {
         if (!Array.isArray(items) || !items.length) {
             return callback();
         }
-        (new this({items, callback})).waterfall();
+        const instance = new this({items, callback});
+        instance.waterfall();
     }
 
     // PARALLEL
@@ -85,7 +93,8 @@ module.exports = class AsyncHelper {
         if (!Array.isArray(items) || !items.length) {
             return callback();
         }
-        (new this({items, handler, callback, counter: 0})).each();
+        const instance = new this({items, handler, callback, counter: 0});
+        instance.each();
     }
 
     static parallel (items, callback) {
@@ -97,7 +106,8 @@ module.exports = class AsyncHelper {
         if (!keys.length) {
             return callback(null, result);
         }
-        (new this({items, callback, keys, result, counter: 0})).each();
+        const instance = new this({items, callback, keys, result, counter: 0});
+        instance.each();
     }
 
     // METHOD
@@ -217,8 +227,11 @@ module.exports = class AsyncHelper {
 
     each () {
         const process = err => {
-            if (err || ++this.counter === this.items.length) {
-                this.callback(err);
+            if (err) {
+                return this.callback(err);
+            }
+            if (++this.counter === this.items.length) {
+                return this.callback();
             }
         };
         for (const item of this.items) {
