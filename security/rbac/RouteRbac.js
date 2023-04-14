@@ -55,7 +55,7 @@ module.exports = class RouteRbac extends Base {
             path = path.substring(0, index);
         }
         path = path.toLowerCase();
-        while (!Object.prototype.hasOwnProperty.call(this.routeMap, path)) {
+        while (!Object.hasOwn(this.routeMap, path)) {
             if (path.length < 2) {
                 return null;
             }

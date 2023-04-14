@@ -9,7 +9,7 @@ module.exports = class AssignHelper {
         for (const source of sources) {
             if (this.isExtendable(source)) {
                 for (const key of Object.keys(source)) {
-                    if (!Object.prototype.hasOwnProperty.call(target, key)) {
+                    if (!Object.hasOwn(target, key)) {
                         target[key] = source[key];
                     }
                 }
@@ -52,12 +52,12 @@ module.exports = class AssignHelper {
     }
 
     static _assignProperty (to, from, key) {
-        if (!Object.prototype.hasOwnProperty.call(from, key)) {
+        if (!Object.hasOwn(from, key)) {
             return;
         }
         from = from[key];
         if (this.isExtendable(from)) {
-            to[key] = Object.prototype.hasOwnProperty.call(to, key) && this.isExtendable(to[key])
+            to[key] = Object.hasOwn(to, key) && this.isExtendable(to[key])
                 ? this._assign(to[key], from)
                 : this._assign({}, from);
         } else {
@@ -75,11 +75,11 @@ module.exports = class AssignHelper {
     }
 
     static _assignUndefinedProperty (to, from, key) {
-        if (!Object.prototype.hasOwnProperty.call(from, key)) {
+        if (!Object.hasOwn(from, key)) {
             return;
         }
         from = from[key];
-        if (!Object.prototype.hasOwnProperty.call(to, key)) {
+        if (!Object.hasOwn(to, key)) {
             return to[key] = from;
         }
         to = to[key];

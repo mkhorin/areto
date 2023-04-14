@@ -48,7 +48,7 @@ module.exports = class Model extends Base {
     _validators = null;
 
     has (name) {
-        return Object.prototype.hasOwnProperty.call(this._attrMap, name);
+        return Object.hasOwn(this._attrMap, name);
     }
 
     isAttrActive (name) {
@@ -71,7 +71,7 @@ module.exports = class Model extends Base {
     }
 
     get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
+        if (Object.hasOwn(this._attrMap, name)) {
             return this._attrMap[name];
         }
     }
@@ -152,7 +152,7 @@ module.exports = class Model extends Base {
     setSafeAttrs (data) {
         if (data) {
             for (const name of this.getSafeAttrNames()) {
-                if (Object.prototype.hasOwnProperty.call(data, name)) {
+                if (Object.hasOwn(data, name)) {
                     this.set(name, data[name]);
                 }
             }
@@ -193,7 +193,7 @@ module.exports = class Model extends Base {
         if (!this.hasOwnProperty('_GENERATED_LABELS')) {
             this._GENERATED_LABELS = {...this.ATTR_LABELS};
         }
-        if (!Object.prototype.hasOwnProperty.call(this._GENERATED_LABELS, name)) {
+        if (!Object.hasOwn(this._GENERATED_LABELS, name)) {
             this._GENERATED_LABELS[name] = this.generateAttrLabel(name);
         }
         return this._GENERATED_LABELS[name];
@@ -226,7 +226,7 @@ module.exports = class Model extends Base {
     // VIEW ATTRIBUTES
 
     hasViewAttr (name) {
-        return Object.prototype.hasOwnProperty.call(this._viewAttrMap, name);
+        return Object.hasOwn(this._viewAttrMap, name);
     }
 
     getViewAttr (name) {
@@ -360,7 +360,7 @@ module.exports = class Model extends Base {
 
     hasError (attr) {
         return attr
-            ? Object.prototype.hasOwnProperty.call(this._errorMap, attr)
+            ? Object.hasOwn(this._errorMap, attr)
             : Object.values(this._errorMap).length > 0;
     }
 

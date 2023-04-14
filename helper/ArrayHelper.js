@@ -154,7 +154,7 @@ module.exports = class ArrayHelper {
         const values = [];
         if (Array.isArray(items)) {
             for (const item of items) {
-                if (item && Object.prototype.hasOwnProperty.call(item, key)) {
+                if (item && Object.hasOwn(item, key)) {
                     values.push(item[key]);
                 }
             }

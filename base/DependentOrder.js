@@ -91,7 +91,7 @@ module.exports = class DependentOrder extends Base {
     }
 
     getItem (id) {
-        return Object.prototype.hasOwnProperty.call(this._itemMap, id)
+        return Object.hasOwn(this._itemMap, id)
             ? this._itemMap[id]
             : null;
     }

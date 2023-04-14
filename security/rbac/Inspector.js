@@ -49,7 +49,7 @@ module.exports = class Inspector extends Base {
     }
 
     async checkRule (data) {
-        if (Object.prototype.hasOwnProperty.call(this._ruleCache, data.name)) {
+        if (Object.hasOwn(this._ruleCache, data.name)) {
             return this._ruleCache[data.name];
         }
         const passed = await this.executeRule(data) === true;

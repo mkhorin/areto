@@ -34,7 +34,7 @@ module.exports = class I18n extends Base {
     }
 
     getSource (name) {
-        return Object.prototype.hasOwnProperty.call(this.sources, name)
+        return Object.hasOwn(this.sources, name)
             ? this.sources[name]
             : null;
     }

@@ -25,7 +25,7 @@ module.exports = class FileMap extends Base {
     }
 
     get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._files, name)) {
+        if (Object.hasOwn(this._files, name)) {
             return this._files[name];
         }
     }

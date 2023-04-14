@@ -111,7 +111,7 @@ module.exports = class WebUser extends Base {
     // ACCESS CONTROL
 
     can (permission) {
-        return Object.prototype.hasOwnProperty.call(this._accessMap, permission)
+        return Object.hasOwn(this._accessMap, permission)
             ? this._accessMap[permission]
             : this.resolveAccess(...arguments);
     }

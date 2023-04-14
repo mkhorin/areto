@@ -25,7 +25,7 @@ module.exports = class Behavior extends Base {
     }
 
     hasHandler (eventName) {
-        return Object.prototype.hasOwnProperty.call(this._handlers, eventName);
+        return Object.hasOwn(this._handlers, eventName);
     }
 
     setHandler (eventName, method) {

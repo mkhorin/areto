@@ -37,7 +37,7 @@ module.exports = class MessageSource extends Base {
 
     translate (message, language) {
         const data = this._messages[language];
-        if (data && Object.prototype.hasOwnProperty.call(data, message)) {
+        if (data && Object.hasOwn(data, message)) {
             return data[message];
         }
         return this.parent?.translate(message, language);

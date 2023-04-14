@@ -339,11 +339,11 @@ module.exports = class ActiveQuery extends Base {
             let value = this._multiple ? [] : null;
             if (Array.isArray(key)) {
                 for (const item of key) {
-                    if (Object.prototype.hasOwnProperty.call(buckets, item)) {
+                    if (Object.hasOwn(buckets, item)) {
                         value = value.concat(buckets[item]);
                     }
                 }
-            } else if (Object.prototype.hasOwnProperty.call(buckets, key)) {
+            } else if (Object.hasOwn(buckets, key)) {
                 value = buckets[key];
             }
             if (this._index && Array.isArray(value)) {
@@ -396,7 +396,7 @@ module.exports = class ActiveQuery extends Base {
         for (const model of viaModels) {
             const ref = ObjectHelper.getValueFromGetterFirst(viaRefKey, model);
             const link = ObjectHelper.getValueFromGetterFirst(this.linkKey, model);
-            if (!Object.prototype.hasOwnProperty.call(data, link)) {
+            if (!Object.hasOwn(data, link)) {
                 data[link] = {};
             }
             data[link][ref] = true;

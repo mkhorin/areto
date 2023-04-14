@@ -38,7 +38,7 @@ module.exports = class RegexValidator extends Base {
             throw new Error('Pattern not set');
         }
         if (typeof this.pattern === 'string') {
-            if (!Object.prototype.hasOwnProperty.call(this.PATTERNS, this.pattern)) {
+            if (!Object.hasOwn(this.PATTERNS, this.pattern)) {
                 throw new Error(`Built-in pattern not found: ${this.pattern}`);
             }
             this.pattern = this.PATTERNS[this.pattern];

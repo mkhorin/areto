@@ -43,7 +43,7 @@ module.exports = class QueryHelper {
                 tail = name.substring(pos + 1);
                 name = name.substring(0, pos);
             }
-            if (Object.prototype.hasOwnProperty.call(result, name)) {
+            if (Object.hasOwn(result, name)) {
                 relation = result[name];
             } else {
                 relation = model.getRelation(name);

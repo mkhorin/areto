@@ -23,7 +23,7 @@ module.exports = class MemorySessionStore extends Base {
     }
 
     touch (id, data, callback) {
-        if (Object.prototype.hasOwnProperty.call(this._items, id)) {
+        if (Object.hasOwn(this._items, id)) {
             this._items[id].updatedAt = new Date;
         }
         callback();
@@ -40,7 +40,7 @@ module.exports = class MemorySessionStore extends Base {
     }
 
     getById (id) {
-        return Object.prototype.hasOwnProperty.call(this._items, id)
+        return Object.hasOwn(this._items, id)
             ? this._items[id]
             : null;
     }
@@ -62,7 +62,7 @@ module.exports = class MemorySessionStore extends Base {
     }
 
     deleteById (id) {
-        if (Object.prototype.hasOwnProperty.call(this._items, id)) {
+        if (Object.hasOwn(this._items, id)) {
             delete this._items[id];
         }
     }
@@ -77,7 +77,7 @@ module.exports = class MemorySessionStore extends Base {
     }
 
     isExpired (id) {
-        return Object.prototype.hasOwnProperty.call(this._items, id)
+        return Object.hasOwn(this._items, id)
             ? this.session.isExpired(this._items[id].updatedAt)
             : true;
     }

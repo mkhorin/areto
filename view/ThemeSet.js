@@ -30,7 +30,7 @@ module.exports = class ThemeSet extends Base {
     }
 
     has (name) {
-        return Object.prototype.hasOwnProperty.call(this._themes, name);
+        return Object.hasOwn(this._themes, name);
     }
 
     get (name) {

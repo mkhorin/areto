@@ -25,7 +25,7 @@ module.exports = class AssetManager extends Base {
     }
 
     hasBundle (name) {
-        return Object.prototype.hasOwnProperty.call(this._bundleMap, name);
+        return Object.hasOwn(this._bundleMap, name);
     }
 
     getBundle (name) {

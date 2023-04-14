@@ -72,7 +72,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     get (name) {
-        if (Object.prototype.hasOwnProperty.call(this._attrMap, name)) {
+        if (Object.hasOwn(this._attrMap, name)) {
             return this._attrMap[name];
         }
         if (typeof name !== 'string') {
@@ -98,7 +98,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     getOldAttr (name) {
-        if (Object.prototype.hasOwnProperty.call(this._oldAttrMap, name)) {
+        if (Object.hasOwn(this._oldAttrMap, name)) {
             return this._oldAttrMap[name];
         }
     }
@@ -162,7 +162,7 @@ module.exports = class ActiveRecord extends Base {
     filterAttrs () {
         const result = {};
         for (const key of this.ATTRS) {
-            if (Object.prototype.hasOwnProperty.call(this._attrMap, key)) {
+            if (Object.hasOwn(this._attrMap, key)) {
                 result[key] = this._attrMap[key];
             }
         }
@@ -276,7 +276,7 @@ module.exports = class ActiveRecord extends Base {
     }
 
     isRelationPopulated (name) {
-        return Object.prototype.hasOwnProperty.call(this._related, name);
+        return Object.hasOwn(this._related, name);
     }
 
     getRelated (name) {

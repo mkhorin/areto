@@ -92,7 +92,7 @@ module.exports = class Forwarder extends Base {
     // CACHE
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._cache, key)
+        return Object.hasOwn(this._cache, key)
             ? this._cache[key]
             : null;
     }

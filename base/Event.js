@@ -21,7 +21,7 @@ module.exports = class Event extends Base {
         if (typeof handler !== 'function') {
             throw new Error('Invalid event handler');
         }
-        if (!Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
+        if (!Object.hasOwn(this._eventMap, name)) {
             this._eventMap[name] = {};
         }
         const targetMap = this._eventMap[name];
@@ -79,7 +79,7 @@ module.exports = class Event extends Base {
     }
 
     static trigger (sender, name, event, items = []) {
-        if (Object.prototype.hasOwnProperty.call(this._eventMap, name)) {
+        if (Object.hasOwn(this._eventMap, name)) {
             const Class = typeof sender !== 'function' ? sender.constructor : sender;
             if (!Class.CLASS_FILE) {
                 throw new Error('Invalid event sender');
@@ -122,7 +122,7 @@ module.exports = class Event extends Base {
     }
 
     static hasHandlerByName (name) {
-        return Object.prototype.hasOwnProperty.call(this._eventMap, name);
+        return Object.hasOwn(this._eventMap, name);
     }
 
     static hasHandlerByTarget (target, name) {

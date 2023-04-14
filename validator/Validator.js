@@ -43,7 +43,7 @@ module.exports = class Validator extends Base {
 
     static createValidator (type, model, attrs, config = {}) {
         let Class = type;
-        if (Object.prototype.hasOwnProperty.call(this.BUILTIN, type)) {
+        if (Object.hasOwn(this.BUILTIN, type)) {
             Class = this.BUILTIN[type];
         } else if (typeof type === 'function' || typeof model[type] === 'function') {
             if (!(Class.prototype instanceof Validator)) {

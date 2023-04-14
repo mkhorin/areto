@@ -14,7 +14,7 @@ module.exports = class MemoryRateLimitStore extends Base {
     _data = {};
 
     hasType (type) {
-        return Object.prototype.hasOwnProperty.call(this._data, type);
+        return Object.hasOwn(this._data, type);
     }
 
     async find (type, user) {

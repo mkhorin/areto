@@ -91,7 +91,7 @@ module.exports = class MysqlBuilder extends Base {
         if (!Array.isArray(data)) {
             return this.buildHashCondition(data);
         }
-        return Object.prototype.hasOwnProperty.call(this.CONDITION_METHODS, data[0])
+        return Object.hasOwn(this.CONDITION_METHODS, data[0])
             ? this[this.CONDITION_METHODS[data[0]]](...data)
             : this.buildSimpleCondition(...data);
     }
@@ -117,7 +117,7 @@ module.exports = class MysqlBuilder extends Base {
     }
 
     buildSimpleCondition (operator, field, value) {
-        if (!Object.prototype.hasOwnProperty.call(this.SIMPLE_OPERATORS, operator)) {
+        if (!Object.hasOwn(this.SIMPLE_OPERATORS, operator)) {
             throw new Error('Invalid simple operator');
         }
         field = this.normalizeField(field);

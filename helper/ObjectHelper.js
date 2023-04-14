@@ -6,7 +6,7 @@
 module.exports = class ObjectHelper {
 
     static getValue (key, data, defaults) {
-        return data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : defaults;
+        return data && Object.hasOwn(data, key) ? data[key] : defaults;
     }
 
     static getValueOrKey (key, data) {
@@ -42,7 +42,7 @@ module.exports = class ObjectHelper {
         if (typeof data.get === 'function') {
             return data.get(key);
         }
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (Object.hasOwn(data, key)) {
             return data[key];
         }
     }
@@ -75,7 +75,7 @@ module.exports = class ObjectHelper {
         const result = {};
         if (data && Array.isArray(keys)) {
             for (const key of keys) {
-                if (Object.prototype.hasOwnProperty.call(data, key)) {
+                if (Object.hasOwn(data, key)) {
                     result[key] = data[key];
                 }
             }
@@ -106,7 +106,7 @@ module.exports = class ObjectHelper {
     static replaceKeys (keys, data) {
         if (keys && data) {
             for (const key of Object.keys(data)) {
-                if (Object.prototype.hasOwnProperty.call(keys, key)) {
+                if (Object.hasOwn(keys, key)) {
                     if (key !== keys[key]) {
                         data[keys[key]] = data[key];
                         delete data[key];
@@ -189,7 +189,7 @@ module.exports = class ObjectHelper {
     static deleteProperties (names, data) {
         if (Array.isArray(names) && data) {
             for (const name of names) {
-                if (Object.prototype.hasOwnProperty.call(data, name)) {
+                if (Object.hasOwn(data, name)) {
                     delete data[name];
                 }
             }

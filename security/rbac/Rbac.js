@@ -93,7 +93,7 @@ module.exports = class Rbac extends Base {
     }
 
     resolveRuleByData (data) {
-        const rule = Object.prototype.hasOwnProperty.call(this.ruleMap, data)
+        const rule = Object.hasOwn(this.ruleMap, data)
             ? this.ruleMap[data]
             : ClassHelper.normalizeSpawn(data);
         return typeof rule.Class === 'function' ? rule : null;
@@ -117,7 +117,7 @@ module.exports = class Rbac extends Base {
     }
 
     getItem (id) {
-        return Object.prototype.hasOwnProperty.call(this.itemMap, id)
+        return Object.hasOwn(this.itemMap, id)
             ? this.itemMap[id]
             : null;
     }
@@ -129,7 +129,7 @@ module.exports = class Rbac extends Base {
     }
 
     getUserAssignments (userId) {
-        return Object.prototype.hasOwnProperty.call(this.assignmentMap, userId)
+        return Object.hasOwn(this.assignmentMap, userId)
             ? this.assignmentMap[userId]
             : null;
     }
@@ -141,7 +141,7 @@ module.exports = class Rbac extends Base {
         }
         const inspector = this.spawn(this.Inspector, {rbac: this, params});
         for (const assignment of assignments) {
-            if (Object.prototype.hasOwnProperty.call(this.itemMap, assignment)) {
+            if (Object.hasOwn(this.itemMap, assignment)) {
                 inspector.assignment = this.itemMap[assignment];
                 if (await inspector.execute(item)) {
                     return true;

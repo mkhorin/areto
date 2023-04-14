@@ -18,13 +18,13 @@ module.exports = class ClassMapper extends Base {
     }
 
     get (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key)
+        return Object.hasOwn(this._data, key)
             ? this._data[key]
             : this._parent?.get(key);
     }
 
     getOwn (key) {
-        return Object.prototype.hasOwnProperty.call(this._data, key)
+        return Object.hasOwn(this._data, key)
             ? this._data[key]
             : null;
     }

@@ -9,7 +9,7 @@ module.exports = class NestedHelper {
         if (!data || typeof key !== 'string') {
             return defaults;
         }
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (Object.hasOwn(data, key)) {
             return data[key];
         }
         const index = key.indexOf('.');
@@ -17,7 +17,7 @@ module.exports = class NestedHelper {
             return defaults;
         }
         const token = key.substring(0, index);
-        if (!Object.prototype.hasOwnProperty.call(data, token)) {
+        if (!Object.hasOwn(data, token)) {
             return defaults;
         }
         key = key.substring(index + 1);
@@ -34,7 +34,7 @@ module.exports = class NestedHelper {
         if (!data || typeof key !== 'string') {
             return defaults;
         }
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (Object.hasOwn(data, key)) {
             return data[key];
         }
         const index = key.indexOf('.');
@@ -42,7 +42,7 @@ module.exports = class NestedHelper {
             return defaults;
         }
         const token = key.substring(0, index);
-        if (!Object.prototype.hasOwnProperty.call(data, token)) {
+        if (!Object.hasOwn(data, token)) {
             return defaults;
         }
         key = key.substring(index + 1);

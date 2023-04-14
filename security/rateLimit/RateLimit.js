@@ -59,11 +59,11 @@ module.exports = class RateLimit extends Base {
         if (!this.types) {
             return this[name];
         }
-        if (!Object.prototype.hasOwnProperty.call(this.types, type)) {
+        if (!Object.hasOwn(this.types, type)) {
             return this[name];
         }
         type = this.types[type];
-        if (type && Object.prototype.hasOwnProperty.call(type, name)) {
+        if (type && Object.hasOwn(type, name)) {
             return type[name];
         }
         return this[name];

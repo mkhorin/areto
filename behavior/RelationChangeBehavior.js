@@ -33,7 +33,7 @@ module.exports = class RelationChangeBehavior extends Base {
     }
 
     getChanges (name) {
-        return Object.prototype.hasOwnProperty.call(this._changes, name)
+        return Object.hasOwn(this._changes, name)
             ? this._changes[name]
             : null;
     }

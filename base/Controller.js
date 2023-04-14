@@ -190,7 +190,7 @@ module.exports = class Controller extends Base {
     }
 
     createMappedAction (name) {
-        if (Object.prototype.hasOwnProperty.call(this.ACTIONS, name)) {
+        if (Object.hasOwn(this.ACTIONS, name)) {
             return this.spawn(this.ACTIONS[name], {
                 controller: this,
                 name
