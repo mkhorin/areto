@@ -10,6 +10,7 @@ module.exports = class MessageSource extends Base {
     /**
      * @param {Object} config
      * @param {boolean} config.forceTranslation - Translate source language
+     * @param {string} config.sourceLanguage - language of key messages of translations
      */
     constructor (config) {
         super({
@@ -29,7 +30,7 @@ module.exports = class MessageSource extends Base {
         if (parent) {
             this.forceTranslationParent = parent.forceTranslation
                 ? parent
-                : parent.forceTranslationParent
+                : parent.forceTranslationParent;
         } else {
             this.forceTranslationParent = null;
         }

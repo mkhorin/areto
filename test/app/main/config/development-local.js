@@ -13,7 +13,6 @@ module.exports = {
                 user: '',
                 password: '',
                 options: {
-                    keepAlive: true,
                     useNewUrlParser: true
                 }
             }

@@ -15,11 +15,17 @@ module.exports = class I18n extends Base {
         };
     }
 
+    /**
+     * @param {Object} config
+     * @param {string} config.language - Default app language
+     * @param {string} config.sourceLanguage - Language of key messages of translations
+     * @param {Object} config.sources - Configuration of message sources
+     */
     constructor (config) {
         const parent = config.parent;
         super({
-            language: parent ? parent.language : 'en',
-            sourceLanguage: parent ? parent.sourceLanguage : 'en',
+            language: parent?.language || 'en',
+            sourceLanguage: parent?.sourceLanguage || 'en',
             sources: {},
             MessageFormatter,
             ...config
@@ -140,7 +146,9 @@ module.exports = class I18n extends Base {
             result = source.forceTranslationParent.translate(message, language);
         }
         message = result || message;
-        return params ? this.format(message, params, language) : message;
+        return params
+            ? this.format(message, params, language)
+            : message;
     }
 
     translateMessage (message) {

@@ -19,7 +19,6 @@ module.exports = class MongoDatabase extends Base {
             ...config
         });
         this.settings.options = {
-            keepAlive: true,
             readPreference: 'primary',
             useNewUrlParser: true,
             useUnifiedTopology: true,
