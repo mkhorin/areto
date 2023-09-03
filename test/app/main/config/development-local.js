@@ -12,9 +12,7 @@ module.exports = {
                 port: 27017,
                 user: '',
                 password: '',
-                options: {
-                    useNewUrlParser: true
-                }
+                options: {}
             }
         }
     }

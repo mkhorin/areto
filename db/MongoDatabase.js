@@ -20,8 +20,6 @@ module.exports = class MongoDatabase extends Base {
         });
         this.settings.options = {
             readPreference: 'primary',
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
             ...this.settings.options
         };
         this._tableMap = {};
