@@ -26,7 +26,8 @@ module.exports = class MongoDatabase extends Base {
     }
 
     async openConnection () {
-        this._client = await this.client.connect(this.getUri(true), this.settings.options);
+        const uri = this.getUri(true);
+        this._client = await this.client.connect(uri, this.settings.options);
         return this._client.db();
     }
 
