@@ -21,8 +21,8 @@ module.exports = class WebUser extends Base {
         return this.auth.enableSession;
     }
 
-    getTitle (defaults = '[guest]') {
-        return this.identity ? this.identity.getTitle() : defaults;
+    getTitle (guest = '[guest]') {
+        return this.identity ? this.identity.getTitle() : guest;
     }
 
     getId () {
