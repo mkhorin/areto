@@ -96,21 +96,21 @@ module.exports = class Pagination extends Base {
     }
 
     getLinks () {
-        const currentPage = this.page;
+        const {page} = this;
         const pageCount = this.getPageCount();
         const links = {
-            [this.LINK_SELF]: this.createUrl(currentPage)
+            [this.LINK_SELF]: this.createUrl(page)
         };
-        if (currentPage > 0) {
-            links[this.LINK_PREV] = this.createUrl(currentPage - 1);
+        if (page > 0) {
+            links[this.LINK_PREV] = this.createUrl(page - 1);
         }
-        if (currentPage > 1) {
+        if (page > 1) {
             links[this.LINK_FIRST] = this.createUrl(0);
         }
-        if (currentPage < pageCount - 1) {
-            links[this.LINK_NEXT] = this.createUrl(currentPage + 1);
+        if (page < pageCount - 1) {
+            links[this.LINK_NEXT] = this.createUrl(page + 1);
         }
-        if (currentPage < pageCount - 2) {
+        if (page < pageCount - 2) {
             links[this.LINK_LAST] = this.createUrl(pageCount - 1);
         }
         return links;

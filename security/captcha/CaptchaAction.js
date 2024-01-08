@@ -46,7 +46,7 @@ module.exports = class Captcha extends Base {
         if (this.fixedVerifyCode !== null) {
             return this.fixedVerifyCode;
         }
-        const session = this.controller.req.session;
+        const {session} = this.controller.req;
         const name = this.getSessionKey();
         if (!session[name] || renew) {
             session[name] = this.generateVerifyCode();

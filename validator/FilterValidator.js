@@ -27,7 +27,7 @@ module.exports = class FilterValidator extends Base {
     }
 
     prepareFilter () {
-        let method = this.method;
+        let {method} = this;
         if (method === null) {
             throw new Error('Method property must be set');
         }

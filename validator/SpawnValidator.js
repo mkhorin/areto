@@ -39,7 +39,7 @@ module.exports = class SpawnValidator extends Base {
     }
 
     validateClass (value, attr, model) {
-        let Class = value.Class;
+        let {Class} = value;
         if (typeof Class === 'string') {
             try {
                 Class = this.module.app.require(Class) || require(Class);

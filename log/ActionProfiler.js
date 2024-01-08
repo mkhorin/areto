@@ -34,7 +34,7 @@ module.exports = class ActionProfiler extends Base {
     }
 
     end (event) {
-        const controller = event.action.controller;
+        const {controller} = event.action;
         const time = Date.now() - controller.res.locals.startActionTimeProfiler;
         if (time >= this.threshold) {
             const message = this.formatTime(time, controller);
@@ -43,8 +43,7 @@ module.exports = class ActionProfiler extends Base {
     }
 
     formatTime (time, controller) {
-        const code = controller.response.code;
-        const method = controller.response.method;
+        const {code, method} = controller.response;
         const url = controller.getOriginalUrl();
         return `${code} ${method} ${time} ms ${url}`;
     }

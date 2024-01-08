@@ -55,7 +55,7 @@ module.exports = class AccessRule extends Base {
             return true;
         }
         const permissions = [];
-        const user = action.user;
+        const {user} = action;
         for (const item of this.permissions) {
             if (item === '?') {
                 return user.isGuest();

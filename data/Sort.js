@@ -104,7 +104,7 @@ module.exports = class Sort extends Base {
         }
         const url = this.createUrl(attr);
         options['data-sort'] = this.createSortParam(attr);
-        let label = options.label;
+        let {label} = options;
         if (label) {
             delete options.label;
         } else if (this.attrs[attr].label) {

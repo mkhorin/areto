@@ -87,7 +87,7 @@ module.exports = class ActionView extends Base {
     }
 
     renderTemplate (template, params) {
-        const app = this.controller.res.app;
+        const {app} = this.controller.res;
         return PromiseHelper.promise(app.render, app, template, params);
     }
 

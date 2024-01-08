@@ -131,7 +131,7 @@ module.exports = class SessionStore extends Base {
 };
 
 const session = require('express-session');
-const Store = session.Store;
+const {Store} = session;
 const PromiseHelper = require('../../helper/PromiseHelper');
 
 Object.assign(module.exports.prototype, Object.getPrototypeOf(Store.prototype));

@@ -38,7 +38,7 @@ module.exports = class UrlValidator extends Base {
         if (this.defaultScheme !== null && !value.includes('://')) {
             value = `${this.defaultScheme}://${value}`;
         }
-        let pattern = this.pattern;
+        let {pattern} = this;
         if (pattern.includes('{schemes}')) {
             let schemes = this.validSchemes.join('|');
             pattern = pattern.replace('{schemes}', `(${schemes})`);

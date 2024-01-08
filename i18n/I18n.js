@@ -22,7 +22,7 @@ module.exports = class I18n extends Base {
      * @param {Object} config.sources - Configuration of message sources
      */
     constructor (config) {
-        const parent = config.parent;
+        const {parent} = config;
         super({
             language: parent?.language || 'en',
             sourceLanguage: parent?.sourceLanguage || 'en',

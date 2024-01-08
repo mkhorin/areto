@@ -59,7 +59,7 @@ module.exports = class Router extends Base {
     getInheritedControllerMap (module) {
         const dir = module.getControllerDirectory();
         const data = this.getControllerMap(dir);
-        const original = module.original;
+        const {original} = module;
         if (!original) {
             return data;
         }
@@ -138,7 +138,7 @@ module.exports = class Router extends Base {
 
     addAction (name, Controller, route) {
         const action = (req, res, next) => {
-            const module = res.locals.module;
+            const {module} = res.locals;
             this.createController(Controller, {req, res, module})
                 .execute(name)
                 .catch(next);
@@ -154,7 +154,7 @@ module.exports = class Router extends Base {
 
     addErrorHandlers (config) {
         const Controller = this.getController(config.controller) || this.getDefaultController();
-        const module = this.module;
+        const {module} = this;
         module.addHandler('all', '*', (req, res, next) => next(new NotFound));
         module.addHandler('use', (err, req, res, next) => {
             if (!(err instanceof HttpException)) {

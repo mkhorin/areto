@@ -33,7 +33,7 @@ module.exports = class ActiveDataProvider extends Base {
 
     prepareSort () {
         if (this.sort) {
-            const model = this.query.model;
+            const {model} = this.query;
             const names = Object.keys(this.sort.attrs);
             names.length
                 ? this.setSortByNames(names, model)

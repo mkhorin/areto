@@ -16,7 +16,7 @@ module.exports = class InlineValidator extends Base {
     }
 
     validateAttr (attr, model) {
-        const method = this.method;
+        const {method} = this;
         return typeof method === 'string'
             ? model[method](attr, this.params)
             : method.call(model, attr, model, this.params);

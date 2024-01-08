@@ -101,7 +101,7 @@ module.exports = class Response extends Base {
     }
 
     end () {
-        const res = this.controller.res;
+        const {res} = this.controller;
         if (res.headersSent) {
             const {method, originalUrl} = this.controller.req;
             const message = `Headers already sent: ${method}: ${originalUrl}`;

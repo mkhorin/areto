@@ -28,7 +28,7 @@ module.exports = class RouteRbac extends Base {
     }
 
     handleRoute (req, res, next) {
-        const user = res.locals.user;
+        const {user} = res.locals;
         const item = this.getRouteItemByPath(req.path);
         if (!item || !user) {
             return next();
