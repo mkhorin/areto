@@ -7,30 +7,16 @@ const Base = require('../base/Component');
 
 module.exports = class UrlManager extends Base {
 
-    constructor (config) {
-        super({
-            forwarder: 'forwarder',
-            ...config
-        })
+    init () {
+        this.serverAddress = this.module.params.serverAddress;
     }
 
-    init () {
-        this.forwarder = this.module.get(this.forwarder);
-        this.serverAddress = this.module.params.serverAddress;
+    resolve () {
+        return this.create(...arguments);
     }
 
     resolveAbsolute () {
         return this.serverAddress + this.resolve(...arguments);
-    }
-
-    resolve () {
-        return this.forward(this.create(...arguments));
-    }
-
-    forward (url) {
-        return this.forwarder
-            ? this.forwarder.resolve(url)
-            : url;
     }
 
     createAbsolute () {
@@ -38,11 +24,11 @@ module.exports = class UrlManager extends Base {
     }
 
     /**
-     * action - relative to controller
-     * controller/action - relative to module
      * /module/controller/action - relative to app
-     * @param data - ['action', { k1: param1, k2: param2 }]
-     * @param root - Controller or module name
+     * controller/action - relative to module
+     * action - relative to controller
+     * @param {string|Array} data - ['action', { k1: param1, k2: param2 }]
+     * @param {string} root - Controller or module name
      */
     create (data, root) {
         let params;
@@ -58,7 +44,7 @@ module.exports = class UrlManager extends Base {
             if (root !== '/' && data.substring(0, root.length) !== root) {
                 data = root + data;
             }
-        } else if (data.substring(0, 4) !== 'http') { // relative to module
+        } else if (data.indexOf('http') !== 0) { // relative to module
             data = this.module.getRoute(data);
         }
         if (!params || typeof params !== 'object') {

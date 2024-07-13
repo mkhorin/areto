@@ -7,104 +7,70 @@ const Base = require('../base/Component');
 
 module.exports = class Forwarder extends Base {
 
+    _items = [];
+
+    /**
+     * @param {Object} config
+     * @param {Object} config.items - Forwarding list: [source]: [target]
+     */
     constructor (config) {
         super({
             items: {},
-            Url: require('./Url'),
+            Item: ForwarderItem,
             ...config
         });
-        this.clear();
     }
 
     init () {
-        this.createItems();
+        this._items = this.createItems();
         if (!this.isEmpty()) {
-            this.module.addHandler('use', this.forward.bind(this));
+            this.module.addHandler('use', this.redirect.bind(this));
         }
     }
 
     isEmpty () {
-        return this._urls.length === 0;
+        return this._items.length === 0;
     }
 
     createItems () {
-        this._urls = [];
-        for (const source of Object.keys(this.items)) {
-            let data = this.items[source];
-            data = data instanceof Object ? data : {target: data};
-            data.source = source;
-            this._urls.push(ClassHelper.spawn(this.Url, data));
-            this.log('trace', `forward ${data.source} to ${data.target}`);
+        const items = [];
+        for (const key of Object.keys(this.items)) {
+            const item = this.createItem(key, this.items[key]);
+            items.push(item);
+            this.log('info', item.getCreationMessage());
         }
+        return items;
     }
 
-    forward (req, res, next) {
-        const data = this.resolvePath(req.path, req.method);
+    createItem (source, target) {
+        const params = target.target ? {...target} : {target};
+        if (!params.source) {
+            params.source = source;
+        }
+        return ClassHelper.spawn(this.Item, params);
+    }
+
+    redirect (req, res, next) {
+        const data = this.resolveTarget(req.path, req.method);
         if (!data) {
             return next();
         }
-        this.log('trace', `forward ${req.path} to ${data.path}`, data.params);
-        Object.assign(req.query, data.params);
-        req.url = data.path;
+        const {path, params} = data;
+        this.log('trace', `Redirect ${req.path} to ${path}`, params);
+        Object.assign(req.query, params);
+        req.url = path;
         next();
     }
 
-    resolve (url) {
-        let newUrl = this.get(url);
-        if (newUrl) {
-            return newUrl;
-        }
-        newUrl = this.createSourceUrl(UrlHelper.parse(url));
-        if (!newUrl && this.module.parent) {
-            newUrl = this.module.parent.resolveUrl(url);
-        }
-        this.set(url, newUrl);
-        return newUrl;
-    }
-
-    resolvePath (path, method) {
-        for (const url of this._urls) {
-            const data = url.resolve(path, method);
+    resolveTarget (path, method) {
+        for (const item of this._items) {
+            const data = item.resolveTarget(path, method);
             if (data) {
                 return data;
             }
         }
-        return null;
-    }
-
-    createSourceUrl (data) {
-        const route = this.module.getRouteName();
-        const index = data.segments.indexOf(route) + 1;
-        data.path = index > 0
-            ? `/${data.segments.slice(index).join('/')}`
-            : `/${data.segments.join('/')}`;
-        for (let url of this._urls) {
-            url = url.createSourceUrl(data);
-            if (url) {
-                return index > 0
-                    ? `/${data.segments.slice(0, index).join('/')}${url}`
-                    : url;
-            }
-        }
-        return null;
-    }
-
-    // CACHE
-
-    get (key) {
-        return Object.hasOwn(this._cache, key)
-            ? this._cache[key]
-            : null;
-    }
-
-    set (key, value) {
-        this._cache[key] = value;
-    }
-
-    clear () {
-        this._cache = {};
     }
 };
 
 const ClassHelper = require('../helper/ClassHelper');
-const UrlHelper = require('../helper/UrlHelper');
+const ForwarderItem = require('./ForwarderItem');
