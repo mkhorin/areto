@@ -31,7 +31,9 @@ module.exports = class DatabaseSessionStore extends Base {
     }
 
     touch (id, data, callback) {
-        PromiseHelper.callback(this.findById(id).update({updatedAt: new Date}), callback);
+        PromiseHelper.callback(this.findById(id).update({
+            updatedAt: new Date
+        }), callback);
     }
 
     destroy (id, callback) {

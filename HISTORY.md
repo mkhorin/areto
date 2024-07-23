@@ -1,3 +1,17 @@
+## 3.7.0
+
+* web/Forwarder
+    - refactored forwarding component
+* fix code formatting
+* upgrade dependencies
+
+## 3.6.0
+
+* helper/ArrayHelper
+    - add array comparison
+* fix code formatting
+* upgrade dependencies
+
 ## 3.5.0
 
 * db/MongoDatabase

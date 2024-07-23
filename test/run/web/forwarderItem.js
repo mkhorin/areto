@@ -25,7 +25,7 @@ describe('ForwarderItem', ()=> {
 
     it('customHandler', () => {
         const item = new Item({
-            source: '/adam/:action',
+            source: ['/adam/:action', {strict: true}],
             target: (data, params) => {
                 return `/bob/${params.action}`;
             }
