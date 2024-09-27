@@ -16,7 +16,9 @@ module.exports = class ForwarderItem extends Base {
      */
     constructor (config) {
         super(config);
-        this.sourceRegex = this.createRegex(this.source);
+        const {regexp, keys} = this.createRegex(this.source);
+        this.sourceRegex = regexp;
+        this.sourceKeys = keys;
         this.createTargetHandler(this.target);
     }
 
@@ -52,7 +54,7 @@ module.exports = class ForwarderItem extends Base {
         }
         const params = {
             ...this.targetParams,
-            ...this.getParams(data, this.sourceRegex)
+            ...this.getParams(data, this.sourceKeys)
         };
         const path = this.customTargetHandler
             ? this.customTargetHandler(data, params)
@@ -60,7 +62,7 @@ module.exports = class ForwarderItem extends Base {
         return {path, params};
     }
 
-    getParams (data, {keys}) {
+    getParams (data, keys) {
         const params = {};
         for (let i = 0; i < keys.length; ++i) {
             params[keys[i].name] = data[i + 1];
